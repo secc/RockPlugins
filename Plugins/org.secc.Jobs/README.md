@@ -37,7 +37,7 @@ Rock job attributes (read from the `JobDataMap`).
 
 | Job (class) | Purpose | Key settings |
 |-------------|---------|--------------|
-| `CloseDeseasedPastoralWorkflows` | Close pastoral-care workflows for people now marked deceased. | Hospital Admission / Nursing Home Resident / Homebound Person workflow types |
+| `CloseDeseasedPastoralWorkflows` | Close Active pastoral-care workflows whose person is marked deceased (see [below](#closedeseasedpastoralworkflows)). | Hospital Admission / Nursing Home Resident / Homebound Person workflow types |
 | `CompleteWorkflows` | Bulk-close workflows of the selected type(s) past an expiration age. | Workflow Types, Close Status, Expiration Age, Expiration Calc Last Used |
 | `DisableCommunicationsForInactivePeople` | Turn off email/SMS for inactive people; snapshot original prefs to a DefinedType. | Inactive Person Communication Overrides Defined Type, Lookback Days, Dry Run |
 | `RestoreCommunicationsForReactivatedPeople` | Restore email/SMS prefs for re-activated people from the stored snapshots. | Inactive Person Communication Overrides Defined Type, Dry Run |
@@ -55,6 +55,25 @@ Rock job attributes (read from the `JobDataMap`).
 | `Event.CopyCommunityGivesBackSchools` | Copy Community Gives Back school records into a new campaign. | Destination Campaign Name, Source Campaign, Copy Inactive Schools |
 | `Event.CampPlacementImportBackgroundJob` | Background runner for a camp-placement CSV import (driven by a `RunId`). | RunId (passed via JobDataMap, not a job attribute) |
 | `Rock13.PhoneNumberCleanup` | Clean up duplicate phone-number types (Rock v13). **Note: not in the `.csproj` `<Compile>` list, so it is not currently built.** | (none) |
+
+### CloseDeseasedPastoralWorkflows
+
+- **Selection:** Active, not-yet-completed workflows of the three configured types whose `PersonToVisit` /
+  `HomeboundPerson` attribute points to a person with `IsDeceased` set.
+- **Closing:** each workflow is re-fetched and saved in its own `RockContext`, after re-checking it is still
+  Active and not completed. Its open activities are marked complete (already-completed activities keep their
+  original completion times), then the workflow is set to `Completed`. A failed save is written to the
+  Exception Log and the job keeps going, finishing as a warning. A save cancelled by a workflow trigger is
+  not counted as closed.
+- **Audit:** every workflow the job closes gets the WorkflowLog entry
+  `Closed by CloseDeseasedPastoralWorkflows: person is deceased.`, even when the workflow type's logging
+  level is None. The job result lists the closed workflow Ids.
+- **Reopened workflows:** a workflow that already has that log entry was closed by this job and then reopened
+  by staff (the PastoralCare list blocks' **Reopen** button), so the job leaves it open. A workflow reopened
+  before the job ever closed it is closed once.
+- **First run after the 2026-10 fix:** before then the job reported closures but never saved them, so the
+  first run completes the whole backlog of qualifying workflows, not just recent ones. Count them before the
+  first scheduled run if the size matters.
 
 ### Migrations-driven data
 
@@ -114,3 +133,5 @@ Ships Rock plugin migrations under `/Migrations/`:
 - Related: the pastoral workflows closed by `CloseDeseasedPastoralWorkflows` are installed by
   [org.secc.PastoralCare](../org.secc.PastoralCare/README.md); attendance utilities live in
   [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md).
+
+Last updated: 2026-10-09

@@ -1,12 +1,12 @@
 # org.secc.Rest
 
-> Custom Rock REST controllers for SECC's apps — account/SMS login, the Groups mobile app, content-channel/sermon feeds, person matching, and financial-statement data.
+> Custom Rock REST controllers for SECC's apps — account/SMS login, the Groups mobile app, content-channel/sermon feeds, and financial-statement data.
 
 > **Doc tier: deep.** This is an externally-facing API surface (several endpoints back native/mobile apps and OAuth clients), with non-trivial auth contracts that differ per controller — so it's documented at the deeper tier (per-endpoint reference, auth model, request/response shapes, extending). Most SECC plugins use the lighter standard tier.
 
 ## Overview
 
-This plugin adds Web API controllers to Rock that aren't part of core. They fall into a few groups: **Account / Security** endpoints that back OAuth-client account creation and SMS/forgot-password login flows; the **GroupApp** family that powers SECC's Groups mobile app (group list, members, attendance/self-check-in, schedule and location editing, leader communication); read-only **content feeds** (`ChannelItems`, `SermonFeed`); and a few **extension** controllers (`People/MatchOrCreatePerson`, `GroupMembers/OData`, `Groups` photo upload, `FinancialTransactions` contribution data). Controllers are discovered by Rock's standard Web API routing; one (`SecurityController`) maps its own session-enabled routes.
+This plugin adds Web API controllers to Rock that aren't part of core. They fall into a few groups: **Account / Security** endpoints that back OAuth-client account creation and SMS/forgot-password login flows; the **GroupApp** family that powers SECC's Groups mobile app (group list, members, attendance/self-check-in, schedule and location editing, leader communication); read-only **content feeds** (`ChannelItems`, `SermonFeed`); and an **extension** controller for `FinancialTransactions` contribution data. Controllers are discovered by Rock's standard Web API routing; one (`SecurityController`) maps its own session-enabled routes.
 
 ## Project Info
 
@@ -48,7 +48,7 @@ flowchart TD
 ```
 
 **Auth models in use (they are not uniform — confirm per endpoint):**
-- **`[Authenticate, Secured]`** — Rock's filter pair: authenticates the caller and checks entity-level security on the controller action. Used by the extension controllers.
+- **`[Authenticate, Secured]`** — Rock's filter pair: authenticates the caller and checks entity-level security on the controller action. Used by `FinancialTransactionsExtensionsController`.
 - **`[Authorize]` + OAuth client gate** — `AccountController` resolves the ASP.NET identity name as an OAuth API key via `ClientService.GetByApiKey(...)` and requires `client.Active`. Backs OAuth-client app flows.
 - **`UserLoginService.GetCurrentUser()`** — the GroupApp controllers have **no auth attribute**; they call `GetCurrentUser()` and return `401` if null, then do their own per-group leader/member checks (`group.IsAuthorized`, group-member role queries) before acting.
 - **`GetPerson()` + `IsAuthorized(VIEW, ...)`** — the content feeds resolve the caller's person and check VIEW on the content channel.
@@ -96,11 +96,8 @@ All require a logged-in user (`GetCurrentUser`, else `401`) and apply per-group 
 | `api/ChannelItems/{contentChannelId}[/{tag}]` | GET | content-channel VIEW | Paged content-channel items with attributes, tags, child/parent ids; query-string keys filter on attribute values. |
 | `api/ChannelItem/{identifier}` | GET | content-channel VIEW | One item by id or slug. |
 | `api/sermonfeed/[{slug}/]` | GET | none declared | Speaker-filtered sermon series feed (1-hour `RockCache`). Hardcodes content-channel ids (24/23) and the Speaker attribute id (30285). |
-| `api/People/MatchOrCreatePerson` | POST | `[Authenticate, Secured]` | Match a person via [PersonMatch](../org.secc.PersonMatch/README.md); add if none, return the id. |
-| `api/GroupMembers/OData` | GET | `[Authenticate, Secured]` | OData query over `GroupMember` with expand support (math functions only). |
-| `api/Groups/GetPhoto/{id}` | GET | `[Authenticate, Secured]` | URL of the group's `GroupPhoto` attribute binary file. |
-| `api/Groups/UploadPhoto/{id}` | POST | `[Authenticate, Secured]` + binary-file-type EDIT | Upload/replace the group's `GroupPhoto`. |
 | `api/secc/FinancialTransactions/GetContributionTransactions/{groupId}[/{personId}]` | POST | `[Authenticate, Secured]` | Build a `DataSet` of contribution transactions (cash only) for a giving group or person. |
+| `api/People/MatchOrCreatePerson` | POST | none | **Retired** (ROCK-8827). Always returns `410 Gone`. The stub stays so the URL doesn't fall through to Rock's `DefaultApiPost` route and core `PeopleController.Post`, which ignores the old `{ person, location }` body and creates a blank person and family on every call. *(RetiredEndpointsController)* |
 
 ## Detailed Reference
 
@@ -148,9 +145,9 @@ Returns a nested `DataSet` (transactions + per-account details), filtered to the
 
 ## Dependencies & Integrations
 
-- **Rock:** `Rock.Rest` (`ApiControllerBase`, `IHasCustomHttpRoutes`, `[Authenticate]`/`[Secured]` filters), Web API + OData, `RockContext` and many services (Person, Group, GroupMember, Attendance, Communication, ContentChannelItem, Schedule, Location, FinancialTransaction), `RockCache`, defined values, `SMSAuthentication`, Rock email/communication.
-- **Cross-plugin:** [org.secc.OAuth](../org.secc.OAuth/README.md) (client/API-key validation in `AccountController`), [org.secc.Authentication](../org.secc.Authentication/README.md), [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (`GetByMatch`, `MatchOrCreatePerson`).
-- **Third-party:** Newtonsoft.Json, ASP.NET Web API (incl. OData), EntityFramework, System.Linq.Dynamic (used for the `orderby` string in `ChannelItems`).
+- **Rock:** `Rock.Rest` (`ApiControllerBase`, `IHasCustomHttpRoutes`, `[Authenticate]`/`[Secured]` filters), Web API, `RockContext` and many services (Person, Group, GroupMember, Attendance, Communication, ContentChannelItem, Schedule, Location, FinancialTransaction), `RockCache`, defined values, `SMSAuthentication`, Rock email/communication.
+- **Cross-plugin:** [org.secc.OAuth](../org.secc.OAuth/README.md) (client/API-key validation in `AccountController`), [org.secc.Authentication](../org.secc.Authentication/README.md), [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (`GetByMatch`).
+- **Third-party:** Newtonsoft.Json, ASP.NET Web API, EntityFramework, System.Linq.Dynamic (used for the `orderby` string in `ChannelItems`).
 
 ## Edge Cases & Constraints
 
@@ -159,13 +156,12 @@ Returns a nested `DataSet` (transactions + per-account details), filtered to the
 - **Attendance location.** `GroupAppAttendanceController` records attendance, "Did Not Meet" and self check-in against one location per group: its Meeting Location, else its Home location, else its first location (lowest GroupLocation Id), else none — the same order the GroupApp location endpoint uses for the address it shows. It never uses location 0 (before ROCK-9170, groups whose only location had no type got 0 and every "Did Not Meet" and self check-in failed with a foreign-key error). The weekly schedule list links a saved occurrence to a scheduled date only when the location matches, so if a group's attendance location changes (e.g. a Meeting Location is added later), older occurrences at the previous location show as separate dates.
 - **Schedule edit forks shared schedules.** `PUT .../Schedule` creates a new `Schedule` if the current one is shared by another group/group-location, then repoints the group; legacy `WeeklyDayOfWeek`/`WeeklyTimeOfDay` are cleared in favor of iCal.
 - **Location PUT is destructive.** It deletes *all* existing `GroupLocation` rows for the group before adding one (single-location app requirement).
-- **`MatchOrCreatePerson` adds the posted `Person` directly** when no match is found — the request body is persisted as a new person with no field sanitization beyond what matching uses.
 
 ## Observations
 
 *Noticed while documenting — not a full audit; the auth surface and a few endpoints stood out.*
 
-- **Security (review):** Authorization is inconsistent across controllers and several checks are easy to read as inverted/loose — worth a careful pass. In `ChannelItemController.ChannelItems` the guard is `if ( !contentChannel.IsAuthorized( VIEW, GetPerson() ) ) throw Unauthorized`, but `GetGroup` in `GroupAppGroupListController` uses `if ( isGroupMember || !group.IsAuthorized( VIEW, ... ) )` to *grant* access — i.e. it returns the group when the user is **not** authorized to view it. That condition reads backwards and should be confirmed against intent.
+- **Security (review):** Authorization is inconsistent across controllers and several checks are easy to read as inverted/loose — worth a careful pass. In `ChannelItemController.ChannelItems` the guard is `if ( !contentChannel.IsAuthorized( VIEW, GetPerson() ) ) throw Unauthorized`; `GetGroup` in `GroupAppGroupListController` grants access when the user is an active member **or** has VIEW, matching `GetGroupMembers`.
 - **Security (low/medium):** GroupApp endpoints have no `[Authenticate]`/`[Secured]` filter and depend solely on `GetCurrentUser()` + manual checks; `GetGroupMembers` exposes member email/phone/address and minors' parent contact info to group leaders. Confirm leader determination is correct and that these routes can't be reached by an unauthenticated session. `api/sermonfeed` has no declared authorization.
 - **Improvement:** Several handlers `new RockContext()` per request (`GetGroupMembers` calls `_personService.Get` and `GetFamily` per member — an N+1). `AccountController` calls `MD5` for a 6-digit confirmation code, which is fine for non-secret short codes but shouldn't be mistaken for a security primitive.
 - **Improvement:** `AssemblyInfo.cs` still carries the Visual Studio template metadata (`AssemblyCompany("Microsoft")`, `Copyright © Microsoft 2016`) — cosmetic, but worth fixing to SECC.

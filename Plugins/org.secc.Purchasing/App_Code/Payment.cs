@@ -88,7 +88,7 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if ( ModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
+                if ( mModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
                     mModifiedBy = userLoginService.GetByUserName( ModifiedByUserID ).Person;
                 return mModifiedBy;
             }

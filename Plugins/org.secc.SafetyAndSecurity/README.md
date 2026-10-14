@@ -59,9 +59,9 @@ All under action category **SECC > Safety and Security** (`ActionComponent` expo
 | Medical Incident Report Merge (`MedicalIncidentReportMerge`) | Fill + flatten the medical incident report PDF. | Report PDF, **binaryFileType** |
 | Digital Incident Report Merge (`DigitalIncidentReportMerge`) | Fill + flatten the digital incident report PDF. | Report PDF, **binaryFileType** |
 | External Church Reference Merge (`ExternalChurchReferenceMerge`) | Fill + flatten the external-church reference PDF. | Reference PDF, **binaryFileType** |
-| Volunteer Application Validation (`VolunteerApplicationValidation`) | Per-step server-side validation (personal info, each reference, special circumstances, statement of faith); branches to a success/fail activity. | **Action Step**, **Error Messages**, Success/Fail Activity, **IsMinorApplication** |
+| Volunteer Application Validation (`VolunteerApplicationValidation`) | Per-step server-side validation (personal info, each reference, special circumstances, statement of faith); branches to a success/fail activity. Personal Information rejects an adult SSN that isn't valid, resolved the same way as the SSN action. | **Action Step**, **Error Messages**, Success/Fail Activity, **IsMinorApplication** |
 | Reference Validation (`ReferenceValidation`) | Validate one "Get References" entry (name/phone/email/address) and reject duplicates across references. | **Error Messages**, **IsMinorApplication**, **ReferenceCount**, **MaxReferenceLimit** |
-| Volunteer Application SSN (`VolunteerApplicationSSN`) | Validate the SSN (regex), store it encrypted on the person's `SSN` attribute, then mask the workflow's SSN fields. | Success Activity |
+| Volunteer Application SSN (`VolunteerApplicationSSN`) | Resolve the SSN (`SsnHelper`): once stored, the first two boxes show `***`/`**`, which stands in for the stored first five digits only if the person has an SSN stored; a changed last four is applied. If valid, store it encrypted on the person's `SSN` attribute and mask SSN1/SSN2. Invalid input is not stored and the action still continues; Volunteer Application Validation reports it with the form's other errors. | None |
 | MinistrySafe Create (`MinistrySafeRequest`) | POST a person to the MinistrySafe API, then GET their `direct_login_url` back into a workflow attribute. | **Person**, **MinistrySafe URL**, **MinistrySafe Tags** |
 | MinistrySafe Update (`MinistrySafeUpdate`) | GET a MinistrySafe user's score / completion date into workflow attributes. | **Person**, **Score**, **Completion Date** |
 
@@ -135,4 +135,4 @@ Ships one EF plugin migration under `/Migrations/`:
 - Related: workflow-engine helpers and other custom actions live in
   [org.secc.Workflow](../org.secc.Workflow/README.md).
 
-Last updated: 2026-09-29
+Last updated: 2026-10-14

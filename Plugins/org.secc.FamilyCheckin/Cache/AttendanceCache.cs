@@ -110,22 +110,211 @@ namespace org.secc.FamilyCheckin.Cache
             }
         }
 
+        // The bulk load of cache misses in All(). Callers that arrive while a load runs share its result.
+        private static readonly SingleFlight<LoadResult> _loadFlight = new SingleFlight<LoadResult>();
+
+        // Upper bound on the number of ids per Contains() query when bulk-loading cache misses.
+        private const int BulkLoadChunkSize = 500;
+
         public static List<AttendanceCache> All()
         {
             var allKeys = AllKeys( () => KeyFactory() );
 
-            var allItems = new List<AttendanceCache>();
-
-            foreach ( var key in allKeys.ToList() )
+            // Warm path: every key is cached. The list is sized to the key count so it is one allocation that
+            // stays under the 85 KB large-object threshold up to ~10,600 keys; an unsized list doubles past it
+            // (16,384 slots, 128 KB) at Sunday volumes. CheckinMonitor calls All() once per room row every 10 s.
+            var allItems = new List<AttendanceCache>( allKeys.Count );
+            foreach ( var key in allKeys )
             {
-                var value = GetFromQualifiedKey( key );
-                if ( value != null )
+                var item = RockCache.Get( key ) as AttendanceCache;
+                if ( item == null )
                 {
-                    allItems.Add( value );
+                    return LoadAll( allKeys );
+                }
+
+                allItems.Add( item );
+            }
+
+            return allItems;
+        }
+
+        /// <summary>
+        /// The cold path of <see cref="All"/>: at least one key is not cached. Collects what is cached, loads
+        /// the rest in bulk and returns the items in key order.
+        /// </summary>
+        private static List<AttendanceCache> LoadAll( IReadOnlyList<string> allKeys )
+        {
+            var items = new AttendanceCache[allKeys.Count];
+            var missing = CollectCachedItems( allKeys, items, Enumerable.Range( 0, allKeys.Count ) );
+
+            // Two passes at most: if we joined another caller's load, pick up what it cached and load the rest.
+            // Anything still missing after that is left out of this call and loaded by the next one.
+            for ( int attempt = 0; attempt < 2 && missing.Any(); attempt++ )
+            {
+                var missingKeys = missing.Select( i => allKeys[i] ).ToList();
+                bool joined;
+                var result = _loadFlight.Run( () => LoadMissing( missingKeys, allKeys.Count ), out joined );
+
+                if ( joined )
+                {
+                    missing = CollectCachedItems( allKeys, items, missing );
+                    continue;
+                }
+
+                // Removing publishes a message and may reload the key list, so it runs after the load is released.
+                foreach ( var staleKey in result.StaleKeys )
+                {
+                    Remove( staleKey, () => KeyFactory() );
+                }
+
+                var indexByKey = missing.ToDictionary( i => allKeys[i] );
+                foreach ( var item in result.Items )
+                {
+                    int index;
+                    if ( indexByKey.TryGetValue( QualifiedKey( item.Id ), out index ) )
+                    {
+                        items[index] = item;
+                    }
+                }
+
+                break;
+            }
+
+            var allItems = new List<AttendanceCache>( allKeys.Count );
+            foreach ( var item in items )
+            {
+                if ( item != null )
+                {
+                    allItems.Add( item );
                 }
             }
 
             return allItems;
+        }
+
+        /// <summary>
+        /// Fills <paramref name="items"/> at the given indexes with the items already in the cache and returns
+        /// the indexes that are not cached, without triggering any load.
+        /// </summary>
+        private static List<int> CollectCachedItems( IReadOnlyList<string> keys, AttendanceCache[] items, IEnumerable<int> indexes )
+        {
+            var missing = new List<int>();
+            foreach ( var index in indexes )
+            {
+                var item = RockCache.Get( keys[index] ) as AttendanceCache;
+                if ( item != null )
+                {
+                    items[index] = item;
+                }
+                else
+                {
+                    missing.Add( index );
+                }
+            }
+
+            return missing;
+        }
+
+        private class LoadResult
+        {
+            public List<AttendanceCache> Items { get; } = new List<AttendanceCache>();
+
+            // Keys to drop from the key list: no matching attendance, or not a valid attendance key.
+            public List<string> StaleKeys { get; } = new List<string>();
+        }
+
+        /// <summary>
+        /// Loads the attendances for the given cache keys in as few queries as possible and caches each one
+        /// unless a newer update was cached while the load ran. Returns the items now in the cache and the
+        /// keys that should be removed.
+        /// </summary>
+        private static LoadResult LoadMissing( List<string> qualifiedKeys, int totalKeyCount )
+        {
+            var result = new LoadResult();
+
+            var ids = new HashSet<int>();
+            foreach ( var qualifiedKey in qualifiedKeys )
+            {
+                var id = KeyFromQualifiedKey( qualifiedKey ).AsInteger();
+                if ( id > 0 )
+                {
+                    ids.Add( id );
+                }
+
+                // A key that is not exactly "AttendanceCache:<id>" can never be cached under its own name.
+                // Drop it; the canonical key is added when the item is cached.
+                if ( id <= 0 || QualifiedKey( id ) != qualifiedKey )
+                {
+                    result.StaleKeys.Add( qualifiedKey );
+                }
+            }
+
+            if ( !ids.Any() )
+            {
+                return result;
+            }
+
+            // Take the stamp and build the occurrence lookup before reading attendance, so a cold occurrence
+            // cache does not widen the gap between reading the rows and caching them.
+            var readStamp = BeginLoad();
+            try
+            {
+                var occurrences = OccurrenceCache.CreateLookup();
+                var foundIds = new HashSet<int>();
+
+                foreach ( var attendance in QueryAttendances( ids, totalKeyCount ) )
+                {
+                    foundIds.Add( attendance.Id );
+                    var item = LoadByAttendance( attendance, occurrences );
+                    if ( item != null )
+                    {
+                        item = AddLoaded( QualifiedKey( item.Id ), item, readStamp, () => KeyFactory() );
+                        if ( item != null )
+                        {
+                            result.Items.Add( item );
+                        }
+                    }
+                }
+
+                result.StaleKeys.AddRange( ids.Where( id => !foundIds.Contains( id ) ).Select( id => QualifiedKey( id ) ) );
+            }
+            finally
+            {
+                EndLoad();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the attendances with the given ids. When most keys are missing (a cold cache), one query
+        /// over today's attendance is cheaper than many id lists; otherwise the ids are queried in chunks.
+        /// </summary>
+        private static List<Attendance> QueryAttendances( HashSet<int> ids, int totalKeyCount )
+        {
+            RockContext rockContext = new RockContext();
+            AttendanceService attendanceService = new AttendanceService( rockContext );
+            var query = attendanceService.Queryable( "PersonAlias.Person,Occurrence,AttendanceCode" ).AsNoTracking();
+
+            if ( ids.Count * 2 >= totalKeyCount )
+            {
+                var today = RockDateTime.Today;
+                return query
+                    .Where( a => a.CreatedDateTime != null && a.CreatedDateTime >= today )
+                    .ToList()
+                    .Where( a => ids.Contains( a.Id ) )
+                    .ToList();
+            }
+
+            var attendances = new List<Attendance>();
+            var idList = ids.ToList();
+            for ( int i = 0; i < idList.Count; i += BulkLoadChunkSize )
+            {
+                var chunk = idList.Skip( i ).Take( BulkLoadChunkSize ).ToList();
+                attendances.AddRange( query.Where( a => chunk.Contains( a.Id ) ).ToList() );
+            }
+
+            return attendances;
         }
 
         public static AttendanceCache Get( int id )
@@ -212,6 +401,12 @@ namespace org.secc.FamilyCheckin.Cache
 
         private static AttendanceCache LoadByAttendance( Attendance attendance )
         {
+            return LoadByAttendance( attendance, OccurrenceCache.CreateLookup() );
+        }
+
+        // Per-item mapping shared by the single-item (Get/AddOrUpdate) and bulk (All) load paths so they cannot drift.
+        private static AttendanceCache LoadByAttendance( Attendance attendance, OccurrenceCache.Lookup occurrences )
+        {
             //We don't want to cache attendances created before today.
             if ( !attendance.CreatedDateTime.HasValue || attendance.CreatedDateTime < Rock.RockDateTime.Today )
             {
@@ -227,14 +422,14 @@ namespace org.secc.FamilyCheckin.Cache
             }
             else
             {
-                person = attendance.PersonAlias.Person;
+                person = attendance.PersonAlias?.Person;
             }
 
 
             var attendanceCache = new AttendanceCache
             {
                 Id = attendance.Id,
-                OccurrenceAccessKey = OccurrenceCache.GetByOccurrence( attendance.Occurrence )?.AccessKey ?? "None",
+                OccurrenceAccessKey = occurrences.Find( attendance.Occurrence )?.AccessKey ?? "None",
                 Code = attendance.AttendanceCode?.Code,
                 CreatedDateTime = attendance.CreatedDateTime,
                 StartDateTime = attendance.StartDateTime,
@@ -244,8 +439,8 @@ namespace org.secc.FamilyCheckin.Cache
                 GroupId = attendance.Occurrence.GroupId,
                 LocationId = attendance.Occurrence.LocationId,
                 ScheduleId = attendance.Occurrence.ScheduleId,
-                IsVolunteer = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).Contains( attendance.Occurrence.GroupId ?? 0 ),
-                IsChildren = OccurrenceCache.GetChildrenOccurrences().Select( o => o.GroupId ).Contains( attendance.Occurrence.GroupId ?? 0 ),
+                IsVolunteer = occurrences.IsVolunteerGroup( attendance.Occurrence.GroupId ),
+                IsChildren = occurrences.IsChildrenGroup( attendance.Occurrence.GroupId ),
                 WithParent = false
             };
 
@@ -419,9 +614,11 @@ namespace org.secc.FamilyCheckin.Cache
                     errors.Add( $"Error: Attendance Cache (Id:{attendance.Id}) Desync: GroupId - DB:{attendance.Occurrence.GroupId} - Cache:{attendanceCache.GroupId}" );
                 }
 
-                if ( attendance.PersonAlias.PersonId != attendanceCache.PersonId )
+                // Attendance without a person is cached as PersonId 0 ("Unnamed Person").
+                var personId = attendance.PersonAlias?.PersonId ?? 0;
+                if ( personId != attendanceCache.PersonId )
                 {
-                    errors.Add( $"Error: Attendance Cache (Id:{attendance.Id}) Desync: PersonId - DB:{attendance.PersonAlias.PersonId} - Cache:{attendanceCache.PersonId}" );
+                    errors.Add( $"Error: Attendance Cache (Id:{attendance.Id}) Desync: PersonId - DB:{personId} - Cache:{attendanceCache.PersonId}" );
                 }
 
                 if ( attendance.Occurrence.LocationId != attendanceCache.LocationId )

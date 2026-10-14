@@ -6,10 +6,10 @@
 
 Imaging bundles two unrelated image features. The first is a REST endpoint that converts an
 HTML string to a PNG (via the wkhtmltoimage-backed `NReco.ImageGenerator`), used to produce
-images from Lava/HTML templates. The second is a pair of admin blocks that batch-crop person
-profile photos: they pull existing binary files, send each to Azure Face to detect and
-straighten the face, crop to a 500x500 square, and save the result (as a quality-95 JPEG) back
-as the person's photo.
+images from Lava/HTML templates. The second is an admin block that batch-crops registrants'
+profile photos: it pulls the photos uploaded on registrations, sends each to Azure Face to detect
+and straighten the face, crops to a 500x500 square, and saves the result (as a quality-95 JPEG)
+back as the person's photo.
 
 ## Project Info
 
@@ -28,8 +28,8 @@ as the person's photo.
 /Rest/         ImagingController  — REST endpoints (test, generateimage)
 /AI/           FaceCrop           — Azure Face detect + rotate + crop person photos
 /Components/   MicrosoftFaceSettings — DevLib SettingsComponent holding Face endpoint + key
-/org_secc/Imaging/  UpdatePersonImage(.ascx), UpdatePersonImageFromRegistration(.ascx) — bulk crop blocks
-/Migrations/   Rock plugin migrations (Html To Image defined type)
+/org_secc/Imaging/  UpdatePersonImageFromRegistration(.ascx) — bulk crop block
+/Migrations/   Rock plugin migrations (Html To Image defined type; Update Person Image removal)
 HtmlToImage.cs Constants.cs       — NReco HTML->image wrapper; defined-type Guid constant
 ```
 
@@ -50,13 +50,15 @@ Category in Rock: **SECC > Imaging**.
 
 | Block | Purpose | Key settings |
 |-------|---------|--------------|
-| Update Person Image | Runs an admin-supplied SQL query returning `PersonId`/`BinaryFileId` pairs, then face-crops each binary file into the person's photo. | Execution Delay |
 | Update Person Image From Registration | Picks one or more registration templates, finds registrant attribute values with key containing "photo", and face-crops those binary files into the registrant's photo. | Execution Delay |
 
-Both blocks share the `ExecutionDelay` (`IntegerField`) attribute — milliseconds to `Thread.Sleep`
-between calls to stay under the Azure Face transactions-per-second limit. The registration block
-adds an "Overwrite photos?" checkbox: when checked it updates non-`secc.org` profiles even if they
-already have a photo; otherwise only registrants with no existing `PhotoId`.
+`ExecutionDelay` (`IntegerField`) is the number of milliseconds to `Thread.Sleep` between calls to
+stay under the Azure Face transactions-per-second limit. The "Overwrite photos?" checkbox, when
+checked, updates non-`secc.org` profiles even if they already have a photo; otherwise only
+registrants with no existing `PhotoId` are updated.
+
+The **Update Person Image** block, which ran a free-form SQL query to choose the people and files,
+was removed in ROCK-8759 (see migration `004`).
 
 ### Settings Component
 
@@ -88,27 +90,28 @@ and Response Headers — intended as reusable templates for the image generator.
 - `002_ImageGeneratorDefinedTypeResponseHeaders` — adds a Response Headers key-value attribute.
 - `003_ImageGeneratorCleanup` — drops the Image Type attribute; renames Width/Height to Canvas Width /
   Canvas Height with help text.
+- `004_RemoveUpdatePersonImageBlock` — deletes the removed Update Person Image block type (by path), its
+  blocks, their security rules and its Execution Delay attribute, then the production page
+  "Binary File To Person Photo" if nothing else is on or under it.
 
 ## Observations
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** The "Update Person Image" block executes **arbitrary admin-entered SQL**
-  (`rockContext.Database.SqlQuery<ResponseData>(sql)`) with no validation. Powerful by design, but
-  ensure the page/block is locked to trusted admins.
 - **Security (low):** The Azure Face **Subscription Key** is stored in a plain `TextField` settings
   attribute (not an encrypted/`EncryptedTextField`), so it is readable in cleartext by anyone with
   access to the settings component. Treat it as a secret and restrict access accordingly.
 - **Security (low):** The Azure Face `DetectWithUrlAsync` call builds the image URL from
   `PublicApplicationRoot` + `GetImage.ashx?Guid=…`, so the binary file must be publicly fetchable by
   Azure for detection to work. Worth confirming those `GetImage` URLs aren't otherwise sensitive.
-- **Improvement:** Both blocks fire `Task.Run(async () => await face.UpdatePhoto(...))` in a
-  fire-and-forget loop on a web request — the task is never awaited and exceptions are swallowed, so
-  the page returns before/independent of the crops finishing and failures are invisible. A scheduled
-  job or transaction queue would be more robust for a multi-thousand-record batch.
-- **Improvement:** Both `.ascx.cs` files declare the same class `UpdatePersonImage` in the same
-  `RockWeb.Plugins.org_secc.Imaging` namespace (the registration file's class name was not renamed).
-  Worth confirming this doesn't cause a type collision at compile/load.
+- **Security (medium):** "Update Person Image From Registration" has no permission check on Run, so
+  anyone with View on the block can bulk-replace registrant photos (ROCK-9225).
+- **Improvement:** The registration block fires `Task.Run(async () => await face.UpdatePhoto(...))` in a
+  fire-and-forget loop on a web request, so the page returns before/independent of the crops finishing
+  and failures are swallowed. A scheduled job or transaction queue would be more robust for a
+  multi-thousand-record batch.
+- **Improvement:** `UpdatePersonImageFromRegistration.ascx.cs` still declares its class as
+  `UpdatePersonImage` (copied from the removed block and never renamed).
 - **Improvement:** The `generateimage` endpoint takes raw `Content` and never reads the **Html To Image**
   defined type that the migrations install, so the template/canvas-size attributes appear unused by the
   current controller. Confirm whether a consumer applies them or whether they're vestigial.
@@ -120,9 +123,9 @@ and Response Headers — intended as reusable templates for the image generator.
 - To change face-crop logic (detection model, crop padding, output size/quality), edit `AI/FaceCrop.cs`.
 - Azure Face credentials are stored in the **Microsoft Face** settings component
   (`Components/MicrosoftFaceSettings.cs`), edited through Rock, not in code.
-- To change which photos a batch targets, edit the matching `*.ascx.cs` in `org_secc/Imaging/`.
+- To change which photos a batch targets, edit `org_secc/Imaging/UpdatePersonImageFromRegistration.ascx.cs`.
 - New defined-type attributes belong in a new numbered migration under `/Migrations/`.
 - `FaceCrop.CropDetectedFace` disposes the source, rotated and target bitmaps; keep any new GDI+ objects in
-  `using` blocks, since the batch blocks run it for every row of a query.
+  `using` blocks, since the registration block runs it for every matching registrant.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-13

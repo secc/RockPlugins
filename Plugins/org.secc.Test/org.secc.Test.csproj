@@ -52,8 +52,15 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PersonMatch\FirstNameMatchesTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SmokeTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\org.secc.PersonMatch\org.secc.PersonMatch.csproj">
+      <Project>{26CC0BA6-968B-4464-9992-D1D3510AF9AB}</Project>
+      <Name>org.secc.PersonMatch</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

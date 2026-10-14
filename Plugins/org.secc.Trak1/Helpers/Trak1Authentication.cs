@@ -1,6 +1,6 @@
 ﻿namespace org.secc.Trak1.Helpers
 {
-    class Trak1Authentication
+    public class Trak1Authentication
     {
         public string SubscriberCode { get; set; }
         public string CompanyCode { get; set; }

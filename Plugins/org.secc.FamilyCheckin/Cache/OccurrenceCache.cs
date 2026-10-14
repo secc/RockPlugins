@@ -84,40 +84,43 @@ namespace org.secc.FamilyCheckin.Cache
             }
         }
 
-        private static void LogWithStack( Action<string, string, object[]> logAction, string message, params object[] propertyValues )
+        private static void LogWithStack( RockLogLevel logLevel, string message, params object[] propertyValues )
         {
+            const string domain = RockLogDomains.Other;
+
+            // Building the call stack is expensive, so skip it when this level will not be written.
+            if ( !RockLogger.Log.ShouldLogEntry( logLevel, domain ) )
+            {
+                return;
+            }
+
             var callStack = GetCallStack();
             var allProperties = new List<object> { callStack };
             if ( propertyValues != null )
             {
                 allProperties.AddRange( propertyValues );
             }
-            logAction( "OTHER", $"[{{CallStack}}] {message}", allProperties.ToArray() );
+            RockLogger.Log.WriteToLog( logLevel, domain, $"[{{CallStack}}] {message}", allProperties.ToArray() );
         }
 
         private static void LogInformation( string message, params object[] propertyValues )
         {
-            LogWithStack( RockLogger.Log.Information, message, propertyValues );
+            LogWithStack( RockLogLevel.Info, message, propertyValues );
         }
 
         private static void LogDebug( string message, params object[] propertyValues )
         {
-            LogWithStack( RockLogger.Log.Debug, message, propertyValues );
+            LogWithStack( RockLogLevel.Debug, message, propertyValues );
         }
 
         private static void LogWarning( string message, params object[] propertyValues )
         {
-            LogWithStack( RockLogger.Log.Warning, message, propertyValues );
+            LogWithStack( RockLogLevel.Warning, message, propertyValues );
         }
 
         private static void LogError( string message, params object[] propertyValues )
         {
-            LogWithStack( RockLogger.Log.Error, message, propertyValues );
-        }
-
-        private static void LogVerbose( string message, params object[] propertyValues )
-        {
-            LogWithStack( RockLogger.Log.Verbose, message, propertyValues );
+            LogWithStack( RockLogLevel.Error, message, propertyValues );
         }
 
         #endregion
@@ -292,7 +295,7 @@ namespace org.secc.FamilyCheckin.Cache
 
             var allItems = new List<OccurrenceCache>();
 
-            foreach ( var key in allKeys.ToList() )
+            foreach ( var key in allKeys )
             {
                 var value = GetFromQualifiedKey( key );
                 if ( value != null )
@@ -479,23 +482,81 @@ namespace org.secc.FamilyCheckin.Cache
             LogDebug( "OccurrenceCache.GetByOccurrence: Searching for occurrence - GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}",
                 occurrence.GroupId, occurrence.LocationId, occurrence.ScheduleId );
 
-            var candidate = All()
-                .Where( o => o.GroupId == occurrence.GroupId
-                        && o.LocationId == occurrence.LocationId
-                        && o.ScheduleId == occurrence.ScheduleId )
-                .FirstOrDefault();
+            var candidate = CreateLookup().Find( occurrence );
 
             if ( candidate != null )
             {
                 LogDebug( "OccurrenceCache.GetByOccurrence: Found occurrence with AccessKey: {AccessKey}", candidate.AccessKey );
             }
-            else
-            {
-                LogWarning( "OccurrenceCache.GetByOccurrence: No occurrence found for GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}",
-                    occurrence.GroupId, occurrence.LocationId, occurrence.ScheduleId );
-            }
 
             return candidate;
+        }
+
+        /// <summary>
+        /// Builds a <see cref="Lookup"/> over the current occurrences. Use it to map many attendances
+        /// without rescanning <see cref="All"/> for each one.
+        /// </summary>
+        internal static Lookup CreateLookup()
+        {
+            return new Lookup( All() );
+        }
+
+        /// <summary>
+        /// Occurrence matching over one <see cref="All"/> result: by group, location and schedule (first
+        /// match wins), and the volunteer and children group sets used by GetVolunteerOccurrences and
+        /// GetChildrenOccurrences. Both the per-item and bulk attendance loads use it so they cannot drift.
+        /// </summary>
+        internal sealed class Lookup
+        {
+            private readonly Dictionary<Tuple<int, int, int>, OccurrenceCache> _byOccurrence = new Dictionary<Tuple<int, int, int>, OccurrenceCache>();
+            private readonly HashSet<int> _volunteerGroupIds;
+            private readonly HashSet<int> _childrenGroupIds;
+
+            internal Lookup( List<OccurrenceCache> occurrences )
+            {
+                foreach ( var occurrence in occurrences )
+                {
+                    var key = Tuple.Create( occurrence.GroupId, occurrence.LocationId, occurrence.ScheduleId );
+                    if ( !_byOccurrence.ContainsKey( key ) )
+                    {
+                        _byOccurrence[key] = occurrence;
+                    }
+                }
+
+                _volunteerGroupIds = new HashSet<int>( occurrences.Where( o => o.IsVolunteer ).Select( o => o.GroupId ) );
+                _childrenGroupIds = new HashSet<int>( occurrences.Where( o => o.IsChildren ).Select( o => o.GroupId ) );
+            }
+
+            /// <summary>
+            /// Returns the occurrence for the attendance occurrence's group, location and schedule, or null
+            /// (with a warning) when there is none.
+            /// </summary>
+            public OccurrenceCache Find( AttendanceOccurrence occurrence )
+            {
+                OccurrenceCache candidate = null;
+                if ( occurrence.GroupId.HasValue && occurrence.LocationId.HasValue && occurrence.ScheduleId.HasValue )
+                {
+                    _byOccurrence.TryGetValue( Tuple.Create( occurrence.GroupId.Value, occurrence.LocationId.Value, occurrence.ScheduleId.Value ), out candidate );
+                }
+
+                if ( candidate == null )
+                {
+                    LogWarning( "OccurrenceCache.GetByOccurrence: No occurrence found for GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}",
+                        occurrence.GroupId, occurrence.LocationId, occurrence.ScheduleId );
+                }
+
+                return candidate;
+            }
+
+            public bool IsVolunteerGroup( int? groupId )
+            {
+                return _volunteerGroupIds.Contains( groupId ?? 0 );
+            }
+
+            public bool IsChildrenGroup( int? groupId )
+            {
+                return _childrenGroupIds.Contains( groupId ?? 0 );
+            }
         }
 
         private static List<string> KeyFactory()
