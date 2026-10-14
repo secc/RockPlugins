@@ -12,6 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
+using System.Collections.Generic;
 using System.ComponentModel;
 using org.secc.RegistrationCart.ViewModels;
 using Rock;
@@ -28,12 +29,21 @@ namespace org.secc.RegistrationCart.Blocks
 
     [LinkedPage( "Checkout Page", Key = NavAttributeKey.CheckoutPage, IsRequired = false, Order = 0 )]
     [LinkedPage( "Catalog Page", Key = NavAttributeKey.CatalogPage, IsRequired = false, Order = 1 )]
+    [LinkedPage( "Offering Detail Page", Key = NavAttributeKey.OfferingDetailPage, IsRequired = false, Order = 2,
+        Description = "Where a line's Edit link goes (the offering page in edit mode)." )]
 
     [Rock.SystemGuid.EntityTypeGuid( SystemGuid.EntityType.BLOCK_CART )]
     [Rock.SystemGuid.BlockTypeGuid( SystemGuid.BlockType.CART )]
     public class Cart : RegistrationCartBlockBase
     {
         public override string ObsidianFileUrl => ObsidianBlockUrl( "cart" );
+
+        protected override string LineEditUrl( Model.CartLineItem line ) =>
+            this.GetLinkedPageUrl( NavAttributeKey.OfferingDetailPage, new Dictionary<string, string>
+            {
+                [OfferingKeyParameter] = line.RegistrationTemplate?.IdKey ?? line.RegistrationTemplateId.ToString(),
+                [LineIdParameter] = line.Id.ToString()
+            } );
 
         public override object GetObsidianBlockInitialization()
         {

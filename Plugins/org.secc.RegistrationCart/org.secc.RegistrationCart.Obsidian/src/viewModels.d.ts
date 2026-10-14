@@ -168,6 +168,8 @@ export type PricedLineBag = {
 
     dateText?: string | null;
 
+    editUrl?: string | null;
+
     isWaitList: boolean;
 
     lineItemId: number;
@@ -232,6 +234,8 @@ export type OfferingSummaryBag = {
 export type OfferingDetailInitializationBox = {
     canAddFamilyMembers: boolean;
 
+    editLine?: EditLineBag | null;
+
     errorMessage?: string | null;
 
     navigation?: NavigationBag | null;
@@ -239,6 +243,20 @@ export type OfferingDetailInitializationBox = {
     offering?: OfferingBag | null;
 
     people?: RegistrantOptionBag[] | null;
+};
+
+export type EditLineBag = {
+    feeItemIds?: number[] | null;
+
+    fieldValues?: Record<Guid, unknown> | null;
+
+    isWaitList: boolean;
+
+    lineItemId: number;
+
+    personAliasId: number;
+
+    registrationInstanceId: number;
 };
 
 export type OfferingBag = {
@@ -352,11 +370,19 @@ export type AddToCartRequestBag = {
 
     fieldValues?: Record<Guid, unknown> | null;
 
+    lineItemId?: number | null;
+
     personAliasId: number;
 
     registrationInstanceId: number;
 
     signatureData?: string | null;
+};
+
+export type UpdateCartLineResultBag = {
+    navigation?: NavigationBag | null;
+
+    needsSignature: boolean;
 };
 
 export type SignatureRequestBag = {

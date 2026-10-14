@@ -116,8 +116,8 @@ plugin.json / BuildPlugin.ps1           Rock plugin packaging
 | Block | Page (created by migration) | What it does | Settings |
 |-------|-----------------------------|--------------|----------|
 | Registration Cart Catalog (`Catalog`) | External › Registration (`/registrations`) | Lists visible templates with an open instance. | Heading, Intro, Offering Detail Page, Cart Page |
-| Registration Cart Offering (`OfferingDetail`) | `/registrations/offering/{OfferingKey}` | Pick a family member (or add a child), an instance and fees, and fill in the template's registration forms; add to cart. | Allow Adding Family Members, Discount Code Workflow, Cart Page, Catalog Page |
-| Registration Cart (`Cart`) | `/registrations/cart` | Cart with pricing; apply/remove discount codes; remove lines. | Checkout Page, Catalog Page |
+| Registration Cart Offering (`OfferingDetail`) | `/registrations/offering/{OfferingKey}` | Pick a family member (or add a child), an instance and fees, and fill in the template's registration forms; add to cart. With `?LineId=` it edits that cart line instead (see *Editing a line*). | Allow Adding Family Members, Discount Code Workflow, Cart Page, Catalog Page |
+| Registration Cart (`Cart`) | `/registrations/cart` | Cart with pricing; apply/remove discount codes; edit or remove lines. | Checkout Page, Catalog Page, Offering Detail Page |
 | Registration Cart Checkout (`Checkout`) | `/registrations/checkout` | Payment + checkout. Uses the gateway's Obsidian hosted control when it has one, else a My Well tokenizer iframe. | Financial Gateway, Batch Name Prefix, Tokenizer Script URL / Gateway URL / Public Key, Cart Page, Catalog Page |
 | Registration Cart Settings (`AdminCatalogSettings`) | Admin Tools › Installed Plugins › Registration Cart (`/admin/registration-cart`) | Per template/instance/fee item visibility, eligibility, image, order. Saves require block EDIT. | Catalog Page |
 | Registration Cart Discount Codes (`AdminDiscountCodes`) | child of the above (`/admin/registration-cart/discounts`) | CRUD for discount codes (order / per-line / per-offering scope, amount or percent, date window). Saves require block EDIT. | — |
@@ -137,6 +137,7 @@ add time.
 | 002 | Adds `CartLineItem.IsWaitList`. |
 | 003 | Adds `CartLineItem.FieldValuesJson` (form answers) and `CartLineItem.SignatureData`. |
 | 004 | Adds `CartLineItem.TemplateDiscountCode` / `TemplateDiscountAmount` / `TemplateDiscountPercentage` (the financial-assistance code). |
+| 005 | Adds the Cart block's *Offering Detail Page* setting (where a line's Edit link goes) and points the cart page's block at the offering page. |
 
 ## Configuration
 
@@ -215,13 +216,22 @@ add time.
   Rock writes them: person fields (name excepted; address and campus go to the family) and
   person attributes to the person, registrant attributes to the registrant, group member
   attributes once the camper is in the group; "lock if values exist" is honoured. Fields hidden
-  from wait-listed registrants in Rock are hidden for wait-list lines. Not yet: editing answers
-  from the cart, and PersonMatch (registrants are always existing family members).
+  from wait-listed registrants in Rock are hidden for wait-list lines. Not supported: PersonMatch
+  (registrants are always existing family members).
+- **Editing a line:** until checkout completes, each cart line has an Edit link that reopens the
+  offering page with its option, extras and answers filled in; *Save changes* updates the same
+  line under the same rules as adding it (eligibility, capacity, Rock's fee rules). The camper
+  can't change (remove and add instead), and the option can only move within the same
+  template. Unchanged choices keep their snapshot prices, and a line staying on its option keeps
+  its wait-list place. The signature carries over while the option and answers are the ones it
+  was signed for; otherwise the page asks for the document to be signed again (rendered with the
+  new answers) and signing saves the changes. The discount code workflow runs again only when the
+  option or answers changed (so an FA answer change gets a new code).
 - **Inline signature:** when the template requires its signature document embedded, the
   offering page renders it from the answers (Rock's Registration/Registrant Lava merge fields)
   and the family signs with Rock's electronic signature control; a still-valid earlier signature
-  is reused. The signed data is encrypted and bound by hash to the answers and HTML, and a line
-  can't be added unsigned. Unlike Rock, the SignatureDocument and its PDF are created after the
+  is reused. The signed data is encrypted and bound by hash to the option, the template's
+  answers and the HTML, and a line can't be saved with a signature made for other answers. Unlike Rock, the SignatureDocument and its PDF are created after the
   paid registrations commit (`Services/RegistrationSignatures`), so a PDF failure is logged
   rather than undoing a paid registration.
 - **Financial assistance:** 725 runs on every add (it's a persisted workflow type, so each add

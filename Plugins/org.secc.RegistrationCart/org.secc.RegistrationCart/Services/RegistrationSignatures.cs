@@ -81,7 +81,7 @@ namespace org.secc.RegistrationCart.Services
             }
 
             var html = RenderDocument( instance, template, person, answers );
-            var token = new[] { RockDateTime.Now.ToString( "o" ), Hash( AnswersToken( answers ) + html ) }.ToJson();
+            var token = new[] { RockDateTime.Now.ToString( "o" ), Hash( SignedFor( instance, answers ) + html ) }.ToJson();
 
             return new RegistrationEntrySignatureDocumentBag
             {
@@ -91,19 +91,21 @@ namespace org.secc.RegistrationCart.Services
         }
 
         /// <summary>
-        /// Checks the signed HTML is the one rendered for these answers and returns the signed
-        /// data, encrypted, to keep on the cart line. Null when the token doesn't match.
+        /// Checks the signed HTML is the one rendered for this option and these answers and returns
+        /// the signed data, encrypted, to keep on the cart line. Null when the token doesn't match.
         /// </summary>
-        public string Sign( Dictionary<Guid, object> answers, string documentHtml, string securityToken, ElectronicSignatureValueViewModel signature, string ipAddress, string userAgent )
+        public string Sign( int registrationInstanceId, Dictionary<Guid, object> answers, string documentHtml, string securityToken, ElectronicSignatureValueViewModel signature, string ipAddress, string userAgent )
         {
+            var instance = new RegistrationInstanceService( _rockContext ).Get( registrationInstanceId );
             var token = Encryption.DecryptString( securityToken ).FromJsonOrNull<List<string>>();
-            if ( token == null || token.Count != 2 || token[1] != Hash( AnswersToken( answers ) + documentHtml ) || signature == null )
+            if ( instance == null || token == null || token.Count != 2 || token[1] != Hash( SignedFor( instance, answers ) + documentHtml ) || signature == null )
             {
                 return null;
             }
 
             return Encryption.EncryptString( new SignedData
             {
+                SignedFor = Hash( SignedFor( instance, answers ) ),
                 DocumentHtml = documentHtml,
                 SignatureData = signature.SignatureData,
                 SignedByName = signature.SignedByName,
@@ -117,8 +119,12 @@ namespace org.secc.RegistrationCart.Services
         /// <summary>The value to keep on the cart line for a still-valid earlier document.</summary>
         public static string ForExistingDocument( Guid signatureDocumentGuid ) => ExistingPrefix + signatureDocumentGuid;
 
-        /// <summary>Whether the cart line's signature value is usable for this template (decrypts, or names a valid earlier document).</summary>
-        public bool IsUsable( RegistrationTemplate template, Person person, string signatureData )
+        /// <summary>
+        /// Whether the cart line's signature value is usable: it names a still-valid earlier
+        /// document, or it was signed for exactly this option and these answers (so changed
+        /// answers need a new signature).
+        /// </summary>
+        public bool IsUsable( RegistrationTemplate template, Person person, string signatureData, int registrationInstanceId, Dictionary<Guid, object> answers )
         {
             if ( signatureData.IsNullOrWhiteSpace() )
             {
@@ -130,7 +136,8 @@ namespace org.secc.RegistrationCart.Services
                 return ExistingValidDocumentGuid( RequiredDocument( template ), person ) == signatureData.Substring( ExistingPrefix.Length ).AsGuidOrNull();
             }
 
-            return Encryption.DecryptString( signatureData ).FromJsonOrNull<SignedData>() != null;
+            var signed = Encryption.DecryptString( signatureData ).FromJsonOrNull<SignedData>();
+            return signed != null && signed.SignedFor == Hash( SignedFor( registrationInstanceId, template, answers ) );
         }
 
         /// <summary>
@@ -283,11 +290,12 @@ namespace org.secc.RegistrationCart.Services
         }
 
         /// <summary>The answers in a fixed order, so the signed document stays bound to them.</summary>
-        private static string AnswersToken( Dictionary<Guid, object> answers ) =>
-            RegistrationForms.FromJson( RegistrationForms.ToJson( answers ) )
-                .OrderBy( kvp => kvp.Key )
-                .Select( kvp => $"{kvp.Key}:{kvp.Value.ToStringSafe()}" )
-                .JoinStrings( "," );
+        /// <summary>The option and the template's answers a document is rendered and signed for.</summary>
+        private static string SignedFor( RegistrationInstance instance, Dictionary<Guid, object> answers ) =>
+            SignedFor( instance.Id, instance.RegistrationTemplate, answers );
+
+        private static string SignedFor( int registrationInstanceId, RegistrationTemplate template, Dictionary<Guid, object> answers ) =>
+            registrationInstanceId + "|" + RegistrationForms.AnswersKey( template, answers );
 
         private static string Hash( string source )
         {
@@ -303,6 +311,9 @@ namespace org.secc.RegistrationCart.Services
 
         private class SignedData
         {
+            /// <summary>Hash of the option and answers the document was rendered for.</summary>
+            public string SignedFor { get; set; }
+
             public string DocumentHtml { get; set; }
             public string SignatureData { get; set; }
             public string SignedByName { get; set; }

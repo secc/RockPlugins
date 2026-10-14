@@ -21,6 +21,10 @@
 
             <p v-if="offering.description" class="rc-lead" style="margin: -8px 0 24px;">{{ offering.description }}</p>
 
+            <div v-if="navigation.isSignedIn && editLine" class="rc-notice" style="margin-bottom: 16px;">
+                <span>You're changing {{ possessive(firstName(selectedPerson?.fullName)) }} registration in your cart. Save to keep your changes<template v-if="navigation.cartUrl">, or <a :href="navigation.cartUrl">go back to the cart</a> without them</template>.</span>
+            </div>
+
             <SignInNotice v-if="!navigation.isSignedIn" :loginUrl="navigation.loginUrl" />
 
             <div v-else class="rc-layout">
@@ -29,7 +33,7 @@
                     <section class="rc-step">
                         <div class="rc-step-title"><span class="rc-step-num">1</span><h2>Who's going?</h2></div>
                         <div class="rc-chips" role="radiogroup" aria-label="Choose a person">
-                            <button v-for="p in people"
+                            <button v-for="p in shownPeople"
                                     :key="p.personAliasId"
                                     type="button"
                                     class="rc-chip"
@@ -40,7 +44,7 @@
                                 <span class="rc-avatar">{{ initials(p.fullName) }}</span>
                                 <span class="rc-chip-text"><b>{{ p.fullName }}</b><span>{{ p.gradeText }}<template v-if="p.isInCart"> · in cart</template></span></span>
                             </button>
-                            <button v-if="config.canAddFamilyMembers" type="button" class="rc-btn rc-dashed" @click="isAddPersonOpen = true">
+                            <button v-if="config.canAddFamilyMembers && !editLine" type="button" class="rc-btn rc-dashed" @click="isAddPersonOpen = true">
                                 <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                                 Add a child
                             </button>
@@ -134,11 +138,11 @@
                         <p v-if="joiningWaitList" class="rc-small">This option is full, so {{ firstName(selectedPerson.fullName) }} will go on the wait list. Nothing is due now; you'll be contacted if a spot opens.</p>
                         <p v-if="cartError" class="rc-error" role="alert">{{ cartError }}</p>
                         <button type="button" class="rc-btn rc-btn-primary rc-btn-block" :disabled="!canAddToCart" @click="onAddClicked">
-                            {{ isAdding ? "Adding…" : (joiningWaitList ? "Add to wait list" : "Add to cart") }}
+                            {{ addButtonText }}
                         </button>
                     </template>
                     <p v-else class="rc-muted rc-small">Pick an option to see the price.</p>
-                    <p class="rc-muted rc-small" v-if="otherPeople.length">You can add {{ otherPeople.join(" and ") }} next, then pay for everyone at once.</p>
+                    <p class="rc-muted rc-small" v-if="otherPeople.length && !editLine">You can add {{ otherPeople.join(" and ") }} next, then pay for everyone at once.</p>
                 </aside>
             </div>
         </template>
@@ -172,7 +176,7 @@
     import CartNav from "../shared/cartNav.partial.obs";
     import SignInNotice from "../shared/signInNotice.partial.obs";
     import { GradeBand, SelectionMode, gradeBandOptions, gradeBandText, goTo, initials, isEligible, money } from "../shared/registrationCart.partial";
-    import { AddOnGroupBag, AddOnItemBag, NavigationBag, OfferingDetailInitializationBox, RegistrantOptionBag, VariantBag } from "../viewModels";
+    import { AddOnGroupBag, AddOnItemBag, NavigationBag, OfferingDetailInitializationBox, RegistrantOptionBag, UpdateCartLineResultBag, VariantBag } from "../viewModels";
 
     const config = useConfigurationValues<OfferingDetailInitializationBox>();
     const invokeBlockAction = useInvokeBlockAction();
@@ -181,14 +185,18 @@
     const offering = computed(() => config.offering ?? null);
     const people = ref<RegistrantOptionBag[]>(config.people ?? []);
 
-    const selectedPersonAliasId = ref<number | null>(people.value.length === 1 ? people.value[0].personAliasId : null);
-    const selectedVariantId = ref<number | null>(null);
-    const selections = ref<Record<number, number[]>>({});
+    // Editing a line already in the cart: start from its choices (the camper can't change).
+    const editLine = config.editLine ?? null;
+    const shownPeople = computed<RegistrantOptionBag[]>(() => editLine ? people.value.filter(p => p.personAliasId === editLine.personAliasId) : people.value);
+
+    const selectedPersonAliasId = ref<number | null>(editLine?.personAliasId ?? (people.value.length === 1 ? people.value[0].personAliasId : null));
+    const selectedVariantId = ref<number | null>(editLine?.registrationInstanceId ?? null);
+    const selections = ref<Record<number, number[]>>(editLine ? selectionsFor(editLine.feeItemIds ?? []) : {});
     const cartError = ref("");
     const isAdding = ref(false);
 
     // Answers to the template's forms, keyed by form field guid; reloaded per person and option.
-    const fieldValues = ref<Record<Guid, unknown>>({});
+    const fieldValues = ref<Record<Guid, unknown>>(editLine ? { ...(editLine.fieldValues ?? {}) } : {});
     const isLoadingValues = ref(false);
     const submitForms = ref(false);
     const hasForms = computed<boolean>(() => (offering.value?.forms ?? []).some(f => (f.fields ?? []).length > 0));
@@ -223,7 +231,15 @@
     });
 
     const lineTotal = computed<number>(() => (selectedVariant.value?.basePrice ?? 0) + chosenItems.value.reduce((sum, i) => sum + i.price, 0));
-    const joiningWaitList = computed<boolean>(() => !!selectedVariant.value && isFull(selectedVariant.value));
+    // A line staying on its option keeps its place (its own seat counts toward "full").
+    const joiningWaitList = computed<boolean>(() => !!selectedVariant.value
+        && (editLine && selectedVariant.value.id === editLine.registrationInstanceId ? editLine.isWaitList : isFull(selectedVariant.value)));
+
+    const addButtonText = computed<string>(() => {
+        if (editLine) return isAdding.value ? "Saving…" : "Save changes";
+        if (isAdding.value) return "Adding…";
+        return joiningWaitList.value ? "Add to wait list" : "Add to cart";
+    });
 
     const canAddToCart = computed<boolean>(() => {
         if (!selectedVariant.value || !selectedPerson.value || isAdding.value || isLoadingValues.value) return false;
@@ -242,9 +258,19 @@
         return v.spotsRemaining !== null && v.spotsRemaining !== undefined && v.spotsRemaining <= 0;
     }
 
-    /** Full with no wait list: can't be chosen. */
+    /** Full with no wait list: can't be chosen (unless the line being edited is already on it). */
     function isClosed(v: VariantBag): boolean {
-        return isFull(v) && !v.waitListEnabled;
+        return isFull(v) && !v.waitListEnabled && v.id !== editLine?.registrationInstanceId;
+    }
+
+    /** Fee item ids grouped by fee, as the page keeps its selections. */
+    function selectionsFor(feeItemIds: number[]): Record<number, number[]> {
+        const result: Record<number, number[]> = {};
+        for (const g of offering.value?.addOnGroups ?? []) {
+            const ids = (g.items ?? []).map(i => i.id).filter(id => feeItemIds.includes(id));
+            if (ids.length) result[g.id] = ids;
+        }
+        return result;
     }
 
     function optionMeta(v: VariantRow): string {
@@ -264,6 +290,7 @@
     }
 
     function selectPerson(personAliasId: number): void {
+        if (editLine) return;
         selectedPersonAliasId.value = personAliasId;
         selectedVariantId.value = null;
         selections.value = {};
@@ -271,9 +298,12 @@
     }
 
     watch(selectedVariantId, () => {
+        // Extras already chosen carry over to the new option; otherwise Rock's defaults.
         const next: Record<number, number[]> = {};
         for (const g of visibleGroups.value) {
-            if (g.group.isLocked && g.items.length) next[g.group.id] = g.items.map(i => i.id);
+            const kept = (selections.value[g.group.id] ?? []).filter(id => g.items.some(i => i.id === id));
+            if (kept.length) next[g.group.id] = kept;
+            else if (g.group.isLocked && g.items.length) next[g.group.id] = g.items.map(i => i.id);
             else if (g.group.isRequired && g.group.selectionMode === SelectionMode.Single && g.items.length) next[g.group.id] = [g.items[0].id];
         }
         selections.value = next;
@@ -324,13 +354,21 @@
     watch(fieldValues, clearSignature, { deep: true });
     watch([selectedPersonAliasId, selectedVariantId], clearSignature);
 
-    /** After the forms validate: get the document signed when the template requires it, then add. */
+    /**
+     * After the forms validate: get the document signed when the template requires it, then add.
+     * When editing, save first: the line's signature carries over unless the option or answers
+     * changed, and the server says when a new one is needed.
+     */
     async function proceed(): Promise<void> {
-        if (!offering.value?.requiresSignature || signedData.value || existingSignatureGuid.value) {
-            await addToCart();
+        if (editLine || !offering.value?.requiresSignature || signedData.value || existingSignatureGuid.value) {
+            await save();
             return;
         }
 
+        await requestSignature();
+    }
+
+    async function requestSignature(): Promise<void> {
         if (!selectedPerson.value || !selectedVariant.value) return;
         signError.value = "";
         const result = await invokeBlockAction<RegistrationEntrySignatureDocumentBag>("GetSignatureDocument", {
@@ -349,7 +387,7 @@
         if (result.data.existingSignatureDocumentGuid) {
             // Signed recently enough that the earlier signature still counts.
             existingSignatureGuid.value = result.data.existingSignatureDocumentGuid;
-            await addToCart();
+            await save();
             return;
         }
 
@@ -376,7 +414,7 @@
         }
 
         signedData.value = result.data;
-        await addToCart();
+        await save();
     }
 
     /** The person's current values (where the forms show them) and the forms' defaults. */
@@ -396,7 +434,49 @@
         }
     }
 
-    watch([selectedPersonAliasId, selectedVariantId], () => { void loadStartingValues(); });
+    // When editing, the answers belong to the camper, not the option: keep them across options.
+    watch([selectedPersonAliasId, selectedVariantId], () => { if (!editLine) void loadStartingValues(); });
+
+    function save(): Promise<void> {
+        return editLine ? saveChanges() : addToCart();
+    }
+
+    async function saveChanges(): Promise<void> {
+        if (!editLine || !selectedPerson.value || !selectedVariant.value) return;
+        isAdding.value = true;
+        cartError.value = "";
+        try {
+            const result = await invokeBlockAction<UpdateCartLineResultBag>("UpdateCartLine", {
+                request: {
+                    lineItemId: editLine.lineItemId,
+                    personAliasId: selectedPerson.value.personAliasId,
+                    registrationInstanceId: selectedVariant.value.id,
+                    feeItemIds: Object.values(selections.value).flat(),
+                    fieldValues: fieldValues.value,
+                    signatureData: signedData.value || null,
+                    existingSignatureDocumentGuid: existingSignatureGuid.value
+                }
+            });
+            if (!result.isSuccess || !result.data) {
+                cartError.value = result.errorMessage || "Your changes could not be saved.";
+                return;
+            }
+
+            if (result.data.needsSignature) {
+                // The changes need the document signed again; signing saves them.
+                await requestSignature();
+                return;
+            }
+
+            if (result.data.navigation) {
+                navigation.value = result.data.navigation;
+                if (result.data.navigation.cartUrl) { goTo(result.data.navigation.cartUrl); }
+            }
+        }
+        finally {
+            isAdding.value = false;
+        }
+    }
 
     async function addToCart(): Promise<void> {
         if (!selectedPerson.value || !selectedVariant.value) return;

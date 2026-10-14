@@ -39,6 +39,12 @@ namespace org.secc.RegistrationCart.Blocks
 
         protected const string OfferingKeyParameter = "OfferingKey";
 
+        /// <summary>The offering page edits this cart line instead of adding a new one.</summary>
+        protected const string LineIdParameter = "LineId";
+
+        /// <summary>Where a cart line's Edit link goes; none unless the block links the offering page.</summary>
+        protected virtual string LineEditUrl( Model.CartLineItem line ) => null;
+
         protected string ObsidianBlockUrl( string fileName ) => "~/Plugins/org_secc/RegistrationCart/blocks/" + fileName + ".obs";
 
         protected bool AllowIntegerIds => !( PageCache?.Layout?.Site?.DisablePredictableIds ?? false );
@@ -79,6 +85,7 @@ namespace org.secc.RegistrationCart.Blocks
                 ? new Dictionary<int, string>()
                 : new CatalogService( RockContext ).GetEventDateTexts( cart.LineItems.Select( l => l.RegistrationInstanceId ) );
             var instanceByLine = cart?.LineItems.ToDictionary( l => l.Id, l => l.RegistrationInstanceId ) ?? new Dictionary<int, int>();
+            var lineById = cart?.LineItems.ToDictionary( l => l.Id ) ?? new Dictionary<int, Model.CartLineItem>();
 
             var bag = new PricedCartBag
             {
@@ -101,6 +108,7 @@ namespace org.secc.RegistrationCart.Blocks
                     BasePrice = line.BasePrice,
                     LineTotal = line.LineTotal,
                     IsWaitList = line.IsWaitList,
+                    EditUrl = lineById.TryGetValue( line.LineItemId, out var cartLine ) ? LineEditUrl( cartLine ) : null,
                     AddOns = line.AddOns.Select( a => new PricedAddOnBag { Name = a.Name, Price = a.Price } ).ToList()
                 } );
             }

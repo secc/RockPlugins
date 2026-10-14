@@ -81,6 +81,28 @@ namespace org.secc.RegistrationCart.Blocks
                 box.People = BuildPeople( manager, cart );
             }
 
+            // Editing a line already in the cart: start from its choices.
+            var lineId = PageParameter( LineIdParameter ).AsIntegerOrNull();
+            if ( lineId.HasValue && manager != null )
+            {
+                var line = manager.GetOpenLine( lineId.Value );
+                if ( line == null || line.RegistrationTemplateId != template.Template.Id )
+                {
+                    box.ErrorMessage = "That registration is no longer in your cart.";
+                    return box;
+                }
+
+                box.EditLine = new EditLineBag
+                {
+                    LineItemId = line.Id,
+                    PersonAliasId = line.CartRegistrant.PersonAliasId,
+                    RegistrationInstanceId = line.RegistrationInstanceId,
+                    IsWaitList = line.IsWaitList,
+                    FeeItemIds = line.AddOns.Select( a => a.RegistrationTemplateFeeItemId ).ToList(),
+                    FieldValues = RegistrationForms.ForEditing( line.FieldValuesJson )
+                };
+            }
+
             return box;
         }
 
@@ -108,6 +130,43 @@ namespace org.secc.RegistrationCart.Blocks
             }
 
             return ActionOk( BuildNavigation( manager.GetOpenCart() ) );
+        }
+
+        /// <summary>
+        /// Saves changes to a line already in the cart (option, extras, answers). When the option
+        /// or answers no longer match what was signed, nothing is saved and NeedsSignature is set:
+        /// the page gets the document signed again and saves with the new signature.
+        /// </summary>
+        [BlockAction]
+        public BlockActionResult UpdateCartLine( AddToCartRequestBag request )
+        {
+            var manager = GetCartManager();
+            if ( manager == null )
+            {
+                return ActionUnauthorized( "Please sign in to register." );
+            }
+
+            if ( request?.LineItemId == null )
+            {
+                return ActionBadRequest( "Nothing to change." );
+            }
+
+            var signatureData = request.ExistingSignatureDocumentGuid.HasValue
+                ? RegistrationSignatures.ForExistingDocument( request.ExistingSignatureDocumentGuid.Value )
+                : request.SignatureData;
+            var line = manager.UpdateLineItem( request.LineItemId.Value, request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, signatureData,
+                GetAttributeValue( AttributeKey.DiscountCodeWorkflow ).AsGuidOrNull(), out var error, out var needsSignature );
+            if ( needsSignature )
+            {
+                return ActionOk( new UpdateCartLineResultBag { NeedsSignature = true } );
+            }
+
+            if ( line == null )
+            {
+                return ActionBadRequest( error ?? "Your changes could not be saved." );
+            }
+
+            return ActionOk( new UpdateCartLineResultBag { Navigation = BuildNavigation( manager.GetOpenCart() ) } );
         }
 
         /// <summary>
@@ -161,7 +220,7 @@ namespace org.secc.RegistrationCart.Blocks
                 return error;
             }
 
-            var signed = new RegistrationSignatures( RockContext ).Sign( request.FieldValues, request.DocumentHtml, request.SecurityToken, request.Signature,
+            var signed = new RegistrationSignatures( RockContext ).Sign( request.RegistrationInstanceId, request.FieldValues, request.DocumentHtml, request.SecurityToken, request.Signature,
                 RequestContext.ClientInformation.IpAddress, RequestContext.ClientInformation.UserAgent );
             return signed != null ? ActionOk( signed ) : ActionBadRequest( "The document changed. Please review it and sign again." );
         }

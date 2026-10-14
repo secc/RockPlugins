@@ -40,7 +40,10 @@
                         </div>
                         <div class="rc-line-side">
                             <span class="rc-line-total">{{ line.isWaitList ? "Wait list" : money(line.lineTotal) }}</span>
-                            <button type="button" class="rc-link-btn rc-link-danger rc-small" :disabled="isBusy" @click="removeLine(line.lineItemId)">Remove</button>
+                            <span style="display: inline-flex; gap: 12px;">
+                                <a v-if="line.editUrl" class="rc-link-btn rc-small" :href="line.editUrl" :aria-label="`Edit ${line.registrantName}'s ${line.offeringTitle} registration`">Edit</a>
+                                <button type="button" class="rc-link-btn rc-link-danger rc-small" :disabled="isBusy" @click="removeLine(line.lineItemId)">Remove</button>
+                            </span>
                         </div>
                     </div>
                 </section>

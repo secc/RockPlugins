@@ -58,6 +58,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public decimal LineTotal { get; set; }
         /// <summary>On the wait list: nothing is due now (prices are zero).</summary>
         public bool IsWaitList { get; set; }
+        /// <summary>The offering page in edit mode for this line (empty when not linked).</summary>
+        public string EditUrl { get; set; }
     }
 
     public class PricedAddOnBag
@@ -112,6 +114,21 @@ namespace org.secc.RegistrationCart.ViewModels
         public List<RegistrantOptionBag> People { get; set; } = new List<RegistrantOptionBag>();
         public bool CanAddFamilyMembers { get; set; }
         public string ErrorMessage { get; set; }
+        /// <summary>Set when the page edits a line already in the cart (LineId page parameter).</summary>
+        public EditLineBag EditLine { get; set; }
+    }
+
+    /// <summary>A cart line's choices, to edit them on the offering page.</summary>
+    public class EditLineBag
+    {
+        public int LineItemId { get; set; }
+        public int PersonAliasId { get; set; }
+        public int RegistrationInstanceId { get; set; }
+        /// <summary>The line is on its option's wait list (it keeps its place while the option stays the same).</summary>
+        public bool IsWaitList { get; set; }
+        public List<int> FeeItemIds { get; set; } = new List<int>();
+        /// <summary>The saved answers, keyed by form field Guid, as the browser sent them.</summary>
+        public Dictionary<Guid, object> FieldValues { get; set; } = new Dictionary<Guid, object>();
     }
 
     /// <summary>A Rock RegistrationTemplate with its open instances (options) and fees (add-ons).</summary>
@@ -212,6 +229,16 @@ namespace org.secc.RegistrationCart.ViewModels
         public string SignatureData { get; set; }
         /// <summary>A still-valid document the person signed before (instead of signing again).</summary>
         public Guid? ExistingSignatureDocumentGuid { get; set; }
+        /// <summary>UpdateCartLine only: the line being changed.</summary>
+        public int? LineItemId { get; set; }
+    }
+
+    /// <summary>What UpdateCartLine returns: the navigation once saved, or that a new signature is needed first.</summary>
+    public class UpdateCartLineResultBag
+    {
+        public NavigationBag Navigation { get; set; }
+        /// <summary>The option or answers changed from what was signed: sign again, then save.</summary>
+        public bool NeedsSignature { get; set; }
     }
 
     /// <summary>Arguments for the signature document actions.</summary>

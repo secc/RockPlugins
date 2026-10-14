@@ -322,6 +322,51 @@ namespace org.secc.RegistrationCart.Services
         public static string ToJson( Dictionary<Guid, object> values ) => ( values ?? new Dictionary<Guid, object>() ).ToJson();
 
         /// <summary>
+        /// Answers read back from the cart line exactly as the browser sent them (objects stay
+        /// objects), to put back into the forms when the line is edited.
+        /// </summary>
+        public static Dictionary<Guid, object> ForEditing( string json )
+        {
+            var values = new Dictionary<Guid, object>();
+            if ( json.IsNullOrWhiteSpace() )
+            {
+                return values;
+            }
+
+            foreach ( var property in JObject.Parse( json ).Properties() )
+            {
+                var guid = property.Name.AsGuidOrNull();
+                if ( guid.HasValue && property.Value.Type != JTokenType.Null )
+                {
+                    values[guid.Value] = property.Value;
+                }
+            }
+
+            return values;
+        }
+
+        /// <summary>The submitted answers that belong to the template's form fields; anything else is dropped.</summary>
+        public static Dictionary<Guid, object> TemplateAnswers( RegistrationTemplate template, Dictionary<Guid, object> submitted )
+        {
+            var fieldGuids = new HashSet<Guid>( template.Forms.SelectMany( f => f.Fields ).Where( f => !f.IsInternal ).Select( f => f.Guid ) );
+            return ( submitted ?? new Dictionary<Guid, object>() )
+                .Where( kvp => fieldGuids.Contains( kvp.Key ) )
+                .ToDictionary( kvp => kvp.Key, kvp => kvp.Value );
+        }
+
+        /// <summary>
+        /// The template's answers as one canonical string (sorted by field, blanks and other keys
+        /// left out), to tell whether two sets of answers are the same however the browser
+        /// ordered or re-sent them.
+        /// </summary>
+        public static string AnswersKey( RegistrationTemplate template, Dictionary<Guid, object> values ) =>
+            FromJson( ToJson( TemplateAnswers( template, values ) ) )
+                .Where( kvp => kvp.Value.ToStringSafe().IsNotNullOrWhiteSpace() )
+                .OrderBy( kvp => kvp.Key )
+                .Select( kvp => $"{kvp.Key}:{kvp.Value.ToStringSafe()}" )
+                .JoinStrings( "," );
+
+        /// <summary>
         /// Answers read back from the cart line. Text values come back as strings and objects
         /// (address, birthday, phone) as their JSON, which is what Rock's own save logic expects.
         /// </summary>
