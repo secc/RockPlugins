@@ -204,7 +204,7 @@ namespace org.secc.RegistrationCart.Services
         /// Adds a registrant-for-instance line with the chosen fee items, enforcing ownership,
         /// grade-band eligibility, uniqueness, capacity and Rock's fee rules. Prices are snapshotted.
         /// </summary>
-        public CartLineItem AddLineItem( int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, out string errorMessage )
+        public CartLineItem AddLineItem( int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, out string errorMessage )
         {
             errorMessage = null;
             var cart = GetOrCreateOpenCart();
@@ -268,7 +268,8 @@ namespace org.secc.RegistrationCart.Services
                 RegistrationTemplateId = template.Template.Id,
                 RegistrationInstanceId = option.Instance.Id,
                 SnapshotBasePrice = option.Price,
-                IsWaitList = option.IsFull
+                IsWaitList = option.IsFull,
+                FieldValuesJson = RegistrationForms.ToJson( FormAnswers( template.Template, fieldValues ) )
             };
 
             var requested = new HashSet<int>( feeItemIds ?? Enumerable.Empty<int>() );
@@ -315,6 +316,15 @@ namespace org.secc.RegistrationCart.Services
             lineService.Add( line );
             _rockContext.SaveChanges();
             return line;
+        }
+
+        /// <summary>The submitted answers that belong to the template's form fields; anything else is dropped.</summary>
+        private static Dictionary<Guid, object> FormAnswers( RegistrationTemplate template, Dictionary<Guid, object> submitted )
+        {
+            var fieldGuids = new HashSet<Guid>( template.Forms.SelectMany( f => f.Fields ).Where( f => !f.IsInternal ).Select( f => f.Guid ) );
+            return ( submitted ?? new Dictionary<Guid, object>() )
+                .Where( kvp => fieldGuids.Contains( kvp.Key ) )
+                .ToDictionary( kvp => kvp.Key, kvp => kvp.Value );
         }
 
         public bool RemoveLineItem( int lineItemId )

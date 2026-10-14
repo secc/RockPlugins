@@ -1,0 +1,62 @@
+<!-- Adapted from Rock's RegistrationEntry registrantAttributeField.partial.obs (Spark Development Network, Rock Community License). -->
+<template>
+    <template v-if="isVisible">
+        <div v-if="field.preHtml" v-html="field.preHtml"></div>
+        <RockField v-if="modifiedAttribute" v-model="value" :isEditMode="!disabled" :attribute="modifiedAttribute" :disabled="disabled" />
+        <NotificationBox v-else alertType="danger">Could not resolve attribute field</NotificationBox>
+        <div v-if="field.postHtml" v-html="field.postHtml"></div>
+    </template>
+</template>
+
+<script setup lang="ts">
+    import { computed, PropType, ref, watch } from "vue";
+    import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import RockField from "@Obsidian/Controls/rockField.obs";
+    import { Guid } from "@Obsidian/Types";
+    import { PublicAttributeBag } from "@Obsidian/ViewModels/Utility/publicAttributeBag";
+    import { RegistrationEntryFormFieldBag } from "@Obsidian/ViewModels/Blocks/Event/RegistrationEntry/registrationEntryFormFieldBag";
+    import { isFieldVisible } from "./registrationCart.partial";
+
+    const props = defineProps({
+        field: {
+            type: Object as PropType<RegistrationEntryFormFieldBag>,
+            required: true
+        },
+        /** Every answer, keyed by form field guid. Written in place. */
+        fieldValues: {
+            type: Object as PropType<Record<Guid, unknown>>,
+            required: true
+        },
+        /** Every field on the template's forms (visibility rules can look at any of them). */
+        formFields: {
+            type: Array as PropType<RegistrationEntryFormFieldBag[]>,
+            required: true
+        },
+        disabled: {
+            type: Boolean as PropType<boolean>,
+            default: false
+        }
+    });
+
+    const value = ref<string>((props.fieldValues[props.field.guid] as string) ?? "");
+
+    const isVisible = computed<boolean>(() => isFieldVisible(props.field, props.fieldValues, props.formFields));
+
+    const modifiedAttribute = computed<PublicAttributeBag | null>(() => {
+        if (!props.field.attribute) {
+            return null;
+        }
+
+        // The form field, not the attribute, decides whether an answer is required.
+        return { ...props.field.attribute, isRequired: props.field.isRequired };
+    });
+
+    // A different person's starting values were loaded.
+    watch(() => props.fieldValues[props.field.guid], () => {
+        value.value = (props.fieldValues[props.field.guid] as string) ?? "";
+    });
+
+    watch(value, () => {
+        props.fieldValues[props.field.guid] = value.value;
+    });
+</script>

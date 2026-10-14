@@ -1,0 +1,64 @@
+<template>
+    <div class="rc-forms">
+        <template v-for="(form, formIndex) in visibleForms" :key="formIndex">
+            <div v-for="field in form" :key="field.guid" class="rc-form-field">
+                <FormPersonField v-if="field.fieldSource === RegistrationFieldSource.PersonField"
+                                 :field="field"
+                                 :fieldValues="fieldValues"
+                                 :lists="lists"
+                                 :disabled="disabled" />
+                <FormAttributeField v-else
+                                    :field="field"
+                                    :fieldValues="fieldValues"
+                                    :formFields="allFields"
+                                    :disabled="disabled" />
+            </div>
+            <hr v-if="formIndex < visibleForms.length - 1" class="rc-form-divider" />
+        </template>
+    </div>
+</template>
+
+<script setup lang="ts">
+    import { computed, PropType } from "vue";
+    import { RegistrationFieldSource } from "@Obsidian/Enums/Event/registrationFieldSource";
+    import { Guid } from "@Obsidian/Types";
+    import { RegistrationEntryFormBag } from "@Obsidian/ViewModels/Blocks/Event/RegistrationEntry/registrationEntryFormBag";
+    import { RegistrationEntryFormFieldBag } from "@Obsidian/ViewModels/Blocks/Event/RegistrationEntry/registrationEntryFormFieldBag";
+    import FormAttributeField from "./formAttributeField.partial.obs";
+    import FormPersonField from "./formPersonField.partial.obs";
+    import { FormListsBag } from "../viewModels";
+
+    /**
+     * Every form of a Rock registration template for one registrant, as Rock's RegistrationEntry
+     * shows them (all forms on one page here). Answers are written into fieldValues, keyed by
+     * form field guid. Fields hidden from wait-listed registrants in Rock are hidden here too.
+     */
+    const props = defineProps({
+        forms: {
+            type: Array as PropType<RegistrationEntryFormBag[]>,
+            required: true
+        },
+        fieldValues: {
+            type: Object as PropType<Record<Guid, unknown>>,
+            required: true
+        },
+        lists: {
+            type: Object as PropType<FormListsBag>,
+            required: true
+        },
+        isWaitList: {
+            type: Boolean as PropType<boolean>,
+            default: false
+        },
+        disabled: {
+            type: Boolean as PropType<boolean>,
+            default: false
+        }
+    });
+
+    const allFields = computed<RegistrationEntryFormFieldBag[]>(() => props.forms.flatMap(f => f.fields ?? []));
+
+    const visibleForms = computed<RegistrationEntryFormFieldBag[][]>(() => props.forms
+        .map(f => (f.fields ?? []).filter(field => !props.isWaitList || field.showOnWaitList))
+        .filter(fields => fields.length > 0));
+</script>

@@ -3,6 +3,13 @@
 
 import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
 import { toCurrencyOrNull } from "@Obsidian/Utility/numberUtils";
+import { FilterExpressionType } from "@Obsidian/Core/Reporting/filterExpressionType";
+import { Guid } from "@Obsidian/Types";
+import { ComparisonValue } from "@Obsidian/Types/Reporting/comparisonValue";
+import { getFieldType } from "@Obsidian/Utility/fieldTypes";
+import { areEqual } from "@Obsidian/Utility/guid";
+import { RegistrationEntryFormFieldBag } from "@Obsidian/ViewModels/Blocks/Event/RegistrationEntry/registrationEntryFormFieldBag";
+import { RegistrationEntryVisibilityBag } from "@Obsidian/ViewModels/Blocks/Event/RegistrationEntry/registrationEntryVisibilityBag";
 
 export const GradeBand = {
     None: 0,
@@ -117,3 +124,44 @@ export function initials(name: string | null | undefined): string {
     const first = (name ?? "").trim().split(/\s+/)[0] ?? "";
     return first ? first[0].toUpperCase() : "?";
 }
+
+// #region Registration form visibility (Rock's RegistrationEntry rules)
+
+/** Whether a registration form field shows, given the answers so far (Rock's field visibility rules). */
+export function isFieldVisible(field: RegistrationEntryFormFieldBag, fieldValues: Record<Guid, unknown>, formFields: RegistrationEntryFormFieldBag[]): boolean {
+    const rules = field.visibilityRules ?? [];
+    switch (field.visibilityRuleType) {
+        case FilterExpressionType.GroupAll:
+            return rules.every(rule => isRuleMet(rule, fieldValues, formFields));
+        case FilterExpressionType.GroupAllFalse:
+            return rules.every(rule => !isRuleMet(rule, fieldValues, formFields));
+        case FilterExpressionType.GroupAny:
+            return rules.some(rule => isRuleMet(rule, fieldValues, formFields));
+        case FilterExpressionType.GroupAnyFalse:
+            return rules.some(rule => !isRuleMet(rule, fieldValues, formFields));
+    }
+
+    return true;
+}
+
+function isRuleMet(rule: RegistrationEntryVisibilityBag, fieldValues: Record<Guid, unknown>, formFields: RegistrationEntryFormFieldBag[]): boolean {
+    const value = fieldValues[rule.comparedToRegistrationTemplateFormFieldGuid] || "";
+    if (typeof value !== "string" || !rule.comparisonValue) {
+        return false;
+    }
+
+    const comparedTo = formFields.find(f => areEqual(f.guid, rule.comparedToRegistrationTemplateFormFieldGuid));
+    const fieldType = comparedTo?.attribute?.fieldTypeGuid ? getFieldType(comparedTo.attribute.fieldTypeGuid) : null;
+    if (!fieldType) {
+        return false;
+    }
+
+    const comparison: ComparisonValue = {
+        value: rule.comparisonValue.value ?? "",
+        comparisonType: rule.comparisonValue.comparisonType
+    };
+
+    return fieldType.doesValueMatchFilter(value, comparison, comparedTo?.attribute?.configurationValues ?? {});
+}
+
+// #endregion

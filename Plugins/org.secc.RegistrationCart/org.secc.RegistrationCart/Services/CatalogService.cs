@@ -134,6 +134,20 @@ namespace org.secc.RegistrationCart.Services
             return template?.Instances.FirstOrDefault( i => i.Instance.Id == registrationInstanceId );
         }
 
+        /// <summary>
+        /// The group the instance's event linkage places registrants in. Rock's RegistrationEntry
+        /// finds it from the calendar link it was opened from; the cart has no such link, so it
+        /// uses the instance's first linkage that names a group (each camp has one).
+        /// </summary>
+        public int? GetLinkedGroupId( int registrationInstanceId )
+        {
+            return new EventItemOccurrenceGroupMapService( _rockContext ).Queryable()
+                .Where( m => m.RegistrationInstanceId == registrationInstanceId && m.GroupId.HasValue )
+                .OrderBy( m => m.Id )
+                .Select( m => m.GroupId )
+                .FirstOrDefault();
+        }
+
         /// <summary>Event date text per instance id, for cart and checkout lines (empty when unknown).</summary>
         public Dictionary<int, string> GetEventDateTexts( IEnumerable<int> instanceIds )
         {

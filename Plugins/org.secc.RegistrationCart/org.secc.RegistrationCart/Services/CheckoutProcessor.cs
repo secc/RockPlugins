@@ -459,7 +459,10 @@ namespace org.secc.RegistrationCart.Services
             }
 
             // ---- 4. What Rock does after a registration is saved -------------------
-            RunPostSave( result.RegistrationIds, payer );
+            var answers = cart.LineItems
+                .Where( l => l.RegistrationId.HasValue )
+                .ToDictionary( l => l.RegistrationId.Value, l => l.FieldValuesJson );
+            RunPostSave( result.RegistrationIds, payer, answers );
 
             return result;
         }
@@ -472,7 +475,7 @@ namespace org.secc.RegistrationCart.Services
         /// and instance registration workflows. Each registration is handled on its own context;
         /// failures are logged, never thrown, because the registrations and the payment stand.
         /// </summary>
-        private void RunPostSave( IEnumerable<int> registrationIds, Person payer )
+        private void RunPostSave( IEnumerable<int> registrationIds, Person payer, IDictionary<int, string> answersByRegistration )
         {
             foreach ( var registrationId in registrationIds )
             {
@@ -492,7 +495,7 @@ namespace org.secc.RegistrationCart.Services
                         var settings = new RegistrationSettings( registration.RegistrationInstance.RegistrationTemplate, registration.RegistrationInstance );
 
                         registration.SavePersonNotesAndHistory( payer, payer.PrimaryAliasId, new List<int>() );
-                        AddRegistrantsToGroup( rockContext, settings, registration );
+                        AddRegistrantsToGroup( rockContext, settings, registration, RegistrationForms.FromJson( answersByRegistration.GetValueOrNull( registration.Id ) ) );
 
                         new ProcessSendRegistrationConfirmation.Message
                         {
@@ -536,7 +539,7 @@ namespace org.secc.RegistrationCart.Services
         /// Rock's RegistrationEntry does: an existing member gets the template's member status,
         /// a new one also the template's role (or the group type's default role).
         /// </summary>
-        private static void AddRegistrantsToGroup( RockContext rockContext, RegistrationSettings settings, Registration registration )
+        private static void AddRegistrantsToGroup( RockContext rockContext, RegistrationSettings settings, Registration registration, Dictionary<Guid, object> answers )
         {
             if ( !registration.GroupId.HasValue )
             {
@@ -575,21 +578,10 @@ namespace org.secc.RegistrationCart.Services
                 rockContext.SaveChanges();
                 registrant.GroupMemberId = groupMember.Id;
                 rockContext.SaveChanges();
-            }
-        }
 
-        /// <summary>
-        /// The group the instance's event linkage places registrants in. Rock's RegistrationEntry
-        /// finds it from the calendar link it was opened from; the cart has no such link, so it
-        /// uses the instance's first linkage that names a group (each camp has one).
-        /// </summary>
-        private int? LinkedGroupId( int registrationInstanceId )
-        {
-            return new EventItemOccurrenceGroupMapService( _rockContext ).Queryable()
-                .Where( m => m.RegistrationInstanceId == registrationInstanceId && m.GroupId.HasValue )
-                .OrderBy( m => m.Id )
-                .Select( m => m.GroupId )
-                .FirstOrDefault();
+                // The template's group member attribute answers.
+                new RegistrationForms( rockContext ).ApplyToGroupMember( registration.RegistrationInstance.RegistrationTemplate, groupMember, answers );
+            }
         }
 
         private const string PaidButNotRegisteredMessage = "Your payment was received but we could not finish creating the registrations. Please contact the office — do not pay again.";
@@ -751,7 +743,7 @@ namespace org.secc.RegistrationCart.Services
                     DiscountCode = string.Join( ",", priced.CodesFor( line.Id ) ).Truncate( 100 ),
                     DiscountAmount = priced.DiscountFor( line.Id ),
                     DiscountPercentage = 0m,
-                    GroupId = LinkedGroupId( instance.Id ),
+                    GroupId = new CatalogService( _rockContext ).GetLinkedGroupId( instance.Id ),
                     IsTemporary = false
                 };
                 registrationService.Add( registration );
@@ -785,6 +777,15 @@ namespace org.secc.RegistrationCart.Services
                 }
 
                 _rockContext.SaveChanges();
+
+                // The registrant's answers to the template's forms go to the person and the registrant
+                // (group member answers once they are in the group, after commit).
+                var registrantPerson = new PersonAliasService( _rockContext ).GetPerson( line.CartRegistrant.PersonAliasId );
+                if ( registrantPerson != null )
+                {
+                    new RegistrationForms( _rockContext ).ApplyToPersonAndRegistrant( instance.RegistrationTemplate, registrantPerson, registrant, RegistrationForms.FromJson( line.FieldValuesJson ) );
+                }
+
                 line.RegistrationId = registration.Id;
                 map[line.Id] = registration.Id;
             }

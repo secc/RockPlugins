@@ -67,6 +67,8 @@ namespace org.secc.RegistrationCart.Blocks
             }
 
             box.Offering = ToBag( template );
+            box.Offering.Forms = new RegistrationForms( RockContext ).GetForms( template.Template );
+            box.Offering.FormLists = RegistrationForms.GetFormLists( template.Template );
             if ( manager != null )
             {
                 box.People = BuildPeople( manager, cart );
@@ -89,13 +91,37 @@ namespace org.secc.RegistrationCart.Blocks
                 return ActionBadRequest( "Nothing to add." );
             }
 
-            var line = manager.AddLineItem( request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, out var error );
+            var line = manager.AddLineItem( request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, out var error );
             if ( line == null )
             {
                 return ActionBadRequest( error ?? "That item could not be added." );
             }
 
             return ActionOk( BuildNavigation( manager.GetOpenCart() ) );
+        }
+
+        /// <summary>
+        /// A family member's starting answers to the template's forms for one instance: their
+        /// current values where the form shows them, defaults otherwise.
+        /// </summary>
+        [BlockAction]
+        public BlockActionResult GetStartingValues( int personAliasId, int registrationInstanceId )
+        {
+            var manager = GetCartManager();
+            if ( manager == null )
+            {
+                return ActionUnauthorized( "Please sign in." );
+            }
+
+            var person = manager.ResolveRegisterablePerson( personAliasId );
+            var instance = new RegistrationInstanceService( RockContext ).Get( registrationInstanceId );
+            if ( person == null || instance == null )
+            {
+                return ActionBadRequest( "That person or option was not found." );
+            }
+
+            var groupId = new CatalogService( RockContext ).GetLinkedGroupId( instance.Id );
+            return ActionOk( new RegistrationForms( RockContext ).GetStartingValues( instance.RegistrationTemplate, person, groupId ) );
         }
 
         [BlockAction]

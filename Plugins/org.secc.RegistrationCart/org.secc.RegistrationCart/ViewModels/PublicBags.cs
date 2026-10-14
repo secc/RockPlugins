@@ -14,7 +14,9 @@
 //
 using System;
 using System.Collections.Generic;
+using Rock.ViewModels.Blocks.Event.RegistrationEntry;
 using Rock.ViewModels.Controls;
+using Rock.ViewModels.Utility;
 
 // Bags/boxes cross the wire to the Obsidian (Vue) blocks. Enums travel as ints so the
 // TypeScript side stays independent of the C# enum types; see src/shared/enums.partial.ts.
@@ -124,6 +126,21 @@ namespace org.secc.RegistrationCart.ViewModels
         public string DateText { get; set; }
         public List<VariantBag> Variants { get; set; } = new List<VariantBag>();
         public List<AddOnGroupBag> AddOnGroups { get; set; } = new List<AddOnGroupBag>();
+        /// <summary>The template's registration forms, as Rock's RegistrationEntry sends them.</summary>
+        public List<RegistrationEntryFormBag> Forms { get; set; } = new List<RegistrationEntryFormBag>();
+        /// <summary>Choices for the person fields that are drop-downs (only those the forms use).</summary>
+        public FormListsBag FormLists { get; set; } = new FormListsBag();
+    }
+
+    /// <summary>Drop-down choices for person fields, as Rock's RegistrationEntry provides them.</summary>
+    public class FormListsBag
+    {
+        public List<ListItemBag> Campuses { get; set; } = new List<ListItemBag>();
+        public List<ListItemBag> Grades { get; set; } = new List<ListItemBag>();
+        public List<ListItemBag> MaritalStatuses { get; set; } = new List<ListItemBag>();
+        public List<ListItemBag> ConnectionStatuses { get; set; } = new List<ListItemBag>();
+        public List<ListItemBag> Races { get; set; } = new List<ListItemBag>();
+        public List<ListItemBag> Ethnicities { get; set; } = new List<ListItemBag>();
     }
 
     /// <summary>A Rock RegistrationInstance.</summary>
@@ -183,6 +200,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public int PersonAliasId { get; set; }
         public int RegistrationInstanceId { get; set; }
         public List<int> FeeItemIds { get; set; } = new List<int>();
+        /// <summary>Answers to the template's forms, keyed by form field Guid.</summary>
+        public Dictionary<Guid, object> FieldValues { get; set; } = new Dictionary<Guid, object>();
     }
 
     public class AddFamilyMemberRequestBag

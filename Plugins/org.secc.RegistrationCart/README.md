@@ -86,7 +86,7 @@ org.secc.RegistrationCart/              C# plugin assembly
   Migrations/001_CreateRegistrationCart Tables, entity/block types, pages, routes, blocks
   Model/                                9 entities: 3 overlays, DiscountCode, 5 cart tables
   Services/                             CatalogService, CartManager, CartPricing,
-                                        CheckoutProcessor, GradeBands, SeatLock
+                                        CheckoutProcessor, GradeBands, RegistrationForms, SeatLock
   ViewModels/                           Bags/boxes shared with the Obsidian blocks
   SystemGuid.cs                         Every GUID the plugin owns — never change
 org.secc.RegistrationCart.Obsidian/     Vue 3 / Obsidian frontend
@@ -104,7 +104,7 @@ plugin.json / BuildPlugin.ps1           Rock plugin packaging
 | Block | Page (created by migration) | What it does | Settings |
 |-------|-----------------------------|--------------|----------|
 | Registration Cart Catalog (`Catalog`) | External › Registration (`/registrations`) | Lists visible templates with an open instance. | Heading, Intro, Offering Detail Page, Cart Page |
-| Registration Cart Offering (`OfferingDetail`) | `/registrations/offering/{OfferingKey}` | Pick a family member (or add a child), an instance and fees; add to cart. | Allow Adding Family Members, Cart Page, Catalog Page |
+| Registration Cart Offering (`OfferingDetail`) | `/registrations/offering/{OfferingKey}` | Pick a family member (or add a child), an instance and fees, and fill in the template's registration forms; add to cart. | Allow Adding Family Members, Cart Page, Catalog Page |
 | Registration Cart (`Cart`) | `/registrations/cart` | Cart with pricing; apply/remove discount codes; remove lines. | Checkout Page, Catalog Page |
 | Registration Cart Checkout (`Checkout`) | `/registrations/checkout` | Payment + checkout. Uses the gateway's Obsidian hosted control when it has one, else a My Well tokenizer iframe. | Financial Gateway, Batch Name Prefix, Tokenizer Script URL / Gateway URL / Public Key, Cart Page, Catalog Page |
 | Registration Cart Settings (`AdminCatalogSettings`) | Admin Tools › Installed Plugins › Registration Cart (`/admin/registration-cart`) | Per template/instance/fee item visibility, eligibility, image, order. Saves require block EDIT. | Catalog Page |
@@ -123,6 +123,7 @@ add time.
 |---|------|
 | 001 | Creates the 9 tables, registers entity + block types, creates the External pages under the stock External site's home page (if the site exists) and the admin pages under Installed Plugins, wires the blocks' linked-page settings. Page routes are set **global**. |
 | 002 | Adds `CartLineItem.IsWaitList`. |
+| 003 | Adds `CartLineItem.FieldValuesJson` (form answers) and `CartLineItem.SignatureData`. |
 
 ## Configuration
 
@@ -191,13 +192,16 @@ add time.
   decides what a wait-listed registrant is told.
 - **Gateway support:** works with Obsidian-hosted gateways (Rock NMI, Test Gateway) or the My
   Well tokenizer. The PayFlow Pro gateway (`org.secc.PayFlowPro`) supports neither.
-- **No registration forms or signatures yet:** the cart doesn't collect the template's form
-  fields (person fields, person/registrant/group member attributes) or the inline signature
-  document, and doesn't run PersonMatch. 2026 camp templates have ~41 form fields over 5 forms
-  (emergency contacts, school/grade, allergies, medications, insurance, the financial
-  assistance questions, T-shirt, photo) and every camp template requires an inline signature.
-  Registration workflows, group placement, confirmation/notification emails and notes/history
-  do run (see Overview).
+- **Registration forms:** the offering page shows the template's forms for the chosen camper
+  with Rock's own field controls, required-field validation and show/hide rules
+  (`Services/RegistrationForms`, a port of Rock's RegistrationEntry form handling; Rock's form
+  bags are reused as-is). Answers are stored on the cart line and written at checkout the way
+  Rock writes them: person fields (name excepted; address and campus go to the family) and
+  person attributes to the person, registrant attributes to the registrant, group member
+  attributes once the camper is in the group; "lock if values exist" is honoured. Fields hidden
+  from wait-listed registrants in Rock are hidden for wait-list lines. Not yet: the inline
+  signature document, editing answers from the cart, and PersonMatch (registrants are always
+  existing family members).
 - **Add child:** creates a Pending person with no birthdate/gender and a representative grade
   (`GradeBands.GradeOffsetFor` — e.g. Elementary → 3rd grade); duplicate-prone.
 - **Migration placement:** pages hang off Rock's *stock* External site/home page, and all routes

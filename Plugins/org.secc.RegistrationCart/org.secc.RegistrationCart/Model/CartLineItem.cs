@@ -52,6 +52,17 @@ namespace org.secc.RegistrationCart.Model
         [DataMember]
         public bool IsWaitList { get; set; }
 
+        /// <summary>
+        /// The registrant's answers to the template's forms, keyed by form field Guid (see
+        /// Services/RegistrationForms). Written to the person, registrant and group member at checkout.
+        /// </summary>
+        [DataMember]
+        public string FieldValuesJson { get; set; }
+
+        /// <summary>The signed inline signature document, as Rock's electronic signature returns it.</summary>
+        [DataMember]
+        public string SignatureData { get; set; }
+
         /// <summary>The Rock Registration created for this line at checkout.</summary>
         [DataMember]
         public int? RegistrationId { get; set; }

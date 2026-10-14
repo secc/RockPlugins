@@ -1,5 +1,7 @@
 // This code was auto-generated, any manual changes made will be lost.
 
+import { Guid } from "@Obsidian/Types";
+import { RegistrationEntryFormBag } from "@Obsidian/ViewModels/Blocks/Event/RegistrationEntry/registrationEntryFormBag";
 import { GatewayControlBag } from "@Obsidian/ViewModels/Controls/gatewayControlBag";
 import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
 
@@ -246,6 +248,10 @@ export type OfferingBag = {
 
     description?: string | null;
 
+    formLists?: FormListsBag | null;
+
+    forms?: RegistrationEntryFormBag[] | null;
+
     idKey?: string | null;
 
     imageUrl?: string | null;
@@ -257,6 +263,20 @@ export type OfferingBag = {
     title?: string | null;
 
     variants?: VariantBag[] | null;
+};
+
+export type FormListsBag = {
+    campuses?: ListItemBag[] | null;
+
+    connectionStatuses?: ListItemBag[] | null;
+
+    ethnicities?: ListItemBag[] | null;
+
+    grades?: ListItemBag[] | null;
+
+    maritalStatuses?: ListItemBag[] | null;
+
+    races?: ListItemBag[] | null;
 };
 
 export type VariantBag = {
@@ -321,6 +341,8 @@ export type RegistrantOptionBag = {
 
 export type AddToCartRequestBag = {
     feeItemIds?: number[] | null;
+
+    fieldValues?: Record<Guid, unknown> | null;
 
     personAliasId: number;
 

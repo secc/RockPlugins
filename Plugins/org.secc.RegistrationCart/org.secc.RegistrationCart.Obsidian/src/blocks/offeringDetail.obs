@@ -93,6 +93,18 @@
                             </div>
                         </div>
                     </section>
+
+                    <!-- 4. The template's registration forms -->
+                    <section v-if="selectedVariant && selectedPerson && hasForms" class="rc-step">
+                        <div class="rc-step-title"><span class="rc-step-num">4</span><h2>About {{ firstName(selectedPerson.fullName) }}</h2></div>
+                        <p v-if="isLoadingValues" class="rc-muted">Loading…</p>
+                        <RockForm v-else v-model:submit="submitForms" @submit="addToCart">
+                            <RegistrantForms :forms="offering?.forms ?? []"
+                                             :fieldValues="fieldValues"
+                                             :lists="offering?.formLists ?? {}"
+                                             :isWaitList="joiningWaitList" />
+                        </RockForm>
+                    </section>
                 </div>
 
                 <!-- Summary rail -->
@@ -113,7 +125,7 @@
                         </dl>
                         <p v-if="joiningWaitList" class="rc-small">This option is full, so {{ firstName(selectedPerson.fullName) }} will go on the wait list. Nothing is due now; you'll be contacted if a spot opens.</p>
                         <p v-if="cartError" class="rc-error" role="alert">{{ cartError }}</p>
-                        <button type="button" class="rc-btn rc-btn-primary rc-btn-block" :disabled="!canAddToCart" @click="addToCart">
+                        <button type="button" class="rc-btn rc-btn-primary rc-btn-block" :disabled="!canAddToCart" @click="onAddClicked">
                             {{ isAdding ? "Adding…" : (joiningWaitList ? "Add to wait list" : "Add to cart") }}
                         </button>
                     </template>
@@ -140,9 +152,12 @@
     import DropDownList from "@Obsidian/Controls/dropDownList.obs";
     import Modal from "@Obsidian/Controls/modal.obs";
     import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import RockForm from "@Obsidian/Controls/rockForm.obs";
     import TextBox from "@Obsidian/Controls/textBox.obs";
+    import { Guid } from "@Obsidian/Types";
     import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
     import FieldGuide from "../shared/fieldGuide.partial.obs";
+    import RegistrantForms from "../shared/registrantForms.partial.obs";
     import CartNav from "../shared/cartNav.partial.obs";
     import SignInNotice from "../shared/signInNotice.partial.obs";
     import { GradeBand, SelectionMode, gradeBandOptions, gradeBandText, goTo, initials, isEligible, money } from "../shared/registrationCart.partial";
@@ -160,6 +175,12 @@
     const selections = ref<Record<number, number[]>>({});
     const cartError = ref("");
     const isAdding = ref(false);
+
+    // Answers to the template's forms, keyed by form field guid; reloaded per person and option.
+    const fieldValues = ref<Record<Guid, unknown>>({});
+    const isLoadingValues = ref(false);
+    const submitForms = ref(false);
+    const hasForms = computed<boolean>(() => (offering.value?.forms ?? []).some(f => (f.fields ?? []).length > 0));
 
     const isAddPersonOpen = ref(false);
     const isAddingPerson = ref(false);
@@ -194,7 +215,7 @@
     const joiningWaitList = computed<boolean>(() => !!selectedVariant.value && isFull(selectedVariant.value));
 
     const canAddToCart = computed<boolean>(() => {
-        if (!selectedVariant.value || !selectedPerson.value || isAdding.value) return false;
+        if (!selectedVariant.value || !selectedPerson.value || isAdding.value || isLoadingValues.value) return false;
         return visibleGroups.value.filter(g => g.group.isRequired).every(g => (selections.value[g.group.id] ?? []).length > 0);
     });
 
@@ -262,6 +283,35 @@
         selections.value = { ...selections.value, [groupId]: next };
     }
 
+    /** With forms, the form validates first and its submit adds to the cart; without, add directly. */
+    function onAddClicked(): void {
+        if (hasForms.value) {
+            submitForms.value = true;
+        }
+        else {
+            void addToCart();
+        }
+    }
+
+    /** The person's current values (where the forms show them) and the forms' defaults. */
+    async function loadStartingValues(): Promise<void> {
+        fieldValues.value = {};
+        if (!hasForms.value || !selectedPerson.value || !selectedVariantId.value) return;
+        isLoadingValues.value = true;
+        try {
+            const result = await invokeBlockAction<Record<Guid, unknown>>("GetStartingValues", {
+                personAliasId: selectedPerson.value.personAliasId,
+                registrationInstanceId: selectedVariantId.value
+            });
+            fieldValues.value = result.isSuccess && result.data ? { ...result.data } : {};
+        }
+        finally {
+            isLoadingValues.value = false;
+        }
+    }
+
+    watch([selectedPersonAliasId, selectedVariantId], () => { void loadStartingValues(); });
+
     async function addToCart(): Promise<void> {
         if (!selectedPerson.value || !selectedVariant.value) return;
         isAdding.value = true;
@@ -271,7 +321,8 @@
                 request: {
                     personAliasId: selectedPerson.value.personAliasId,
                     registrationInstanceId: selectedVariant.value.id,
-                    feeItemIds: Object.values(selections.value).flat()
+                    feeItemIds: Object.values(selections.value).flat(),
+                    fieldValues: fieldValues.value
                 }
             });
             if (result.isSuccess && result.data) {
