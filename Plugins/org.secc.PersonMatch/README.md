@@ -75,9 +75,6 @@ Ships one Rock plugin migration that installs the matching reference data:
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** With `createNameless = true`, `GetByMatch` will **insert and `SaveChanges()`
-  a new person** as a side effect of a "lookup" call. Callers driven by public/untrusted input
-  (forms, SMS) can therefore create person records — review which workflows pass that flag.
 - **Improvement:** The method opens a second `RockContext` internally for its `LocationService`
   and `AttributeValueService`, while the actual person queries still run on the caller's
   `personService` context — so two contexts are live at once for a single call. The address-match

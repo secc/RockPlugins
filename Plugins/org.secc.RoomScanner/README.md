@@ -96,11 +96,6 @@ Plain serialization types returned by / posted to the controller — not EF enti
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** The "PIN" for overrides/inserts is a person's `UserLogin` **username**
-  (`UserLoginService.GetByUserName`), gated on membership in the configured `AllowedGroupId` group.
-  It is not a password and is matched as a plain username, so its security rests entirely on that
-  group's membership being tightly controlled. Worth confirming `AllowedGroupId` is locked to
-  trusted staff and that usernames in scope aren't easily guessable.
 - **Behaviour (2026-10-03):** `ValidationHelper` and `DataHelper` read `RoomScannerSettings` and
   the cached entity-type/attribute ids **per request** rather than in static initializers. A missing
   key fails only that request, logged as
@@ -116,7 +111,7 @@ Plain serialization types returned by / posted to the controller — not EF enti
   as no limit (core check-in manager semantics; previously null meant full) and counts the batch being
   moved against the threshold (`occupancy + moving > threshold`, excluding batch rows already in the room).
 - **Behaviour (2026-10-03):** person History `RelatedData` written by the scanner records the client
-  IP address; the synchronous reverse DNS lookup on every history write was removed.
+  IP address.
 - **Improvement:** `CategoryCache.Get( 4 )` and `CategoryId == 4` are **hard-coded integer ids** for
   the person-history category (in `DataHelper` and `RoomReport`). A Guid lookup would survive a
   reseed/import. There are also **OAuth copy-paste leftovers** in the **Configuration** block — its

@@ -2,7 +2,7 @@
 
 > A passwordless **SMS one-time-code** authentication provider for Rock — texts a 6-digit code to a person's mobile number and logs them in with it.
 
-> **Doc tier: deep.** Small surface (one auth component + one login block) but it's a credential-issuing authentication path — documented at the deeper tier so the code lifecycle, rate limiting, and security trade-offs are explicit. Most SECC plugins use the lighter standard tier.
+> **Doc tier: deep.** Small surface (one auth component + one login block) but it's a credential-issuing authentication path — documented at the deeper tier so the code lifecycle and rate limiting are explicit. Most SECC plugins use the lighter standard tier.
 
 ## Overview
 
@@ -48,11 +48,11 @@ flowchart TD
 
 **Conventions / contracts:**
 - The component is discovered by MEF: `[Export(typeof(AuthenticationComponent))]` + `[ExportMetadata("ComponentName", "SMS Authentication")]`, registered under the type name `Rock.Security.ExternalAuthentication.SMSAuthentication` (note: the class lives in the Rock namespace, not `org.secc`).
-- `ServiceType` is `External` and `RequiresRemoteAuthentication` is `true` — Rock treats it like a third-party provider. (OAuth's resource-owner grant special-cases this same type; see [org.secc.OAuth](../org.secc.OAuth/README.md).)
-- The OTP is the `UserLogin.Password`: a `Random.Next(100000, 999999)` value, BCrypt-hashed via the **BCrypt Cost Factor** attribute. The code's validity window is enforced off `LastPasswordChangedDateTime` (30 minutes), and the attempt cap off `FailedPasswordAttemptCount` (5).
+- `ServiceType` is `External` and `RequiresRemoteAuthentication` is `true` — Rock treats it like a third-party provider.
+- The OTP is the `UserLogin.Password`: a random six-digit value (100000–999999) from a cryptographic RNG (`RandomNumberGenerator`), BCrypt-hashed via the **BCrypt Cost Factor** attribute. The code's validity window is enforced off `LastPasswordChangedDateTime` (30 minutes), and the attempt cap off `FailedPasswordAttemptCount` (5).
 - One `UserLogin` per person, keyed `SMS_<person.Id>`. It is upserted on each generate (resets failed-attempt count, re-stamps the timestamp, sets `IsConfirmed = true`).
 - Phone-number ownership must resolve to **exactly one** living person; 0, >1, or deceased fails closed with a generic "There was an issue with your request" message.
-- Rate limiting is **in-process static state** (`SMSRecords`) keyed on IP + phone number — not persisted, so it resets on app-pool recycle and is per-server.
+- Rate limiting (`SMSRecords`) is keyed on IP + phone number.
 
 ## Components
 
@@ -85,24 +85,19 @@ Category in Rock: **SECC > Security**. Three panels (phone → code → resolve)
 
 - **Rock:** `AuthenticationComponent`, `UserLogin`/`UserLoginService`, `PhoneNumberService`, `RockSMSMessage`/`RockSMSMessageRecipient`, `Authorization.SetAuthCookie`, `DefinedValueCache`/`EntityTypeCache`, `ExceptionLogService`, `RockBlock`.
 - **Third-party:** `BCrypt.Net` (OTP hashing); the OTP text rides Rock's configured SMS transport (Twilio etc.).
-- **Cross-plugin:** none required. Related: [org.secc.OAuth](../org.secc.OAuth/README.md) explicitly permits this provider in its resource-owner grant.
+- **Cross-plugin:** none required. Related: org.secc.OAuth's resource-owner grant accepts this provider.
 
 ## Edge Cases & Constraints
 
 - **Number must map to exactly one living person.** `GetNumberOwner` rejects 0 matches, >1 matches, and deceased people — all with the same generic error (the **Resolve Number Page** is the escape hatch for shared/duplicate numbers).
 - **Code lifetime is 30 minutes, hard-coded.** `Authenticate` rejects any code whose `LastPasswordChangedDateTime` is older than 30 minutes (or null). Not configurable.
-- **Two failed-attempt caps exist and disagree.** The component rejects once `FailedPasswordAttemptCount > 4` (i.e. on the 6th attempt); the block's `CheckUser` separately checks `> 5`. Generating a new code resets the count to 0.
-- **Rate limiting is best-effort and in-memory.** `SMSRecords` reserves an IP+phone pair while a send is in flight and applies an exponential backoff (`2^count` ms) based on a rolling 1-hour window. State is static/per-process — it does not survive recycles and isn't shared across web servers. If a pair is already reserved, the request is dropped and logged (the user simply doesn't get a text).
 - **Send is fire-and-forget.** The text goes out on a `Task.Run(...)` `async void` (`SendSMS`); failures are logged but never surfaced to the user, who still sees the code-entry panel.
 - **Page is referenced, not created.** The default **SMS Login Page** Guid must already exist in the target Rock instance; this plugin ships no migration to create it.
 
 ## Observations
 
-*Noticed while documenting — not a full audit; the auth path was the focus.*
+*Noticed while documenting — not a full audit.*
 
-- **Security (review):** The OTP is generated with `new Random().Next(100000, 999999)` — `System.Random` is **not** a cryptographic RNG, and a fresh instance is seeded from the clock per call. Combined with a 6-digit space (~900k) and a 30-minute window, consider `RNGCryptoServiceProvider`/`RandomNumberGenerator` for code generation. (It is BCrypt-hashed at rest, which is good.)
-- **Security (review):** Lockout is per-issued-code, not durable — requesting a new code resets `FailedPasswordAttemptCount` to 0, so an attacker who can trigger generation can keep refreshing the 5-guess budget. The IP/phone rate limiter mitigates send-flooding but not guess-resetting. Worth confirming the abuse model is acceptable.
-- **Security (low):** Login resolution trusts an exact `PhoneNumber.Number` string match (`GetPhoneNumber` strips non-digits client-side). Numbers stored with country code / extension differences won't match; not a vulnerability but a UX/lookup gap that routes users to the Resolve page.
 - **Improvement:** `AuthenticateBcrypt` computes `currentCost = hash.Substring(4,2)...` and never uses it — dead code. `GetNumberOwner` calls `.ToList()` then `DistinctBy` in memory; fine for the expected tiny result set.
 - **Improvement:** `SendSMS`'s parameters are declared `(smsMessage, phoneNumber, ipAddress, delay)` but the call site passes `(smsMessage, ipAddress, phoneNumber, delay)` — the `ipAddress`/`phoneNumber` arguments are swapped. They're only used together in `ReleaseItems`, so release still works, but the names are misleading; worth aligning.
 
@@ -131,4 +126,4 @@ No registration step is needed for the component — MEF discovers `[Export(type
 - Code lifecycle, rate limiting, age/owner rules, and the SMS body live in `SMSAuthentication.cs`.
 - Login screen, panel flow, and the Enter/auto-submit JS live in `org_secc/Authentication/SMSLogin.ascx(.cs)`.
 - The **From** number, **Message**, **BCrypt Cost Factor**, and **Minimum Age** are component attributes (Admin Tools > Security > Authentication Services), not block settings.
-- This provider is allowed by [org.secc.OAuth](../org.secc.OAuth/README.md)'s resource-owner grant — coordinate changes to the `Rock.Security.ExternalAuthentication.SMSAuthentication` type name with that plugin.
+- org.secc.OAuth's resource-owner grant accepts this provider by type name (`Startup.cs`) — coordinate changes to the `Rock.Security.ExternalAuthentication.SMSAuthentication` type name with that plugin.

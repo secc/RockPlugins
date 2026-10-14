@@ -144,8 +144,7 @@ Ships Rock plugin migrations under `/Migrations/`:
   tracked graph for the full run; worth reviewing for large program counts.
 - **Improvement:** `006_FamilyAttribute.Down()` is empty, so rolling that migration back leaves the
   family attribute in place. The other migrations implement `Down()` — worth aligning for consistency.
-- **Improvement:** The two API base URLs and `"notasecret"` PKCS#12 password are hard-coded in
-  `APIClient` (the password matches Google service-account `.p12` convention). The auth flow also runs
+- **Improvement:** The two API base URLs are hard-coded in `APIClient`. The auth flow also runs
   async work via `.GetAwaiter().GetResult()`, which can deadlock under some sync contexts — acceptable
   inside a Quartz job thread, but worth noting if this code is ever reused on a request thread.
 - **Risk:** For a `.p12` with a CNG key, `APIClient` signs with clrsecurity's `Security.Cryptography.RSACng`.

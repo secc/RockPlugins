@@ -88,7 +88,6 @@ and is not wired into any build or `Rock.Plugin.Migration`.
 *Noticed while documenting — not a full audit.*
 
 - **Improvement:** `Migrations/sf stored proc.sql` hard-codes database **Ids** (group Ids, attribute Ids) and the `RockDBStaging` database name. It's a point-in-time data move that will not be correct against any other environment — keep it as historical reference, not something to re-run.
-- **Security (low):** `GuestRegistration` is a public-facing self-service kiosk block that **creates Person/Family records** and writes a liability-waiver acceptance (with the client IP read from `HTTP_X_FORWARDED_FOR`). It records a `Pending` record status and dedupes against existing people, but confirm the page hosting it is locked to the kiosk and that the trusted-proxy assumption behind `X_FORWARDED_FOR` holds (otherwise the stored "accepted from" IP is client-spoofable).
 - **Improvement:** Several blocks `new RockContext()` repeatedly within a single request/handler (e.g. `GuestRegistration` opens many short-lived contexts), and `GetEmergencyContactMatrixTypeId()` dereferences the looked-up attribute without a null check. Works in practice but is fragile if the expected attribute/matrix template is missing.
 - **Improvement:** `ActivitiesCheckin`'s membership/notes logic keys off a `ConnectionStatusValueId == Member` or `Person.GetAttributeValue("Employer") == "Southeast Christian Church"` string check (`ActivitiesCheckin.ascx.cs` lines 172 and 329) — brittle business rules embedded in code rather than configuration.
 

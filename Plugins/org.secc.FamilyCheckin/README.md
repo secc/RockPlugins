@@ -181,29 +181,6 @@ attributes (don't hand-edit ones that have already run):
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** Check-in handles minors' PII (names, birthdays, grade, medical/medication
-  consent, allergy data driving labels). Confirm the Rock **page/block security** on the consent and
-  pre-registration blocks, and that the kiosk-facing pages are restricted to the intended check-in
-  roles.
-- **Security (review):** Mobile check-in is gated by `MobileCheckinRecord.AccessKey` (a unique
-  string consumed by `GetByAccessKey`). Worth confirming the access key is generated from a
-  cryptographically strong, non-guessable source, since possessing it identifies a family's
-  reservation.
-- **Security (ROCK-8765, addressed on `sl-bugfix-8765`):** `FamilyCheckinController.Family` returned
-  full `CheckInFamily` graphs (family captions + members' first names, incl. minors) to any caller
-  whose session had a `BlockGuid`. Investigation found the mobile-checkin vector does **not** actually
-  leak — its workflow activity (`Person Search → Find Family Members`) assumes a selected family and
-  errors under a phone search — so the real exposure is the kiosk QuickSearch path, which requires a
-  staff-provisioned kiosk session. Because a console `fetch` on the kiosk page is indistinguishable
-  from the page's own AJAX, the kiosk path can't be blocked in code without breaking check-in; that
-  residual risk is accepted and gated by kiosk provisioning + rate limiting. Fix adds a `BlockGuid`
-  provenance check (rejects non-QuickSearch sessions, incl. mobile), server-side length enforcement,
-  per-session rate limiting, and a projected response. Note `CheckInFamily.SubCaption` is member
-  first names by design (`Rock/Workflow/Action/CheckIn/FindFamilies.cs`), so it is still returned on
-  the legitimate kiosk path.
-- **Security (low):** `Family` decrypts the `LocalDeviceConfig` cookie and trusts `CurrentKioskId`
-  from it to pick the kiosk; worth confirming the cookie's integrity protection is sufficient for the
-  device-config trust placed in it.
 - **Improvement (done):** The REST `Family` and `ProcessMobileCheckin` handlers now share the
   activate-workflow / process / save-state block via the private `RunCheckinWorkflow` helper, and
   the `?UserName=` impersonation gate is shared with the MobileCheckinStart block via

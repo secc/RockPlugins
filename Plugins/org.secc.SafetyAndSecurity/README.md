@@ -100,18 +100,6 @@ Ships one EF plugin migration under `/Migrations/`:
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** This plugin handles highly sensitive data — Social Security Numbers,
-  background-check applications, and medical/incident reports. `VolunteerApplicationSSN` and
-  `VolunteerApplicationValidation` decrypt SSN parts and re-store the SSN encrypted, which is good;
-  worth confirming the binary-file types the PDF merges write to (`5C701472-…`, `9510D232-…`,
-  `E68932AD-…`, `A72B7149-…`) are locked down so the rendered confidential PDFs aren't broadly readable.
-- **Security (low):** `CampusLockDown` hard-codes `int alertTypeId = 31480` (a DefinedValue Id) rather
-  than resolving by Guid. Ids are environment-specific, so this will break or mis-tag alerts on any
-  database where that value Id differs (e.g. a restored/rebuilt environment). Worth switching to a
-  Guid-based lookup or a block setting.
-- **Improvement:** The MinistrySafe API token is read from a Global Attribute and sent as
-  `Authorization: Token token=…`. Confirm `MinistrySafeAPIToken` is stored as an encrypted/field-type
-  global attribute and not broadly readable.
 - **Improvement:** `MinistrySafeRequest` declares the **same `MinistrySafe URL` `WorkflowAttribute`
   twice** (duplicate attribute decoration). Harmless but should be deduped.
 - **Improvement:** Several actions `new RockContext()` internally instead of using the passed-in

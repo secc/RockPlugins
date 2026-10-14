@@ -115,9 +115,6 @@ Ships Rock plugin migrations under `/Migrations/`:
   failed, and calls that throw (timeouts, connection or database errors) are logged to the
   Exception List; HTTP error statuses are counted in the Result instead. A check number that
   can't be saved is logged too and counted as a `SaveFailed` error; five in a row stop the run.
-- **Security (low):** `FrontPorchDeviceRemoval` and `PushPayDownloadCheckNumbers` reach external HTTP
-  APIs using credentials from Global Attributes / merchant rows. Confirm those tokens are stored
-  encrypted and that the Front Porch `Host`/token global attributes are not broadly readable.
 - **Improvement:** `AssemblyInfo.cs` still carries the default scaffolded company/copyright
   (`"Microsoft"`, `"Copyright © Microsoft 2017"`) rather than Southeast Christian Church.
 

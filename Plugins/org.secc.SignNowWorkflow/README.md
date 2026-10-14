@@ -74,19 +74,16 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
 *Noticed while documenting — not a full audit.*
 
 - **Temp-file handling (ROCK-9041):** `SignNow Download` has `Document.Download` write the signed PDF into
-  a new directory unique to each call (`Path.GetTempPath()` + `Path.GetRandomFileName()`), so concurrent
-  runs can't read each other's document. It checks the SDK result for the saved `file` path (a SignNow
-  error adds an error message instead of throwing), reads the bytes into memory, and deletes the directory
-  in a `finally` before any database work; a failed delete is logged, not thrown. The bytes go to
-  `signedPDF.ContentStream` as a `MemoryStream` and `SaveChanges()` runs in both the new-`BinaryFile` and
-  existing-`BinaryFile` branches. New files use the file type named by the attribute's `binaryFileType`
-  qualifier and fall back to the Default file type only when the qualifier is blank (otherwise Rock
-  silently drops the content); a qualifier that names a missing file type is an error, not a fallback, so
-  a signed application is never stored under the less-secured Default type by accident. The destination
-  attribute and file type are resolved before the download, so a misconfigured action fails without
-  calling SignNow. The stored file name gets a `.pdf` extension, and the `%PDF-` header is accepted
-  anywhere in the first 1024 bytes. (Before ROCK-9041 every run shared `%TEMP%\{document_name}.pdf`, the action handed the
-  provider an open `FileStream`, and it deleted the path without the `.pdf` suffix, so temp PDFs piled up.)
+  a new directory unique to each call (`Path.GetTempPath()` + `Path.GetRandomFileName()`). It checks the
+  SDK result for the saved `file` path (a SignNow error adds an error message instead of throwing), reads
+  the bytes into memory, and deletes the directory in a `finally` before any database work; a failed
+  delete is logged, not thrown. The bytes go to `signedPDF.ContentStream` as a `MemoryStream` and
+  `SaveChanges()` runs in both the new-`BinaryFile` and existing-`BinaryFile` branches. New files use the
+  file type named by the attribute's `binaryFileType` qualifier and fall back to the Default file type
+  only when the qualifier is blank (otherwise Rock silently drops the content); a qualifier that names a
+  missing file type is an error, not a fallback. The destination attribute and file type are resolved
+  before the download, so a misconfigured action fails without calling SignNow. The stored file name gets
+  a `.pdf` extension, and the `%PDF-` header is accepted anywhere in the first 1024 bytes.
   `SignNow Create` also removes its upload temp directory in a `finally`, including on error returns.
 - **SDK error handling:** SignNowSDK uses RestSharp 105, which never throws on transport failures. The SDK
   then returns `null`, or the raw error body (object, array, or non-JSON), instead of the expected object.
@@ -98,10 +95,6 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
 - **Improvement:** The "is it signed?" check is a simple `signatures.Count > 0` poll with no timeout or
   expiration handling — the workflow must re-run `SignNow Download` itself (e.g. on a delay/loop) until a
   signature appears. There's no detection of a declined/expired invite.
-- **Security (low):** `SignNow Create` mints a guest signer with a random email/password and embeds that
-  user's `access_token` directly in the invite URL query string. The link is short-lived and per-document,
-  but it is a bearer credential in a URL (loggable in proxies/history) — worth confirming it isn't persisted
-  or surfaced beyond the intended recipient.
 - **Improvement:** `SignNow Download` hardcodes `MimeType = "application/pdf"` (flagged with a `// TODO` in
   the source) and assumes the downloaded file is a PDF.
 

@@ -117,12 +117,6 @@ Ships Rock plugin migrations (SQL only — `Down()` is intentionally empty):
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** Giving statements are sensitive financial PII. `GetStatement.ashx` only
-  enforces authorization when the binary file's *type* has `RequiresViewSecurity` set — otherwise
-  any file id/guid streams without a person check. The custom fallback (matching `GivingId` or
-  `PersonIds` file attributes) is reasonable, but worth confirming the statement binary-file type is
-  actually flagged `RequiresViewSecurity` and that those attributes are populated on every generated
-  file; otherwise statements could be retrieved by guessing/iterating ids.
 - **Improvement:** The DELETE endpoint runs a raw `DELETE FROM dbo.[Document]` via
   `ExecuteSqlCommand` (parameterized, so not injection-prone) alongside the EF `Delete` of the
   binary file. Review that this leaves no orphaned references and consider doing the cleanup through

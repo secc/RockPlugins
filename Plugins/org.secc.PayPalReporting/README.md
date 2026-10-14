@@ -112,17 +112,14 @@ Ships Rock plugin migrations under `/Migrations/`:
 - **Report column names are a hard contract.** Any rename in the PayPal report template (`"Transaction ID"`, `"Amount"`, `"PayPal Transaction ID"`, …) breaks `ProcessTransaction` with a `KeyNotFoundException`. The `DataTable` indexer is also accessed without a `Columns.Contains` guard.
 - **`PayPal Fees` column maps to `0`.** When the report includes a `PayPal Fees` column, `ProcessTransaction` sets `Fees = 0` regardless of value, deferring the real fee to the Merchant API pass.
 - **A `0` fee from the Merchant API is treated as failure**, not as a legitimately fee-free transaction — such rows are re-queried on every run unless `IsZeroFee` is manually set on the row (e.g. via the block).
-- **`PayFlowProRequest.FormatEndpointURL` has a no-op bug** (`URL.Replace("http://","https://")` discards its result), so an `http://`-prefixed URL is not actually upgraded to HTTPS.
 - **Amounts are stored as `double`.** Currency is held as a floating-point `double` (both the SQL `float` column and the model), not `decimal` — acceptable for reporting but not exact.
 
 ## Observations
 
-*Noticed while documenting — not a full audit; the import/credential paths stood out.*
+*Noticed while documenting — not a full audit.*
 
-- **Security (low):** Merchant API credentials are stored as `EncryptedTextField` job attributes and decrypted only in-memory at run time via `Rock.Security.Encryption` — good. Worth confirming the Jobs admin page (where these attributes are edited) and the **PayPal Reporting Transaction** block are restricted to finance/admin staff, since the block lets a user freely rewrite stored giving amounts/fees.
 - **Improvement:** the poll loop (see Edge Cases) has no timeout/iteration cap and re-sends the run-report request instead of a results request; a hung or slow PayPal report blocks the job thread. Consider a bounded retry with a max wait.
 - **Improvement:** `ProcessTransaction` indexes the `DataTable` by literal column names with no `Columns.Contains` guard and `!= null` checks on the indexer (which never returns null) — a missing/renamed report column throws rather than skips. Harden the column mapping.
-- **Improvement:** `FormatEndpointURL`'s `URL.Replace(...)` result is discarded (a real no-op); the method only prepends a scheme when none is present.
 - **Improvement:** several DB contexts/services are newed up inline in the job and block (`new TransactionService( new PayPalReportingContext() )` per call). Fine for a nightly job, but the block creates a fresh context on each of show/edit/save.
 
 ## Extending

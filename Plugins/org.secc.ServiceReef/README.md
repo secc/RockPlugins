@@ -123,9 +123,6 @@ Ships Rock plugin migrations under `/Migrations/`:
   `NullReferenceException` after the person and family are saved and aborts the rest of the run.
   `ImportData` now guards this path (ROCK-8805); the same guard for `ImportTrips` is tracked in
   ROCK-9267.
-- **Security (low):** API keys/secrets and PayPal credentials are stored as `EncryptedTextField`
-  job attributes and decrypted at runtime — appropriate. Confirm the ServiceReef API base URL and
-  these job attributes are only visible to Finance/admin roles in the Jobs admin UI.
 
 ## Making Changes
 

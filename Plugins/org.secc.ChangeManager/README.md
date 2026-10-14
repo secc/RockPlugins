@@ -82,8 +82,7 @@ Ships Rock plugin migrations under `/Migrations/`:
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** These blocks let users propose edits to live person/family data, and `CompleteChanges` applies them by reflecting over arbitrary entity properties and attributes. Confirm the review blocks (`ChangeRequestDetail`/`ChangeRequests`) are page/block-secured to trusted staff, that the **Blacklist Data View** is populated with staff/VIP records that must never auto-apply, and that `AutoApply` on `ChangeEntry` is set deliberately per-instance.
-- **Improvement:** `CompleteChanges` applies values through reflection (`SetProperty` via `PropertyInfo.GetSetMethod`, attribute set/save, related-entity create/delete) with no allow-list of editable properties — the property to write comes from the stored `ChangeRecord.Property`. The set of editable fields is bounded only by what the generating blocks emit; if a request can be crafted with an arbitrary `Property`, that breadth is worth confirming. Errors are accumulated into a list and the whole transaction rolls back on any failure, which is good — but the security-notice workflow only fires for person email/phone changes.
+- **Note:** In `CompleteChanges`, errors are accumulated into a list and the whole transaction rolls back on any failure.
 - **Improvement:** `EvaluateAttributes` news up its own `RockContext` per call to reload the persisted entity, separate from any context the caller holds. Fine for one-offs, an extra round-trip in loops.
 
 ## Making Changes
