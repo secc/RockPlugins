@@ -81,10 +81,10 @@ All require a logged-in user (`GetCurrentUser`, else `401`) and apply per-group 
 | `api/GroupApp/GroupMembers/{groupId}/Add` | POST | EDIT **and** MANAGE_MEMBERS | Match-or-create a person and add as a member; copies the caller's `TableNumber` when they have one. |
 | `api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}` | DELETE | EDIT **and** MANAGE_MEMBERS | Hard-delete a group member. The target must be in the caller's scope from `GetGroupMembers` (own table for table-based groups) and not archived, else `404`. A caller with no table in a table-based group gets `400`, unless they hold EDIT + MANAGE_MEMBERS through Rock security (not a group role), in which case the whole group is in scope. Refuses the last active member of the scope whose role has `CanEdit` (`400`), since that role flag is what grants these permissions to group members. Registrant links are cleared first, so a member placed by an event registration deletes cleanly. |
 | `api/GroupApp/Attendance/{groupId}/{occurrenceDate}` | GET | VIEW or leader | Attendance for an occurrence. |
-| `api/GroupApp/Attendance/` | POST | leader | Mark a member (of this group) present. Reconciles with the member's existing attendance for the group+date: with `locationId`, matches within that room (+`scheduleId`); without it, matches by group+person+date, preferring a kiosk-origin row, so a kiosk check-in is flipped rather than duplicated. Creates a row if none exists. |
+| `api/GroupApp/Attendance/` | POST | leader | Mark a member (of this group) present. Reconciles with the member's existing attendance for the group+date: with `locationId`, matches within that room (+`scheduleId`); without it, matches by group+person+date, preferring a kiosk-origin row, so a kiosk check-in is flipped rather than duplicated. Creates a row if none exists, at the group's attendance location. |
 | `api/GroupApp/Attendances/{attendanceId}` | DELETE | leader | Delete an attendance record. |
-| `api/GroupApp/Attendance/SelfReport` | GET / POST | member (POST: adult only) | Read/set the current user's own attendance, gated to a window around the occurrence start. |
-| `api/GroupApp/Attendance/DidNotMeet` | POST | leader | Mark an occurrence as "Did Not Meet" and clear its attendance. |
+| `api/GroupApp/Attendance/SelfReport` | GET / POST | member (POST: adult only) | Read/set the current user's own attendance, gated to a window around the occurrence start. POST records against the group's attendance location. |
+| `api/GroupApp/Attendance/DidNotMeet` | POST | leader | Mark an occurrence as "Did Not Meet" and clear its attendance. Without a `locationId`, records against the group's attendance location (see *Attendance location* below). |
 | `api/GroupApp/AttendanceSchedules/{groupId}` | GET | VIEW or leader | Past-12-months occurrence list (scheduled + recorded). |
 | `api/GroupApp/Groups/{groupId}/Schedule` | GET / PUT | leader | Read/update the group's weekly schedule as iCal (forks a shared schedule on edit). |
 | `api/GroupApp/Groups/{groupId}/Location` | GET / PUT | GET: member, PUT: leader | Read/replace the group's single location; PUT runs Rock address `Verify` (geocode). |
@@ -155,7 +155,8 @@ Returns a nested `DataSet` (transactions + per-account details), filtered to the
 ## Edge Cases & Constraints
 
 - **GroupApp endpoints carry no auth attribute.** They rely entirely on `GetCurrentUser()` plus hand-rolled per-group checks. Any new GroupApp action must repeat that pattern — there is no filter enforcing it.
-- **Hardcoded ids.** `SermonController` hardcodes content-channel ids (24, 23) and a Speaker attribute id (30285); `GetGroups` hardcodes GroupTypeIds 107/109 and CampusId 1; some location lookups use literal `GroupLocationTypeValueId` 19/209. These break if the target environment's ids differ.
+- **Hardcoded ids.** `SermonController` hardcodes content-channel ids (24, 23) and a Speaker attribute id (30285); `GetGroups` hardcodes GroupTypeIds 107/109 and CampusId 1; these break if the target environment's ids differ. (Location types are resolved by Rock system Guids everywhere in the GroupApp controllers.)
+- **Attendance location.** `GroupAppAttendanceController` records attendance, "Did Not Meet" and self check-in against one location per group: its Meeting Location, else its Home location, else its first location (lowest GroupLocation Id), else none — the same order the GroupApp location endpoint uses for the address it shows. It never uses location 0 (before ROCK-9170, groups whose only location had no type got 0 and every "Did Not Meet" and self check-in failed with a foreign-key error). The weekly schedule list links a saved occurrence to a scheduled date only when the location matches, so if a group's attendance location changes (e.g. a Meeting Location is added later), older occurrences at the previous location show as separate dates.
 - **Schedule edit forks shared schedules.** `PUT .../Schedule` creates a new `Schedule` if the current one is shared by another group/group-location, then repoints the group; legacy `WeeklyDayOfWeek`/`WeeklyTimeOfDay` are cleared in favor of iCal.
 - **Location PUT is destructive.** It deletes *all* existing `GroupLocation` rows for the group before adding one (single-location app requirement).
 - **`MatchOrCreatePerson` adds the posted `Person` directly** when no match is found — the request body is persisted as a new person with no field sanitization beyond what matching uses.
@@ -209,4 +210,4 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 
 ---
 
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-14
