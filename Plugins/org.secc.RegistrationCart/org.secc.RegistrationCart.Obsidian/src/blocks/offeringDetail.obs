@@ -98,12 +98,20 @@
                     <section v-if="selectedVariant && selectedPerson && hasForms" class="rc-step">
                         <div class="rc-step-title"><span class="rc-step-num">4</span><h2>About {{ firstName(selectedPerson.fullName) }}</h2></div>
                         <p v-if="isLoadingValues" class="rc-muted">Loading…</p>
-                        <RockForm v-else v-model:submit="submitForms" @submit="addToCart">
+                        <RockForm v-else v-model:submit="submitForms" @submit="proceed">
                             <RegistrantForms :forms="offering?.forms ?? []"
                                              :fieldValues="fieldValues"
                                              :lists="offering?.formLists ?? {}"
                                              :isWaitList="joiningWaitList" />
                         </RockForm>
+                    </section>
+
+                    <!-- 5. The template's signature document -->
+                    <section v-if="signatureDocument?.documentHtml" class="rc-step">
+                        <div class="rc-step-title"><span class="rc-step-num">5</span><h2>Sign the {{ documentTerm }}</h2></div>
+                        <iframe class="rc-signature-doc" :srcdoc="signatureDocument.documentHtml" title="Document to sign" style="width: 100%; height: 420px; border: 1px solid var(--rc-line, #d8d2c4); background: #fff;"></iframe>
+                        <ElectronicSignature v-model="signatureValue" :isDrawn="offering?.isSignatureDrawn ?? false" :documentTerm="documentTerm" @signed="onSigned" />
+                        <p v-if="signError" class="rc-error" role="alert">{{ signError }}</p>
                     </section>
                 </div>
 
@@ -152,7 +160,10 @@
     import DropDownList from "@Obsidian/Controls/dropDownList.obs";
     import Modal from "@Obsidian/Controls/modal.obs";
     import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import ElectronicSignature from "@Obsidian/Controls/electronicSignature.obs";
     import RockForm from "@Obsidian/Controls/rockForm.obs";
+    import { ElectronicSignatureValue } from "@Obsidian/ViewModels/Controls/electronicSignatureValue";
+    import { RegistrationEntrySignatureDocumentBag } from "@Obsidian/ViewModels/Blocks/Event/RegistrationEntry/registrationEntrySignatureDocumentBag";
     import TextBox from "@Obsidian/Controls/textBox.obs";
     import { Guid } from "@Obsidian/Types";
     import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
@@ -283,14 +294,89 @@
         selections.value = { ...selections.value, [groupId]: next };
     }
 
-    /** With forms, the form validates first and its submit adds to the cart; without, add directly. */
+    /** With forms, the form validates first and its submit carries on; without, carry on directly. */
     function onAddClicked(): void {
         if (hasForms.value) {
             submitForms.value = true;
         }
         else {
-            void addToCart();
+            void proceed();
         }
+    }
+
+    // The template's inline signature document: rendered from the answers, then signed.
+    const signatureDocument = ref<RegistrationEntrySignatureDocumentBag | null>(null);
+    const signatureValue = ref<ElectronicSignatureValue | undefined>(undefined);
+    const signedData = ref("");
+    const existingSignatureGuid = ref<Guid | null>(null);
+    const signError = ref("");
+    const documentTerm = computed<string>(() => offering.value?.signatureDocumentTerm || "Release");
+
+    /** The answers changed (or the camper or option did): any signature no longer applies. */
+    function clearSignature(): void {
+        signatureDocument.value = null;
+        signatureValue.value = undefined;
+        signedData.value = "";
+        existingSignatureGuid.value = null;
+        signError.value = "";
+    }
+
+    watch(fieldValues, clearSignature, { deep: true });
+    watch([selectedPersonAliasId, selectedVariantId], clearSignature);
+
+    /** After the forms validate: get the document signed when the template requires it, then add. */
+    async function proceed(): Promise<void> {
+        if (!offering.value?.requiresSignature || signedData.value || existingSignatureGuid.value) {
+            await addToCart();
+            return;
+        }
+
+        if (!selectedPerson.value || !selectedVariant.value) return;
+        signError.value = "";
+        const result = await invokeBlockAction<RegistrationEntrySignatureDocumentBag>("GetSignatureDocument", {
+            request: {
+                personAliasId: selectedPerson.value.personAliasId,
+                registrationInstanceId: selectedVariant.value.id,
+                fieldValues: fieldValues.value
+            }
+        });
+
+        if (!result.isSuccess || !result.data) {
+            cartError.value = result.errorMessage || `The ${documentTerm.value.toLowerCase()} could not be loaded.`;
+            return;
+        }
+
+        if (result.data.existingSignatureDocumentGuid) {
+            // Signed recently enough that the earlier signature still counts.
+            existingSignatureGuid.value = result.data.existingSignatureDocumentGuid;
+            await addToCart();
+            return;
+        }
+
+        signatureDocument.value = result.data;
+    }
+
+    async function onSigned(): Promise<void> {
+        if (!signatureDocument.value || !selectedPerson.value || !selectedVariant.value) return;
+        signError.value = "";
+        const result = await invokeBlockAction<string>("SignDocument", {
+            request: {
+                personAliasId: selectedPerson.value.personAliasId,
+                registrationInstanceId: selectedVariant.value.id,
+                fieldValues: fieldValues.value,
+                documentHtml: signatureDocument.value.documentHtml,
+                securityToken: signatureDocument.value.securityToken,
+                signature: signatureValue.value
+            }
+        });
+
+        if (!result.isSuccess || !result.data) {
+            signError.value = result.errorMessage || "The signature could not be recorded. Please try again.";
+            return;
+        }
+
+        signedData.value = result.data;
+        await addToCart();
     }
 
     /** The person's current values (where the forms show them) and the forms' defaults. */
@@ -322,7 +408,9 @@
                     personAliasId: selectedPerson.value.personAliasId,
                     registrationInstanceId: selectedVariant.value.id,
                     feeItemIds: Object.values(selections.value).flat(),
-                    fieldValues: fieldValues.value
+                    fieldValues: fieldValues.value,
+                    signatureData: signedData.value || null,
+                    existingSignatureDocumentGuid: existingSignatureGuid.value
                 }
             });
             if (result.isSuccess && result.data) {

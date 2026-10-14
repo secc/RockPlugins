@@ -69,6 +69,10 @@ namespace org.secc.RegistrationCart.Blocks
             box.Offering = ToBag( template );
             box.Offering.Forms = new RegistrationForms( RockContext ).GetForms( template.Template );
             box.Offering.FormLists = RegistrationForms.GetFormLists( template.Template );
+            var signatureDocument = new RegistrationSignatures( RockContext ).RequiredDocument( template.Template );
+            box.Offering.RequiresSignature = signatureDocument != null;
+            box.Offering.IsSignatureDrawn = signatureDocument?.SignatureType == Rock.Model.SignatureType.Drawn;
+            box.Offering.SignatureDocumentTerm = signatureDocument?.DocumentTerm.IfEmpty( "Release" ) ?? "Release";
             if ( manager != null )
             {
                 box.People = BuildPeople( manager, cart );
@@ -91,7 +95,10 @@ namespace org.secc.RegistrationCart.Blocks
                 return ActionBadRequest( "Nothing to add." );
             }
 
-            var line = manager.AddLineItem( request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, out var error );
+            var signatureData = request.ExistingSignatureDocumentGuid.HasValue
+                ? RegistrationSignatures.ForExistingDocument( request.ExistingSignatureDocumentGuid.Value )
+                : request.SignatureData;
+            var line = manager.AddLineItem( request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, signatureData, out var error );
             if ( line == null )
             {
                 return ActionBadRequest( error ?? "That item could not be added." );
@@ -122,6 +129,56 @@ namespace org.secc.RegistrationCart.Blocks
 
             var groupId = new CatalogService( RockContext ).GetLinkedGroupId( instance.Id );
             return ActionOk( new RegistrationForms( RockContext ).GetStartingValues( instance.RegistrationTemplate, person, groupId ) );
+        }
+
+        /// <summary>
+        /// The template's signature document rendered for this family member with their answers,
+        /// or the guid of one they signed before that is still valid.
+        /// </summary>
+        [BlockAction]
+        public BlockActionResult GetSignatureDocument( SignatureRequestBag request )
+        {
+            var (person, instance, error) = ResolveSignatureRequest( request );
+            if ( error != null )
+            {
+                return error;
+            }
+
+            var document = new RegistrationSignatures( RockContext ).GetDocument( instance, GetCurrentPerson(), person, request.FieldValues );
+            return document != null ? ActionOk( document ) : ActionBadRequest( "This registration has no document to sign." );
+        }
+
+        /// <summary>Records the signature on the document returned by GetSignatureDocument.</summary>
+        [BlockAction]
+        public BlockActionResult SignDocument( SignatureRequestBag request )
+        {
+            var (_, _, error) = ResolveSignatureRequest( request );
+            if ( error != null )
+            {
+                return error;
+            }
+
+            var signed = new RegistrationSignatures( RockContext ).Sign( request.FieldValues, request.DocumentHtml, request.SecurityToken, request.Signature,
+                RequestContext.ClientInformation.IpAddress, RequestContext.ClientInformation.UserAgent );
+            return signed != null ? ActionOk( signed ) : ActionBadRequest( "The document changed. Please review it and sign again." );
+        }
+
+        private (Rock.Model.Person, RegistrationInstance, BlockActionResult) ResolveSignatureRequest( SignatureRequestBag request )
+        {
+            var manager = GetCartManager();
+            if ( manager == null )
+            {
+                return (null, null, ActionUnauthorized( "Please sign in." ));
+            }
+
+            var person = request != null ? manager.ResolveRegisterablePerson( request.PersonAliasId ) : null;
+            var instance = request != null ? new RegistrationInstanceService( RockContext ).Get( request.RegistrationInstanceId ) : null;
+            if ( person == null || instance == null )
+            {
+                return (null, null, ActionBadRequest( "That person or option was not found." ));
+            }
+
+            return (person, instance, null);
         }
 
         [BlockAction]

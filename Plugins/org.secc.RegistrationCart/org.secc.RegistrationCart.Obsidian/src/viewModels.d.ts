@@ -256,9 +256,15 @@ export type OfferingBag = {
 
     imageUrl?: string | null;
 
+    isSignatureDrawn: boolean;
+
     offeringTypeText?: string | null;
 
     registrantTerm?: string | null;
+
+    requiresSignature: boolean;
+
+    signatureDocumentTerm?: string | null;
 
     title?: string | null;
 
@@ -340,6 +346,8 @@ export type RegistrantOptionBag = {
 };
 
 export type AddToCartRequestBag = {
+    existingSignatureDocumentGuid?: Guid | null;
+
     feeItemIds?: number[] | null;
 
     fieldValues?: Record<Guid, unknown> | null;
@@ -347,6 +355,22 @@ export type AddToCartRequestBag = {
     personAliasId: number;
 
     registrationInstanceId: number;
+
+    signatureData?: string | null;
+};
+
+export type SignatureRequestBag = {
+    documentHtml?: string | null;
+
+    fieldValues?: Record<Guid, unknown> | null;
+
+    personAliasId: number;
+
+    registrationInstanceId: number;
+
+    securityToken?: string | null;
+
+    signature?: unknown;
 };
 
 export type AddFamilyMemberRequestBag = {

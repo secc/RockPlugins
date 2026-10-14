@@ -405,11 +405,11 @@ namespace org.secc.RegistrationCart.Services
         {
             var fields = template.Forms.SelectMany( f => f.Fields ).ToList();
             var personChanges = new History.HistoryChangeList();
-            ApplyPersonFields( fields, person, values, personChanges );
+            var (campusId, address) = ApplyPersonFields( fields, person, values, personChanges );
+            SaveFamilyCampusAndAddress( person, campusId, address );
             _rockContext.SaveChanges();
 
-            person.LoadAttributes( _rockContext );
-            if ( ApplyAttributes( fields, RegistrationFieldSource.PersonAttribute, person, values ) )
+            if ( ApplyPersonAttributes( template, person, values ) )
             {
                 person.SaveAttributeValues( _rockContext );
             }
@@ -429,12 +429,55 @@ namespace org.secc.RegistrationCart.Services
         /// <summary>Writes the group member attribute answers once the registrant is in the group.</summary>
         public void ApplyToGroupMember( RegistrationTemplate template, GroupMember groupMember, Dictionary<Guid, object> values )
         {
-            var fields = template.Forms.SelectMany( f => f.Fields ).ToList();
-            groupMember.LoadAttributes( _rockContext );
-            if ( ApplyAttributes( fields, RegistrationFieldSource.GroupMemberAttribute, groupMember, values ) )
+            if ( ApplyGroupMemberAttributes( template, groupMember, values ) )
             {
                 groupMember.SaveAttributeValues( _rockContext );
             }
+        }
+
+        /// <summary>
+        /// Sets the person field answers on <paramref name="person"/> in memory (nothing saved) and
+        /// returns the campus and home address the answers ask for, which belong to the family.
+        /// Used to render the signature document as the person will be once registered.
+        /// </summary>
+        public (int? CampusId, Location Address) ApplyPersonFields( RegistrationTemplate template, Person person, Dictionary<Guid, object> values ) =>
+            ApplyPersonFields( template.Forms.SelectMany( f => f.Fields ).ToList(), person, values, new History.HistoryChangeList() );
+
+        /// <summary>Sets the person attribute answers on <paramref name="person"/> in memory. True when one changed.</summary>
+        public bool ApplyPersonAttributes( RegistrationTemplate template, Person person, Dictionary<Guid, object> values )
+        {
+            person.LoadAttributes( _rockContext );
+            return ApplyAttributes( template.Forms.SelectMany( f => f.Fields ).ToList(), RegistrationFieldSource.PersonAttribute, person, values );
+        }
+
+        /// <summary>Sets the group member attribute answers on <paramref name="groupMember"/> in memory. True when one changed.</summary>
+        public bool ApplyGroupMemberAttributes( RegistrationTemplate template, GroupMember groupMember, Dictionary<Guid, object> values )
+        {
+            groupMember.LoadAttributes( _rockContext );
+            return ApplyAttributes( template.Forms.SelectMany( f => f.Fields ).ToList(), RegistrationFieldSource.GroupMemberAttribute, groupMember, values );
+        }
+
+        /// <summary>
+        /// The registrant attribute answers as attribute caches and values, for Lava (the signature
+        /// document's Registrant), the way Rock's RegistrationEntry builds them.
+        /// </summary>
+        public static (Dictionary<string, AttributeCache> Attributes, Dictionary<string, AttributeValueCache> Values) RegistrantAttributes( RegistrationTemplate template, Dictionary<Guid, object> values )
+        {
+            var attributes = new Dictionary<string, AttributeCache>();
+            var attributeValues = new Dictionary<string, AttributeValueCache>();
+            foreach ( var field in template.Forms.SelectMany( f => f.Fields ).Where( f => f.AttributeId.HasValue && f.FieldSource == RegistrationFieldSource.RegistrantAttribute ) )
+            {
+                var attribute = AttributeCache.Get( field.AttributeId.Value );
+                if ( attribute == null || attributes.ContainsKey( attribute.Key ) )
+                {
+                    continue;
+                }
+
+                attributes.Add( attribute.Key, attribute );
+                attributeValues.Add( attribute.Key, new AttributeValueCache( attribute.Id, null, PrivateValue( attribute, values.GetValueOrNull( field.Guid ).ToStringSafe() ) ) );
+            }
+
+            return (attributes, attributeValues);
         }
 
         /// <summary>
@@ -467,7 +510,7 @@ namespace org.secc.RegistrationCart.Services
             return isChanged;
         }
 
-        private void ApplyPersonFields( List<RegistrationTemplateFormField> fields, Person person, Dictionary<Guid, object> values, History.HistoryChangeList changes )
+        private (int? CampusId, Location Address) ApplyPersonFields( List<RegistrationTemplateFormField> fields, Person person, Dictionary<Guid, object> values, History.HistoryChangeList changes )
         {
             int? campusId = null;
             Location address = null;
@@ -628,7 +671,7 @@ namespace org.secc.RegistrationCart.Services
                 }
             }
 
-            SaveFamilyCampusAndAddress( person, campusId, address );
+            return (campusId, address);
         }
 
         private static bool Unlocked( RegistrationTemplateFormField field, string current ) =>

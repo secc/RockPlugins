@@ -130,6 +130,12 @@ namespace org.secc.RegistrationCart.ViewModels
         public List<RegistrationEntryFormBag> Forms { get; set; } = new List<RegistrationEntryFormBag>();
         /// <summary>Choices for the person fields that are drop-downs (only those the forms use).</summary>
         public FormListsBag FormLists { get; set; } = new FormListsBag();
+        /// <summary>The template requires its signature document to be signed inline.</summary>
+        public bool RequiresSignature { get; set; }
+        /// <summary>Drawn (true) or typed signature.</summary>
+        public bool IsSignatureDrawn { get; set; }
+        /// <summary>What Rock calls the document, e.g. "Release" or "Waiver".</summary>
+        public string SignatureDocumentTerm { get; set; }
     }
 
     /// <summary>Drop-down choices for person fields, as Rock's RegistrationEntry provides them.</summary>
@@ -202,6 +208,22 @@ namespace org.secc.RegistrationCart.ViewModels
         public List<int> FeeItemIds { get; set; } = new List<int>();
         /// <summary>Answers to the template's forms, keyed by form field Guid.</summary>
         public Dictionary<Guid, object> FieldValues { get; set; } = new Dictionary<Guid, object>();
+        /// <summary>The signed document, as SignDocument returned it.</summary>
+        public string SignatureData { get; set; }
+        /// <summary>A still-valid document the person signed before (instead of signing again).</summary>
+        public Guid? ExistingSignatureDocumentGuid { get; set; }
+    }
+
+    /// <summary>Arguments for the signature document actions.</summary>
+    public class SignatureRequestBag
+    {
+        public int PersonAliasId { get; set; }
+        public int RegistrationInstanceId { get; set; }
+        public Dictionary<Guid, object> FieldValues { get; set; } = new Dictionary<Guid, object>();
+        /// <summary>SignDocument only: the HTML that was signed and the token it came with.</summary>
+        public string DocumentHtml { get; set; }
+        public string SecurityToken { get; set; }
+        public ElectronicSignatureValueViewModel Signature { get; set; }
     }
 
     public class AddFamilyMemberRequestBag

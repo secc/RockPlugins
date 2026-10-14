@@ -86,7 +86,8 @@ org.secc.RegistrationCart/              C# plugin assembly
   Migrations/001_CreateRegistrationCart Tables, entity/block types, pages, routes, blocks
   Model/                                9 entities: 3 overlays, DiscountCode, 5 cart tables
   Services/                             CatalogService, CartManager, CartPricing,
-                                        CheckoutProcessor, GradeBands, RegistrationForms, SeatLock
+                                        CheckoutProcessor, GradeBands, RegistrationForms,
+                                        RegistrationSignatures, SeatLock
   ViewModels/                           Bags/boxes shared with the Obsidian blocks
   SystemGuid.cs                         Every GUID the plugin owns — never change
 org.secc.RegistrationCart.Obsidian/     Vue 3 / Obsidian frontend
@@ -199,9 +200,15 @@ add time.
   Rock writes them: person fields (name excepted; address and campus go to the family) and
   person attributes to the person, registrant attributes to the registrant, group member
   attributes once the camper is in the group; "lock if values exist" is honoured. Fields hidden
-  from wait-listed registrants in Rock are hidden for wait-list lines. Not yet: the inline
-  signature document, editing answers from the cart, and PersonMatch (registrants are always
-  existing family members).
+  from wait-listed registrants in Rock are hidden for wait-list lines. Not yet: editing answers
+  from the cart, and PersonMatch (registrants are always existing family members).
+- **Inline signature:** when the template requires its signature document embedded, the
+  offering page renders it from the answers (Rock's Registration/Registrant Lava merge fields)
+  and the family signs with Rock's electronic signature control; a still-valid earlier signature
+  is reused. The signed data is encrypted and bound by hash to the answers and HTML, and a line
+  can't be added unsigned. Unlike Rock, the SignatureDocument and its PDF are created after the
+  paid registrations commit (`Services/RegistrationSignatures`), so a PDF failure is logged
+  rather than undoing a paid registration.
 - **Add child:** creates a Pending person with no birthdate/gender and a representative grade
   (`GradeBands.GradeOffsetFor` — e.g. Elementary → 3rd grade); duplicate-prone.
 - **Migration placement:** pages hang off Rock's *stock* External site/home page, and all routes

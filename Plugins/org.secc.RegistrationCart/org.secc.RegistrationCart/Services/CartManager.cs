@@ -204,7 +204,7 @@ namespace org.secc.RegistrationCart.Services
         /// Adds a registrant-for-instance line with the chosen fee items, enforcing ownership,
         /// grade-band eligibility, uniqueness, capacity and Rock's fee rules. Prices are snapshotted.
         /// </summary>
-        public CartLineItem AddLineItem( int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, out string errorMessage )
+        public CartLineItem AddLineItem( int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, out string errorMessage )
         {
             errorMessage = null;
             var cart = GetOrCreateOpenCart();
@@ -311,6 +311,19 @@ namespace org.secc.RegistrationCart.Services
                         SnapshotPrice = item.Item.Cost
                     } );
                 }
+            }
+
+            // A template that requires its document signed inline: the line must carry the signature.
+            var signatures = new RegistrationSignatures( _rockContext );
+            if ( signatures.RequiredDocument( template.Template ) != null )
+            {
+                if ( !signatures.IsUsable( template.Template, registrantPerson, signatureData ) )
+                {
+                    errorMessage = "Please sign the document before adding to the cart.";
+                    return null;
+                }
+
+                line.SignatureData = signatureData;
             }
 
             lineService.Add( line );

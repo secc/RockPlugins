@@ -459,10 +459,10 @@ namespace org.secc.RegistrationCart.Services
             }
 
             // ---- 4. What Rock does after a registration is saved -------------------
-            var answers = cart.LineItems
+            var lines = cart.LineItems
                 .Where( l => l.RegistrationId.HasValue )
-                .ToDictionary( l => l.RegistrationId.Value, l => l.FieldValuesJson );
-            RunPostSave( result.RegistrationIds, payer, answers );
+                .ToDictionary( l => l.RegistrationId.Value );
+            RunPostSave( result.RegistrationIds, payer, lines );
 
             return result;
         }
@@ -475,7 +475,7 @@ namespace org.secc.RegistrationCart.Services
         /// and instance registration workflows. Each registration is handled on its own context;
         /// failures are logged, never thrown, because the registrations and the payment stand.
         /// </summary>
-        private void RunPostSave( IEnumerable<int> registrationIds, Person payer, IDictionary<int, string> answersByRegistration )
+        private void RunPostSave( IEnumerable<int> registrationIds, Person payer, IDictionary<int, CartLineItem> linesByRegistration )
         {
             foreach ( var registrationId in registrationIds )
             {
@@ -494,8 +494,12 @@ namespace org.secc.RegistrationCart.Services
 
                         var settings = new RegistrationSettings( registration.RegistrationInstance.RegistrationTemplate, registration.RegistrationInstance );
 
+                        var line = linesByRegistration.GetValueOrNull( registration.Id );
+                        var answers = RegistrationForms.FromJson( line?.FieldValuesJson );
+
                         registration.SavePersonNotesAndHistory( payer, payer.PrimaryAliasId, new List<int>() );
-                        AddRegistrantsToGroup( rockContext, settings, registration, RegistrationForms.FromJson( answersByRegistration.GetValueOrNull( registration.Id ) ) );
+                        AddRegistrantsToGroup( rockContext, settings, registration, answers );
+                        SaveSignatureDocuments( rockContext, registration, payer, line?.SignatureData, answers );
 
                         new ProcessSendRegistrationConfirmation.Message
                         {
@@ -530,6 +534,32 @@ namespace org.secc.RegistrationCart.Services
                 catch ( Exception ex )
                 {
                     ExceptionLogService.LogException( new Exception( $"Registration Cart: post-save steps failed for registration {registrationId}.", ex ) );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates the inline signature document the shopper signed for the registrant (or links
+        /// the earlier one they reused). Done after commit so a PDF failure can't undo a paid
+        /// registration; a failure is logged with the registration so staff can collect it.
+        /// </summary>
+        private static void SaveSignatureDocuments( RockContext rockContext, Registration registration, Person payer, string signatureData, Dictionary<Guid, object> answers )
+        {
+            if ( signatureData.IsNullOrWhiteSpace() )
+            {
+                return;
+            }
+
+            var signatures = new RegistrationSignatures( rockContext );
+            foreach ( var registrant in registration.Registrants.Where( r => r.PersonAlias?.Person != null ) )
+            {
+                try
+                {
+                    signatures.SaveForRegistrant( registration.RegistrationInstance, payer, registrant.PersonAlias.Person, registrant, signatureData, answers );
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( new Exception( $"Registration Cart: the signed document for registration {registration.Id} ({registrant.PersonAlias.Person.FullName}) could not be saved.", ex ) );
                 }
             }
         }
