@@ -79,7 +79,7 @@ Keys in **bold** are the attribute keys used in code.
 | **Allow Reprint** | bool (default false) | Allow reprinting parent tags from this page. |
 | **Approved People** | data view (Person) | People allowed to check in. |
 | **AllowNonApproved** | bool (default false) | Allow adults not in the approved list to check in. |
-| **Security Role Dataview** | data view (Person) | People in a security role; blocks adding a PIN for them (see Observations). |
+| **Security Role Dataview** | data view (Person) | People in a security role; blocks adding a PIN for them. |
 | **Data Error URL** | text | Iframe URL for data-error workflow (e.g. `WorkflowEntry/12?PersonId={0}`). |
 | **QRCodeCheckReprint** / **QRCodeCheckCheckin** | bool (default false) | Require a QR-code scan to complete a reprint / a super check-in. |
 | **ReprintSecurityGroup** | security role (default Staff Members) | Group allowed to reprint tags. |
@@ -107,14 +107,6 @@ Keys in **bold** are the attribute keys used in code.
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (review):** In `SuperCheckin.mdPIN_SaveClick`, when the selected person is found in the
-  **Security Role Dataview** it shows a warning and hides the modal but does **not** `return` — code
-  execution falls through and still creates the `PINAuthentication` `UserLogin`. The guard intended
-  to block adding a PIN to security-role members appears ineffective; worth confirming and adding an
-  early `return`. (PINs are also only validated as numeric and length `> 7`.)
-- **Security (low):** This whole plugin lets staff create logins (PINs), edit person attributes/phone
-  numbers, and reprint tags. Confirm Rock **page/block security** for these blocks (and the configured
-  `SuperCheckInGroup` / `ReprintSecurityGroup`) is locked to trusted check-in staff.
 - **Improvement:** `LiveMonitor.OnLoad` calls `Thread.Sleep(200)` on the request thread to sample a
   `PerformanceCounter` ("% Processor Time") on every load, and re-queries the last 100 attendances
   each refresh. The CPU sample blocks the page and the counter is constructed (not disposed) per load.

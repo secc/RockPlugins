@@ -74,9 +74,6 @@ RockWeb blocks under `org_secc/Crm/`. Categories below are taken from each block
   `RockWeb.Plugins.org_secc.Search` and category `SECC > Search`, while its siblings use
   `RockWeb.Plugins.org_secc.Crm` / `SECC > CRM`. Its `[Description]` is also placeholder text
   ("Takes the ten two csv..."). Worth tidying so the block path/namespace/category line up.
-- **Security (low):** These search/results blocks surface person PII (addresses, DOB, email, envelope
-  numbers). Confirm the Rock **page/block security** on the pages hosting them is limited to staff who
-  should see it; envelope search in particular ties a person to giving data.
 - **Improvement:** `Properties/AssemblyInfo.cs` still carries a scaffolded `AssemblyCopyright`
   (`"Copyright ©  2016"`) with empty company/description rather than Southeast Christian Church.
 

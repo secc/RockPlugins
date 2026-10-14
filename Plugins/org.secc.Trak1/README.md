@@ -117,14 +117,6 @@ Trak-1 JSON API — not Rock entities. Key ones: `Trak1Request` (`Authentication
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** `SendRequest` transmits SSN, date of birth, and home address to Trak-1.
-  The DTOs are POSTed over whatever scheme the configured URL uses; confirm the production Request
-  URL is HTTPS (the shipped defaults are `https://stgapi.trak-1.com`, a **staging** host — verify
-  production deploys repoint these to the live endpoint).
-- **Security (low):** The subscriber/company codes are decrypted and embedded directly in the URL
-  path for `GetPackageList` and `Trak1Status` (`/{subscriberCode}/{companyCode}/...`). URLs can be
-  logged by proxies/servers; worth confirming Trak-1 expects credentials in the path and that
-  request logging won't capture them.
 - **Note:** All Trak-1 calls go through one shared `Trak1Client` (a single `HttpClient` with cookies
   disabled, so no cookie jar is replayed across requests). It checks the HTTP status code and rejects
   an empty, `null` or unreadable body with a `Trak1Exception` (the response body, truncated to 200

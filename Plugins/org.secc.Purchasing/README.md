@@ -100,14 +100,6 @@ database, not the legacy Shelby/Arena strings still in `app.config`).
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** `app.config` ships hardcoded legacy connection strings for `ShelbyDBRepl`
-  (`ar-sql02`) and an `ArenaDB_ChrisF` dev database. At runtime the active context is built from the
-  Rock connection string in `ContextHelper`, so these appear unused, but the stale server/catalog
-  names are worth removing to avoid confusion and accidental reconnection.
-- **Security (low):** Intacct API credentials are read from the `IntacctAPISettings` global
-  attribute and `Rock.Security.Encryption.DecryptString`-decrypted in `RequisitionDetail`. That's
-  the right place to store them; confirm the global attribute is flagged encrypted and that
-  edit/view rights on it are limited to finance/admin staff.
 - **Improvement:** The domain layer is custom LINQ-to-SQL (`Purchasing.dbml`) rather than the Rock
   EF model — a parallel data stack with its own connection handling, history/audit, and no plugin
   migration to create the `_org_secc_Purchasing_*` tables (they must be installed out-of-band).

@@ -94,11 +94,6 @@ Ships a single Rock plugin migration under `/Migrations/`:
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (review):** `ContactGroupLeaders` and `PublicProfileEdit` are **public-facing** blocks
-  that send communications / edit person + family data. Confirm anti-abuse expectations (who can
-  email a group's leaders, rate limiting) and that profile edits are scoped to the current user's
-  own family. `LinkListEditUsers` creates/edits **security role groups** and `Auth` rows — make sure
-  that block is restricted to trusted staff.
 - **Improvement:** `TwitterLava` reaches an external API (`api.twitter.com` v1.1) from inside a CMS
   block. The v1.1 `statuses/user_timeline` endpoint has been deprecated/retired by X/Twitter, so this
   block may no longer return data — worth confirming it still works or retiring it.

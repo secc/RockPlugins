@@ -56,14 +56,6 @@ Ships Rock plugin migrations that stand up the plugin's data and pages:
 - `004`–`006` — fixes and additions (nursing-home fix, visit-cancel, legacy-Lava fix,
   show-name-in-visit).
 
-## Observations
-
-*Noticed while documenting — not a full audit.*
-
-- **Security (medium):** These blocks surface sensitive health/PII — hospitalizations, homebound
-  status, nursing-home residency. Make sure the Rock **page/block security** for these is locked to
-  Pastoral Care staff roles and not inadvertently viewable by broader admin/staff groups.
-
 ## Making Changes
 
 - To change what a list shows, edit the matching `*.ascx.cs` in `org_secc/PastoralCare/`; the

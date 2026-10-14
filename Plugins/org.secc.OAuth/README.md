@@ -54,7 +54,7 @@ flowchart TD
 - The OWIN `OAuthAuthorizationServerProvider` delegates drive the server lifecycle: `OnValidateClientRedirectUri`, `OnValidateClientAuthentication`, `OnGrantResourceOwnerCredentials`, `OnGrantClientCredentials` (all in `Startup`).
 - **Authorization codes** are generated as two concatenated GUIDs and persisted via `AuthTokenService` (stored procedures `_org_secc_OAuth_spAddToken/spGetTicket/spDeleteToken`); a code is single-use — `ReceiveAuthenticationCode` deletes it on consumption.
 - **Refresh tokens** are serialized OWIN tickets with an optional lifespan from `OAuthRefreshTokenLifespan` (hours).
-- **Scopes** are carried as `urn:oauth:scope` claims. A request only gets the intersection of requested scopes and the client's active `ClientScope` rows. If a client has *no* active client-scopes, all requested scopes are auto-approved (see Edge Cases).
+- **Scopes** are carried as `urn:oauth:scope` claims. A request only gets the intersection of requested scopes and the client's active `ClientScope` rows.
 - **Credential validation** reuses Rock's `AuthenticationContainer` components — the same providers Rock uses for normal login (password, SMS, etc.), respecting `IsConfirmed` / `IsLockedOut`.
 - Entities are EF models on a dedicated `OAuthContext` that shares the `RockContext` connection but has its EF initializer set to `null` (no auto-migration).
 
@@ -146,20 +146,15 @@ Ships Rock plugin migrations under `/Migrations/`:
 
 ## Edge Cases & Constraints
 
-- **Empty client-scope list = open consent.** In both `GrantResourceOwnerCredentials` (Startup) and the Authorize block, if a client has *no* active `ClientScope` rows, the scope check short-circuits to approved. A client registered without scopes effectively bypasses scope filtering — confirm that's intended for every registered client.
 - **SSL is enforced two ways.** `Startup` passes `AllowInsecureHttp = !OAuthRequireSsl`, and the Authorize block throws `"OAuth requires SSL."` on non-HTTPS when `OAuthRequireSsl` is true. Turning SSL off is a deliberate, global toggle in `OAuthSettings`.
 - **Authorization codes are single-use and server-stored.** `ReceiveAuthenticationCode` deletes the row on use; there is no built-in expiry/cleanup of unconsumed `_org_secc_OAuth_Token` rows (worth a janitor job if codes are abandoned often).
 - **Default `OAuthSettings` seed has a duplicate key.** The migration default string contains `OAuthTokenPath` twice (`/OAuth/Logout` then `/OAuth/Token`) and no `OAuthRefreshTokenLifespan`; values are normally corrected through the Configuration block on first save.
-- **SMS auth is special-cased.** The resource-owner grant allows `Rock.Security.ExternalAuthentication.SMSAuthentication` even though it normally requires remote authentication.
 - **Service-provider block needs a session.** `OAuthServiceProvider.OnInit` sets a dummy `Session["MockData"]` to guarantee a session exists before DotNetOpenAuth prepares the user-authorization request.
 
 ## Observations
 
-*Noticed while documenting — not a full audit; security-sensitive areas flagged for confirmation.*
+*Noticed while documenting — not a full audit.*
 
-- **Security (review):** Client credentials are matched with a LINQ-to-SQL string compare on `ApiKey`/`ApiSecret` GUIDs (`ValidateClientAuthentication`), and the `ApiSecret` is a plain GUID stored in the clear in `_org_secc_OAuth_Client` and shown in the admin UI. These act as a client password; confirm the admin page/block security is locked to trusted staff and consider whether secrets should be hashed. Comparison is not constant-time, though GUID secrets make timing attacks impractical.
-- **Security (review):** `OAuthController` endpoints catch all exceptions and return a generic 500, but `GetProfile`/`GetFamily` gate only on the presence of a `profile`/`family` scope claim — there is no per-field consent beyond that. Worth confirming the `profile` scope's data set (name, birthdate, email, previous person ids) matches what consenting users expect to share.
-- **Security (low):** The Authorize block's restricted-group check (`IsAuthenticationNotPermitted`) only restricts members of the configured groups; everyone else is unrestricted by design. Verify the restricted groups + approved providers are configured for any staff/admin roles you intend to constrain.
 - **Improvement:** `OAuthContext`, `RockContext`, and the various services are newed up per request/method (and several per call inside `GrantResourceOwnerCredentials`). Fine for an auth path, but the repeated `clientScopeService.Queryable()...` calls in the grant/authorize loops re-query the same client scopes multiple times.
 - **Improvement:** `AuthToken`/`AuthTokenService` bypass EF and call raw sprocs; the rest of the model uses `OAuthContext`. Two storage idioms in one plugin — intentional (the token table was added much later, in the 2025 migration) but worth a note for maintainers.
 

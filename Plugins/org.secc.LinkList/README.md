@@ -159,13 +159,6 @@ Interaction medium/channel for analytics.
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (accepted design):** the REST endpoints are anonymous and the X-Forwarded-For
-  value is trusted without a proxy allowlist, so the per-IP rate limit is client-spoofable —
-  documented in-code as accepted residual risk (the limiter bounds its own keyspace and only
-  gates analytics writes, never the page data).
-- **Security (review):** `GET api/secc/linklist/{idOrSlug}` builds the full bag *before* the
-  rate-limit check, so a flood still pays the database cost of bag building (noted in-code:
-  the limit gates only the analytics write).
 - **Coupling:** `GetPrimarySecurityGroup` identifies the auto-created group by the
   `RSR - Link List - ` **name prefix** (falling back to the first group with an EDIT rule).
   Renaming a group by hand in Rock's UI can therefore detach it from the list, and the shared

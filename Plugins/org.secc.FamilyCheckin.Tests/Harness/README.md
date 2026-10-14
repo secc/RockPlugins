@@ -5,8 +5,7 @@ stale-write guard, shared cold loads, key cleanup and warm-path allocations agai
 instance with real data. The unit tests in the parent folder cover the guard logic in isolation; this
 harness covers the integration that the unit tests cannot (RockCache, EF, the message bus, IIS).
 
-**Local dev instances only.** `AttendanceCacheHarness.ashx` has no authentication beyond rejecting
-non-local requests, the `race` mode writes to `Attendance`, and the SQL scripts insert and delete rows.
+**Local dev instances only.** `AttendanceCacheHarness.ashx` rejects non-local requests, the `race` mode writes to `Attendance`, and the SQL scripts insert and delete rows.
 Never copy these files to a shared or production server. Nothing in this folder is built or deployed:
 the test project compiles only `*.cs`, and this folder is not linked into RockWeb.
 

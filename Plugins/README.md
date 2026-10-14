@@ -13,8 +13,8 @@ observations → making changes). High-traffic, complex, or externally-facing pl
 **deep** tier, which adds a data-flow diagram, per-component config-attribute tables, edge cases,
 and an extending guide. The Tier column below flags which is which.
 
-Each plugin's **Observations** section captures security/improvement notes spotted *while
-documenting* — they are starting points, not a completed security audit.
+Each plugin's **Observations** section captures improvement notes spotted *while
+documenting* — they are starting points, not a completed audit.
 
 ---
 

@@ -61,8 +61,7 @@ type:
 - Keys are case-sensitive. A key that isn't a GroupMember attribute on the group returns null for
   everyone, so the filter matches the whole group without any error.
 
-Before ROCK-8828, comma lists and keys with stray spaces never matched, which silently left the
-filter off. They now filter, so check `FilterAttribute` values before changing them. In production
+Check `FilterAttribute` values before changing them. In production
 (2026-10-14), `FilterGroupType` is type 178 "Filtered Group Parent", and its children 176
 (`TableLeader`) and 375 (`TableNumber`) are the only filtered types.
 
@@ -137,11 +136,6 @@ Ships Rock plugin migrations under `/Migrations/` that build up the `PublishGrou
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** The Camp Allergies block surfaces camper medical/allergy PII, and roster
-  blocks expose member contact details. Confirm the Rock **page/block security** on these is
-  scoped to the appropriate leader/staff roles. The `Leaders Only` block setting on
-  `GroupManagerBlock` gates member-facing pages — worth verifying it's set on every page that
-  should be leader-restricted, since it defaults off.
 - **Improvement:** `GetFilteredMembers` / `GetCurrentGroupFilterValues` call `member.LoadAttributes()`
   inside a loop over `CurrentGroup.Members`, so attribute loading is per-member (N round-trips) on
   every render of the filtered roster blocks. Fine for small groups, costly for large ones.

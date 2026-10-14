@@ -84,14 +84,6 @@ copies of the corresponding stock Rock blocks; treat them as forks kept in sync 
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** `EventPass` builds a public QR URL of the form
-  `…/GetQRCode.ashx?data={alternateId}` using each registrant's **person search-key** (alternate id),
-  read-only. The pass surfaces registrant identity for an event instance — confirm the page hosting
-  this block is access-controlled and that "Include Registrants on Waitlist" is intentional where set.
-- **Improvement:** `SignNow` recovers a missing `document_id` by regex-parsing
-  `Request.UrlReferrer` (an iOS workaround, per the inline comment). Referer is client-supplied and
-  can be absent/spoofed; the block already returns early when it can't recover the id, but this path
-  is worth keeping an eye on as SignNow's behavior changes.
 - **Improvement:** `RegistrationEntry` / `RegistrationDetail` are large forks of stock Rock blocks.
   When upgrading Rock, diff these against the upstream versions so SECC customizations aren't lost
   and upstream fixes are picked up.

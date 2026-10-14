@@ -77,10 +77,6 @@ Ships one Rock plugin migration under `/Migrations/`:
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** The `WorkflowLauncher` job runs an **operator-supplied SQL Query** verbatim
-  via `DbService.GetDataSet` with no parameterization or restriction. That's by design (the job
-  attribute is a SQL code editor), but it means anyone who can configure/edit this Rock Job can run
-  arbitrary SQL under Rock's DB credentials. Confirm Jobs admin is locked to trusted staff.
 - **Improvement:** Only the `WorkflowLauncher.ascx` block has a migration registering its block
   type/page. `WorkflowEntityLaunch`, `WorkflowBulkSelect`, and `WorkflowBulkUpdate` ship `.ascx`
   markup but have **no migration** — their block types/pages must be created by hand in Rock (or

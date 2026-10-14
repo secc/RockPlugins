@@ -121,20 +121,6 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** *Volunteer Signup Form - Connections* is a public-facing block that, on
-  submit, will **create a new `Person` and a `ConnectionRequest`** when no match is found
-  (`PersonService.SaveNewPerson` / `AddPersonToFamily` in `btnConnect_Click`). Person matching
-  uses name + email (+ birthdate when shown), and the household path below can add a minor to the
-  family of whoever owns the entered email, so unauthenticated form posts can both
-  enumerate-by-side-effect and add records. Confirm the page is intended for anonymous use, and
-  consider spam/rate protection (e.g. CAPTCHA) — worth confirming.
-- **Security (low):** The form sets group-member attributes from URL parameters via the `UrlKeys`
-  setting (`PageParameter(urlKey)`). Only keys the admin lists are honored, but those values are
-  attacker-controllable in the link; review which attributes are exposed this way. Note this applies
-  to `CardWizard` JSON signups too, not only to plain-URL links — the merge described under
-  [How `UrlKeys` values reach a connection request](#how-urlkeys-values-reach-a-connection-request)
-  runs on every request. The JSON in the same link is equally attacker-editable, so this widens no
-  trust boundary, but it does mean a listed key can be supplied on any signup URL.
 - **Improvement:** Several services are constructed with their own `new RockContext()` inline
   (e.g. `GroupTypeRoleService`, `ScheduleService`, `DefinedTypeService`) rather than reusing one
   per request, so a single render/bind can spin up multiple contexts. Acceptable, but tidy-able.

@@ -52,11 +52,6 @@ Registered at startup via `LoadCustomFilters` (`IRockOwinStartup`).
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** The QR "code" is a person's randomly-generated **Alternate Id** search key
-  (`GenerateRandomAlternateId`), not a sequential/guessable Id or the person Guid — so codes aren't
-  easily enumerable. The `api/qr/{code}` endpoint is `[Authenticate]`-gated and only renders the
-  string as an image, so it doesn't leak data on its own. Worth confirming the alternate-id search
-  path that *consumes* these codes is itself access-controlled.
 - **Improvement:** `GetURL` is a **Lava filter that writes to the database** — when a person has no
   alternate-id search key it creates one and calls `SaveChanges()`. Template rendering should be
   side-effect-free; as written, rendering a Lava template can mutate data and isn't idempotent.

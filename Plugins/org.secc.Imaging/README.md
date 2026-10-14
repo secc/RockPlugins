@@ -57,9 +57,6 @@ stay under the Azure Face transactions-per-second limit. The "Overwrite photos?"
 checked, updates non-`secc.org` profiles even if they already have a photo; otherwise only
 registrants with no existing `PhotoId` are updated.
 
-The **Update Person Image** block, which ran a free-form SQL query to choose the people and files,
-was removed in ROCK-8759 (see migration `004`).
-
 ### Settings Component
 
 | Component | Type | Settings |
@@ -98,14 +95,6 @@ and Response Headers — intended as reusable templates for the image generator.
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** The Azure Face **Subscription Key** is stored in a plain `TextField` settings
-  attribute (not an encrypted/`EncryptedTextField`), so it is readable in cleartext by anyone with
-  access to the settings component. Treat it as a secret and restrict access accordingly.
-- **Security (low):** The Azure Face `DetectWithUrlAsync` call builds the image URL from
-  `PublicApplicationRoot` + `GetImage.ashx?Guid=…`, so the binary file must be publicly fetchable by
-  Azure for detection to work. Worth confirming those `GetImage` URLs aren't otherwise sensitive.
-- **Security (medium):** "Update Person Image From Registration" has no permission check on Run, so
-  anyone with View on the block can bulk-replace registrant photos (ROCK-9225).
 - **Improvement:** The registration block fires `Task.Run(async () => await face.UpdatePhoto(...))` in a
   fire-and-forget loop on a web request, so the page returns before/independent of the crops finishing
   and failures are swallowed. A scheduled job or transaction queue would be more robust for a

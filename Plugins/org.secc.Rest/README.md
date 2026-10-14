@@ -50,7 +50,7 @@ flowchart TD
 **Auth models in use (they are not uniform — confirm per endpoint):**
 - **`[Authenticate, Secured]`** — Rock's filter pair: authenticates the caller and checks entity-level security on the controller action. Used by `FinancialTransactionsExtensionsController`.
 - **`[Authorize]` + OAuth client gate** — `AccountController` resolves the ASP.NET identity name as an OAuth API key via `ClientService.GetByApiKey(...)` and requires `client.Active`. Backs OAuth-client app flows.
-- **`UserLoginService.GetCurrentUser()`** — the GroupApp controllers have **no auth attribute**; they call `GetCurrentUser()` and return `401` if null, then do their own per-group leader/member checks (`group.IsAuthorized`, group-member role queries) before acting.
+- **`UserLoginService.GetCurrentUser()`** — the GroupApp controllers call `GetCurrentUser()` and return `401` if null, then do their own per-group leader/member checks (`group.IsAuthorized`, group-member role queries) before acting.
 - **`GetPerson()` + `IsAuthorized(VIEW, ...)`** — the content feeds resolve the caller's person and check VIEW on the content channel.
 
 ## REST Endpoints
@@ -97,7 +97,7 @@ All require a logged-in user (`GetCurrentUser`, else `401`) and apply per-group 
 | `api/ChannelItem/{identifier}` | GET | content-channel VIEW | One item by id or slug. |
 | `api/sermonfeed/[{slug}/]` | GET | none declared | Speaker-filtered sermon series feed (1-hour `RockCache`). Hardcodes content-channel ids (24/23) and the Speaker attribute id (30285). |
 | `api/secc/FinancialTransactions/GetContributionTransactions/{groupId}[/{personId}]` | POST | `[Authenticate, Secured]` | Build a `DataSet` of contribution transactions (cash only) for a giving group or person. |
-| `api/People/MatchOrCreatePerson` | POST | none | **Retired** (ROCK-8827). Always returns `410 Gone`. The stub stays so the URL doesn't fall through to Rock's `DefaultApiPost` route and core `PeopleController.Post`, which ignores the old `{ person, location }` body and creates a blank person and family on every call. *(RetiredEndpointsController)* |
+| `api/People/MatchOrCreatePerson` | POST | none | **Retired** (ROCK-8827). Always returns `410 Gone`. *(RetiredEndpointsController)* |
 
 ## Detailed Reference
 
@@ -151,7 +151,6 @@ Returns a nested `DataSet` (transactions + per-account details), filtered to the
 
 ## Edge Cases & Constraints
 
-- **GroupApp endpoints carry no auth attribute.** They rely entirely on `GetCurrentUser()` plus hand-rolled per-group checks. Any new GroupApp action must repeat that pattern — there is no filter enforcing it.
 - **Hardcoded ids.** `SermonController` hardcodes content-channel ids (24, 23) and a Speaker attribute id (30285); `GetGroups` hardcodes GroupTypeIds 107/109 and CampusId 1; these break if the target environment's ids differ. (Location types are resolved by Rock system Guids everywhere in the GroupApp controllers.)
 - **Attendance location.** `GroupAppAttendanceController` records attendance, "Did Not Meet" and self check-in against one location per group: its Meeting Location, else its Home location, else its first location (lowest GroupLocation Id), else none — the same order the GroupApp location endpoint uses for the address it shows. It never uses location 0 (before ROCK-9170, groups whose only location had no type got 0 and every "Did Not Meet" and self check-in failed with a foreign-key error). The weekly schedule list links a saved occurrence to a scheduled date only when the location matches, so if a group's attendance location changes (e.g. a Meeting Location is added later), older occurrences at the previous location show as separate dates.
 - **Schedule edit forks shared schedules.** `PUT .../Schedule` creates a new `Schedule` if the current one is shared by another group/group-location, then repoints the group; legacy `WeeklyDayOfWeek`/`WeeklyTimeOfDay` are cleared in favor of iCal.
@@ -159,11 +158,9 @@ Returns a nested `DataSet` (transactions + per-account details), filtered to the
 
 ## Observations
 
-*Noticed while documenting — not a full audit; the auth surface and a few endpoints stood out.*
+*Noticed while documenting — not a full audit.*
 
-- **Security (review):** Authorization is inconsistent across controllers and several checks are easy to read as inverted/loose — worth a careful pass. In `ChannelItemController.ChannelItems` the guard is `if ( !contentChannel.IsAuthorized( VIEW, GetPerson() ) ) throw Unauthorized`; `GetGroup` in `GroupAppGroupListController` grants access when the user is an active member **or** has VIEW, matching `GetGroupMembers`.
-- **Security (low/medium):** GroupApp endpoints have no `[Authenticate]`/`[Secured]` filter and depend solely on `GetCurrentUser()` + manual checks; `GetGroupMembers` exposes member email/phone/address and minors' parent contact info to group leaders. Confirm leader determination is correct and that these routes can't be reached by an unauthenticated session. `api/sermonfeed` has no declared authorization.
-- **Improvement:** Several handlers `new RockContext()` per request (`GetGroupMembers` calls `_personService.Get` and `GetFamily` per member — an N+1). `AccountController` calls `MD5` for a 6-digit confirmation code, which is fine for non-secret short codes but shouldn't be mistaken for a security primitive.
+- **Improvement:** Several handlers `new RockContext()` per request (`GetGroupMembers` calls `_personService.Get` and `GetFamily` per member — an N+1).
 - **Improvement:** `AssemblyInfo.cs` still carries the Visual Studio template metadata (`AssemblyCompany("Microsoft")`, `Copyright © Microsoft 2016`) — cosmetic, but worth fixing to SECC.
 - **Improvement:** The `.csproj` lists `Rock.Rest` and `DotLiquid` `ProjectReference`s twice each (duplicate entries) — harmless but worth cleaning.
 
