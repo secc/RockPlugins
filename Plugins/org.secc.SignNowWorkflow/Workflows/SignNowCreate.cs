@@ -205,8 +205,8 @@ namespace org.secc.SignNowWorkflow
         /// <returns>The path of the temporary file, directly inside <paramref name="tempDirectory"/>.</returns>
         internal static string BuildTempFilePath( string tempDirectory, string fileName )
         {
-            var name = fileName?.MakeValidFileName();
-            if ( string.IsNullOrWhiteSpace( name ) || name.Trim( '.', ' ' ).Length == 0 )
+            var name = string.IsNullOrWhiteSpace( fileName ) ? null : fileName.MakeValidFileName();
+            if ( string.IsNullOrWhiteSpace( name?.Trim( '.', ' ' ) ) )
             {
                 name = "document.pdf";
             }

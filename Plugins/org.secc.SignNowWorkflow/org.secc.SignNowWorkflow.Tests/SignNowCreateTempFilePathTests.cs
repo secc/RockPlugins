@@ -30,6 +30,13 @@ namespace org.secc.SignNowWorkflow.Tests
         [InlineData( "" )]
         [InlineData( "Doe, Jane.pdf" )]
         [InlineData( "MedicalIncidentReport_Jane Doe.pdf" )]
+        [InlineData( ".. " )]
+        [InlineData( ". ." )]
+        [InlineData( ".   ." )]
+        [InlineData( " .." )]
+        [InlineData( "\t" )]
+        [InlineData( "\r\n" )]
+        [InlineData( " \t " )]
         public void BuildTempFilePath_StaysDirectlyInsideTempDirectory( string fileName )
         {
             var fullPath = Path.GetFullPath( SignNowCreate.BuildTempFilePath( TempDirectory, fileName ) );
@@ -47,11 +54,30 @@ namespace org.secc.SignNowWorkflow.Tests
         [InlineData( "", "document.pdf" )]
         [InlineData( "Doe, Jane.pdf", "Doe Jane.pdf" )]
         [InlineData( "MedicalIncidentReport_Jane Doe.pdf", "MedicalIncidentReport_Jane Doe.pdf" )]
+        [InlineData( "..\u00A0", "document.pdf" )]
+        [InlineData( ".\u00A0.", "document.pdf" )]
+        [InlineData( ". \u00A0 .", "document.pdf" )]
+        [InlineData( "\u00A0..", "document.pdf" )]
+        [InlineData( "\t", "document.pdf" )]
+        [InlineData( "\r\n", "document.pdf" )]
+        [InlineData( " \t ", "document.pdf" )]
         public void BuildTempFilePath_UsesValidFileNameOrDefault( string fileName, string expectedFileName )
         {
             var path = SignNowCreate.BuildTempFilePath( TempDirectory, fileName );
 
             Assert.Equal( Path.Combine( TempDirectory, expectedFileName ), path );
+        }
+
+        [Theory]
+        [InlineData( @"C:\Windows\x.pdf" )]
+        [InlineData( @"\\server\share\x.pdf" )]
+        [InlineData( "C:x.pdf" )]
+        [InlineData( "x.pdf::$DATA" )]
+        public void BuildTempFilePath_RootedAndStreamNamesStayDirectlyInsideTempDirectory( string fileName )
+        {
+            var fullPath = Path.GetFullPath( SignNowCreate.BuildTempFilePath( TempDirectory, fileName ) );
+
+            Assert.Equal( TempDirectory, Path.GetDirectoryName( fullPath ) );
         }
     }
 }

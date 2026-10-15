@@ -24,6 +24,7 @@ the `SignNowSDK` project for the actual API calls.
 /Workflows/    SignNowCreate.cs    — upload PDF, create signer, build invite link
                SignNowDownload.cs  — check for a signature, download the signed PDF
 /Properties/   AssemblyInfo.cs
+/org.secc.SignNowWorkflow.Tests/  xunit tests for SignNowCreate's temp file path (not deployed to RockWeb)
 ```
 
 ## Components
