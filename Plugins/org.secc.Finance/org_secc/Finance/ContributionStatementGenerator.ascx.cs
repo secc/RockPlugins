@@ -250,32 +250,37 @@ namespace RockWeb.Plugins.org_secc.Finance
 					GROUP by GivingId, GivingGroupName",
                     contributionTypeId, lower, upper, null/*"2019-01-01T00:00:00,2019-12-31T00:00:00"*/).AsQueryable();
 
-            // Add in Move commitments
+            // Add in giving units with a MOVE commitment but no gifts in the period, so they still get a
+            // statement showing their commitment progress. One row per giving unit: a family where more
+            // than one adult made a commitment (or one adult with several commitment rows) must not
+            // launch more than one statement workflow.
             var moveCommitmentsNoGivingInPeriod = rockContext.Database.SqlQuery<GivingGroup>( @"
-                SELECT tx.LastGift as LastGift, 
-                    p.GivingId as GivingId,
+                SELECT CAST(NULL AS DATETIME) AS LastGift,
+                    p.GivingId AS GivingId,
                     CASE WHEN ([P].[GivingId] LIKE N'G%') THEN [G].[Name] 
                     ELSE CASE WHEN( [P].[NickName] IS NULL ) THEN N'' 
                     ELSE [P].[NickName] END + N' ' + CASE WHEN( [P].[LastName] IS NULL ) THEN N'' ELSE [P].[LastName] END END AS [GivingGroupName]    
                 FROM _org_secc_Commitment c
                 inner join person p on c.PersonId = p.Id
                 left outer join [Group] g on p.GivingGroupId = g.Id
-                left outer join 
-                (
-                    Select  p1.GivingId, max(t.TransactionDateTime) as LastGift
-                    FROM FinancialTransactionDetail d
-                    INNER JOIN FinancialTransaction t on d.TransactionId = t.Id
-                    INNER JOIN PersonAlias pa on t.AuthorizedPersonAliasId = pa.Id
-                    INNER JOIN Person p1 on pa.PersonId = p1.Id
-                    WHERE t.TransactionTypeValueId = @p0
-                        and t.TransactionDateTime >= @p1
-                        and t.TransactionDateTime <= @p2
-                    GROUP BY p1.GivingId
-                ) tx on tx.GivingId = p.GivingId
                 where c.IsDeleted = 0
                     and p.IsDeceased = 0
-                    and tx.GivingId is null
-
+                    and p.GivingId is not null
+                    and not exists
+                    (
+                        SELECT 1
+                        FROM FinancialTransaction t
+                        INNER JOIN PersonAlias pa on t.AuthorizedPersonAliasId = pa.Id
+                        INNER JOIN Person p1 on pa.PersonId = p1.Id
+                        WHERE p1.GivingId = p.GivingId
+                            and t.TransactionTypeValueId = @p0
+                            and t.TransactionDateTime >= @p1
+                            and t.TransactionDateTime < @p2
+                    )
+                GROUP BY p.GivingId,
+                    CASE WHEN ([P].[GivingId] LIKE N'G%') THEN [G].[Name] 
+                    ELSE CASE WHEN( [P].[NickName] IS NULL ) THEN N'' 
+                    ELSE [P].[NickName] END + N' ' + CASE WHEN( [P].[LastName] IS NULL ) THEN N'' ELSE [P].[LastName] END END
             ", contributionTypeId, lower, upper ).AsQueryable();
 
             givingGroups = givingGroups.Union( moveCommitmentsNoGivingInPeriod );

@@ -66,6 +66,12 @@ for 1-year commitments, to report second-year giving (`SecondYearAmountGiven`) r
 giving-to-date. `SecondYearAmountGiven` and `PledgeDuration` are mapped from stored-proc result
 columns of the same name, so the deployed proc must return those columns for the values to populate.
 
+The **Contribution Statement Generator** block lists every giving unit with a contribution in the
+selected date range, plus every giving unit with a MOVE commitment (`_org_secc_Commitment`, not
+deleted, not deceased) that has no contribution in the range, so committed households still get a
+statement showing their commitment progress. Commitment-only units appear once per `GivingId` with
+a blank Last Gift, however many commitment rows the household has.
+
 ### Jobs
 
 | Job | Purpose | Key config attributes |
