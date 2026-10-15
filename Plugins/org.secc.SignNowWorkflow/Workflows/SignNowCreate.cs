@@ -83,7 +83,7 @@ namespace org.secc.SignNowWorkflow
             try
             {
                 Directory.CreateDirectory( tempDirectory );
-                string tempFile = tempDirectory + Path.DirectorySeparatorChar + renderedPDF.FileName;
+                string tempFile = BuildTempFilePath( tempDirectory, renderedPDF.FileName );
 
                 // ROCK-9041: Read through a fresh provider stream; see BinaryFileExtensions.ReadContentBytes.
                 File.WriteAllBytes( tempFile, renderedPDF.ReadContentBytes( "Rendered PDF" ) );
@@ -98,7 +98,7 @@ namespace org.secc.SignNowWorkflow
                 }
             }
             // InvalidOperationException: ReadContentBytes found no content. IOException / UnauthorizedAccessException:
-            // the temp file could not be written (e.g. a FileName with invalid path characters).
+            // the temp file could not be written.
             catch ( Exception ex ) when ( ex is JsonException || ex is InvalidOperationException || ex is IOException || ex is UnauthorizedAccessException )
             {
                 errorMessages.Add( "SignNow Document Creation Error: " + ex.Message );
@@ -193,6 +193,25 @@ namespace org.secc.SignNowWorkflow
         private static string DescribeResponse( object response )
         {
             return response == null ? "No response from SignNow." : response.ToString();
+        }
+
+        /// <summary>
+        /// Builds the path of the temporary file the document is written to before it is uploaded to SignNow.
+        /// The document's file name is made valid for the file system (as core Rock's SignNow provider does), and
+        /// "document.pdf" is used when no usable name remains.
+        /// </summary>
+        /// <param name="tempDirectory">The temporary directory for this upload.</param>
+        /// <param name="fileName">The document's file name.</param>
+        /// <returns>The path of the temporary file, directly inside <paramref name="tempDirectory"/>.</returns>
+        internal static string BuildTempFilePath( string tempDirectory, string fileName )
+        {
+            var name = fileName?.MakeValidFileName();
+            if ( string.IsNullOrWhiteSpace( name ) || name.Trim( '.', ' ' ).Length == 0 )
+            {
+                name = "document.pdf";
+            }
+
+            return Path.Combine( tempDirectory, name );
         }
     }
 }

@@ -152,11 +152,8 @@ namespace org.secc.SignNowWorkflow
                     }
                 }
 
-                // ROCK-9041: Download into a directory unique to this call so concurrent runs can't read each
-                // other's PDF, and remove it before any database work so cleanup can't fail after the save.
-                // Previously every run shared %TEMP%\{document_name}.pdf, a FileStream on it was handed to the
-                // storage provider and never disposed, and the delete targeted a path without ".pdf", so signed
-                // PDFs piled up in the temp directory.
+                // ROCK-9041: Download into a directory unique to this call, and remove it before any database work
+                // so cleanup can't fail after the save.
                 byte[] signedPdfBytes;
                 string tempDirectory = Path.Combine( Path.GetTempPath(), Path.GetRandomFileName() );
                 try
