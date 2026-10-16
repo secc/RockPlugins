@@ -1,0 +1,179 @@
+<template>
+    <Panel title="Registration Cart Discount Codes" titleIconCssClass="fa fa-tags" type="block">
+        <template #headerActions>
+            <button v-if="config.canEdit" type="button" class="btn btn-primary btn-xs" @click="openNew"><i class="fa fa-plus"></i> Add code</button>
+        </template>
+
+        <NotificationBox v-if="errorMessage" alertType="danger" dismissible @dismiss="errorMessage = ''">{{ errorMessage }}</NotificationBox>
+        <p v-if="!codes.length" class="text-muted">No discount codes yet.</p>
+
+        <div v-else class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr><th>Code</th><th>Discount</th><th>Applies to</th><th>Valid</th><th class="text-center">Used</th><th>Status</th><th class="grid-columncommand"></th></tr>
+                </thead>
+                <tbody>
+                    <tr v-for="c in codes" :key="c.id">
+                        <td><strong>{{ c.code }}</strong></td>
+                        <td>{{ discountText(c) }}</td>
+                        <td>{{ scopeText(c) }}</td>
+                        <td>{{ validityText(c) }}</td>
+                        <td class="text-center">{{ c.timesUsed }}</td>
+                        <td><span class="label" :class="c.isActive ? 'label-success' : 'label-default'">{{ c.isActive ? "Active" : "Inactive" }}</span></td>
+                        <td class="grid-columncommand text-right">
+                            <button v-if="config.canEdit" type="button" class="btn btn-default btn-sm" title="Edit" @click="openEdit(c)"><i class="fa fa-pencil"></i></button>
+                            <button v-if="config.canEdit" type="button" class="btn btn-danger btn-sm" title="Delete" :disabled="isBusy" @click="remove(c)"><i class="fa fa-times"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <Modal v-model="isEditorOpen" :title="editing.id ? `Edit ${editing.code}` : 'New discount code'" saveText="Save" :isSaveButtonDisabled="isBusy" @save="save">
+            <NotificationBox v-if="editorError" alertType="danger">{{ editorError }}</NotificationBox>
+            <div class="row">
+                <div class="col-md-6"><TextBox v-model="editing.code" label="Code" rules="required" help="Shoppers type this at the cart. Not case sensitive." /></div>
+                <div class="col-md-6"><CheckBox v-model="editing.isActive" label="Active" text="Can be applied" /></div>
+            </div>
+            <div class="row">
+                <div class="col-md-6"><DropDownList v-model="discountType" label="Type" :items="typeOptions" :showBlankItem="false" /></div>
+                <div class="col-md-6">
+                    <CurrencyBox v-if="discountType === String(DiscountType.Amount)" v-model="editing.value" label="Amount off" rules="required" />
+                    <NumberBox v-else v-model="editing.value" label="Percent off" rules="required" :minimumValue="0" :maximumValue="100" :decimalCount="2" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6"><DropDownList v-model="scope" label="Applies to" :items="scopeOptions" :showBlankItem="false" /></div>
+                <div class="col-md-6" v-if="scope === String(DiscountScope.Offering)">
+                    <DropDownList v-model="editing.offeringId" label="Offering" :items="config.offerings ?? []" rules="required" showBlankItem blankValue="" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6"><DatePicker v-model="editing.validFrom" label="Valid from" help="Blank = immediately" /></div>
+                <div class="col-md-6"><DatePicker v-model="editing.validTo" label="Valid to" help="Blank = no end" /></div>
+            </div>
+        </Modal>
+    </Panel>
+</template>
+
+<script setup lang="ts">
+    import { ref } from "vue";
+    import CheckBox from "@Obsidian/Controls/checkBox.obs";
+    import CurrencyBox from "@Obsidian/Controls/currencyBox.obs";
+    import DatePicker from "@Obsidian/Controls/datePicker.obs";
+    import DropDownList from "@Obsidian/Controls/dropDownList.obs";
+    import Modal from "@Obsidian/Controls/modal.obs";
+    import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import NumberBox from "@Obsidian/Controls/numberBox.obs";
+    import Panel from "@Obsidian/Controls/panel.obs";
+    import TextBox from "@Obsidian/Controls/textBox.obs";
+    import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
+    import { confirmDelete } from "@Obsidian/Utility/dialogs";
+    import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
+    import { DiscountScope, DiscountType, WithStrings, money } from "../shared/registrationCart.partial";
+    import { DiscountCodeBag, DiscountCodeListInitializationBox, SaveDiscountCodeResultBag } from "../viewModels";
+
+    const config = useConfigurationValues<DiscountCodeListInitializationBox>();
+    const invokeBlockAction = useInvokeBlockAction();
+
+    const typeOptions: ListItemBag[] = [
+        { value: String(DiscountType.Amount), text: "Fixed amount" },
+        { value: String(DiscountType.Percent), text: "Percentage" }
+    ];
+    const scopeOptions: ListItemBag[] = [
+        { value: String(DiscountScope.Order), text: "Whole order (once)" },
+        { value: String(DiscountScope.LineItem), text: "Every registration" },
+        { value: String(DiscountScope.Offering), text: "Registrations for one offering" }
+    ];
+
+    const codes = ref<DiscountCodeBag[]>(config.codes ?? []);
+    const errorMessage = ref("");
+    const isBusy = ref(false);
+
+    const isEditorOpen = ref(false);
+    const editorError = ref("");
+    type DiscountForm = WithStrings<DiscountCodeBag>;
+    const editing = ref<DiscountForm>(blank());
+    const discountType = ref(String(DiscountType.Amount));
+    const scope = ref(String(DiscountScope.Order));
+
+    function blank(): DiscountForm {
+        return { id: 0, code: "", discountType: DiscountType.Amount, value: 0, scope: DiscountScope.Order, offeringId: "", offeringTitle: "", validFrom: "", validTo: "", isActive: true, timesUsed: 0 };
+    }
+
+    function openNew(): void {
+        editing.value = blank();
+        discountType.value = String(DiscountType.Amount);
+        scope.value = String(DiscountScope.Order);
+        editorError.value = "";
+        isEditorOpen.value = true;
+    }
+
+    function openEdit(c: DiscountCodeBag): void {
+        editing.value = { ...blank(), ...c, code: c.code ?? "", offeringId: c.offeringId ?? "", offeringTitle: c.offeringTitle ?? "", validFrom: c.validFrom ?? "", validTo: c.validTo ?? "" };
+        discountType.value = String(c.discountType);
+        scope.value = String(c.scope);
+        editorError.value = "";
+        isEditorOpen.value = true;
+    }
+
+    function discountText(c: DiscountCodeBag): string {
+        return c.discountType === DiscountType.Percent ? `${c.value}% off` : `${money(c.value)} off`;
+    }
+
+    function scopeText(c: DiscountCodeBag): string {
+        switch (c.scope) {
+            case DiscountScope.LineItem: return "Every registration";
+            case DiscountScope.Offering: return c.offeringTitle ? `Offering: ${c.offeringTitle}` : "One offering";
+            default: return "Whole order";
+        }
+    }
+
+    function validityText(c: DiscountCodeBag): string {
+        if (!c.validFrom && !c.validTo) return "Always";
+        return `${c.validFrom || "…"} → ${c.validTo || "…"}`;
+    }
+
+    async function save(): Promise<void> {
+        editorError.value = "";
+        isBusy.value = true;
+        try {
+            const bag: DiscountCodeBag = {
+                ...editing.value,
+                discountType: parseInt(discountType.value, 10) || 0,
+                scope: parseInt(scope.value, 10) || 0
+            };
+            const result = await invokeBlockAction<SaveDiscountCodeResultBag>("Save", { bag });
+            if (result.isSuccess && result.data) {
+                codes.value = result.data.codes ?? [];
+                isEditorOpen.value = false;
+            }
+            else {
+                editorError.value = result.errorMessage || "The code could not be saved.";
+            }
+        }
+        finally {
+            isBusy.value = false;
+        }
+    }
+
+    async function remove(c: DiscountCodeBag): Promise<void> {
+        if (!await confirmDelete("discount code")) {
+            return;
+        }
+        isBusy.value = true;
+        errorMessage.value = "";
+        try {
+            const result = await invokeBlockAction<SaveDiscountCodeResultBag>("Delete", { id: c.id });
+            if (result.isSuccess && result.data) {
+                codes.value = result.data.codes ?? [];
+            }
+            else {
+                errorMessage.value = result.errorMessage || "The code could not be deleted.";
+            }
+        }
+        finally {
+            isBusy.value = false;
+        }
+    }
+</script>

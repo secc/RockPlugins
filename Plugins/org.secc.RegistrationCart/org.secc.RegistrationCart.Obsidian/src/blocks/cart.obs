@@ -1,0 +1,135 @@
+<template>
+    <div class="regcart">
+        <FieldGuide />
+        <header class="rc-header">
+            <div class="rc-header-text">
+                <span class="rc-eyebrow">Step 1 of 2</span>
+                <h1>Your cart</h1>
+            </div>
+            <CartNav :navigation="navigation" />
+        </header>
+
+        <SignInNotice v-if="!navigation.isSignedIn" :loginUrl="navigation.loginUrl" />
+
+        <div v-else-if="!cart.lines?.length" class="rc-empty">
+            <p class="rc-lead">Your cart is empty.</p>
+            <a v-if="navigation.catalogUrl" class="rc-btn rc-btn-primary" :href="navigation.catalogUrl">Browse registrations</a>
+        </div>
+
+        <div v-else class="rc-layout">
+            <div>
+                <section v-for="group in groupedLines" :key="group.registrantId" class="rc-panel rc-registrant" :aria-label="`Registrations for ${group.name}`">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+                        <span class="rc-avatar" style="background: var(--rc-accent); color: #fff;">{{ initials(group.name) }}</span>
+                        <h2>{{ group.name }}</h2>
+                    </div>
+                    <div v-for="line in group.lines" :key="line.lineItemId" class="rc-line">
+                        <div>
+                            <div><b>{{ line.offeringTitle }}</b> <span class="rc-muted">— {{ line.variantName }}</span> <span v-if="line.isWaitList" class="rc-badge">Wait list</span></div>
+                            <div v-if="line.dateText" class="rc-small rc-muted" style="display: inline-flex; gap: 6px; align-items: center; margin-top: 2px;">
+                                <svg class="rc-ico" style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+                                {{ line.dateText }}
+                            </div>
+                            <ul class="rc-line-items">
+                                <li v-if="line.isWaitList"><span>This option is full. Nothing is due now; you'll be contacted if a spot opens.</span></li>
+                                <template v-else>
+                                    <li><span>Registration</span><span>{{ money(line.basePrice) }}</span></li>
+                                    <li v-for="a in (line.addOns ?? [])" :key="a.name ?? ''"><span>{{ a.name }}</span><span>{{ a.price > 0 ? "+ " + money(a.price) : "Included" }}</span></li>
+                                </template>
+                            </ul>
+                        </div>
+                        <div class="rc-line-side">
+                            <span class="rc-line-total">{{ line.isWaitList ? "Wait list" : money(line.lineTotal) }}</span>
+                            <span style="display: inline-flex; gap: 12px;">
+                                <a v-if="line.editUrl" class="rc-link-btn rc-small" :href="line.editUrl" :aria-label="`Edit ${line.registrantName}'s ${line.offeringTitle} registration`">Edit</a>
+                                <button type="button" class="rc-link-btn rc-link-danger rc-small" :disabled="isBusy" @click="removeLine(line.lineItemId)">Remove</button>
+                            </span>
+                        </div>
+                    </div>
+                </section>
+                <a v-if="navigation.catalogUrl" class="rc-btn" :href="navigation.catalogUrl">
+                    <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    Add another registration
+                </a>
+            </div>
+
+            <aside class="rc-rail" aria-label="Order summary">
+                <span class="rc-eyebrow">Summary</span>
+                <div>
+                    <label for="regcart-discount" class="rc-small" style="display: block; margin-bottom: 6px; font-weight: 600;">Discount code</label>
+                    <div class="rc-input-row">
+                        <input id="regcart-discount" class="rc-input" v-model="discountInput" placeholder="e.g. EARLYBIRD" autocomplete="off" @keyup.enter="applyDiscount" />
+                        <button type="button" class="rc-btn" :disabled="!discountInput.trim() || isBusy" @click="applyDiscount">Apply</button>
+                    </div>
+                    <p v-if="discountError" class="rc-error" role="alert" style="margin-top: 8px; color: #ffb4a8;">{{ discountError }}</p>
+                </div>
+                <OrderSummary :cart="cart" canRemoveDiscounts @removeDiscount="removeDiscount" />
+                <a v-if="navigation.checkoutUrl" class="rc-btn rc-btn-primary rc-btn-block" :href="navigation.checkoutUrl">
+                    Continue to payment
+                    <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </a>
+            </aside>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+    import { computed, ref } from "vue";
+    import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
+    import FieldGuide from "../shared/fieldGuide.partial.obs";
+    import CartNav from "../shared/cartNav.partial.obs";
+    import OrderSummary from "../shared/orderSummary.partial.obs";
+    import SignInNotice from "../shared/signInNotice.partial.obs";
+    import { initials, money } from "../shared/registrationCart.partial";
+    import { CartInitializationBox, DiscountResultBag, NavigationBag, PricedCartBag, PricedLineBag } from "../viewModels";
+
+    const config = useConfigurationValues<CartInitializationBox>();
+    const invokeBlockAction = useInvokeBlockAction();
+
+    const navigation = ref<NavigationBag>(config.navigation ?? { isSignedIn: false, cartItemCount: 0 });
+    const cart = ref<PricedCartBag>(config.cart ?? { subtotal: 0, discountTotal: 0, total: 0, itemCount: 0 });
+    const discountInput = ref("");
+    const discountError = ref("");
+    const isBusy = ref(false);
+
+    type RegistrantGroup = { registrantId: number; name: string; lines: PricedLineBag[] };
+    const groupedLines = computed<RegistrantGroup[]>(() => {
+        const groups: RegistrantGroup[] = [];
+        for (const line of cart.value.lines ?? []) {
+            let group = groups.find(g => g.registrantId === line.registrantId);
+            if (!group) { group = { registrantId: line.registrantId, name: line.registrantName ?? "", lines: [] }; groups.push(group); }
+            group.lines.push(line);
+        }
+        return groups;
+    });
+
+    async function callCart(action: string, params: Record<string, unknown>): Promise<void> {
+        isBusy.value = true;
+        discountError.value = "";
+        try {
+            const result = await invokeBlockAction<DiscountResultBag>(action, params);
+            if (result.isSuccess && result.data) {
+                if (result.data.cart) {
+                    cart.value = result.data.cart;
+                    navigation.value = { ...navigation.value, cartItemCount: result.data.cart.itemCount };
+                }
+                discountError.value = result.data.errorMessage ?? "";
+            }
+            else {
+                discountError.value = result.errorMessage || "Something went wrong. Please try again.";
+            }
+        }
+        finally {
+            isBusy.value = false;
+        }
+    }
+
+    function removeLine(lineItemId: number): Promise<void> { return callCart("RemoveLineItem", { lineItemId }); }
+    async function applyDiscount(): Promise<void> {
+        const code = discountInput.value.trim();
+        if (!code) return;
+        await callCart("ApplyDiscount", { code });
+        if (!discountError.value) discountInput.value = "";
+    }
+    function removeDiscount(cartDiscountId: number): Promise<void> { return callCart("RemoveDiscount", { cartDiscountId }); }
+</script>

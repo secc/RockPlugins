@@ -1,0 +1,194 @@
+<template>
+    <div class="regcart">
+        <FieldGuide />
+
+        <!-- Confirmation -->
+        <div v-if="completed" class="rc-confirm">
+            <span class="rc-confirm-mark"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
+            <h1>You're all set.</h1>
+            <p v-if="completed.alreadyProcessed" class="rc-small rc-muted">This checkout was already completed in another window.</p>
+            <p v-if="completed.total > 0" class="rc-lead">Your payment of <b>{{ money(completed.total) }}</b> went through.</p>
+            <p v-else class="rc-lead">No payment was needed.</p>
+            <p v-if="completed.transactionId" class="rc-small rc-muted">Transaction #{{ completed.transactionId }}</p>
+            <div class="rc-panel" style="width: 100%; text-align: left;">
+                <span class="rc-eyebrow">Registered</span>
+                <ul style="margin-top: 10px;">
+                    <li v-for="desc in completed.itemDescriptions ?? []" :key="desc" style="display: flex; gap: 10px; align-items: center;">
+                        <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="var(--rc-forest)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>{{ desc }}
+                    </li>
+                </ul>
+            </div>
+            <p class="rc-small rc-muted">A receipt and confirmation will be emailed to you.</p>
+            <a v-if="navigation.catalogUrl" class="rc-btn rc-btn-primary" :href="navigation.catalogUrl">Register for something else</a>
+        </div>
+
+        <template v-else>
+            <header class="rc-header">
+                <div class="rc-header-text">
+                    <a v-if="navigation.cartUrl" :href="navigation.cartUrl" class="rc-back">
+                        <svg class="rc-ico" style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                        Back to cart
+                    </a>
+                    <span class="rc-eyebrow">Step 2 of 2</span>
+                    <h1>Payment</h1>
+                </div>
+                <CartNav :navigation="navigation" />
+            </header>
+
+            <SignInNotice v-if="!navigation.isSignedIn" :loginUrl="navigation.loginUrl" />
+
+            <div v-else-if="!cart.lines?.length" class="rc-empty">
+                <p class="rc-lead">Your cart is empty.</p>
+                <a v-if="navigation.catalogUrl" class="rc-btn rc-btn-primary" :href="navigation.catalogUrl">Browse registrations</a>
+            </div>
+
+            <div v-else class="rc-layout">
+                <div>
+                    <section class="rc-panel" style="margin-bottom: 20px;">
+                        <span class="rc-eyebrow">Review</span>
+                        <div v-for="group in groupedLines" :key="group.name" style="padding-top: 12px;">
+                            <h3 style="margin-bottom: 4px;">{{ group.name }}</h3>
+                            <div v-for="line in group.lines" :key="line.lineItemId" style="display: flex; justify-content: space-between; gap: 16px; padding: 4px 0;">
+                                <span style="display: flex; flex-direction: column;">
+                                    <span>{{ line.offeringTitle }} — {{ line.variantName }}<span v-if="paidAddOns(line).length" class="rc-muted rc-small"> (+ {{ paidAddOns(line).join(", ") }})</span> <span v-if="line.isWaitList" class="rc-badge">Wait list</span></span>
+                                    <span v-if="line.dateText" class="rc-small rc-muted">{{ line.dateText }}</span>
+                                </span>
+                                <span>{{ line.isWaitList ? "Nothing due now" : money(line.lineTotal) }}</span>
+                            </div>
+                        </div>
+                        <p v-if="hasWaitList" class="rc-small rc-muted" style="margin-top: 10px;">Campers on a wait list are registered now but pay nothing yet. If a spot opens, you'll be contacted to pay the balance.</p>
+                    </section>
+
+                    <div v-if="problems.length" class="rc-notice rc-notice-danger">
+                        <svg class="rc-ico" style="margin-top: 3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                        <div>
+                            <b>Checkout isn't available yet.</b>
+                            <ul><li v-for="p in problems" :key="p">{{ p }}</li></ul>
+                            <span class="rc-small">Remove these from your cart, or contact the office if you need help.</span>
+                        </div>
+                    </div>
+
+                    <section v-else-if="cart.total > 0" class="rc-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 14px;">
+                            <span class="rc-eyebrow">Card details</span>
+                            <span v-if="config.payerName" class="rc-small rc-muted">Paying as {{ config.payerName }}<span v-if="config.payerEmail"> · receipt to {{ config.payerEmail }}</span></span>
+                        </div>
+                        <template v-if="gatewayControlModel">
+                            <NotificationBox v-if="gatewayErrorMessage" alertType="danger">{{ gatewayErrorMessage }}</NotificationBox>
+                            <RockValidation :errors="gatewayValidationFields" />
+                            <GatewayControl :gatewayControlModel="gatewayControlModel" :amountToPay="cart.total" @success="onGatewayToken" @error="onGatewayError" @validation="onGatewayValidation" />
+                        </template>
+                        <TokenizerControl v-else-if="config.tokenizer" ref="tokenizerRef" :settings="config.tokenizer" @success="onGatewayToken" @error="onGatewayError" />
+                        <p v-else class="rc-error">No payment method is configured on this page.</p>
+                        <p class="rc-small rc-muted" style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+                            <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            Card details go straight to the payment provider and are never stored here.
+                        </p>
+                    </section>
+                </div>
+
+                <aside class="rc-rail" aria-label="Order summary">
+                    <span class="rc-eyebrow">Summary</span>
+                    <OrderSummary :cart="cart" />
+                    <p v-if="paymentError" class="rc-error" role="alert" style="color: #ffb4a8;">{{ paymentError }}</p>
+                    <button type="button" class="rc-btn rc-btn-primary rc-btn-block" :disabled="!canPay" @click="placeOrder">
+                        {{ isPlacing ? "Processing…" : (cart.total > 0 ? `Pay ${money(cart.total)}` : "Complete registration") }}
+                    </button>
+                </aside>
+            </div>
+        </template>
+    </div>
+</template>
+
+<script setup lang="ts">
+    import { computed, ref } from "vue";
+    import GatewayControl from "@Obsidian/Controls/gatewayControl.obs";
+    import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import RockValidation from "@Obsidian/Controls/rockValidation.obs";
+    import { provideSubmitPayment } from "@Obsidian/Core/Controls/financialGateway";
+    import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
+    import { FormError } from "@Obsidian/Utility/form";
+    import { GatewayControlBag } from "@Obsidian/ViewModels/Controls/gatewayControlBag";
+    import FieldGuide from "../shared/fieldGuide.partial.obs";
+    import CartNav from "../shared/cartNav.partial.obs";
+    import OrderSummary from "../shared/orderSummary.partial.obs";
+    import SignInNotice from "../shared/signInNotice.partial.obs";
+    import TokenizerControl from "../shared/tokenizerControl.partial.obs";
+    import { money } from "../shared/registrationCart.partial";
+    import { CheckoutInitializationBox, CheckoutRequestBag, CheckoutResultBag, NavigationBag, PricedCartBag, PricedLineBag } from "../viewModels";
+
+    const config = useConfigurationValues<CheckoutInitializationBox>();
+    const invokeBlockAction = useInvokeBlockAction();
+    const submitPayment = provideSubmitPayment();
+
+    const navigation = ref<NavigationBag>(config.navigation ?? { isSignedIn: false, cartItemCount: 0 });
+    const cart = ref<PricedCartBag>(config.cart ?? { subtotal: 0, discountTotal: 0, total: 0, itemCount: 0 });
+    const problems = computed<string[]>(() => config.problems ?? []);
+    const gatewayControlModel = computed<GatewayControlBag | null>(() => config.gatewayControl ?? null);
+
+    const tokenizerRef = ref<InstanceType<typeof TokenizerControl> | null>(null);
+    const isPlacing = ref(false);
+    const paymentError = ref("");
+    const gatewayErrorMessage = ref("");
+    const gatewayValidationFields = ref<FormError[]>([]);
+    const completed = ref<CheckoutResultBag | null>(null);
+
+    type RegistrantGroup = { name: string; lines: PricedLineBag[] };
+    const groupedLines = computed<RegistrantGroup[]>(() => {
+        const groups: RegistrantGroup[] = [];
+        for (const line of cart.value.lines ?? []) {
+            const name = line.registrantName ?? "";
+            let group = groups.find(g => g.name === name);
+            if (!group) { group = { name, lines: [] }; groups.push(group); }
+            group.lines.push(line);
+        }
+        return groups;
+    });
+
+    const hasWaitList = computed<boolean>(() => (cart.value.lines ?? []).some(l => l.isWaitList));
+
+    const canPay = computed<boolean>(() => {
+        if (isPlacing.value || problems.value.length > 0 || !cart.value.lines?.length) return false;
+        if (cart.value.total <= 0) return true;
+        return !!gatewayControlModel.value || !!config.tokenizer;
+    });
+
+    function paidAddOns(line: PricedLineBag): string[] {
+        return (line.addOns ?? []).filter(a => a.price > 0).map(a => a.name ?? "");
+    }
+
+    function placeOrder(): void {
+        paymentError.value = "";
+        gatewayErrorMessage.value = "";
+        gatewayValidationFields.value = [];
+        isPlacing.value = true;
+        if (cart.value.total <= 0) { void processCheckout(""); return; }
+        if (gatewayControlModel.value) submitPayment();
+        else if (tokenizerRef.value) tokenizerRef.value.submit();
+        else { isPlacing.value = false; paymentError.value = "The payment form is not available."; }
+    }
+
+    function onGatewayToken(token: string): void { void processCheckout(token); }
+    function onGatewayError(message: string): void { isPlacing.value = false; gatewayErrorMessage.value = message; paymentError.value = message; }
+    function onGatewayValidation(invalidFields: FormError[]): void { isPlacing.value = false; gatewayValidationFields.value = invalidFields; }
+
+    async function processCheckout(gatewayToken: string): Promise<void> {
+        try {
+            const request: CheckoutRequestBag = { gatewayToken, expectedTotal: cart.value.total };
+            const result = await invokeBlockAction<CheckoutResultBag>("ProcessCheckout", { request });
+            if (!result.isSuccess || !result.data) { paymentError.value = result.errorMessage || "Something went wrong. Please contact the office before trying again."; return; }
+            const data = result.data;
+            if (data.success) { completed.value = data; navigation.value = { ...navigation.value, cartItemCount: 0 }; window.scrollTo({ top: 0 }); }
+            else if (data.cartChanged) {
+                // Nothing was charged: show the cart as it is now so the shopper can pay the new total.
+                if (data.cart) { cart.value = data.cart; navigation.value = { ...navigation.value, cartItemCount: data.cart.itemCount }; }
+                paymentError.value = data.errorMessage || "Your cart changed. Please review it and try again.";
+            }
+            else if (data.isDeclined) paymentError.value = `Payment declined: ${data.errorMessage ?? "please try a different card."}`;
+            else paymentError.value = data.errorMessage || "Something went wrong.";
+        }
+        finally {
+            isPlacing.value = false;
+        }
+    }
+</script>
