@@ -174,12 +174,12 @@
 {% assign Items = contentchannelitemItems %}
 {% endcontentchannelitem %}
 
-{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
+{% assign currentDateTime = 'Now' | Date:'yyMMdd.HHmm' | AsDouble %}
 
 {% assign ItemsCount = 0 %}
 {% for item in Items %}
-    {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
-    {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsDouble %}
+    {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMdd.HHmm' | AsDouble %}
+    {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMdd.HHmm' | AsDouble %}
     {% if itemStartDateTime <= currentDateTime %}
         {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
             {% assign ItemsCount = ItemsCount | Plus:1 %}
@@ -194,8 +194,8 @@
             {% assign cardsFlagCount = 0 %}
             {% assign firstFlag = false %}
             {%- for item in Items -%}
-                {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
-                {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsDouble %}
+                {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMdd.HHmm' | AsDouble %}
+                {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMdd.HHmm' | AsDouble %}
                 {% if itemStartDateTime <= currentDateTime %}
                 {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
                 <div class="col-xs-12 col-lg-4

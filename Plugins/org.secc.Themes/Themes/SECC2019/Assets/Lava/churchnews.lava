@@ -1,4 +1,4 @@
-{% assign now = 'Now' | Date:'yyyyMMddhhmmss' | AsDouble %}
+{% assign now = 'Now' | Date:'yyyyMMdd.hhmmss' | AsDouble %}
 {% assign announcementsChannelId = 102 %}
 {% assign eventsChannelId = 103 %}
 <div id="ChurchNews">
@@ -34,8 +34,8 @@
             <h2 class="g-padding-t-100--xs g-padding-b-50--xs">Announcements</h2>
             {% contentchannelitem where:'ContentChannelId == "{{announcementsChannelId}}"'%}
                 {% for item in contentchannelitemItems%}
-                    {% assign start = item.StartDateTime | Date:'yyyyMMddhhmmss' | AsDouble %}
-                    {% assign expire = item.ExpireDateTime | Date:'yyyyMMddhhmmss' | AsDouble %}
+                    {% assign start = item.StartDateTime | Date:'yyyyMMdd.hhmmss' | AsDouble %}
+                    {% assign expire = item.ExpireDateTime | Date:'yyyyMMdd.hhmmss' | AsDouble %}
                     {% if now < start or now >= expire%}
                         {%continue%}
                     {% endif %}
@@ -53,8 +53,8 @@
             <h2 class="g-padding-t-100--xs g-padding-b-50--xs">Events</h2>
             {% contentchannelitem where:'ContentChannelId == "{{eventsChannelId}}"'%}
                 {% for item in contentchannelitemItems%}
-                    {% assign start = item.StartDateTime | Date:'yyyyMMddhhmmss' | AsDouble %}
-                    {% assign expire = item.ExpireDateTime | Date:'yyyyMMddhhmmss' | AsDouble %}
+                    {% assign start = item.StartDateTime | Date:'yyyyMMdd.hhmmss' | AsDouble %}
+                    {% assign expire = item.ExpireDateTime | Date:'yyyyMMdd.hhmmss' | AsDouble %}
                     {% if now < now or now > expire%}
                         {%continue%}
                     {% endif %}

@@ -2,7 +2,7 @@
 
 > Southeast's Rock site themes — the master pages, page layouts, and styling that skin Rock's external and check-in sites.
 
-Last updated: 2026-09-25
+Last updated: 2026-09-28
 
 ## Overview
 
@@ -48,6 +48,14 @@ and the share (production) is the source of truth. On 2026-09-24 the repo was re
 for the themes the database still uses (ROCK-9086, PR #317) with the Fluid-compatibility fixes re-applied on top;
 `KyleIdlman17`, `SE Kids` and `StarkLess` were not synced (retired / unused). After merging a theme change, copy the
 theme folder to the prod and dev shares (LF line endings, byte-compare, no deletes) and clear the Rock cache.
+
+ROCK-9086 passes 6–11 (PR #320, 2026-09-25..28) changed theme Lava again for Fluid, and every change is already on both
+shares. Rendered output is unchanged on DotLiquid except where noted in `Tools/LavaFluidMigration/ROCK-9086/README.md`:
+- `SECC2019`, `SECC2024`, `SECC2019Portal`, `SECC2014`, `SEMobileApp` date-number Lava formats dates as `yyMMdd.HHmm`
+  (a decimal point after the day) instead of a whole number, which overflowed Rock's Fluid `int` cast (SE!Kids pages).
+- `Groups/*.lava` escapes apostrophes with a captured `\'` (Fluid ignores `Replace:"'","\'"`), `HomeGroups` and
+  `OpportunitySearch` drop the ignored `and` from `when … and`, and SECC2024 `HomeGroups` has one `else` per `if`.
+- `PublishGroupFilters` / `APIPublishGroupFilters` handle a webhook that returns one JSON object instead of a list.
 
 ## Components
 
