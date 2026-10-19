@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- Test project: do not copy anything into RockWeb. -->
+    <CopyToRockWeb>false</CopyToRockWeb>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!-- Resolve RockWeb the same way LinkList.Tests does: honor an explicit
+       /p:RockWebPath, then probe the rock-dev-tool layout (Rock next to the
+       plugin folder) and the Rock solution layout (SolutionDir). -->
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('..\..\Rock\RockWeb\Bin')">..\..\Rock\RockWeb</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\org.secc.SignNowWorkflow.csproj" />
+    <!-- SignNowCreate derives from Rock's ActionComponent, so the compiler needs Rock.dll.
+         The tests only call the static path helper, which doesn't touch the database. -->
+    <Reference Include="Rock">
+      <HintPath>$(RockWebPath)\Bin\Rock.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

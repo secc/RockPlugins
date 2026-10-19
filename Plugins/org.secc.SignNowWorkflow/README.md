@@ -24,6 +24,7 @@ the `SignNowSDK` project for the actual API calls.
 /Workflows/    SignNowCreate.cs    — upload PDF, create signer, build invite link
                SignNowDownload.cs  — check for a signature, download the signed PDF
 /Properties/   AssemblyInfo.cs
+/org.secc.SignNowWorkflow.Tests/  xunit tests for SignNowCreate's temp file path (not deployed to RockWeb)
 ```
 
 ## Components
@@ -84,6 +85,9 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
   missing file type is an error, not a fallback. The destination attribute and file type are resolved
   before the download, so a misconfigured action fails without calling SignNow. The stored file name gets
   a `.pdf` extension, and the `%PDF-` header is accepted anywhere in the first 1024 bytes.
+  `SignNow Create` writes the upload into a per-call temp directory under the document's file name, with
+  each run of characters that are invalid in file names replaced by `_` and commas and semicolons removed
+  (Rock's `MakeValidFileName`), or as `document.pdf` when no usable name remains.
   `SignNow Create` also removes its upload temp directory in a `finally`, including on error returns.
 - **SDK error handling:** SignNowSDK uses RestSharp 105, which never throws on transport failures. The SDK
   then returns `null`, or the raw error body (object, array, or non-JSON), instead of the expected object.
@@ -109,4 +113,4 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
   `[Description]`, `[Export(typeof(ActionComponent))]`, and `[ExportMetadata("ComponentName", …)]`, then
   add it to the `<Compile>` list in the `.csproj`.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-15
