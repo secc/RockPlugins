@@ -70,6 +70,14 @@ public static class CheckoutRules
     }
 
     /// <summary>
+    /// How many of a fee item with a Maximum Usage (Rock's per-instance limit) are left for one
+    /// cart: the limit less what registrants already have and what other carts mid-checkout hold.
+    /// Null means no limit.
+    /// </summary>
+    public static int? FeeItemRemaining(int? maximumUsage, int used, int held) =>
+        maximumUsage is int max ? Math.Max(0, max - used - held) : null;
+
+    /// <summary>
     /// Splits one cart's <paramref name="wanted"/> campers for a camp into the seats that are
     /// left and the rest. The first campers in cart order get the seats; the rest go on the
     /// wait list when the template has one, else they are refused.

@@ -154,6 +154,26 @@ namespace org.secc.RegistrationCart.Services
                 }
             }
 
+            // Extras with a Maximum Usage in Rock: the cart's campers can't take more than are left.
+            var feeItemsRemaining = new FeeItemUsage( _rockContext ).Remaining( instances.Values, cart.Id );
+            foreach ( var instanceLines in cart.LineItems.Where( l => feeItemsRemaining.ContainsKey( l.RegistrationInstanceId ) ).GroupBy( l => l.RegistrationInstanceId ) )
+            {
+                foreach ( var item in feeItemsRemaining[instanceLines.Key] )
+                {
+                    var holding = instanceLines.Where( l => l.AddOns.Any( a => a.RegistrationTemplateFeeItemId == item.Key ) ).ToList();
+                    if ( holding.Count <= item.Value )
+                    {
+                        continue;
+                    }
+
+                    var name = holding[0].AddOns.First( a => a.RegistrationTemplateFeeItemId == item.Key ).SnapshotName;
+                    problems.Add( new CheckoutProblem( item.Value == 0
+                        ? $"\"{name}\" is sold out. Please edit the registration."
+                        : $"Only {item.Value} \"{name}\" left, but your cart has {holding.Count}. Please edit a registration.",
+                        holding.Select( l => l.Id ) ) );
+                }
+            }
+
             // Each camper's answers, for where they are placed now.
             var forms = new RegistrationForms( _rockContext );
             var catalog = new CatalogService( _rockContext );

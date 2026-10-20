@@ -96,13 +96,14 @@
                                            type="radio"
                                            :name="`regcart-group-${g.group.id}`"
                                            :checked="isSelected(g.group.id, item.id)"
+                                           :disabled="isSoldOut(item) && !isSelected(g.group.id, item.id)"
                                            @change="selectSingle(g.group.id, item.id)" />
                                     <input v-else
                                            type="checkbox"
                                            :checked="isSelected(g.group.id, item.id)"
-                                           :disabled="g.group.isLocked"
+                                           :disabled="g.group.isLocked || (isSoldOut(item) && !isSelected(g.group.id, item.id))"
                                            @change="toggleMulti(g.group.id, item.id, ($event.target as HTMLInputElement).checked)" />
-                                    <span>{{ item.name }}</span>
+                                    <span>{{ item.name }}<span v-if="isSoldOut(item)" class="rc-muted"> (none remaining)</span></span>
                                     <span v-if="item.price === 0" class="rc-addon-included">Included</span>
                                     <span v-else class="rc-addon-price">+ {{ money(item.price) }}</span>
                                 </label>
@@ -252,8 +253,16 @@
 
     const canAddToCart = computed<boolean>(() => {
         if (!selectedVariant.value || !selectedPerson.value || isAdding.value || isLoadingValues.value) return false;
-        return visibleGroups.value.filter(g => g.group.isRequired).every(g => (selections.value[g.group.id] ?? []).length > 0);
+        // As Rock: a required fee whose items are all sold out stops being required.
+        return visibleGroups.value.filter(g => g.group.isRequired)
+            .every(g => (selections.value[g.group.id] ?? []).length > 0 || g.items.every(isSoldOut));
     });
+
+    /** An extra with a Maximum Usage in Rock that this option has none left of. */
+    function isSoldOut(item: AddOnItemBag): boolean {
+        const left = selectedVariant.value?.feeItemsRemaining?.[item.id];
+        return left !== null && left !== undefined && left <= 0;
+    }
 
     function firstName(full: string | null | undefined): string {
         return (full ?? "").split(" ")[0] || "them";
@@ -311,9 +320,10 @@
         const next: Record<number, number[]> = {};
         for (const g of visibleGroups.value) {
             const kept = (selections.value[g.group.id] ?? []).filter(id => g.items.some(i => i.id === id));
+            const available = g.items.filter(i => !isSoldOut(i));
             if (kept.length) next[g.group.id] = kept;
-            else if (g.group.isLocked && g.items.length) next[g.group.id] = g.items.map(i => i.id);
-            else if (g.group.isRequired && g.group.selectionMode === SelectionMode.Single && g.items.length) next[g.group.id] = [g.items[0].id];
+            else if (g.group.isLocked && available.length) next[g.group.id] = available.map(i => i.id);
+            else if (g.group.isRequired && g.group.selectionMode === SelectionMode.Single && available.length) next[g.group.id] = [available[0].id];
         }
         selections.value = next;
         cartError.value = "";

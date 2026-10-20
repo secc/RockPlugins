@@ -148,6 +148,22 @@ public class CheckoutRulesTests
         Assert.Equal(0, CheckoutRules.SpotsAvailable(new SeatCounts(10, 12, 0, false, 2))); // staff overfilled it
     }
 
+    [Fact]
+    public void Fee_item_without_a_maximum_usage_has_no_limit()
+    {
+        Assert.Null(CheckoutRules.FeeItemRemaining(null, 40, 3));
+    }
+
+    [Theory]
+    [InlineData(20, 15, 2, 3)]
+    [InlineData(20, 20, 0, 0)] // sold out
+    [InlineData(20, 19, 2, 0)] // carts mid-checkout hold the last one
+    [InlineData(20, 25, 0, 0)] // staff went past the limit
+    public void Fee_item_remaining_is_the_limit_less_used_and_held(int max, int used, int held, int expected)
+    {
+        Assert.Equal(expected, CheckoutRules.FeeItemRemaining(max, used, held));
+    }
+
     [Theory]
     [InlineData(3, 3, 3, 0)] // exactly fills the camp
     [InlineData(2, 3, 2, 1)] // one of this cart's campers doesn't fit

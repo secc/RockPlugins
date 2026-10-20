@@ -331,7 +331,8 @@ namespace org.secc.RegistrationCart.Blocks
                     DeadlineText = i.RegistrationDeadline.HasValue ? "Register by " + i.RegistrationDeadline.Value.ToString( "MMM d" ) : "",
                     EligibleGradeBands = ( int ) i.Bands,
                     SpotsRemaining = i.SpotsRemaining,
-                    WaitListEnabled = i.WaitListEnabled
+                    WaitListEnabled = i.WaitListEnabled,
+                    FeeItemsRemaining = i.FeeItemsRemaining
                 } );
             }
 

@@ -318,6 +318,8 @@ export type VariantBag = {
 
     eligibleGradeBands: number;
 
+    feeItemsRemaining?: Record<number, number> | null;
+
     id: number;
 
     name?: string | null;

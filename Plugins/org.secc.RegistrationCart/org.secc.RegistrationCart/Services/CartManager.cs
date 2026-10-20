@@ -325,18 +325,29 @@ namespace org.secc.RegistrationCart.Services
             var answers = RegistrationForms.TemplateAnswers( template.Template, fieldValues );
             var addOns = new List<CartLineItemAddOn>();
             var requested = new HashSet<int>( feeItemIds ?? Enumerable.Empty<int>() );
+
+            // Items with a Maximum Usage in Rock: what's left for this camper, after the cart's
+            // other campers for the option.
+            var remaining = new FeeItemUsage( _rockContext ).Remaining( new[] { option.Instance }, cart?.Id )[option.Instance.Id];
+            var otherLines = cart?.LineItems.Where( l => l.RegistrationInstanceId == option.Instance.Id && l.Id != otherLineId ).ToList() ?? new List<CartLineItem>();
+            bool SoldOut( CatalogService.CatalogFeeItem item ) =>
+                remaining.TryGetValue( item.Item.Id, out var left ) && left - otherLines.Sum( l => l.AddOns.Count( a => a.RegistrationTemplateFeeItemId == item.Item.Id ) ) <= 0;
+
             foreach ( var fee in template.Fees )
             {
                 var eligibleItems = fee.Items.Where( i => Eligibility.IsAddOnEligible( new global::org.secc.RegistrationCart.Domain.Entities.AddOnItem { EligibleGradeBands = i.Bands }, band ) ).ToList();
+                var availableItems = eligibleItems.Where( i => !SoldOut( i ) ).ToList();
                 var chosen = fee.Items.Where( i => requested.Contains( i.Item.Id ) ).ToList();
 
-                // Rock's required single-item fees are mandatory: always include them.
-                if ( fee.IsLocked && eligibleItems.Any() && chosen.Count == 0 )
+                // Rock's required single-item fees are mandatory: always include them (while
+                // there are any left).
+                if ( fee.IsLocked && availableItems.Any() && chosen.Count == 0 )
                 {
-                    chosen = new List<CatalogService.CatalogFeeItem> { eligibleItems.First() };
+                    chosen = new List<CatalogService.CatalogFeeItem> { availableItems.First() };
                 }
 
-                if ( fee.IsRequired && eligibleItems.Any() && chosen.Count == 0 )
+                // As Rock: a required fee whose items are all sold out stops being required.
+                if ( fee.IsRequired && availableItems.Any() && chosen.Count == 0 )
                 {
                     return Refuse( result, $"Please choose an option for \"{fee.Fee.Name}\"." );
                 }
@@ -351,6 +362,11 @@ namespace org.secc.RegistrationCart.Services
                     if ( !eligibleItems.Contains( item ) )
                     {
                         return Refuse( result, $"\"{item.Item.Name}\" is not available for {camperName}." );
+                    }
+
+                    if ( SoldOut( item ) )
+                    {
+                        return Refuse( result, $"\"{item.Item.Name}\" is sold out." );
                     }
 
                     // An item the line already had keeps the price it was added at.

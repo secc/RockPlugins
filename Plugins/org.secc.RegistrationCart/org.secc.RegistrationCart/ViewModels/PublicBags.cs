@@ -187,6 +187,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public int? SpotsRemaining { get; set; }
         /// <summary>When full, a camper can still be added to the wait list (Rock template setting).</summary>
         public bool WaitListEnabled { get; set; }
+        /// <summary>Fee items with a Maximum Usage in Rock, by fee item id: how many are left for this option (0 = none remaining).</summary>
+        public Dictionary<int, int> FeeItemsRemaining { get; set; } = new Dictionary<int, int>();
     }
 
     /// <summary>A Rock RegistrationTemplateFee.</summary>

@@ -66,6 +66,11 @@ namespace org.secc.RegistrationCart.Services
             /// </summary>
             public int? SpotsRemaining { get; set; }
             public bool IsFull => SpotsRemaining.HasValue && SpotsRemaining.Value <= 0;
+            /// <summary>
+            /// Fee items with a Maximum Usage, by fee item id: how many are left for one more
+            /// camper from the viewer's cart (<see cref="FeeItemUsage"/>, less the cart's own).
+            /// </summary>
+            public Dictionary<int, int> FeeItemsRemaining { get; set; } = new Dictionary<int, int>();
             /// <summary>Rock's template setting: a full instance takes wait-list registrations.</summary>
             public bool WaitListEnabled => Instance.RegistrationTemplate.WaitListEnabled;
             /// <summary>Registrants Rock counts against Max Attendees (wait list included).</summary>
@@ -267,6 +272,7 @@ namespace org.secc.RegistrationCart.Services
             // Seats, counted as checkout counts them (open carts hold none), less the viewer's
             // own campers for each option.
             var seatCounts = new SeatCounter( _rockContext ).Count( instances, ViewerCart?.Id );
+            var feeItemsRemaining = new FeeItemUsage( _rockContext ).Remaining( instances, ViewerCart?.Id );
 
             var result = new List<CatalogTemplate>();
             foreach ( var group in instances.GroupBy( i => i.RegistrationTemplateId ) )
@@ -306,6 +312,12 @@ namespace org.secc.RegistrationCart.Services
                     {
                         var own = ViewerCart?.LineItems.Count( l => l.RegistrationInstanceId == instance.Id ) ?? 0;
                         ci.SpotsRemaining = Math.Max( 0, spots.Value - own );
+                    }
+
+                    foreach ( var item in feeItemsRemaining[instance.Id] )
+                    {
+                        var own = ViewerCart?.LineItems.Where( l => l.RegistrationInstanceId == instance.Id ).Sum( l => l.AddOns.Count( a => a.RegistrationTemplateFeeItemId == item.Key ) ) ?? 0;
+                        ci.FeeItemsRemaining[item.Key] = Math.Max( 0, item.Value - own );
                     }
 
                     if ( !includeHidden && !ci.IsVisible )
