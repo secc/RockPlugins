@@ -24,6 +24,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public List<AdminTemplateBag> Templates { get; set; } = new List<AdminTemplateBag>();
         public bool CanEdit { get; set; }
         public string CatalogUrl { get; set; }
+        /// <summary>How templates and instances without saved settings behave (the Registration Cart global attributes), to explain the page.</summary>
+        public string DefaultsText { get; set; }
     }
 
     public class AdminTemplateBag

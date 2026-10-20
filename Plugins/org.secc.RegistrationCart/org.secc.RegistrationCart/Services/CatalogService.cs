@@ -43,7 +43,8 @@ namespace org.secc.RegistrationCart.Services
             public string ImageUrl { get; set; }
             public List<CatalogInstance> Instances { get; set; } = new List<CatalogInstance>();
             public List<CatalogFee> Fees { get; set; } = new List<CatalogFee>();
-            public bool IsVisible => Setting?.IsVisible ?? true;
+            /// <summary>Opt-in: a template shows once staff turn it on (<see cref="CartSettings.DefaultVisibility"/> until then).</summary>
+            public bool IsVisible => Setting?.IsVisible ?? CartSettings.DefaultVisibility;
             public int Order => Setting?.Order ?? 0;
             public string Description => Setting?.CatalogDescription.IsNotNullOrWhiteSpace() == true ? Setting.CatalogDescription : Template.Description;
         }
@@ -76,8 +77,9 @@ namespace org.secc.RegistrationCart.Services
             /// <summary>Registrants Rock counts against Max Attendees (wait list included).</summary>
             public int RegisteredCount { get; set; }
             public bool IsOpen { get; set; }
+            /// <summary>The template is the opt-in gate: its instances show unless staff hide one.</summary>
             public bool IsVisible => Setting?.IsVisible ?? true;
-            public GradeBand Bands => Setting?.EligibleGradeBands ?? GradeBand.Everyone;
+            public GradeBand Bands => Setting?.EligibleGradeBands ?? CartSettings.DefaultGradeBands;
             public int Order => Setting?.Order ?? 0;
         }
 
@@ -96,7 +98,7 @@ namespace org.secc.RegistrationCart.Services
         {
             public RegistrationTemplateFeeItem Item { get; set; }
             public FeeItemSetting Setting { get; set; }
-            public GradeBand Bands => Setting?.EligibleGradeBands ?? GradeBand.Everyone;
+            public GradeBand Bands => Setting?.EligibleGradeBands ?? CartSettings.DefaultGradeBands;
         }
 
         private readonly RockContext _rockContext;

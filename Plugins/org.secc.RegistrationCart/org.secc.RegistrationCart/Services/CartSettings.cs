@@ -12,6 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
+using System.Linq;
+using org.secc.RegistrationCart.Domain;
 using Rock;
 using Rock.Web.Cache;
 
@@ -24,6 +26,30 @@ namespace org.secc.RegistrationCart.Services
     public static class CartSettings
     {
         public const string PreventDuplicateRegistrationsKey = "RegistrationCartPreventDuplicateRegistrations";
+        public const string DefaultVisibilityKey = "RegistrationCartShowNewTemplates";
+        public const string DefaultGradeBandsKey = "RegistrationCartDefaultGradeBands";
+
+        /// <summary>
+        /// Whether a registration template with no saved cart setting shows in the catalog. Off
+        /// unless staff turn it on: each template is opted in on the cart's settings page.
+        /// </summary>
+        public static bool DefaultVisibility =>
+            GlobalAttributesCache.Get().GetValue( DefaultVisibilityKey ).AsBooleanOrNull() ?? false;
+
+        /// <summary>
+        /// Who an instance or fee item with no saved cart setting is open to. Students only
+        /// unless staff change it.
+        /// </summary>
+        public static GradeBand DefaultGradeBands
+        {
+            get
+            {
+                var value = GlobalAttributesCache.Get().GetValue( DefaultGradeBandsKey );
+                return value.IsNullOrWhiteSpace()
+                    ? GradeBand.All
+                    : ( GradeBand ) value.SplitDelimitedValues().Select( v => v.AsInteger() ).Aggregate( 0, ( bands, band ) => bands | band );
+            }
+        }
 
         /// <summary>
         /// Refuse a camper who is already registered for the option (wait list included). On

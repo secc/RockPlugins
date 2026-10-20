@@ -12,6 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
+using System.Linq;
 using Rock.Model;
 using org.secc.RegistrationCart.Domain;
 
@@ -56,6 +57,22 @@ namespace org.secc.RegistrationCart.Services
                 case GradeBand.MiddleSchool: return 5;
                 default: return 9;
             }
+        }
+
+        /// <summary>A set of bands in words: "all students", "everyone", or the bands listed.</summary>
+        public static string Describe( GradeBand bands )
+        {
+            switch ( bands )
+            {
+                case GradeBand.None: return "no one";
+                case GradeBand.All: return "all students";
+                case GradeBand.Everyone: return "everyone";
+            }
+
+            var names = new[] { GradeBand.Elementary, GradeBand.MiddleSchool, GradeBand.HighSchool, GradeBand.Adults }
+                .Where( b => bands.HasFlag( b ) )
+                .Select( b => b == GradeBand.Adults ? "adults" : Friendly( b ) );
+            return string.Join( ", ", names );
         }
 
         public static string Friendly( GradeBand band )

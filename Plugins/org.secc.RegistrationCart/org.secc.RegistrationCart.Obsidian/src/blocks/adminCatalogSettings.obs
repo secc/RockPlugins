@@ -8,6 +8,7 @@
             Registration Cart sells Rock's own <strong>registration instances</strong>. Set a camp, retreat or class up the normal Rock way
             (Registration Templates → Instances, with a financial account) and it appears here. Use this page only to hide things
             from the cart, restrict who may register, and add a catalog image.
+            <template v-if="config.defaultsText"><br />{{ config.defaultsText }}</template>
         </NotificationBox>
         <NotificationBox v-if="!config.canEdit" alertType="warning">You can view these settings but not change them.</NotificationBox>
         <NotificationBox v-if="!templates.length" alertType="warning">No active registration templates with active instances were found in Rock.</NotificationBox>

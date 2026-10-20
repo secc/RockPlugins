@@ -98,6 +98,9 @@ namespace org.secc.RegistrationCart.SystemGuid
     public static class Attribute
     {
         public const string PREVENT_DUPLICATE_REGISTRATIONS = "FFAF825B-1A5C-4B66-89C2-EF136857994F";
+        public const string DEFAULT_VISIBILITY = "F6BC46EE-B5D1-42EB-90C7-76F38B0C4616";
+        public const string DEFAULT_GRADE_BANDS = "3121EE74-C535-42F4-B408-C6355CF7427C";
+        public const string DEFAULT_GRADE_BANDS_VALUES_QUALIFIER = "E07791E7-8806-40FE-9EEB-733277052767";
     }
 
 }

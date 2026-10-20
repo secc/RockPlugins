@@ -50,7 +50,10 @@ namespace org.secc.RegistrationCart.Blocks
             {
                 CanEdit = CanEdit,
                 CatalogUrl = this.GetLinkedPageUrl( AttributeKey.CatalogPage ),
-                Templates = new CatalogService( RockContext ).GetAdminCatalog().Select( ToBag ).ToList()
+                Templates = new CatalogService( RockContext ).GetAdminCatalog().Select( ToBag ).ToList(),
+                DefaultsText = $"A template shows in the catalog only once it is turned on here{( CartSettings.DefaultVisibility ? " (new templates currently show by default)" : "" )}. "
+                    + $"Instances and extras not saved here are open to {GradeBands.Describe( CartSettings.DefaultGradeBands )}. "
+                    + "The defaults are the \"Registration Cart:\" global attributes."
             };
         }
 

@@ -10,6 +10,8 @@ export type CatalogSettingsInitializationBox = {
 
     catalogUrl?: string | null;
 
+    defaultsText?: string | null;
+
     templates?: AdminTemplateBag[] | null;
 };
 

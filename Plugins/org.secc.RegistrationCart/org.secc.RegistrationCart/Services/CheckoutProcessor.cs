@@ -96,15 +96,18 @@ namespace org.secc.RegistrationCart.Services
 
             var now = RockDateTime.Now;
             var instanceIds = cart.LineItems.Select( l => l.RegistrationInstanceId ).Distinct().ToList();
+            var priced = CartPricing.Price( cart );
 
             var instances = new RegistrationInstanceService( _rockContext ).Queryable()
                 .Include( i => i.RegistrationTemplate )
                 .Where( i => instanceIds.Contains( i.Id ) )
                 .ToDictionary( i => i.Id );
             var templateIds = instances.Values.Select( i => i.RegistrationTemplateId ).Distinct().ToList();
-            var hiddenTemplateIds = new TemplateSettingService( _rockContext ).Queryable()
-                .Where( s => templateIds.Contains( s.RegistrationTemplateId ) && !s.IsVisible )
-                .Select( s => s.RegistrationTemplateId )
+            var templateVisibility = new TemplateSettingService( _rockContext ).Queryable()
+                .Where( s => templateIds.Contains( s.RegistrationTemplateId ) )
+                .ToDictionary( s => s.RegistrationTemplateId, s => s.IsVisible );
+            var hiddenTemplateIds = templateIds
+                .Where( id => !( templateVisibility.TryGetValue( id, out var isVisible ) ? isVisible : CartSettings.DefaultVisibility ) )
                 .ToList();
             var hiddenInstanceIds = new InstanceSettingService( _rockContext ).Queryable()
                 .Where( s => instanceIds.Contains( s.RegistrationInstanceId ) && !s.IsVisible )
@@ -134,8 +137,9 @@ namespace org.secc.RegistrationCart.Services
                         ? $"Registration for \"{instance.Name}\" hasn't opened yet."
                         : $"Registration for \"{instance.Name}\" has closed.";
                 }
-                else if ( instance.AccountId == null )
+                else if ( instance.AccountId == null && lineIds.Any( id => priced.Lines.Any( l => l.LineItemId == id && l.LineTotal - priced.DiscountFor( id ) > 0m ) ) )
                 {
+                    // Only something to pay needs an account (free events often have none).
                     problem = $"Registration instance \"{instance.Name}\" has no financial account. An administrator must set one in Rock.";
                 }
 
@@ -906,11 +910,16 @@ namespace org.secc.RegistrationCart.Services
             foreach ( var line in cart.LineItems.Where( l => !l.IsWaitList ) )
             {
                 var pricedLine = priced.Lines.First( l => l.LineItemId == line.Id );
-                var instance = instanceService.Get( line.RegistrationInstanceId );
-                var accountId = instance.AccountId;
                 // Each line posts net of the discounts that applied to it, so an offering-scoped
-                // code only reduces that offering's account. The details add up to priced.Total.
+                // code only reduces that offering's account. The details add up to priced.Total;
+                // a line with nothing to pay (a free event may have no account) posts nothing.
                 var amount = pricedLine.LineTotal - priced.DiscountFor( line.Id );
+                if ( amount <= 0m )
+                {
+                    continue;
+                }
+
+                var accountId = instanceService.Get( line.RegistrationInstanceId ).AccountId;
 
                 transaction.TransactionDetails.Add( new FinancialTransactionDetail
                 {
