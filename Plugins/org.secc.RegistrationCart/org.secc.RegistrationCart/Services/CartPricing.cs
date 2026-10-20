@@ -69,7 +69,8 @@ namespace org.secc.RegistrationCart.Services
                         Id = addOn.Id,
                         AddOnItemId = addOn.RegistrationTemplateFeeItemId,
                         AddOnItem = new DomainEntities.AddOnItem { Id = addOn.RegistrationTemplateFeeItemId, Name = addOn.SnapshotName ?? addOn.RegistrationTemplateFeeItem?.Name ?? "" },
-                        SnapshotPrice = addOn.SnapshotPrice
+                        SnapshotPrice = addOn.SnapshotPrice,
+                        DiscountApplies = addOn.DiscountApplies
                     } );
                 }
 

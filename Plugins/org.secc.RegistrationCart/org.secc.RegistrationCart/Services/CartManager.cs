@@ -438,7 +438,8 @@ namespace org.secc.RegistrationCart.Services
                     {
                         RegistrationTemplateFeeItemId = item.Item.Id,
                         SnapshotName = kept?.SnapshotName ?? item.Item.Name.Truncate( 200 ),
-                        SnapshotPrice = kept?.SnapshotPrice ?? item.Item.Cost
+                        SnapshotPrice = kept?.SnapshotPrice ?? item.Item.Cost,
+                        DiscountApplies = kept?.DiscountApplies ?? fee.Fee.DiscountApplies
                     } );
                 }
             }

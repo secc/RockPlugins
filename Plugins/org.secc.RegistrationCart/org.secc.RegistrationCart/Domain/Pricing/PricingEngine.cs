@@ -33,7 +33,8 @@ public class PricingEngine
 {
     /// <summary>
     /// Price the cart as of <paramref name="asOf"/> (used to validate discount windows).
-    /// Discount codes that aren't valid on that date are ignored.
+    /// Discount codes that aren't valid on that date are ignored. A code never takes more than
+    /// is left of the lines it applies to: what it can't use is lost, not moved onto other lines.
     /// </summary>
     public PricedCart Price(Cart cart, DateTime asOf)
     {
@@ -43,7 +44,9 @@ public class PricingEngine
         var lineRoom = lines.Select(l => ToCents(l.LineTotal)).ToArray(); // per line, what discounts haven't taken yet
 
         // A line with its template's own code takes that code first and no other: one code
-        // per line, never stacked with the cart's codes.
+        // per line, never stacked with the cart's codes. As Rock applies a template discount:
+        // a percentage of the base price and the fees whose "Discount Applies" is set, and a
+        // flat amount capped at the same.
         var hasOwnCode = items.Select(li => !string.IsNullOrWhiteSpace(li.TemplateDiscountCode)).ToArray();
         for (var i = 0; i < lines.Count; i++)
         {
@@ -51,10 +54,11 @@ public class PricingEngine
                 continue;
 
             var item = items[i];
+            var discountable = DiscountableTotal(item);
             var raw = item.TemplateDiscountPercentage > 0m
-                ? lines[i].LineTotal * item.TemplateDiscountPercentage
+                ? discountable * item.TemplateDiscountPercentage
                 : item.TemplateDiscountAmount;
-            var cents = Math.Min(ToCents(Math.Max(0m, raw)), lineRoom[i]);
+            var cents = Math.Min(Math.Min(ToCents(Math.Max(0m, raw)), ToCents(discountable)), lineRoom[i]);
             if (cents == 0)
                 continue;
 
@@ -66,7 +70,6 @@ public class PricingEngine
         // Wait-listed lines owe nothing now and take no discount.
         var takesCartCodes = lines.Select((l, i) => !l.IsWaitList && !hasOwnCode[i]).ToArray();
         var payable = lines.Where((l, i) => takesCartCodes[i]).ToList();
-        var remaining = payable.Sum(l => l.LineTotal); // cart codes can't exceed this in aggregate
         foreach (var cd in cart.Discounts)
         {
             // Check live validity window (IsActive, ValidFrom, ValidTo) — intentional.
@@ -75,13 +78,16 @@ public class PricingEngine
             if (cd.DiscountCode is null || !cd.DiscountCode.IsValidOn(asOf))
                 continue;
 
-            var amount = ComputeDiscount(cd, payable);
-            amount = Math.Min(amount, remaining); // never over-discount the cart
-            if (amount <= 0)
-                continue;
+            var weights = AllocationWeights(cd, lines, takesCartCodes);
+            var room = CartCodeRoom(lineRoom, takesCartCodes);
+            var cents = IsPerLineAmount(cd)
+                // A flat amount per camper (or per camper of the offering): each takes up to the
+                // amount, and no more than its line has left.
+                ? weights.Select((w, i) => w > 0m ? Math.Min(ToCents(cd.SnapshotValue), room[i]) : 0L).ToArray()
+                // A percentage, or a flat amount off the order: split over the lines it applies
+                // to, never more than they have left.
+                : DiscountAllocator.Allocate(ToCents(Round(Math.Max(0m, ComputeDiscount(cd, payable)))), weights, room);
 
-            var applied = Round(amount);
-            var cents = DiscountAllocator.Allocate(ToCents(applied), AllocationWeights(cd, lines, takesCartCodes), CartCodeRoom(lineRoom, takesCartCodes));
             var allocations = new List<DiscountAllocation>();
             for (var i = 0; i < lines.Count; i++)
             {
@@ -91,18 +97,27 @@ public class PricingEngine
                 lineRoom[i] -= cents[i];
             }
 
-            discounts.Add(new AppliedDiscount(cd.DiscountCode.Code, applied, allocations));
-            remaining -= amount;
+            if (allocations.Any())
+                discounts.Add(new AppliedDiscount(cd.DiscountCode.Code, allocations.Sum(a => a.Amount), allocations));
         }
 
         return new PricedCart(lines, discounts);
     }
 
+    /// <summary>A flat amount per line item, or per line item of one offering.</summary>
+    private static bool IsPerLineAmount(CartDiscount cd) =>
+        cd.SnapshotType == DiscountType.Amount && cd.SnapshotScope != DiscountScope.Order;
+
+    /// <summary>What a template discount applies to, as in Rock: the base price and the fees that allow discounts.</summary>
+    private static decimal DiscountableTotal(CartLineItem item) =>
+        item.SnapshotBasePrice + item.AddOns.Where(a => a.AddOnItem is not null && a.DiscountApplies).Sum(a => a.SnapshotPrice);
+
     /// <summary>
-    /// How one discount is spread over the lines, mirroring how <see cref="ComputeDiscount"/>
-    /// arrived at its amount: percent discounts and order-level amounts in proportion to each
-    /// line's total, per-line amounts evenly; offering-scoped codes only over matching lines.
-    /// Lines that don't take cart codes (wait-listed, or with their own code) weigh nothing.
+    /// Which lines a discount applies to and how it is spread over them, mirroring how
+    /// <see cref="ComputeDiscount"/> arrived at its amount: percent discounts and order-level
+    /// amounts in proportion to each line's total, per-line amounts evenly; offering-scoped codes
+    /// only over matching lines. Lines that don't take cart codes (wait-listed, or with their own
+    /// code) weigh nothing, and a line that weighs nothing takes none of the discount.
     /// </summary>
     private static decimal[] AllocationWeights(CartDiscount cd, IReadOnlyList<PricedLineItem> lines, bool[] takesCartCodes) =>
         lines.Select((l, i) =>
@@ -148,28 +163,24 @@ public class PricingEngine
             li.IsWaitList);
     }
 
-    /// <summary>Compute the raw discount amount for one applied code against the priced lines.</summary>
+    /// <summary>
+    /// The raw amount of a percentage code, or of a flat amount off the order, against the lines
+    /// that take cart codes (flat per-line amounts are worked out line by line in <see cref="Price"/>).
+    /// </summary>
     private static decimal ComputeDiscount(CartDiscount cd, IReadOnlyList<PricedLineItem> lines)
     {
         switch (cd.SnapshotScope)
         {
             case DiscountScope.Order:
-                var subtotal = lines.Sum(l => l.LineTotal);
                 return cd.SnapshotType == DiscountType.Percent
-                    ? subtotal * cd.SnapshotValue / 100m
+                    ? lines.Sum(l => l.LineTotal) * cd.SnapshotValue / 100m
                     : cd.SnapshotValue;
 
             case DiscountScope.LineItem:
-                return cd.SnapshotType == DiscountType.Percent
-                    ? lines.Sum(l => l.LineTotal) * cd.SnapshotValue / 100m
-                    : cd.SnapshotValue * lines.Count; // flat amount per line item
+                return lines.Sum(l => l.LineTotal) * cd.SnapshotValue / 100m;
 
             case DiscountScope.Offering:
-                var matching = lines.Where(l => MatchesOffering(l, cd)).ToList();
-                var matchBase = matching.Sum(l => l.LineTotal);
-                return cd.SnapshotType == DiscountType.Percent
-                    ? matchBase * cd.SnapshotValue / 100m
-                    : cd.SnapshotValue * matching.Count;
+                return lines.Where(l => MatchesOffering(l, cd)).Sum(l => l.LineTotal) * cd.SnapshotValue / 100m;
 
             default:
                 return 0m;

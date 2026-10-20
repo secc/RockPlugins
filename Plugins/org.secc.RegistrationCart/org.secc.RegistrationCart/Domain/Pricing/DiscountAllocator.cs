@@ -27,12 +27,11 @@ namespace org.secc.RegistrationCart.Domain.Pricing;
 public static class DiscountAllocator
 {
     /// <summary>
-    /// Allocates <paramref name="amountCents"/> to the lines with a positive weight, in
-    /// proportion to <paramref name="weights"/>, never giving a line more than its
-    /// <paramref name="capacityCents"/> (what is left of its price). If the discount is worth more
-    /// than its own lines have left, the excess goes to the other lines in proportion to what
-    /// they have left, so the cart total is unchanged. Anything beyond the whole cart's capacity
-    /// is not allocated.
+    /// Allocates <paramref name="amountCents"/> to the lines with a positive weight (the lines the
+    /// discount applies to), in proportion to <paramref name="weights"/>, never giving a line more
+    /// than its <paramref name="capacityCents"/> (what is left of its price). If the discount is
+    /// worth more than its lines have left, the rest is not allocated: it never comes off a line
+    /// the discount doesn't apply to.
     /// </summary>
     /// <returns>Cents per line, indexed like the inputs.</returns>
     public static long[] Allocate(long amountCents, IReadOnlyList<decimal> weights, IReadOnlyList<long> capacityCents)
@@ -40,18 +39,7 @@ public static class DiscountAllocator
         if (weights.Count != capacityCents.Count)
             throw new ArgumentException("Each line needs a weight and a capacity.");
 
-        var shares = Distribute(amountCents, weights, capacityCents);
-
-        var left = amountCents - shares.Sum();
-        if (left > 0)
-        {
-            var room = capacityCents.Select((cap, i) => cap - shares[i]).ToArray();
-            var spill = Distribute(left, room.Select(r => (decimal)r).ToArray(), room);
-            for (var i = 0; i < shares.Length; i++)
-                shares[i] += spill[i];
-        }
-
-        return shares;
+        return Distribute(amountCents, weights, capacityCents);
     }
 
     /// <summary>

@@ -43,6 +43,10 @@ namespace org.secc.RegistrationCart.Model
         [DecimalPrecision( 18, 2 )]
         public decimal SnapshotPrice { get; set; }
 
+        /// <summary>The fee's "Discount Applies" when the add-on was added: a template discount applies to it.</summary>
+        [DataMember]
+        public bool DiscountApplies { get; set; }
+
         [LavaVisible]
         public virtual CartLineItem CartLineItem { get; set; }
 

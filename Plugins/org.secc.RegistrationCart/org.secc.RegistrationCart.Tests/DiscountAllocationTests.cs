@@ -35,7 +35,11 @@ public class DiscountAllocationTests
 
     // ---- helpers -------------------------------------------------------
 
-    private static CartLineItem Line(int id, int offeringId, decimal basePrice, params decimal[] addOnPrices)
+    private static CartLineItem Line(int id, int offeringId, decimal basePrice, params decimal[] addOnPrices) =>
+        LineWithFees(id, offeringId, basePrice, addOnPrices.Select(p => (p, false)).ToArray());
+
+    /// <summary>A line whose add-ons say whether their Rock fee allows discounts.</summary>
+    private static CartLineItem LineWithFees(int id, int offeringId, decimal basePrice, params (decimal Price, bool DiscountApplies)[] addOns)
     {
         var line = new CartLineItem
         {
@@ -46,11 +50,12 @@ public class DiscountAllocationTests
             OfferingVariant = new OfferingVariant { Name = "Week 1" },
             SnapshotBasePrice = basePrice
         };
-        foreach (var p in addOnPrices)
+        foreach (var (p, discountApplies) in addOns)
             line.AddOns.Add(new CartLineItemAddOn
             {
                 AddOnItem = new AddOnItem { Name = $"Add {p}", Price = p },
-                SnapshotPrice = p
+                SnapshotPrice = p,
+                DiscountApplies = discountApplies
             });
         return line;
     }
@@ -199,10 +204,10 @@ public class DiscountAllocationTests
         AssertPostsExactly(priced);
     }
 
-    // ---- caps and stacking (amounts unchanged; only where they post) ----
+    // ---- caps and stacking (a code never takes more than its own lines have) ----
 
     [Fact]
-    public void Per_line_amount_larger_than_a_cheap_line_moves_to_the_other_lines()
+    public void Per_line_amount_takes_at_most_each_line_and_nothing_moves()
     {
         var cart = CartWith(new[]
         {
@@ -212,17 +217,15 @@ public class DiscountAllocationTests
 
         var priced = _engine.Price(cart, Today);
 
-        Assert.Equal(40m, priced.DiscountTotal); // $20 x 2 lines, as before
+        Assert.Equal(30m, priced.DiscountTotal);  // $10 (all of the cheap line) + $20
         Assert.Equal(10m, priced.DiscountFor(1)); // can't go below zero
-        Assert.Equal(30m, priced.DiscountFor(2));
+        Assert.Equal(20m, priced.DiscountFor(2)); // and the rest doesn't land here
         AssertPostsExactly(priced);
     }
 
     [Fact]
-    public void Offering_code_worth_more_than_its_lines_spills_to_other_lines_so_the_total_is_unchanged()
+    public void Offering_code_worth_more_than_its_lines_takes_only_those_lines()
     {
-        // The engine clamps a code against the whole cart, not just the lines it applies to.
-        // Until that rule is decided, the excess comes off the other lines so the charge matches.
         var cart = CartWith(new[]
         {
             Line(1, offeringId: 1, 50m),
@@ -231,9 +234,29 @@ public class DiscountAllocationTests
 
         var priced = _engine.Price(cart, Today);
 
-        Assert.Equal(100m, priced.DiscountTotal);
+        Assert.Equal(50m, priced.DiscountTotal);
         Assert.Equal(50m, priced.DiscountFor(1));
-        Assert.Equal(50m, priced.DiscountFor(2));
+        Assert.Equal(0m, priced.DiscountFor(2)); // another camp's line (and account) gets nothing
+        Assert.Empty(priced.CodesFor(2));
+        AssertPostsExactly(priced);
+    }
+
+    [Fact]
+    public void Offering_amount_is_capped_line_by_line()
+    {
+        var cart = CartWith(new[]
+        {
+            Line(1, offeringId: 1, 50m),
+            Line(2, offeringId: 1, 30m),
+            Line(3, offeringId: 2, 200m),
+        }, Code("ADV100", DiscountScope.Offering, DiscountType.Amount, 100m, offeringId: 1));
+
+        var priced = _engine.Price(cart, Today);
+
+        Assert.Equal(80m, priced.DiscountTotal); // each Camp A line, not $200 spread over the cart
+        Assert.Equal(50m, priced.DiscountFor(1));
+        Assert.Equal(30m, priced.DiscountFor(2));
+        Assert.Equal(0m, priced.DiscountFor(3));
         AssertPostsExactly(priced);
     }
 
@@ -260,17 +283,17 @@ public class DiscountAllocationTests
     }
 
     [Fact]
-    public void Discounts_that_round_past_the_subtotal_still_post_exactly()
+    public void Discounts_that_round_never_go_past_the_subtotal()
     {
-        // 33.335% rounds to 33.34 off; the flat code then clamps to the unrounded 66.665
-        // left, which rounds to 66.67: the codes add up to 100.01 on a 100.00 cart.
+        // 33.335% rounds to 33.34 off; the flat code then takes the 66.66 left, in cents.
         var cart = CartWith(new[] { Line(1, 1, 100m) },
             Code("ODD", DiscountScope.Order, DiscountType.Percent, 33.335m),
             Code("BIG", DiscountScope.Order, DiscountType.Amount, 1000m));
 
         var priced = _engine.Price(cart, Today);
 
-        Assert.Equal(100.01m, priced.DiscountTotal);
+        Assert.Equal(100m, priced.DiscountTotal);
+        Assert.Equal(66.66m, priced.Discounts.Single(d => d.Code == "BIG").Amount);
         Assert.Equal(0m, priced.Total);
         Assert.Equal(100m, priced.DiscountFor(1));
         AssertPostsExactly(priced);
@@ -430,13 +453,37 @@ public class DiscountAllocationTests
     }
 
     [Fact]
-    public void Own_percentage_code_is_a_fraction_of_the_line()
+    public void Own_percentage_code_skips_fees_that_do_not_allow_discounts()
     {
         var cart = CartWith(new[] { WithOwnCode(Line(1, 1, 300m, 33.33m), "FA-PCT", 0m, 0.25m) });
 
         var priced = _engine.Price(cart, Today);
 
+        Assert.Equal(75m, priced.DiscountFor(1)); // 25% of the 300 base; the fee's Discount Applies is off (Rock's default)
+        AssertPostsExactly(priced);
+    }
+
+    [Fact]
+    public void Own_percentage_code_includes_fees_that_allow_discounts()
+    {
+        var cart = CartWith(new[] { WithOwnCode(LineWithFees(1, 1, 300m, (33.33m, true)), "FA-PCT", 0m, 0.25m) });
+
+        var priced = _engine.Price(cart, Today);
+
         Assert.Equal(83.33m, priced.DiscountFor(1)); // 25% of 333.33, rounded
+        AssertPostsExactly(priced);
+    }
+
+    [Fact]
+    public void Own_flat_code_does_not_take_fees_that_do_not_allow_discounts()
+    {
+        // As Rock charges it: a flat template discount is capped at the base plus discountable fees.
+        var cart = CartWith(new[] { WithOwnCode(LineWithFees(1, 1, 280m, (50m, false)), "FA-MORE01", 380m) });
+
+        var priced = _engine.Price(cart, Today);
+
+        Assert.Equal(280m, priced.DiscountFor(1));
+        Assert.Equal(50m, priced.Total); // the bus fee is still due
         AssertPostsExactly(priced);
     }
 
@@ -494,10 +541,10 @@ public class DiscountAllocationTests
     }
 
     [Fact]
-    public void Nothing_is_allocated_beyond_the_whole_cart()
+    public void Nothing_is_allocated_to_lines_the_discount_does_not_apply_to()
     {
         var shares = DiscountAllocator.Allocate(1000, new[] { 1m, 0m }, new long[] { 300, 200 });
 
-        Assert.Equal(new long[] { 300, 200 }, shares);
+        Assert.Equal(new long[] { 300, 0 }, shares);
     }
 }

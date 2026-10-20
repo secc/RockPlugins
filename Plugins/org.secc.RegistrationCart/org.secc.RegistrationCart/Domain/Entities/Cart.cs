@@ -105,7 +105,7 @@ public class CartLineItem
     /// </summary>
     public string? TemplateDiscountCode { get; set; }
 
-    /// <summary>Flat amount of <see cref="TemplateDiscountCode"/>, capped at the line total.</summary>
+    /// <summary>Flat amount of <see cref="TemplateDiscountCode"/>, capped at the base price plus the add-ons that allow discounts.</summary>
     public decimal TemplateDiscountAmount { get; set; }
 
     /// <summary>Percentage of <see cref="TemplateDiscountCode"/> as a fraction (0.25 = 25%), as Rock stores it.</summary>
@@ -126,6 +126,12 @@ public class CartLineItemAddOn
 
     /// <summary>Add-on price captured when the item was added to the cart.</summary>
     public decimal SnapshotPrice { get; set; }
+
+    /// <summary>
+    /// The add-on's Rock fee allows discounts ("Discount Applies"), captured when it was added:
+    /// a template discount (the line's own code) applies to it as well as the base price.
+    /// </summary>
+    public bool DiscountApplies { get; set; }
 }
 
 /// <summary>
