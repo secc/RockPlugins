@@ -129,8 +129,19 @@ namespace org.secc.RegistrationCart.ViewModels
         /// <summary>The line is on its option's wait list (it keeps its place while the option stays the same).</summary>
         public bool IsWaitList { get; set; }
         public List<int> FeeItemIds { get; set; } = new List<int>();
-        /// <summary>The saved answers, keyed by form field Guid, as the browser sent them.</summary>
+        /// <summary>The saved answers, keyed by form field Guid, as the browser sent them (over the person's current values and the forms' defaults).</summary>
         public Dictionary<Guid, object> FieldValues { get; set; } = new Dictionary<Guid, object>();
+        /// <summary>Fields locked because the person already has a value ("lock if values exist"): shown, not editable.</summary>
+        public List<Guid> LockedFieldGuids { get; set; } = new List<Guid>();
+    }
+
+    /// <summary>What GetStartingValues returns for a family member and an option.</summary>
+    public class StartingValuesBag
+    {
+        /// <summary>Starting answers, keyed by form field Guid.</summary>
+        public Dictionary<Guid, object> FieldValues { get; set; } = new Dictionary<Guid, object>();
+        /// <summary>Fields locked because the person already has a value: shown, not editable.</summary>
+        public List<Guid> LockedFieldGuids { get; set; } = new List<Guid>();
     }
 
     /// <summary>A Rock RegistrationTemplate with its open instances (options) and fees (add-ons).</summary>

@@ -256,9 +256,17 @@ export type EditLineBag = {
 
     lineItemId: number;
 
+    lockedFieldGuids?: Guid[] | null;
+
     personAliasId: number;
 
     registrationInstanceId: number;
+};
+
+export type StartingValuesBag = {
+    fieldValues?: Record<Guid, unknown> | null;
+
+    lockedFieldGuids?: Guid[] | null;
 };
 
 export type OfferingBag = {

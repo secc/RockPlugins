@@ -322,7 +322,11 @@ namespace org.secc.RegistrationCart.Services
 
             result.IsWaitList = place == SeatPlace.WaitList;
 
-            var answers = RegistrationForms.TemplateAnswers( template.Template, fieldValues );
+            // Locked fields keep the value on file: that's what the document, the discount code
+            // workflow and checkout all see.
+            var forms = new RegistrationForms( _rockContext );
+            var groupId = catalog.GetLinkedGroupId( option.Instance.Id );
+            var answers = forms.Normalize( template.Template, registrantPerson, groupId, RegistrationForms.TemplateAnswers( template.Template, fieldValues ) );
             var addOns = new List<CartLineItemAddOn>();
             var requested = new HashSet<int>( feeItemIds ?? Enumerable.Empty<int>() );
 
@@ -382,7 +386,7 @@ namespace org.secc.RegistrationCart.Services
 
             // The template's questions, for where the camper is placed: never trust the browser's
             // idea of which ones it had to ask.
-            var answerProblems = new RegistrationForms( _rockContext ).CheckAnswers( template.Template, registrantPerson, catalog.GetLinkedGroupId( option.Instance.Id ), answers, place == SeatPlace.WaitList );
+            var answerProblems = forms.CheckAnswers( template.Template, registrantPerson, groupId, answers, place == SeatPlace.WaitList );
             if ( answerProblems.Any() )
             {
                 return Refuse( result, string.Join( " ", answerProblems ) );

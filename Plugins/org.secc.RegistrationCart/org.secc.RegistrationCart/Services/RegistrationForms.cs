@@ -189,20 +189,14 @@ namespace org.secc.RegistrationCart.Services
         public Dictionary<Guid, object> GetStartingValues( RegistrationTemplate template, Person person, int? groupId )
         {
             var values = new Dictionary<Guid, object>();
-            GroupMember groupMember = null;
-            if ( groupId.HasValue && person != null )
-            {
-                groupMember = new GroupMemberService( _rockContext ).GetByGroupIdAndPersonId( groupId.Value, person.Id ).FirstOrDefault();
-            }
-
+            var groupMember = GroupMemberFor( person, groupId );
             foreach ( var field in template.Forms.SelectMany( VisibleFields ) )
             {
                 object value = null;
                 switch ( field.FieldSource )
                 {
                     case RegistrationFieldSource.PersonField:
-                        var isName = field.PersonFieldType == RegistrationPersonFieldType.FirstName || field.PersonFieldType == RegistrationPersonFieldType.LastName;
-                        if ( isName || field.ShowCurrentValue || field.IsLockedIfValuesExist )
+                        if ( IsName( field ) || field.ShowCurrentValue || field.IsLockedIfValuesExist )
                         {
                             value = PersonFieldValue( person, field.PersonFieldType );
                         }
@@ -233,6 +227,42 @@ namespace org.secc.RegistrationCart.Services
             }
 
             return values;
+        }
+
+        /// <summary>
+        /// The fields locked for this person ("lock if values exist" with a value on file), which
+        /// the form shows but doesn't let them change (<see cref="IsLocked"/>).
+        /// </summary>
+        public List<Guid> LockedFieldGuids( RegistrationTemplate template, Person person, int? groupId )
+        {
+            var groupMember = GroupMemberFor( person, groupId );
+            return template.Forms.SelectMany( VisibleFields )
+                .Where( f => IsLocked( f, person, groupMember ) )
+                .Select( f => f.Guid )
+                .ToList();
+        }
+
+        /// <summary>
+        /// The answers with each locked field set back to the value on file, which is what checkout
+        /// keeps. Used wherever answers are acted on (the signature document, the discount code
+        /// workflow, the cart line), so a value the family can't change never stands in for the real one.
+        /// </summary>
+        public Dictionary<Guid, object> Normalize( RegistrationTemplate template, Person person, int? groupId, Dictionary<Guid, object> answers )
+        {
+            var normalized = new Dictionary<Guid, object>( answers ?? new Dictionary<Guid, object>() );
+            var groupMember = GroupMemberFor( person, groupId );
+            foreach ( var field in template.Forms.SelectMany( VisibleFields ).Where( f => IsLocked( f, person, groupMember ) ) )
+            {
+                var current = field.FieldSource == RegistrationFieldSource.PersonField ? PersonFieldValue( person, field.PersonFieldType )
+                    : field.FieldSource == RegistrationFieldSource.GroupMemberAttribute ? AttributeEditValue( groupMember, field )
+                    : AttributeEditValue( person, field );
+                if ( current != null )
+                {
+                    normalized[field.Guid] = current;
+                }
+            }
+
+            return normalized;
         }
 
         private object PersonFieldValue( Person person, RegistrationPersonFieldType type )
@@ -822,7 +852,7 @@ namespace org.secc.RegistrationCart.Services
                     // First and last name identify the family member being registered; like Rock,
                     // an existing person's name isn't changed from a registration form.
                     case RegistrationPersonFieldType.Email:
-                        if ( Unlocked( field, person.Email ) )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             History.EvaluateChange( changes, "Email", person.Email, text.Trim() );
                             person.Email = text.Trim();
@@ -831,7 +861,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.MiddleName:
-                        if ( Unlocked( field, person.MiddleName ) )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             History.EvaluateChange( changes, "Middle Name", person.MiddleName, text.Trim() );
                             person.MiddleName = text.Trim();
@@ -840,7 +870,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.Campus:
-                        if ( !field.IsLockedIfValuesExist || !person.PrimaryCampusId.HasValue )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             var campusGuid = text.AsGuidOrNull();
                             campusId = campusGuid.HasValue ? CampusCache.Get( campusGuid.Value )?.Id : null;
@@ -849,7 +879,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.Address:
-                        if ( !field.IsLockedIfValuesExist || person.GetHomeLocation( _rockContext ) == null )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             address = ToLocation( text.FromJsonOrNull<AddressControlBag>() ) ?? address;
                         }
@@ -857,7 +887,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.Birthdate:
-                        if ( !field.IsLockedIfValuesExist || !person.BirthDate.HasValue )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             var birthDate = text.FromJsonOrNull<BirthdayPickerBag>()?.ToDateTime();
                             if ( birthDate.HasValue )
@@ -870,7 +900,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.AnniversaryDate:
-                        if ( !field.IsLockedIfValuesExist || !person.AnniversaryDate.HasValue )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             var anniversary = text.FromJsonOrNull<BirthdayPickerBag>()?.ToDateTime();
                             History.EvaluateChange( changes, "Anniversary Date", person.AnniversaryDate, anniversary );
@@ -880,7 +910,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.Gender:
-                        if ( !field.IsLockedIfValuesExist || person.Gender == Gender.Unknown )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             var gender = text.ConvertToEnumOrNull<Gender>() ?? Gender.Unknown;
                             History.EvaluateChange( changes, "Gender", person.Gender, gender );
@@ -890,7 +920,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.Grade:
-                        if ( !field.IsLockedIfValuesExist || !person.GradeOffset.HasValue )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             var gradeGuid = text.AsGuidOrNull();
                             var gradeOffset = gradeGuid.HasValue ? DefinedValueCache.Get( gradeGuid.Value )?.Value.AsIntegerOrNull() : null;
@@ -907,7 +937,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.MaritalStatus:
-                        if ( !field.IsLockedIfValuesExist || !person.MaritalStatusValueId.HasValue )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             person.MaritalStatusValueId = DefinedValueId( text );
                         }
@@ -915,7 +945,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.ConnectionStatus:
-                        if ( !field.IsLockedIfValuesExist || !person.ConnectionStatusValueId.HasValue )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             person.ConnectionStatusValueId = DefinedValueId( text );
                         }
@@ -923,7 +953,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.Race:
-                        if ( !field.IsLockedIfValuesExist || !person.RaceValueId.HasValue )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             person.RaceValueId = DefinedValueId( text );
                         }
@@ -931,7 +961,7 @@ namespace org.secc.RegistrationCart.Services
                         break;
 
                     case RegistrationPersonFieldType.Ethnicity:
-                        if ( !field.IsLockedIfValuesExist || !person.EthnicityValueId.HasValue )
+                        if ( !IsLocked( field, person, null ) )
                         {
                             person.EthnicityValueId = DefinedValueId( text );
                         }
@@ -955,9 +985,6 @@ namespace org.secc.RegistrationCart.Services
             return (campusId, address);
         }
 
-        private static bool Unlocked( RegistrationTemplateFormField field, string current ) =>
-            !field.IsLockedIfValuesExist || current.IsNullOrWhiteSpace();
-
         private static int? DefinedValueId( string guidText )
         {
             var guid = guidText.AsGuidOrNull();
@@ -972,11 +999,12 @@ namespace org.secc.RegistrationCart.Services
                 return;
             }
 
-            var phone = person.PhoneNumbers.FirstOrDefault( p => p.NumberTypeValueId == numberType.Id );
-            if ( field.IsLockedIfValuesExist && phone?.Number.IsNotNullOrWhiteSpace() == true )
+            if ( IsLocked( field, person, null ) )
             {
                 return;
             }
+
+            var phone = person.PhoneNumbers.FirstOrDefault( p => p.NumberTypeValueId == numberType.Id );
 
             // A plain number, or the SMS control's { number, isMessagingEnabled }.
             var text = answer.ToStringSafe();

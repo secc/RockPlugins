@@ -80,7 +80,8 @@
                             <RegistrantForms :forms="offering?.forms ?? []"
                                              :fieldValues="fieldValues"
                                              :lists="offering?.formLists ?? {}"
-                                             :isWaitList="joiningWaitList" />
+                                             :isWaitList="joiningWaitList"
+                                             :lockedFieldGuids="lockedFieldGuids" />
                         </RockForm>
                     </section>
 
@@ -177,7 +178,7 @@
     import CartNav from "../shared/cartNav.partial.obs";
     import SignInNotice from "../shared/signInNotice.partial.obs";
     import { GradeBand, SelectionMode, gradeBandOptions, gradeBandText, goTo, initials, isEligible, money } from "../shared/registrationCart.partial";
-    import { AddOnGroupBag, AddOnItemBag, AddToCartResultBag, NavigationBag, OfferingDetailInitializationBox, RegistrantOptionBag, UpdateCartLineResultBag, VariantBag } from "../viewModels";
+    import { AddOnGroupBag, AddOnItemBag, AddToCartResultBag, NavigationBag, OfferingDetailInitializationBox, RegistrantOptionBag, StartingValuesBag, UpdateCartLineResultBag, VariantBag } from "../viewModels";
 
     const config = useConfigurationValues<OfferingDetailInitializationBox>();
     const invokeBlockAction = useInvokeBlockAction();
@@ -198,6 +199,8 @@
 
     // Answers to the template's forms, keyed by form field guid; reloaded per person and option.
     const fieldValues = ref<Record<Guid, unknown>>(editLine ? { ...(editLine.fieldValues ?? {}) } : {});
+    // Fields locked because the person already has a value: shown, not editable.
+    const lockedFieldGuids = ref<Guid[]>(editLine?.lockedFieldGuids ?? []);
     const isLoadingValues = ref(false);
     const submitForms = ref(false);
     const hasForms = computed<boolean>(() => (offering.value?.forms ?? []).some(f => (f.fields ?? []).length > 0));
@@ -481,20 +484,34 @@
         await save();
     }
 
-    /** The person's current values (where the forms show them) and the forms' defaults. */
+    // Each load gets a number; only the latest one's answer is used, so a slow reply for a
+    // camper or option no longer selected can't fill in the one that is.
+    let loadSequence = 0;
+
+    /** The person's current values (where the forms show them), the forms' defaults, and which fields are locked. */
     async function loadStartingValues(): Promise<void> {
+        const sequence = ++loadSequence;
         fieldValues.value = {};
-        if (!hasForms.value || !selectedPerson.value || !selectedVariantId.value) return;
+        lockedFieldGuids.value = [];
+        if (!hasForms.value || !selectedPerson.value || !selectedVariantId.value) {
+            isLoadingValues.value = false;
+            return;
+        }
+
+        const personAliasId = selectedPerson.value.personAliasId;
+        const registrationInstanceId = selectedVariantId.value;
         isLoadingValues.value = true;
         try {
-            const result = await invokeBlockAction<Record<Guid, unknown>>("GetStartingValues", {
-                personAliasId: selectedPerson.value.personAliasId,
-                registrationInstanceId: selectedVariantId.value
-            });
-            fieldValues.value = result.isSuccess && result.data ? { ...result.data } : {};
+            const result = await invokeBlockAction<StartingValuesBag>("GetStartingValues", { personAliasId, registrationInstanceId });
+            const isCurrent = sequence === loadSequence
+                && selectedPerson.value?.personAliasId === personAliasId
+                && selectedVariantId.value === registrationInstanceId;
+            if (!isCurrent) return;
+            fieldValues.value = result.isSuccess && result.data ? { ...(result.data.fieldValues ?? {}) } : {};
+            lockedFieldGuids.value = result.isSuccess && result.data ? (result.data.lockedFieldGuids ?? []) : [];
         }
         finally {
-            isLoadingValues.value = false;
+            if (sequence === loadSequence) isLoadingValues.value = false;
         }
     }
 

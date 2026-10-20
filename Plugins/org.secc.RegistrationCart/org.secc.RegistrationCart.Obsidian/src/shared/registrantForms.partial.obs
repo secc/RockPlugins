@@ -6,12 +6,12 @@
                                  :field="field"
                                  :fieldValues="fieldValues"
                                  :lists="lists"
-                                 :disabled="disabled" />
+                                 :disabled="disabled || isLocked(field)" />
                 <FormAttributeField v-else
                                     :field="field"
                                     :fieldValues="fieldValues"
                                     :formFields="allFields"
-                                    :disabled="disabled" />
+                                    :disabled="disabled || isLocked(field)" />
             </div>
             <hr v-if="formIndex < visibleForms.length - 1" class="rc-form-divider" />
         </template>
@@ -31,7 +31,8 @@
     /**
      * Every form of a Rock registration template for one registrant, as Rock's RegistrationEntry
      * shows them (all forms on one page here). Answers are written into fieldValues, keyed by
-     * form field guid. Fields hidden from wait-listed registrants in Rock are hidden here too.
+     * form field guid. Fields hidden from wait-listed registrants in Rock are hidden here too,
+     * and fields Rock locks because the person already has a value are shown but disabled.
      */
     const props = defineProps({
         forms: {
@@ -50,6 +51,11 @@
             type: Boolean as PropType<boolean>,
             default: false
         },
+        /** Fields locked for this person ("lock if values exist" with a value on file). */
+        lockedFieldGuids: {
+            type: Array as PropType<Guid[]>,
+            default: () => []
+        },
         disabled: {
             type: Boolean as PropType<boolean>,
             default: false
@@ -57,6 +63,10 @@
     });
 
     const allFields = computed<RegistrationEntryFormFieldBag[]>(() => props.forms.flatMap(f => f.fields ?? []));
+
+    function isLocked(field: RegistrationEntryFormFieldBag): boolean {
+        return props.lockedFieldGuids.some(g => g.toLowerCase() === field.guid.toLowerCase());
+    }
 
     const visibleForms = computed<RegistrationEntryFormFieldBag[][]>(() => props.forms
         .map(f => (f.fields ?? []).filter(field => !props.isWaitList || field.showOnWaitList))

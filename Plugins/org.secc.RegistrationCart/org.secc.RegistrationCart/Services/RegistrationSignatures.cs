@@ -81,7 +81,7 @@ namespace org.secc.RegistrationCart.Services
             }
 
             var html = RenderDocument( instance, template, person, answers );
-            var token = new[] { RockDateTime.Now.ToString( "o" ), Hash( SignedFor( instance, answers ) + html ) }.ToJson();
+            var token = new[] { RockDateTime.Now.ToString( "o" ), Hash( SignedFor( person, instance, answers ) + html ) }.ToJson();
 
             return new RegistrationEntrySignatureDocumentBag
             {
@@ -91,21 +91,21 @@ namespace org.secc.RegistrationCart.Services
         }
 
         /// <summary>
-        /// Checks the signed HTML is the one rendered for this option and these answers and returns
-        /// the signed data, encrypted, to keep on the cart line. Null when the token doesn't match.
+        /// Checks the signed HTML is the one rendered for this camper, option and answers and
+        /// returns the signed data, encrypted, to keep on the cart line. Null when the token
+        /// doesn't match.
         /// </summary>
-        public string Sign( int registrationInstanceId, Dictionary<Guid, object> answers, string documentHtml, string securityToken, ElectronicSignatureValueViewModel signature, string ipAddress, string userAgent )
+        public string Sign( Person person, RegistrationInstance instance, Dictionary<Guid, object> answers, string documentHtml, string securityToken, ElectronicSignatureValueViewModel signature, string ipAddress, string userAgent )
         {
-            var instance = new RegistrationInstanceService( _rockContext ).Get( registrationInstanceId );
             var token = Encryption.DecryptString( securityToken ).FromJsonOrNull<List<string>>();
-            if ( instance == null || token == null || token.Count != 2 || token[1] != Hash( SignedFor( instance, answers ) + documentHtml ) || signature == null )
+            if ( person == null || instance == null || token == null || token.Count != 2 || token[1] != Hash( SignedFor( person, instance, answers ) + documentHtml ) || signature == null )
             {
                 return null;
             }
 
             return Encryption.EncryptString( new SignedData
             {
-                SignedFor = Hash( SignedFor( instance, answers ) ),
+                SignedFor = Hash( SignedFor( person, instance, answers ) ),
                 DocumentHtml = documentHtml,
                 SignatureData = signature.SignatureData,
                 SignedByName = signature.SignedByName,
@@ -121,7 +121,7 @@ namespace org.secc.RegistrationCart.Services
 
         /// <summary>
         /// Whether the cart line's signature value is usable: it names a still-valid earlier
-        /// document, or it was signed for exactly this option and these answers (so changed
+        /// document, or it was signed for exactly this camper, option and answers (so changed
         /// answers need a new signature).
         /// </summary>
         public bool IsUsable( RegistrationTemplate template, Person person, string signatureData, int registrationInstanceId, Dictionary<Guid, object> answers )
@@ -137,7 +137,7 @@ namespace org.secc.RegistrationCart.Services
             }
 
             var signed = Encryption.DecryptString( signatureData ).FromJsonOrNull<SignedData>();
-            return signed != null && signed.SignedFor == Hash( SignedFor( registrationInstanceId, template, answers ) );
+            return signed != null && signed.SignedFor == Hash( SignedFor( person.Id, registrationInstanceId, template, answers ) );
         }
 
         /// <summary>
@@ -289,13 +289,15 @@ namespace org.secc.RegistrationCart.Services
             return document;
         }
 
-        /// <summary>The answers in a fixed order, so the signed document stays bound to them.</summary>
-        /// <summary>The option and the template's answers a document is rendered and signed for.</summary>
-        private static string SignedFor( RegistrationInstance instance, Dictionary<Guid, object> answers ) =>
-            SignedFor( instance.Id, instance.RegistrationTemplate, answers );
+        /// <summary>
+        /// The camper, the option and the template's answers (in a fixed order) a document is
+        /// rendered and signed for, so the signature stays bound to them.
+        /// </summary>
+        private static string SignedFor( Person person, RegistrationInstance instance, Dictionary<Guid, object> answers ) =>
+            SignedFor( person.Id, instance.Id, instance.RegistrationTemplate, answers );
 
-        private static string SignedFor( int registrationInstanceId, RegistrationTemplate template, Dictionary<Guid, object> answers ) =>
-            registrationInstanceId + "|" + RegistrationForms.AnswersKey( template, answers );
+        private static string SignedFor( int personId, int registrationInstanceId, RegistrationTemplate template, Dictionary<Guid, object> answers ) =>
+            personId + "|" + registrationInstanceId + "|" + RegistrationForms.AnswersKey( template, answers );
 
         private static string Hash( string source )
         {

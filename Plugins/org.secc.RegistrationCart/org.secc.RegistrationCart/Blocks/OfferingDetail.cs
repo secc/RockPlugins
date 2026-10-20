@@ -96,7 +96,8 @@ namespace org.secc.RegistrationCart.Blocks
                 // questions the line skipped while wait-listed start filled in like a new line's.
                 var person = new PersonAliasService( RockContext ).GetPerson( line.CartRegistrant.PersonAliasId );
                 var groupId = new CatalogService( RockContext ).GetLinkedGroupId( line.RegistrationInstanceId );
-                var fieldValues = new RegistrationForms( RockContext ).GetStartingValues( template.Template, person, groupId );
+                var forms = new RegistrationForms( RockContext );
+                var fieldValues = forms.GetStartingValues( template.Template, person, groupId );
                 foreach ( var saved in RegistrationForms.ForEditing( line.FieldValuesJson ) )
                 {
                     fieldValues[saved.Key] = saved.Value;
@@ -109,7 +110,8 @@ namespace org.secc.RegistrationCart.Blocks
                     RegistrationInstanceId = line.RegistrationInstanceId,
                     IsWaitList = line.IsWaitList,
                     FeeItemIds = line.AddOns.Select( a => a.RegistrationTemplateFeeItemId ).ToList(),
-                    FieldValues = fieldValues
+                    FieldValues = fieldValues,
+                    LockedFieldGuids = forms.LockedFieldGuids( template.Template, person, groupId )
                 };
             }
 
@@ -203,8 +205,9 @@ namespace org.secc.RegistrationCart.Blocks
         }
 
         /// <summary>
-        /// A family member's starting answers to the template's forms for one instance: their
-        /// current values where the form shows them, defaults otherwise.
+        /// A family member's starting answers to the template's forms for one instance (their
+        /// current values where the form shows them, defaults otherwise) and the fields locked
+        /// because they already have a value.
         /// </summary>
         [BlockAction]
         public BlockActionResult GetStartingValues( int personAliasId, int registrationInstanceId )
@@ -223,7 +226,12 @@ namespace org.secc.RegistrationCart.Blocks
             }
 
             var groupId = new CatalogService( RockContext ).GetLinkedGroupId( instance.Id );
-            return ActionOk( new RegistrationForms( RockContext ).GetStartingValues( instance.RegistrationTemplate, person, groupId ) );
+            var forms = new RegistrationForms( RockContext );
+            return ActionOk( new StartingValuesBag
+            {
+                FieldValues = forms.GetStartingValues( instance.RegistrationTemplate, person, groupId ),
+                LockedFieldGuids = forms.LockedFieldGuids( instance.RegistrationTemplate, person, groupId )
+            } );
         }
 
         /// <summary>
@@ -239,7 +247,7 @@ namespace org.secc.RegistrationCart.Blocks
                 return error;
             }
 
-            var document = new RegistrationSignatures( RockContext ).GetDocument( instance, GetCurrentPerson(), person, request.FieldValues );
+            var document = new RegistrationSignatures( RockContext ).GetDocument( instance, GetCurrentPerson(), person, Normalized( person, instance, request.FieldValues ) );
             return document != null ? ActionOk( document ) : ActionBadRequest( "This registration has no document to sign." );
         }
 
@@ -247,13 +255,13 @@ namespace org.secc.RegistrationCart.Blocks
         [BlockAction]
         public BlockActionResult SignDocument( SignatureRequestBag request )
         {
-            var (_, _, error) = ResolveSignatureRequest( request );
+            var (person, instance, error) = ResolveSignatureRequest( request );
             if ( error != null )
             {
                 return error;
             }
 
-            var signed = new RegistrationSignatures( RockContext ).Sign( request.RegistrationInstanceId, request.FieldValues, request.DocumentHtml, request.SecurityToken, request.Signature,
+            var signed = new RegistrationSignatures( RockContext ).Sign( person, instance, Normalized( person, instance, request.FieldValues ), request.DocumentHtml, request.SecurityToken, request.Signature,
                 RequestContext.ClientInformation.IpAddress, RequestContext.ClientInformation.UserAgent );
             return signed != null ? ActionOk( signed ) : ActionBadRequest( "The document changed. Please review it and sign again." );
         }
@@ -275,6 +283,11 @@ namespace org.secc.RegistrationCart.Blocks
 
             return (person, instance, null);
         }
+
+        /// <summary>The template's answers with locked fields set back to the value on file, as the cart line will keep them.</summary>
+        private Dictionary<System.Guid, object> Normalized( Rock.Model.Person person, RegistrationInstance instance, Dictionary<System.Guid, object> fieldValues ) =>
+            new RegistrationForms( RockContext ).Normalize( instance.RegistrationTemplate, person, new CatalogService( RockContext ).GetLinkedGroupId( instance.Id ),
+                RegistrationForms.TemplateAnswers( instance.RegistrationTemplate, fieldValues ) );
 
         [BlockAction]
         public BlockActionResult AddFamilyMember( AddFamilyMemberRequestBag request )
