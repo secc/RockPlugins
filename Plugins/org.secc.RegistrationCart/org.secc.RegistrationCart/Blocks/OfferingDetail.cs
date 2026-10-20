@@ -327,7 +327,8 @@ namespace org.secc.RegistrationCart.Blocks
         private List<RegistrantOptionBag> BuildPeople( CartManager manager, Model.Cart cart )
         {
             var self = GetCurrentPerson();
-            var inCart = cart?.Registrants.Select( r => r.PersonAliasId ).ToList() ?? new List<int>();
+            // From the lines: a registrant whose lines went with a deleted instance is not in the cart.
+            var inCart = cart?.LineItems.Where( l => l.CartRegistrant != null ).Select( l => l.CartRegistrant.PersonAliasId ).ToList() ?? new List<int>();
 
             return manager.GetRegisterablePeople()
                 .Where( p => p.PrimaryAliasId.HasValue )

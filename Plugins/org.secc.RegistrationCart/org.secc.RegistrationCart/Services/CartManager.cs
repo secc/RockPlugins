@@ -103,7 +103,9 @@ namespace org.secc.RegistrationCart.Services
                 .Include( c => c.LineItems.Select( l => l.CartRegistrant ) )
                 .Include( c => c.LineItems.Select( l => l.RegistrationTemplate ) )
                 .Include( c => c.LineItems.Select( l => l.RegistrationInstance ) )
-                .Include( c => c.LineItems.Select( l => l.AddOns.Select( a => a.RegistrationTemplateFeeItem ) ) )
+                // Not the add-ons' fee items: one staff deleted would drop its add-on from the
+                // join. Add-ons carry their snapshot name and price.
+                .Include( c => c.LineItems.Select( l => l.AddOns ) )
                 .Include( c => c.Discounts.Select( d => d.DiscountCode ) );
 
         public PricedCart Price( Cart cart ) => CartPricing.Price( cart );
@@ -464,7 +466,8 @@ namespace org.secc.RegistrationCart.Services
                 return "That code isn't recognised.";
             }
 
-            if ( !discount.IsValidOn( RockDateTime.Today ) )
+            // An offering code whose registration template was deleted applies to nothing.
+            if ( !discount.IsValidOn( RockDateTime.Today ) || ( discount.Scope == DiscountScope.Offering && !discount.RegistrationTemplateId.HasValue ) )
             {
                 return "That code isn't valid right now.";
             }

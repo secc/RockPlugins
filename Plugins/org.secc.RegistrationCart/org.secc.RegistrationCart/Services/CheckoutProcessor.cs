@@ -83,8 +83,9 @@ namespace org.secc.RegistrationCart.Services
         /// <summary>
         /// Problems that stop this cart checking out, at most one per registration instance.
         /// Empty = OK. Re-checks at checkout what held when each line was added: the instance
-        /// and its template are active and shown in the cart, registration is open, and the
-        /// instance has an account. Seats are <see cref="ReassignSeats"/>.
+        /// and its template are active and shown in the cart, registration is open, the
+        /// instance has an account, and each line's extras are still offered. Seats are
+        /// <see cref="ReassignSeats"/>.
         /// </summary>
         public List<string> Validate( Cart cart )
         {
@@ -136,6 +137,20 @@ namespace org.secc.RegistrationCart.Services
                 else if ( instance.AccountId == null )
                 {
                     problems.Add( $"Registration instance \"{instance.Name}\" has no financial account. An administrator must set one in Rock." );
+                }
+            }
+
+            // Extras staff deleted or turned off since they were added: the line must be edited.
+            var feeItemIds = cart.LineItems.SelectMany( l => l.AddOns ).Select( a => a.RegistrationTemplateFeeItemId ).Distinct().ToList();
+            var offeredFeeItemIds = new RegistrationTemplateFeeItemService( _rockContext ).Queryable()
+                .Where( i => feeItemIds.Contains( i.Id ) && i.IsActive && i.RegistrationTemplateFee.IsActive )
+                .Select( i => i.Id )
+                .ToList();
+            foreach ( var line in cart.LineItems )
+            {
+                foreach ( var addOn in line.AddOns.Where( a => !offeredFeeItemIds.Contains( a.RegistrationTemplateFeeItemId ) ) )
+                {
+                    problems.Add( $"\"{addOn.SnapshotName}\" is no longer offered for {line.CartRegistrant?.DisplayName ?? "a camper"}. Please edit the registration." );
                 }
             }
 
@@ -801,7 +816,8 @@ namespace org.secc.RegistrationCart.Services
                     var feeItem = feeItemService.Get( addOn.RegistrationTemplateFeeItemId );
                     if ( feeItem == null || !feeItem.RegistrationTemplateFeeId.HasValue )
                     {
-                        // Fee item deleted since it was added: keep the charge on the registrant.
+                        // Validate refuses a deleted fee item; should one go between that check and
+                        // here, keep the charge on the registrant rather than lose it.
                         registrant.Cost += addOn.SnapshotPrice;
                         continue;
                     }

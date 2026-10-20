@@ -55,6 +55,8 @@ namespace org.secc.RegistrationCart.Model
         public CartLineItemAddOnConfiguration()
         {
             this.HasRequired( a => a.CartLineItem ).WithMany( l => l.AddOns ).HasForeignKey( a => a.CartLineItemId ).WillCascadeOnDelete( true );
+            // No database key since migration 006: staff may delete a fee item a cart still holds
+            // (the add-on keeps its snapshot name and price), so the item can be missing.
             this.HasRequired( a => a.RegistrationTemplateFeeItem ).WithMany().HasForeignKey( a => a.RegistrationTemplateFeeItemId ).WillCascadeOnDelete( false );
             this.HasEntitySetName( "RegistrationCartCartLineItemAddOn" );
         }

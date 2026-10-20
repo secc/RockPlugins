@@ -113,7 +113,8 @@ namespace org.secc.RegistrationCart.Model
             // No cascade from registrant: SQL Server forbids two cascade paths into the same table.
             this.HasRequired( l => l.CartRegistrant ).WithMany().HasForeignKey( l => l.CartRegistrantId ).WillCascadeOnDelete( false );
             this.HasRequired( l => l.RegistrationTemplate ).WithMany().HasForeignKey( l => l.RegistrationTemplateId ).WillCascadeOnDelete( false );
-            this.HasRequired( l => l.RegistrationInstance ).WithMany().HasForeignKey( l => l.RegistrationInstanceId ).WillCascadeOnDelete( false );
+            // Deleting an instance in Rock deletes its cart lines (migration 006).
+            this.HasRequired( l => l.RegistrationInstance ).WithMany().HasForeignKey( l => l.RegistrationInstanceId ).WillCascadeOnDelete( true );
             this.HasOptional( l => l.Registration ).WithMany().HasForeignKey( l => l.RegistrationId ).WillCascadeOnDelete( false );
             this.HasEntitySetName( "RegistrationCartCartLineItem" );
         }
