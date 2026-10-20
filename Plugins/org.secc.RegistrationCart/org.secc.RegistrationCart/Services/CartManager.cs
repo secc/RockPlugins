@@ -62,6 +62,32 @@ namespace org.secc.RegistrationCart.Services
 
         private IQueryable<Cart> OpenCarts()
         {
+            var aliasIds = AliasIds();
+            return new CartService( _rockContext ).Queryable()
+                .Where( c => c.Status == CartStatus.Open && aliasIds.Contains( c.OwnerPersonAliasId ) )
+                .OrderByDescending( c => c.Id );
+        }
+
+        /// <summary>
+        /// The person's checkouts that took, or may have taken, a payment without finishing
+        /// (<see cref="CheckoutRules.IsPendingCheckout"/>), newest first. The pages warn the payer
+        /// not to pay again until the office has checked.
+        /// </summary>
+        public List<Cart> GetPendingCheckouts()
+        {
+            var aliasIds = AliasIds();
+            return new CartService( _rockContext ).Queryable().AsNoTracking()
+                .Where( c => aliasIds.Contains( c.OwnerPersonAliasId )
+                    && ( c.Status == CartStatus.Processing || ( c.Status == CartStatus.CheckedOut && c.FinancialTransactionId == null ) ) )
+                .OrderByDescending( c => c.Id )
+                .ToList()
+                .Where( c => CheckoutRules.IsPendingCheckout( c.Status, c.FinancialTransactionId.HasValue, c.LastCheckoutError ) )
+                .ToList();
+        }
+
+        /// <summary>All the person's alias ids.</summary>
+        private List<int> AliasIds()
+        {
             // Query aliases explicitly: the current person may have been loaded by another
             // context, so its navigation collections can't be relied on.
             var aliasIds = new PersonAliasService( _rockContext ).Queryable()
@@ -73,9 +99,36 @@ namespace org.secc.RegistrationCart.Services
                 aliasIds.Add( _person.PrimaryAliasId.Value );
             }
 
-            return new CartService( _rockContext ).Queryable()
-                .Where( c => c.Status == CartStatus.Open && aliasIds.Contains( c.OwnerPersonAliasId ) )
-                .OrderByDescending( c => c.Id );
+            return aliasIds;
+        }
+
+        /// <summary>
+        /// Why the camper can't be registered for the option again, or null: they're on a
+        /// checkout whose payment hasn't been confirmed, or already registered for it (wait list
+        /// included) while duplicate registrations are prevented (<see cref="CartSettings"/>).
+        /// </summary>
+        /// <param name="cartId">The cart asking, which doesn't count against itself.</param>
+        public static string DuplicateRegistration( RockContext rockContext, int personId, int registrationInstanceId, string instanceName, string camperName, int cartId )
+        {
+            var pendingLines = new CartLineItemService( rockContext ).Queryable().AsNoTracking()
+                .Where( l => l.RegistrationInstanceId == registrationInstanceId
+                    && l.CartId != cartId
+                    && l.CartRegistrant.PersonAlias.PersonId == personId
+                    && ( l.Cart.Status == CartStatus.Processing || ( l.Cart.Status == CartStatus.CheckedOut && l.Cart.FinancialTransactionId == null ) ) )
+                .Select( l => new { l.Cart.Status, l.Cart.FinancialTransactionId, l.Cart.LastCheckoutError } )
+                .ToList();
+            if ( pendingLines.Any( c => CheckoutRules.IsPendingCheckout( c.Status, c.FinancialTransactionId.HasValue, c.LastCheckoutError ) ) )
+            {
+                return $"{camperName} is on an earlier checkout for {instanceName} whose payment hasn't been confirmed. Please contact the office before registering them again.";
+            }
+
+            if ( CartSettings.PreventDuplicateRegistrations && new RegistrationRegistrantService( rockContext ).Queryable()
+                .Any( r => r.Registration.RegistrationInstanceId == registrationInstanceId && !r.Registration.IsTemporary && r.PersonAlias.PersonId == personId ) )
+            {
+                return $"{camperName} is already registered for {instanceName}.";
+            }
+
+            return null;
         }
 
         public Cart GetOrCreateOpenCart()
@@ -305,7 +358,13 @@ namespace org.secc.RegistrationCart.Services
             var otherLineId = lineItemId ?? 0;
             if ( registrant != null && cart.LineItems.Any( l => l.CartRegistrantId == registrant.Id && l.RegistrationInstanceId == option.Instance.Id && l.Id != otherLineId ) )
             {
-                return Refuse( result, $"{camperName} is already registered for {option.Instance.Name}." );
+                return Refuse( result, $"{camperName} is already in your cart for {option.Instance.Name}." );
+            }
+
+            var duplicate = DuplicateRegistration( _rockContext, registrantPerson.Id, option.Instance.Id, option.Instance.Name, camperName, cart?.Id ?? 0 );
+            if ( duplicate != null )
+            {
+                return Refuse( result, duplicate );
             }
 
             // Seat or wait list, counted the way checkout counts: this cart's lines for the option

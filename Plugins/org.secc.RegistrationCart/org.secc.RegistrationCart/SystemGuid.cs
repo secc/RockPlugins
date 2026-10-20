@@ -94,4 +94,10 @@ namespace org.secc.RegistrationCart.SystemGuid
         public const string CART_MAINTENANCE = "8CE4900A-F653-4003-BB87-7A964DB5B595";
     }
 
+    /// <summary>Global attributes (Services/CartSettings).</summary>
+    public static class Attribute
+    {
+        public const string PREVENT_DUPLICATE_REGISTRATIONS = "FFAF825B-1A5C-4B66-89C2-EF136857994F";
+    }
+
 }

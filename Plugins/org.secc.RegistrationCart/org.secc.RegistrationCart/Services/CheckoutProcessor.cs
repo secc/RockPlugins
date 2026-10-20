@@ -193,6 +193,13 @@ namespace org.secc.RegistrationCart.Services
                 }
 
                 var person = personAliasService.GetPerson( line.CartRegistrant.PersonAliasId );
+                var duplicate = person != null ? CartManager.DuplicateRegistration( _rockContext, person.Id, instance.Id, instance.Name, line.CartRegistrant.DisplayName, cart.Id ) : null;
+                if ( duplicate != null )
+                {
+                    problems.Add( new CheckoutProblem( duplicate, new[] { line.Id } ) );
+                    continue;
+                }
+
                 var answerProblems = forms.CheckAnswers( instance.RegistrationTemplate, person, catalog.GetLinkedGroupId( instance.Id ), RegistrationForms.FromJson( line.FieldValuesJson ), line.IsWaitList );
                 if ( answerProblems.Any() )
                 {

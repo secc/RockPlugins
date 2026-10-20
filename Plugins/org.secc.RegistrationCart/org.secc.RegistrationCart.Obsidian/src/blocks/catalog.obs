@@ -8,6 +8,7 @@
             </div>
             <CartNav :navigation="navigation" />
         </header>
+        <PendingCheckoutNotice :navigation="navigation" />
 
         <div v-if="!offerings.length" class="rc-notice">
             <svg class="rc-ico" style="margin-top: 3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
@@ -79,6 +80,7 @@
     import { useConfigurationValues } from "@Obsidian/Utility/block";
     import FieldGuide from "../shared/fieldGuide.partial.obs";
     import CartNav from "../shared/cartNav.partial.obs";
+    import PendingCheckoutNotice from "../shared/pendingCheckoutNotice.partial.obs";
     import { money } from "../shared/registrationCart.partial";
     import { CatalogInitializationBox, NavigationBag, OfferingSummaryBag } from "../viewModels";
 

@@ -18,6 +18,7 @@
                 </div>
                 <CartNav :navigation="navigation" />
             </header>
+            <PendingCheckoutNotice :navigation="navigation" />
 
             <p v-if="offering.description" class="rc-lead" style="margin: -8px 0 24px;">{{ offering.description }}</p>
 
@@ -176,6 +177,7 @@
     import FieldGuide from "../shared/fieldGuide.partial.obs";
     import RegistrantForms from "../shared/registrantForms.partial.obs";
     import CartNav from "../shared/cartNav.partial.obs";
+    import PendingCheckoutNotice from "../shared/pendingCheckoutNotice.partial.obs";
     import SignInNotice from "../shared/signInNotice.partial.obs";
     import { GradeBand, SelectionMode, gradeBandOptions, gradeBandText, goTo, initials, isEligible, money } from "../shared/registrationCart.partial";
     import { AddOnGroupBag, AddOnItemBag, AddToCartResultBag, NavigationBag, OfferingDetailInitializationBox, RegistrantOptionBag, StartingValuesBag, UpdateCartLineResultBag, VariantBag } from "../viewModels";

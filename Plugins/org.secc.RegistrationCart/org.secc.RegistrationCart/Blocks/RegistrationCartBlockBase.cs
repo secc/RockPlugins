@@ -76,6 +76,7 @@ namespace org.secc.RegistrationCart.Blocks
                 // No HttpContext (e.g. tests) — leave empty.
             }
 
+            var pending = GetCartManager()?.GetPendingCheckouts().FirstOrDefault();
             return new NavigationBag
             {
                 IsSignedIn = GetCurrentPerson() != null,
@@ -83,7 +84,9 @@ namespace org.secc.RegistrationCart.Blocks
                 CatalogUrl = this.GetLinkedPageUrl( NavAttributeKey.CatalogPage ),
                 CartUrl = this.GetLinkedPageUrl( NavAttributeKey.CartPage ),
                 CheckoutUrl = this.GetLinkedPageUrl( NavAttributeKey.CheckoutPage ),
-                CartItemCount = cart?.LineItems.Count ?? 0
+                CartItemCount = cart?.LineItems.Count ?? 0,
+                PendingCheckoutNotice = pending == null ? null
+                    : $"We couldn't confirm your checkout from {( pending.ModifiedDateTime ?? pending.CreatedDateTime )?.ToString( "MMM d" ) ?? "earlier"}. Your card may have been charged, so please contact the office before paying again."
             };
         }
 

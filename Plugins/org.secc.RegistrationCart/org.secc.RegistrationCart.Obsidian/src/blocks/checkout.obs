@@ -34,6 +34,7 @@
                 </div>
                 <CartNav :navigation="navigation" />
             </header>
+            <PendingCheckoutNotice :navigation="navigation" />
 
             <SignInNotice v-if="!navigation.isSignedIn" :loginUrl="navigation.loginUrl" />
 
@@ -122,6 +123,7 @@
     import { GatewayControlBag } from "@Obsidian/ViewModels/Controls/gatewayControlBag";
     import FieldGuide from "../shared/fieldGuide.partial.obs";
     import CartNav from "../shared/cartNav.partial.obs";
+    import PendingCheckoutNotice from "../shared/pendingCheckoutNotice.partial.obs";
     import OrderSummary from "../shared/orderSummary.partial.obs";
     import SignInNotice from "../shared/signInNotice.partial.obs";
     import TokenizerControl from "../shared/tokenizerControl.partial.obs";

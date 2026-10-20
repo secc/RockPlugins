@@ -53,6 +53,18 @@ public class CheckoutRulesTests
     }
 
     [Theory]
+    [InlineData(CartStatus.Processing, false, null, true)]               // the gateway didn't answer
+    [InlineData(CartStatus.CheckedOut, false, "Payment X succeeded but registrations could not be created", true)]
+    [InlineData(CartStatus.CheckedOut, true, null, false)]               // paid and registered
+    [InlineData(CartStatus.CheckedOut, false, null, false)]              // a free cart
+    [InlineData(CartStatus.CheckedOut, true, "an old error", false)]     // support recorded the payment
+    [InlineData(CartStatus.Open, false, "Payment was declined.", false)] // declined: nothing charged
+    public void Unconfirmed_checkouts_are_the_ones_that_may_have_been_charged(CartStatus status, bool hasTransaction, string? error, bool pending)
+    {
+        Assert.Equal(pending, CheckoutRules.IsPendingCheckout(status, hasTransaction, error));
+    }
+
+    [Theory]
     [InlineData("125.00", "125.00")]
     [InlineData("125", "125.00")]
     [InlineData("0", "0.00")]

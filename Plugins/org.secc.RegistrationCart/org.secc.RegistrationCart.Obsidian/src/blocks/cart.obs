@@ -8,6 +8,7 @@
             </div>
             <CartNav :navigation="navigation" />
         </header>
+        <PendingCheckoutNotice :navigation="navigation" />
 
         <SignInNotice v-if="!navigation.isSignedIn" :loginUrl="navigation.loginUrl" />
 
@@ -79,6 +80,7 @@
     import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
     import FieldGuide from "../shared/fieldGuide.partial.obs";
     import CartNav from "../shared/cartNav.partial.obs";
+    import PendingCheckoutNotice from "../shared/pendingCheckoutNotice.partial.obs";
     import OrderSummary from "../shared/orderSummary.partial.obs";
     import SignInNotice from "../shared/signInNotice.partial.obs";
     import { initials, money } from "../shared/registrationCart.partial";

@@ -37,6 +37,16 @@ public static class CheckoutRules
     };
 
     /// <summary>
+    /// A checkout that took, or may have taken, a payment without finishing: still claimed
+    /// (the gateway didn't answer), or closed with an error and no payment record (charged but
+    /// the registrations failed). Support reconciles it with the gateway; until then the payer
+    /// is warned and its campers can't be registered again.
+    /// </summary>
+    public static bool IsPendingCheckout(CartStatus status, bool hasTransaction, string? lastCheckoutError) =>
+        status == CartStatus.Processing
+        || (status == CartStatus.CheckedOut && !hasTransaction && !string.IsNullOrWhiteSpace(lastCheckoutError));
+
+    /// <summary>
     /// Whether the cart still prices to the total the shopper was shown. Compared in cents, so
     /// a total that went through a JavaScript number (e.g. 0.30000000000000004) still matches.
     /// </summary>

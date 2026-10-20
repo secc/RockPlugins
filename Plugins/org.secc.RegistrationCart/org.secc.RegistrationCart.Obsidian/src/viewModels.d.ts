@@ -145,6 +145,8 @@ export type NavigationBag = {
     isSignedIn: boolean;
 
     loginUrl?: string | null;
+
+    pendingCheckoutNotice?: string | null;
 };
 
 export type PricedCartBag = {

@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using org.secc.RegistrationCart.Domain;
 using org.secc.RegistrationCart.Model;
@@ -39,12 +40,15 @@ namespace org.secc.RegistrationCart.Jobs
         Description = "An open cart with no changes for this many days is marked abandoned; the family's next visit starts a new cart. 0 turns this off." )]
     [IntegerField( "Retry Signed Document PDFs After (minutes)", Key = AttributeKey.DocumentRetryMinutes, IsRequired = false, DefaultIntegerValue = 10, Order = 1,
         Description = "A signed document from a cart checkout that still has no PDF this long after it was saved gets its PDF made (and its completion email sent) by this job." )]
+    [IntegerField( "Report Unconfirmed Checkouts After (minutes)", Key = AttributeKey.ReportPendingMinutes, IsRequired = false, DefaultIntegerValue = 30, Order = 2,
+        Description = "A checkout whose payment outcome is unknown (or that was charged but couldn't register) for this long ends the job with a warning listing it, once, so the job's notification email (Notification Status: Error) reaches whoever reconciles payments. 0 turns this off." )]
     public class CartMaintenance : RockJob
     {
         private static class AttributeKey
         {
             public const string AbandonAfterDays = "AbandonAfterDays";
             public const string DocumentRetryMinutes = "DocumentRetryMinutes";
+            public const string ReportPendingMinutes = "ReportPendingMinutes";
         }
 
         public override void Execute()
@@ -52,7 +56,47 @@ namespace org.secc.RegistrationCart.Jobs
             var results = new List<string>();
             results.Add( AbandonIdleCarts() );
             results.Add( FinishSignedDocuments() );
+            var pending = NewlyUnconfirmedCheckouts();
+            if ( pending.Any() )
+            {
+                results.Add( $"Checkouts needing a payment check: {pending.JoinStrings( " " )}" );
+            }
+
             Result = results.Where( r => r.IsNotNullOrWhiteSpace() ).JoinStrings( " " );
+            if ( pending.Any() )
+            {
+                throw new RockJobWarningException( Result );
+            }
+        }
+
+        /// <summary>
+        /// Checkouts that became unconfirmed (<see cref="CheckoutRules.IsPendingCheckout"/>) more
+        /// than the configured minutes ago and haven't been reported yet (they crossed that line
+        /// since the job last ran), one line each for whoever checks the gateway.
+        /// </summary>
+        private List<string> NewlyUnconfirmedCheckouts()
+        {
+            var minutes = GetAttributeValue( AttributeKey.ReportPendingMinutes ).AsIntegerOrNull() ?? 30;
+            if ( minutes <= 0 )
+            {
+                return new List<string>();
+            }
+
+            var cutoff = RockDateTime.Now.AddMinutes( -minutes );
+            var since = ServiceJob?.LastRunDateTime?.AddMinutes( -minutes );
+            using ( var rockContext = new RockContext() )
+            {
+                var carts = CartManager.CartGraph( new CartService( rockContext ).Queryable() )
+                    .Include( c => c.OwnerPersonAlias.Person )
+                    .Where( c => ( c.Status == CartStatus.Processing || ( c.Status == CartStatus.CheckedOut && c.FinancialTransactionId == null ) )
+                        && ( c.ModifiedDateTime ?? c.CreatedDateTime ) < cutoff
+                        && ( since == null || ( c.ModifiedDateTime ?? c.CreatedDateTime ) >= since ) )
+                    .ToList()
+                    .Where( c => CheckoutRules.IsPendingCheckout( c.Status, c.FinancialTransactionId.HasValue, c.LastCheckoutError ) )
+                    .ToList();
+
+                return carts.Select( c => $"Cart {c.Id} ({c.OwnerPersonAlias?.Person?.FullName}, {CartPricing.Price( c ).Total.FormatAsCurrency()}, {( c.ModifiedDateTime ?? c.CreatedDateTime ):g}): {c.LastCheckoutError ?? "stopped mid-checkout"}." ).ToList();
+            }
         }
 
         /// <summary>

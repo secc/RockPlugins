@@ -32,6 +32,11 @@ namespace org.secc.RegistrationCart.ViewModels
         public string CartUrl { get; set; }
         public string CheckoutUrl { get; set; }
         public int CartItemCount { get; set; }
+        /// <summary>
+        /// Set when an earlier checkout of the person's may have taken a payment without
+        /// finishing: every page warns them not to pay again until the office has checked.
+        /// </summary>
+        public string PendingCheckoutNotice { get; set; }
     }
 
     public class PricedCartBag
