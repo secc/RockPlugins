@@ -92,6 +92,16 @@ namespace org.secc.RegistrationCart.Blocks
                     return box;
                 }
 
+                // The saved answers over the person's current values and the forms' defaults, so
+                // questions the line skipped while wait-listed start filled in like a new line's.
+                var person = new PersonAliasService( RockContext ).GetPerson( line.CartRegistrant.PersonAliasId );
+                var groupId = new CatalogService( RockContext ).GetLinkedGroupId( line.RegistrationInstanceId );
+                var fieldValues = new RegistrationForms( RockContext ).GetStartingValues( template.Template, person, groupId );
+                foreach ( var saved in RegistrationForms.ForEditing( line.FieldValuesJson ) )
+                {
+                    fieldValues[saved.Key] = saved.Value;
+                }
+
                 box.EditLine = new EditLineBag
                 {
                     LineItemId = line.Id,
@@ -99,7 +109,7 @@ namespace org.secc.RegistrationCart.Blocks
                     RegistrationInstanceId = line.RegistrationInstanceId,
                     IsWaitList = line.IsWaitList,
                     FeeItemIds = line.AddOns.Select( a => a.RegistrationTemplateFeeItemId ).ToList(),
-                    FieldValues = RegistrationForms.ForEditing( line.FieldValuesJson )
+                    FieldValues = fieldValues
                 };
             }
 
@@ -123,13 +133,36 @@ namespace org.secc.RegistrationCart.Blocks
             var signatureData = request.ExistingSignatureDocumentGuid.HasValue
                 ? RegistrationSignatures.ForExistingDocument( request.ExistingSignatureDocumentGuid.Value )
                 : request.SignatureData;
-            var line = manager.AddLineItem( request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, signatureData, GetAttributeValue( AttributeKey.DiscountCodeWorkflow ).AsGuidOrNull(), out var error );
-            if ( line == null )
+            var saved = manager.AddLineItem( request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, signatureData, GetAttributeValue( AttributeKey.DiscountCodeWorkflow ).AsGuidOrNull() );
+            return ActionOk( new AddToCartResultBag
             {
-                return ActionBadRequest( error ?? "That item could not be added." );
+                Navigation = saved.Line != null ? BuildNavigation( manager.GetOpenCart() ) : null,
+                ErrorMessage = saved.Line != null ? null : saved.ErrorMessage ?? "That item could not be added.",
+                IsWaitList = saved.IsWaitList
+            } );
+        }
+
+        /// <summary>
+        /// Checks a line as adding or saving it would (the person, option, extras, and the answers
+        /// for where the camper would be placed) without saving, before the family signs the
+        /// template's document.
+        /// </summary>
+        [BlockAction]
+        public BlockActionResult CheckCartLine( AddToCartRequestBag request )
+        {
+            var manager = GetCartManager();
+            if ( manager == null )
+            {
+                return ActionUnauthorized( "Please sign in to register." );
             }
 
-            return ActionOk( BuildNavigation( manager.GetOpenCart() ) );
+            if ( request == null )
+            {
+                return ActionBadRequest( "Nothing to check." );
+            }
+
+            var checkedLine = manager.CheckLineItem( request.LineItemId, request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues );
+            return ActionOk( new AddToCartResultBag { ErrorMessage = checkedLine.ErrorMessage, IsWaitList = checkedLine.IsWaitList } );
         }
 
         /// <summary>
@@ -154,19 +187,19 @@ namespace org.secc.RegistrationCart.Blocks
             var signatureData = request.ExistingSignatureDocumentGuid.HasValue
                 ? RegistrationSignatures.ForExistingDocument( request.ExistingSignatureDocumentGuid.Value )
                 : request.SignatureData;
-            var line = manager.UpdateLineItem( request.LineItemId.Value, request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, signatureData,
-                GetAttributeValue( AttributeKey.DiscountCodeWorkflow ).AsGuidOrNull(), out var error, out var needsSignature );
-            if ( needsSignature )
+            var saved = manager.UpdateLineItem( request.LineItemId.Value, request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, signatureData,
+                GetAttributeValue( AttributeKey.DiscountCodeWorkflow ).AsGuidOrNull() );
+            if ( saved.NeedsSignature )
             {
-                return ActionOk( new UpdateCartLineResultBag { NeedsSignature = true } );
+                return ActionOk( new UpdateCartLineResultBag { NeedsSignature = true, IsWaitList = saved.IsWaitList } );
             }
 
-            if ( line == null )
+            if ( saved.Line == null )
             {
-                return ActionBadRequest( error ?? "Your changes could not be saved." );
+                return ActionOk( new UpdateCartLineResultBag { ErrorMessage = saved.ErrorMessage ?? "Your changes could not be saved.", IsWaitList = saved.IsWaitList } );
             }
 
-            return ActionOk( new UpdateCartLineResultBag { Navigation = BuildNavigation( manager.GetOpenCart() ) } );
+            return ActionOk( new UpdateCartLineResultBag { Navigation = BuildNavigation( manager.GetOpenCart() ), IsWaitList = saved.IsWaitList } );
         }
 
         /// <summary>

@@ -52,6 +52,10 @@
                                 <span style="display: flex; flex-direction: column;">
                                     <span>{{ line.offeringTitle }} — {{ line.variantName }}<span v-if="paidAddOns(line).length" class="rc-muted rc-small"> (+ {{ paidAddOns(line).join(", ") }})</span> <span v-if="line.isWaitList" class="rc-badge">Wait list</span></span>
                                     <span v-if="line.dateText" class="rc-small rc-muted">{{ line.dateText }}</span>
+                                    <span v-if="line.problem" class="rc-small rc-error" role="alert">
+                                        {{ line.problem }}
+                                        <a v-if="line.editUrl" :href="line.editUrl" :aria-label="`Edit ${line.registrantName}'s ${line.offeringTitle} registration`">Edit</a>
+                                    </span>
                                 </span>
                                 <span>{{ line.isWaitList ? "Nothing due now" : money(line.lineTotal) }}</span>
                             </div>
@@ -59,12 +63,19 @@
                         <p v-if="hasWaitList" class="rc-small rc-muted" style="margin-top: 10px;">Campers on a wait list are registered now but pay nothing yet. If a spot opens, you'll be contacted to pay the balance.</p>
                     </section>
 
+                    <div v-if="notices.length" class="rc-notice" style="margin-bottom: 16px;">
+                        <div>
+                            <b>Your cart changed since you last saw it.</b>
+                            <ul><li v-for="n in notices" :key="n">{{ n }}</li></ul>
+                        </div>
+                    </div>
+
                     <div v-if="problems.length" class="rc-notice rc-notice-danger">
                         <svg class="rc-ico" style="margin-top: 3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
                         <div>
                             <b>Checkout isn't available yet.</b>
                             <ul><li v-for="p in problems" :key="p">{{ p }}</li></ul>
-                            <span class="rc-small">Remove these from your cart, or contact the office if you need help.</span>
+                            <span class="rc-small">Use Edit to finish a registration, remove it from your cart, or contact the office if you need help.</span>
                         </div>
                     </div>
 
@@ -123,7 +134,8 @@
 
     const navigation = ref<NavigationBag>(config.navigation ?? { isSignedIn: false, cartItemCount: 0 });
     const cart = ref<PricedCartBag>(config.cart ?? { subtotal: 0, discountTotal: 0, total: 0, itemCount: 0 });
-    const problems = computed<string[]>(() => config.problems ?? []);
+    const problems = ref<string[]>(config.problems ?? []);
+    const notices = ref<string[]>(config.notices ?? []);
     const gatewayControlModel = computed<GatewayControlBag | null>(() => config.gatewayControl ?? null);
 
     const tokenizerRef = ref<InstanceType<typeof TokenizerControl> | null>(null);
@@ -179,9 +191,11 @@
             if (!result.isSuccess || !result.data) { paymentError.value = result.errorMessage || "Something went wrong. Please contact the office before trying again."; return; }
             const data = result.data;
             if (data.success) { completed.value = data; navigation.value = { ...navigation.value, cartItemCount: 0 }; window.scrollTo({ top: 0 }); }
-            else if (data.cartChanged) {
-                // Nothing was charged: show the cart as it is now so the shopper can pay the new total.
+            else if (data.cartChanged || data.cart) {
+                // Nothing was charged: show the cart as it is now (and what to fix) so the shopper
+                // can fix it or pay the new total.
                 if (data.cart) { cart.value = data.cart; navigation.value = { ...navigation.value, cartItemCount: data.cart.itemCount }; }
+                problems.value = data.problems ?? [];
                 paymentError.value = data.errorMessage || "Your cart changed. Please review it and try again.";
             }
             else if (data.isDeclined) paymentError.value = `Payment declined: ${data.errorMessage ?? "please try a different card."}`;

@@ -45,6 +45,14 @@ namespace org.secc.RegistrationCart.Blocks
         /// <summary>Where a cart line's Edit link goes; none unless the block links the offering page.</summary>
         protected virtual string LineEditUrl( Model.CartLineItem line ) => null;
 
+        /// <summary>The block's linked offering page, in edit mode for <paramref name="line"/>.</summary>
+        protected string OfferingPageEditUrl( Model.CartLineItem line ) =>
+            this.GetLinkedPageUrl( NavAttributeKey.OfferingDetailPage, new Dictionary<string, string>
+            {
+                [OfferingKeyParameter] = line.RegistrationTemplate?.IdKey ?? line.RegistrationTemplateId.ToString(),
+                [LineIdParameter] = line.Id.ToString()
+            } );
+
         protected string ObsidianBlockUrl( string fileName ) => "~/Plugins/org_secc/RegistrationCart/blocks/" + fileName + ".obs";
 
         protected bool AllowIntegerIds => !( PageCache?.Layout?.Site?.DisablePredictableIds ?? false );
@@ -79,8 +87,13 @@ namespace org.secc.RegistrationCart.Blocks
             };
         }
 
-        protected PricedCartBag ToBag( PricedCart priced, Model.Cart cart )
+        /// <param name="problems">What stops the cart checking out; each shows on the lines it concerns.</param>
+        protected PricedCartBag ToBag( PricedCart priced, Model.Cart cart, IEnumerable<CheckoutProblem> problems = null )
         {
+            var problemsByLine = ( problems ?? Enumerable.Empty<CheckoutProblem>() )
+                .SelectMany( p => p.LineItemIds.Select( id => new { id, p.Message } ) )
+                .GroupBy( x => x.id )
+                .ToDictionary( g => g.Key, g => string.Join( " ", g.Select( x => x.Message ).Distinct() ) );
             var dateTexts = cart == null
                 ? new Dictionary<int, string>()
                 : new CatalogService( RockContext ).GetEventDateTexts( cart.LineItems.Select( l => l.RegistrationInstanceId ) );
@@ -109,6 +122,7 @@ namespace org.secc.RegistrationCart.Blocks
                     LineTotal = line.LineTotal,
                     IsWaitList = line.IsWaitList,
                     EditUrl = lineById.TryGetValue( line.LineItemId, out var cartLine ) ? LineEditUrl( cartLine ) : null,
+                    Problem = problemsByLine.GetValueOrNull( line.LineItemId ),
                     AddOns = line.AddOns.Select( a => new PricedAddOnBag { Name = a.Name, Price = a.Price } ).ToList()
                 } );
             }

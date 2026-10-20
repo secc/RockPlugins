@@ -30,6 +30,7 @@
                                 <svg class="rc-ico" style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
                                 {{ line.dateText }}
                             </div>
+                            <p v-if="line.problem" class="rc-small rc-error" role="alert" style="margin: 6px 0 0;">{{ line.problem }}</p>
                             <ul class="rc-line-items">
                                 <li v-if="line.isWaitList"><span>This option is full. Nothing is due now; you'll be contacted if a spot opens.</span></li>
                                 <template v-else>

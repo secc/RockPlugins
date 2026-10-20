@@ -56,6 +56,7 @@ namespace org.secc.RegistrationCart.SystemGuid
         public const string CHECKOUT_CART_PAGE = "AAF7A16C-5B1F-4F61-9D14-AE220A666371";
         public const string CHECKOUT_CATALOG_PAGE = "98F54855-F8CD-4238-9AEC-4B62FF97CC6E";
         public const string CART_OFFERING_DETAIL_PAGE = "5D2C8B0E-7A41-4F6E-9C3B-2E8A61D4F7A9";
+        public const string CHECKOUT_OFFERING_DETAIL_PAGE = "2A80056D-FB03-43FD-9C82-1D3CB8160499";
     }
 
     public static class Page

@@ -55,6 +55,8 @@ namespace org.secc.RegistrationCart.Services
             public List<int> RegistrationIds { get; set; } = new List<int>();
             public decimal Total { get; set; }
             public List<string> ItemDescriptions { get; set; } = new List<string>();
+            /// <summary>Why the cart can't check out as it is (nothing was charged), by line.</summary>
+            public List<CheckoutProblem> Problems { get; set; } = new List<CheckoutProblem>();
         }
 
         private readonly RockContext _rockContext;
@@ -71,18 +73,19 @@ namespace org.secc.RegistrationCart.Services
         public string ThemeRoot { get; set; }
 
         /// <summary>
-        /// Problems that stop this cart checking out, at most one per registration instance.
-        /// Empty = OK. Re-checks at checkout what held when each line was added: the instance
-        /// and its template are active and shown in the cart, registration is open, the
-        /// instance has an account, and each line's extras are still offered. Seats are
-        /// <see cref="SeatPlanner"/>'s.
+        /// Problems that stop this cart checking out. Empty = OK. Re-checks at checkout what held
+        /// when each line was added: the instance and its template are active and shown in the
+        /// cart, registration is open, the instance has an account, each line's extras are still
+        /// offered, and its answers are complete for where it is placed (a camper who came off the
+        /// wait list owes the answers wait-listed registrants skip) and are ones Rock will save.
+        /// Place the cart's seats (<see cref="SeatPlanner"/>) first.
         /// </summary>
-        public List<string> Validate( Cart cart )
+        public List<CheckoutProblem> Validate( Cart cart )
         {
-            var problems = new List<string>();
+            var problems = new List<CheckoutProblem>();
             if ( cart == null || cart.LineItems.Count == 0 )
             {
-                problems.Add( "The cart is empty." );
+                problems.Add( new CheckoutProblem( "The cart is empty." ) );
                 return problems;
             }
 
@@ -105,28 +108,35 @@ namespace org.secc.RegistrationCart.Services
 
             foreach ( var instanceId in instanceIds )
             {
+                var lineIds = cart.LineItems.Where( l => l.RegistrationInstanceId == instanceId ).Select( l => l.Id ).ToList();
+                string problem = null;
                 if ( !instances.TryGetValue( instanceId, out var instance ) )
                 {
                     var name = cart.LineItems.First( l => l.RegistrationInstanceId == instanceId ).RegistrationInstance?.Name;
-                    problems.Add( $"\"{name}\" no longer exists in Rock." );
+                    problem = $"\"{name}\" no longer exists in Rock.";
                 }
                 else if ( !instance.IsActive || !instance.RegistrationTemplate.IsActive )
                 {
-                    problems.Add( $"\"{instance.Name}\" is no longer active." );
+                    problem = $"\"{instance.Name}\" is no longer active.";
                 }
                 else if ( hiddenTemplateIds.Contains( instance.RegistrationTemplateId ) || hiddenInstanceIds.Contains( instance.Id ) )
                 {
-                    problems.Add( $"\"{instance.Name}\" is no longer offered here." );
+                    problem = $"\"{instance.Name}\" is no longer offered here.";
                 }
                 else if ( !CheckoutRules.IsWindowOpen( instance.StartDateTime, instance.EndDateTime, now ) )
                 {
-                    problems.Add( instance.StartDateTime > now
+                    problem = instance.StartDateTime > now
                         ? $"Registration for \"{instance.Name}\" hasn't opened yet."
-                        : $"Registration for \"{instance.Name}\" has closed." );
+                        : $"Registration for \"{instance.Name}\" has closed.";
                 }
                 else if ( instance.AccountId == null )
                 {
-                    problems.Add( $"Registration instance \"{instance.Name}\" has no financial account. An administrator must set one in Rock." );
+                    problem = $"Registration instance \"{instance.Name}\" has no financial account. An administrator must set one in Rock.";
+                }
+
+                if ( problem != null )
+                {
+                    problems.Add( new CheckoutProblem( problem, lineIds ) );
                 }
             }
 
@@ -140,7 +150,26 @@ namespace org.secc.RegistrationCart.Services
             {
                 foreach ( var addOn in line.AddOns.Where( a => !offeredFeeItemIds.Contains( a.RegistrationTemplateFeeItemId ) ) )
                 {
-                    problems.Add( $"\"{addOn.SnapshotName}\" is no longer offered for {line.CartRegistrant?.DisplayName ?? "a camper"}. Please edit the registration." );
+                    problems.Add( new CheckoutProblem( $"\"{addOn.SnapshotName}\" is no longer offered for {line.CartRegistrant?.DisplayName ?? "a camper"}. Please edit the registration.", new[] { line.Id } ) );
+                }
+            }
+
+            // Each camper's answers, for where they are placed now.
+            var forms = new RegistrationForms( _rockContext );
+            var catalog = new CatalogService( _rockContext );
+            var personAliasService = new PersonAliasService( _rockContext );
+            foreach ( var line in cart.LineItems )
+            {
+                if ( !instances.TryGetValue( line.RegistrationInstanceId, out var instance ) || line.CartRegistrant == null )
+                {
+                    continue;
+                }
+
+                var person = personAliasService.GetPerson( line.CartRegistrant.PersonAliasId );
+                var answerProblems = forms.CheckAnswers( instance.RegistrationTemplate, person, catalog.GetLinkedGroupId( instance.Id ), RegistrationForms.FromJson( line.FieldValuesJson ), line.IsWaitList );
+                if ( answerProblems.Any() )
+                {
+                    problems.Add( new CheckoutProblem( $"Please finish {Possessive( line.CartRegistrant.FirstName )} form for \"{instance.Name}\": {string.Join( " ", answerProblems )}", new[] { line.Id } ) );
                 }
             }
 
@@ -220,16 +249,15 @@ namespace org.secc.RegistrationCart.Services
                         return Stop( cart, ChargeOutcome.NotAttempted, result, "Your cart changed while checking out. Please review it and try again." );
                     }
 
-                    var problems = Validate( cart );
+                    // Seats first: where a camper is placed decides which answers they owe.
+                    var seats = new SeatPlanner( _rockContext ).Place( cart );
+                    var problems = seats.Problems.Concat( Validate( cart ) ).ToList();
                     if ( problems.Any() )
                     {
-                        return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", problems ) );
-                    }
-
-                    var seats = new SeatPlanner( _rockContext ).Place( cart );
-                    if ( seats.Problems.Any() )
-                    {
-                        return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", seats.Problems ) );
+                        // Stop saves the new placement; the page shows the cart as it is now.
+                        result.Problems = problems;
+                        result.CartChanged = seats.Changes.Any();
+                        return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", problems.Select( p => p.Message ).Distinct() ) );
                     }
 
                     // A camper moved onto or off the wait list, so the total changed: save the new
@@ -531,6 +559,9 @@ namespace org.secc.RegistrationCart.Services
                 new RegistrationForms( rockContext ).ApplyToGroupMember( registration.RegistrationInstance.RegistrationTemplate, groupMember, answers );
             }
         }
+
+        private static string Possessive( string name ) =>
+            name.IsNullOrWhiteSpace() ? "the camper's" : name.EndsWith( "s" ) ? name + "'" : name + "'s";
 
         private const string PaidButNotRegisteredMessage = "Your payment was received but we could not finish creating the registrations. Please contact the office — do not pay again.";
         private const string CartUnavailableMessage = "Your cart is no longer available. Please reload the page.";

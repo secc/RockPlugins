@@ -176,7 +176,7 @@
     import CartNav from "../shared/cartNav.partial.obs";
     import SignInNotice from "../shared/signInNotice.partial.obs";
     import { GradeBand, SelectionMode, gradeBandOptions, gradeBandText, goTo, initials, isEligible, money } from "../shared/registrationCart.partial";
-    import { AddOnGroupBag, AddOnItemBag, NavigationBag, OfferingDetailInitializationBox, RegistrantOptionBag, UpdateCartLineResultBag, VariantBag } from "../viewModels";
+    import { AddOnGroupBag, AddOnItemBag, AddToCartResultBag, NavigationBag, OfferingDetailInitializationBox, RegistrantOptionBag, UpdateCartLineResultBag, VariantBag } from "../viewModels";
 
     const config = useConfigurationValues<OfferingDetailInitializationBox>();
     const invokeBlockAction = useInvokeBlockAction();
@@ -232,9 +232,17 @@
     });
 
     const lineTotal = computed<number>(() => (selectedVariant.value?.basePrice ?? 0) + chosenItems.value.reduce((sum, i) => sum + i.price, 0));
+
+    // Where the server last said the camper goes, when it disagreed with this page (a spot opened
+    // or the option filled up since it loaded). The form follows it.
+    const serverWaitList = ref<boolean | null>(null);
+
     // A line staying on its option keeps its place (its own seat counts toward "full").
-    const joiningWaitList = computed<boolean>(() => !!selectedVariant.value
-        && (editLine && selectedVariant.value.id === editLine.registrationInstanceId ? editLine.isWaitList : isFull(selectedVariant.value)));
+    const joiningWaitList = computed<boolean>(() => {
+        if (!selectedVariant.value) return false;
+        if (serverWaitList.value !== null) return serverWaitList.value;
+        return editLine && selectedVariant.value.id === editLine.registrationInstanceId ? editLine.isWaitList : isFull(selectedVariant.value);
+    });
 
     const addButtonText = computed<string>(() => {
         if (editLine) return isAdding.value ? "Saving…" : "Save changes";
@@ -353,7 +361,27 @@
     }
 
     watch(fieldValues, clearSignature, { deep: true });
-    watch([selectedPersonAliasId, selectedVariantId], clearSignature);
+    watch([selectedPersonAliasId, selectedVariantId], () => {
+        clearSignature();
+        serverWaitList.value = null;
+    });
+
+    /**
+     * Shows why the server refused the line. When it placed the camper differently from this page
+     * (a seat instead of the wait list, or the other way), the form switches to that placement so
+     * questions a seated camper owes appear.
+     */
+    function showRefusal(errorMessage: string | null | undefined, isWaitList: boolean | null | undefined, fallback: string): void {
+        let message = errorMessage || fallback;
+        if (isWaitList !== null && isWaitList !== undefined && isWaitList !== joiningWaitList.value) {
+            serverWaitList.value = isWaitList;
+            const name = firstName(selectedPerson.value?.fullName);
+            message = isWaitList
+                ? `This option just filled up, so ${name} will go on the wait list. ${message}`
+                : `A spot opened, so ${name} can have a seat. Please answer the questions above. ${message}`;
+        }
+        cartError.value = message;
+    }
 
     /**
      * After the forms validate: get the document signed when the template requires it, then add.
@@ -366,7 +394,32 @@
             return;
         }
 
+        // Check the line before the family signs, so a signature isn't spent on answers the cart refuses.
+        if (!(await checkLine())) return;
         await requestSignature();
+    }
+
+    /** True when the server would take the line as it is (everything but the signature). */
+    async function checkLine(): Promise<boolean> {
+        if (!selectedPerson.value || !selectedVariant.value) return false;
+        cartError.value = "";
+        const result = await invokeBlockAction<AddToCartResultBag>("CheckCartLine", {
+            request: {
+                personAliasId: selectedPerson.value.personAliasId,
+                registrationInstanceId: selectedVariant.value.id,
+                feeItemIds: Object.values(selections.value).flat(),
+                fieldValues: fieldValues.value
+            }
+        });
+        if (!result.isSuccess || !result.data) {
+            cartError.value = result.errorMessage || "That item could not be added.";
+            return false;
+        }
+        if (result.data.errorMessage) {
+            showRefusal(result.data.errorMessage, result.data.isWaitList, "That item could not be added.");
+            return false;
+        }
+        return true;
     }
 
     async function requestSignature(): Promise<void> {
@@ -463,6 +516,11 @@
                 return;
             }
 
+            if (result.data.errorMessage) {
+                showRefusal(result.data.errorMessage, result.data.isWaitList, "Your changes could not be saved.");
+                return;
+            }
+
             if (result.data.needsSignature) {
                 // The changes need the document signed again; signing saves them.
                 await requestSignature();
@@ -484,7 +542,7 @@
         isAdding.value = true;
         cartError.value = "";
         try {
-            const result = await invokeBlockAction<NavigationBag>("AddToCart", {
+            const result = await invokeBlockAction<AddToCartResultBag>("AddToCart", {
                 request: {
                     personAliasId: selectedPerson.value.personAliasId,
                     registrationInstanceId: selectedVariant.value.id,
@@ -494,12 +552,15 @@
                     existingSignatureDocumentGuid: existingSignatureGuid.value
                 }
             });
-            if (result.isSuccess && result.data) {
-                navigation.value = result.data;
-                if (result.data.cartUrl) { goTo(result.data.cartUrl); return; }
+            if (!result.isSuccess || !result.data) {
+                cartError.value = result.errorMessage || "That item could not be added.";
+            }
+            else if (result.data.errorMessage || !result.data.navigation) {
+                showRefusal(result.data.errorMessage, result.data.isWaitList, "That item could not be added.");
             }
             else {
-                cartError.value = result.errorMessage || "That item could not be added.";
+                navigation.value = result.data.navigation;
+                if (result.data.navigation.cartUrl) { goTo(result.data.navigation.cartUrl); return; }
             }
         }
         finally {

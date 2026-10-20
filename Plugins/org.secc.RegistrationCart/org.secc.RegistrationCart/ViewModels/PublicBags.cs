@@ -60,6 +60,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public bool IsWaitList { get; set; }
         /// <summary>The offering page in edit mode for this line (empty when not linked).</summary>
         public string EditUrl { get; set; }
+        /// <summary>What stops this line checking out (e.g. answers it still owes), or empty.</summary>
+        public string Problem { get; set; }
     }
 
     public class PricedAddOnBag
@@ -235,12 +237,28 @@ namespace org.secc.RegistrationCart.ViewModels
         public int? LineItemId { get; set; }
     }
 
-    /// <summary>What UpdateCartLine returns: the navigation once saved, or that a new signature is needed first.</summary>
+    /// <summary>What AddToCart and CheckCartLine return: the navigation once added, or why not.</summary>
+    public class AddToCartResultBag
+    {
+        public NavigationBag Navigation { get; set; }
+        public string ErrorMessage { get; set; }
+        /// <summary>
+        /// Where the server places the camper (null when it didn't get that far). The page shows
+        /// the form for that placement: a camper who gets a seat answers the questions
+        /// wait-listed registrants skip.
+        /// </summary>
+        public bool? IsWaitList { get; set; }
+    }
+
+    /// <summary>What UpdateCartLine returns: the navigation once saved, why not, or that a new signature is needed first.</summary>
     public class UpdateCartLineResultBag
     {
         public NavigationBag Navigation { get; set; }
         /// <summary>The option or answers changed from what was signed: sign again, then save.</summary>
         public bool NeedsSignature { get; set; }
+        public string ErrorMessage { get; set; }
+        /// <summary>Where the server places the camper; see <see cref="AddToCartResultBag.IsWaitList"/>.</summary>
+        public bool? IsWaitList { get; set; }
     }
 
     /// <summary>Arguments for the signature document actions.</summary>
@@ -293,6 +311,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public string PayerName { get; set; }
         public string PayerEmail { get; set; }
         public List<string> Problems { get; set; } = new List<string>();
+        /// <summary>Changes made as the page loaded (a camper moved onto or off a wait list), to point out.</summary>
+        public List<string> Notices { get; set; } = new List<string>();
     }
 
     public class TokenizerSettingsBag
@@ -322,6 +342,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public decimal Total { get; set; }
         /// <summary>One line per registration, e.g. "Riley Admin — Adventure Camp: Elementary Adventure · Jul 5–9, 2027".</summary>
         public List<string> ItemDescriptions { get; set; } = new List<string>();
+        /// <summary>What stops the cart checking out as it is now (nothing was charged); <see cref="Cart"/> shows them on the lines.</summary>
+        public List<string> Problems { get; set; } = new List<string>();
     }
 
     #endregion

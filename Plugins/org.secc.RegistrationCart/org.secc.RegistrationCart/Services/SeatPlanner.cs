@@ -43,13 +43,10 @@ namespace org.secc.RegistrationCart.Services
         public class SeatCheck
         {
             /// <summary>Campers that don't fit a camp with no wait list. Checkout can't go on.</summary>
-            public List<string> Problems { get; } = new List<string>();
+            public List<CheckoutProblem> Problems { get; } = new List<CheckoutProblem>();
 
             /// <summary>Lines moved onto or off the wait list (already set on the cart, not saved). The total changed.</summary>
             public List<string> Changes { get; } = new List<string>();
-
-            /// <summary>The lines that moved off the wait list into a seat.</summary>
-            public List<CartLineItem> Promoted { get; } = new List<CartLineItem>();
         }
 
         private readonly RockContext _rockContext;
@@ -115,9 +112,10 @@ namespace org.secc.RegistrationCart.Services
                 if ( refused > 0 )
                 {
                     var seated = lines.Count - refused;
-                    check.Problems.Add( seated == 0
+                    check.Problems.Add( new CheckoutProblem( seated == 0
                         ? $"\"{name}\" is full."
-                        : $"\"{name}\" has only {seated} spot{( seated == 1 ? "" : "s" )} left, but your cart has {lines.Count}." );
+                        : $"\"{name}\" has only {seated} spot{( seated == 1 ? "" : "s" )} left, but your cart has {lines.Count}.",
+                        lines.Select( l => l.Id ) ) );
                     continue;
                 }
 
@@ -131,15 +129,9 @@ namespace org.secc.RegistrationCart.Services
 
                     line.IsWaitList = waitList;
                     var camper = line.CartRegistrant?.DisplayName ?? "A camper";
-                    if ( waitList )
-                    {
-                        check.Changes.Add( $"\"{name}\" filled up, so {camper} is now on the wait list (nothing is due for them now)." );
-                    }
-                    else
-                    {
-                        check.Changes.Add( $"A spot opened in \"{name}\", so {camper} is no longer on the wait list." );
-                        check.Promoted.Add( line );
-                    }
+                    check.Changes.Add( waitList
+                        ? $"\"{name}\" filled up, so {camper} is now on the wait list (nothing is due for them now)."
+                        : $"A spot opened in \"{name}\", so {camper} is no longer on the wait list." );
                 }
             }
 

@@ -202,32 +202,58 @@ namespace org.secc.RegistrationCart.Services
 
         #region Line items
 
+        /// <summary>What adding or changing a cart line came to.</summary>
+        public class SaveLineResult
+        {
+            /// <summary>The saved line, or null when refused.</summary>
+            public CartLineItem Line { get; set; }
+
+            public string ErrorMessage { get; set; }
+
+            /// <summary>Only a new signature is missing (the option or answers changed from what was signed).</summary>
+            public bool NeedsSignature { get; set; }
+
+            /// <summary>
+            /// Where the line goes (wait list or seat), when that was worked out. The page shows the
+            /// form for that placement, so a camper who just got a seat sees the questions
+            /// wait-listed registrants skip.
+            /// </summary>
+            public bool? IsWaitList { get; set; }
+        }
+
         /// <summary>
         /// Adds a registrant-for-instance line with the chosen fee items, enforcing ownership,
-        /// grade-band eligibility, uniqueness, capacity and Rock's fee rules. Prices are snapshotted.
+        /// grade-band eligibility, uniqueness, capacity, Rock's fee rules and the template's form
+        /// questions. Prices are snapshotted.
         /// </summary>
-        public CartLineItem AddLineItem( int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, Guid? discountCodeWorkflowGuid, out string errorMessage ) =>
-            SaveLineItem( null, personAliasId, registrationInstanceId, feeItemIds, fieldValues, signatureData, discountCodeWorkflowGuid, out errorMessage, out _ );
+        public SaveLineResult AddLineItem( int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, Guid? discountCodeWorkflowGuid ) =>
+            SaveLineItem( null, personAliasId, registrationInstanceId, feeItemIds, fieldValues, signatureData, discountCodeWorkflowGuid, save: true );
 
         /// <summary>
         /// Changes a line in the open cart before checkout: its option (within the same template),
         /// fee items and form answers, under the same rules as adding it. The camper can't change.
         /// Unchanged choices keep their snapshot prices. The signature carries over only while the
         /// option and answers are the ones it was signed for; the discount code workflow runs again
-        /// only when they changed. Null with <paramref name="errorMessage"/> when refused;
-        /// <paramref name="needsSignature"/> is set when only a new signature is missing.
+        /// only when they changed.
         /// </summary>
-        public CartLineItem UpdateLineItem( int lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, Guid? discountCodeWorkflowGuid, out string errorMessage, out bool needsSignature ) =>
-            SaveLineItem( lineItemId, personAliasId, registrationInstanceId, feeItemIds, fieldValues, signatureData, discountCodeWorkflowGuid, out errorMessage, out needsSignature );
+        public SaveLineResult UpdateLineItem( int lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, Guid? discountCodeWorkflowGuid ) =>
+            SaveLineItem( lineItemId, personAliasId, registrationInstanceId, feeItemIds, fieldValues, signatureData, discountCodeWorkflowGuid, save: true );
+
+        /// <summary>
+        /// Everything adding or changing the line would check except the signature, without saving:
+        /// the page asks before the family signs, so a signature isn't spent on answers the cart
+        /// would refuse.
+        /// </summary>
+        public SaveLineResult CheckLineItem( int? lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues ) =>
+            SaveLineItem( lineItemId, personAliasId, registrationInstanceId, feeItemIds, fieldValues, null, null, save: false );
 
         /// <summary>A line in the person's open cart, or null.</summary>
         public CartLineItem GetOpenLine( int lineItemId ) =>
             GetOpenCart()?.LineItems.FirstOrDefault( l => l.Id == lineItemId );
 
-        private CartLineItem SaveLineItem( int? lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, Guid? discountCodeWorkflowGuid, out string errorMessage, out bool needsSignature )
+        private SaveLineResult SaveLineItem( int? lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, Guid? discountCodeWorkflowGuid, bool save )
         {
-            errorMessage = null;
-            needsSignature = false;
+            var result = new SaveLineResult();
             Cart cart;
             CartLineItem existing = null;
             if ( lineItemId.HasValue )
@@ -236,70 +262,50 @@ namespace org.secc.RegistrationCart.Services
                 existing = cart?.LineItems.FirstOrDefault( l => l.Id == lineItemId.Value );
                 if ( existing == null )
                 {
-                    errorMessage = "That registration is no longer in your cart.";
-                    return null;
+                    return Refuse( result, "That registration is no longer in your cart." );
                 }
             }
             else
             {
-                cart = GetOrCreateOpenCart();
+                cart = save ? GetOrCreateOpenCart() : GetOpenCart();
             }
 
             var registrantPerson = ResolveRegisterablePerson( personAliasId );
             if ( registrantPerson == null )
             {
-                errorMessage = "That person is not in your family.";
-                return null;
+                return Refuse( result, "That person is not in your family." );
             }
 
             if ( existing != null && registrantPerson.PrimaryAliasId != existing.CartRegistrant.PersonAliasId )
             {
-                errorMessage = "The person on a registration can't be changed. Remove it and add the other person instead.";
-                return null;
+                return Refuse( result, "The person on a registration can't be changed. Remove it and add the other person instead." );
             }
 
             var catalog = new CatalogService( _rockContext );
             var option = catalog.GetOpenInstance( registrationInstanceId, out var template );
             if ( option == null )
             {
-                errorMessage = "That option is no longer open for registration.";
-                return null;
+                return Refuse( result, "That option is no longer open for registration." );
             }
 
             if ( existing != null && template.Template.Id != existing.RegistrationTemplateId )
             {
-                errorMessage = "A registration can only move to another option of the same registration.";
-                return null;
+                return Refuse( result, "A registration can only move to another option of the same registration." );
             }
 
             var band = GradeBands.ForPerson( registrantPerson );
             if ( !Eligibility.IsVariantEligible( new global::org.secc.RegistrationCart.Domain.Entities.OfferingVariant { EligibleGradeBands = option.Bands }, band ) )
             {
-                errorMessage = $"{registrantPerson.FullName} ({GradeBands.Friendly( band )}) is not eligible for {option.Instance.Name}.";
-                return null;
+                return Refuse( result, $"{registrantPerson.FullName} ({GradeBands.Friendly( band )}) is not eligible for {option.Instance.Name}." );
             }
 
-            var registrant = existing?.CartRegistrant ?? cart.Registrants.FirstOrDefault( r => r.PersonAliasId == registrantPerson.PrimaryAliasId );
-            if ( registrant == null )
-            {
-                registrant = new CartRegistrant
-                {
-                    CartId = cart.Id,
-                    PersonAliasId = registrantPerson.PrimaryAliasId.Value,
-                    FirstName = registrantPerson.NickName.IsNotNullOrWhiteSpace() ? registrantPerson.NickName : registrantPerson.FirstName,
-                    LastName = registrantPerson.LastName,
-                    GradeBand = band
-                };
-                new CartRegistrantService( _rockContext ).Add( registrant );
-                _rockContext.SaveChanges();
-            }
-
-            var lineService = new CartLineItemService( _rockContext );
+            // The camper's cart registrant, if they have one already; a new one is saved with the line.
+            var registrant = existing?.CartRegistrant ?? cart?.Registrants.FirstOrDefault( r => r.PersonAliasId == registrantPerson.PrimaryAliasId );
+            var camperName = registrant?.DisplayName ?? registrantPerson.FullName;
             var otherLineId = lineItemId ?? 0;
-            if ( lineService.Queryable().Any( l => l.CartRegistrantId == registrant.Id && l.RegistrationInstanceId == option.Instance.Id && l.Id != otherLineId ) )
+            if ( registrant != null && cart.LineItems.Any( l => l.CartRegistrantId == registrant.Id && l.RegistrationInstanceId == option.Instance.Id && l.Id != otherLineId ) )
             {
-                errorMessage = $"{registrant.DisplayName} is already registered for {option.Instance.Name}.";
-                return null;
+                return Refuse( result, $"{camperName} is already registered for {option.Instance.Name}." );
             }
 
             // Seat or wait list, counted the way checkout counts: this cart's lines for the option
@@ -307,13 +313,14 @@ namespace org.secc.RegistrationCart.Services
             // camper on its wait list when Rock's template allows one.
             var sameOption = existing != null && existing.RegistrationInstanceId == option.Instance.Id;
             var probe = new CartLineItem { Id = existing?.Id ?? 0, RegistrationInstanceId = option.Instance.Id };
-            var optionLines = cart.LineItems.Where( l => l.RegistrationInstanceId == option.Instance.Id && l.Id != probe.Id ).ToList();
-            var seatPlan = new SeatPlanner( _rockContext ).Plan( cart.Id, optionLines.Concat( new[] { probe } ) );
+            var optionLines = cart?.LineItems.Where( l => l.RegistrationInstanceId == option.Instance.Id && l.Id != probe.Id ).ToList() ?? new List<CartLineItem>();
+            var seatPlan = new SeatPlanner( _rockContext ).Plan( cart?.Id ?? 0, optionLines.Concat( new[] { probe } ) );
             if ( !seatPlan.TryGetValue( probe, out var place ) || place == SeatPlace.Refused )
             {
-                errorMessage = $"{option.Instance.Name} is full.";
-                return null;
+                return Refuse( result, $"{option.Instance.Name} is full." );
             }
+
+            result.IsWaitList = place == SeatPlace.WaitList;
 
             var answers = RegistrationForms.TemplateAnswers( template.Template, fieldValues );
             var addOns = new List<CartLineItemAddOn>();
@@ -331,22 +338,19 @@ namespace org.secc.RegistrationCart.Services
 
                 if ( fee.IsRequired && eligibleItems.Any() && chosen.Count == 0 )
                 {
-                    errorMessage = $"Please choose an option for \"{fee.Fee.Name}\".";
-                    return null;
+                    return Refuse( result, $"Please choose an option for \"{fee.Fee.Name}\"." );
                 }
 
                 if ( fee.Mode == SelectionMode.Single && chosen.Count > 1 )
                 {
-                    errorMessage = $"Only one option may be chosen for \"{fee.Fee.Name}\".";
-                    return null;
+                    return Refuse( result, $"Only one option may be chosen for \"{fee.Fee.Name}\"." );
                 }
 
                 foreach ( var item in chosen )
                 {
                     if ( !eligibleItems.Contains( item ) )
                     {
-                        errorMessage = $"\"{item.Item.Name}\" is not available for {registrant.DisplayName}.";
-                        return null;
+                        return Refuse( result, $"\"{item.Item.Name}\" is not available for {camperName}." );
                     }
 
                     // An item the line already had keeps the price it was added at.
@@ -360,6 +364,19 @@ namespace org.secc.RegistrationCart.Services
                 }
             }
 
+            // The template's questions, for where the camper is placed: never trust the browser's
+            // idea of which ones it had to ask.
+            var answerProblems = new RegistrationForms( _rockContext ).CheckAnswers( template.Template, registrantPerson, catalog.GetLinkedGroupId( option.Instance.Id ), answers, place == SeatPlace.WaitList );
+            if ( answerProblems.Any() )
+            {
+                return Refuse( result, string.Join( " ", answerProblems ) );
+            }
+
+            if ( !save )
+            {
+                return result;
+            }
+
             // A template that requires its document signed inline: the line must carry a signature
             // made for this option and these answers (the line's earlier one carries over while
             // they still match).
@@ -370,25 +387,39 @@ namespace org.secc.RegistrationCart.Services
                 signature = signatureData.IsNotNullOrWhiteSpace() ? signatureData : existing?.SignatureData;
                 if ( !signatures.IsUsable( template.Template, registrantPerson, signature, option.Instance.Id, answers ) )
                 {
-                    errorMessage = "Please sign the document before adding to the cart.";
-                    needsSignature = true;
-                    return null;
+                    result.NeedsSignature = true;
+                    return Refuse( result, "Please sign the document before adding to the cart." );
                 }
             }
 
             var answersChanged = existing == null || !sameOption
                 || RegistrationForms.AnswersKey( template.Template, answers ) != RegistrationForms.AnswersKey( template.Template, RegistrationForms.FromJson( existing.FieldValuesJson ) );
 
+            if ( registrant == null )
+            {
+                registrant = new CartRegistrant
+                {
+                    CartId = cart.Id,
+                    PersonAliasId = registrantPerson.PrimaryAliasId.Value,
+                    FirstName = registrantPerson.NickName.IsNotNullOrWhiteSpace() ? registrantPerson.NickName : registrantPerson.FirstName,
+                    LastName = registrantPerson.LastName,
+                    GradeBand = band
+                };
+                new CartRegistrantService( _rockContext ).Add( registrant );
+            }
+
             var line = existing ?? new CartLineItem
             {
                 CartId = cart.Id,
-                CartRegistrantId = registrant.Id,
+                CartRegistrant = registrant,
                 RegistrationTemplateId = template.Template.Id
             };
             var leftInstanceId = existing != null && !sameOption ? existing.RegistrationInstanceId : ( int? ) null;
             line.SnapshotBasePrice = sameOption ? existing.SnapshotBasePrice : option.Price;
             line.IsWaitList = place == SeatPlace.WaitList;
             line.RegistrationInstanceId = option.Instance.Id;
+            line.FieldValuesJson = RegistrationForms.ToJson( answers );
+            line.SignatureData = signature;
 
             // The cart's other campers for the option, and for the option this line left, take
             // their places again (one behind it on the wait list may move up).
@@ -397,8 +428,6 @@ namespace org.secc.RegistrationCart.Services
             {
                 Replace( cart, leftInstanceId.Value, line.Id );
             }
-            line.FieldValuesJson = RegistrationForms.ToJson( answers );
-            line.SignatureData = signature;
 
             if ( existing != null )
             {
@@ -423,11 +452,18 @@ namespace org.secc.RegistrationCart.Services
 
             if ( existing == null )
             {
-                lineService.Add( line );
+                new CartLineItemService( _rockContext ).Add( line );
             }
 
             _rockContext.SaveChanges();
-            return line;
+            result.Line = line;
+            return result;
+        }
+
+        private static SaveLineResult Refuse( SaveLineResult result, string message )
+        {
+            result.ErrorMessage = message;
+            return result;
         }
 
         public bool RemoveLineItem( int lineItemId )

@@ -14,6 +14,7 @@
 //
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using org.secc.RegistrationCart.ViewModels;
 using Rock;
 using Rock.Attribute;
@@ -38,12 +39,7 @@ namespace org.secc.RegistrationCart.Blocks
     {
         public override string ObsidianFileUrl => ObsidianBlockUrl( "cart" );
 
-        protected override string LineEditUrl( Model.CartLineItem line ) =>
-            this.GetLinkedPageUrl( NavAttributeKey.OfferingDetailPage, new Dictionary<string, string>
-            {
-                [OfferingKeyParameter] = line.RegistrationTemplate?.IdKey ?? line.RegistrationTemplateId.ToString(),
-                [LineIdParameter] = line.Id.ToString()
-            } );
+        protected override string LineEditUrl( Model.CartLineItem line ) => OfferingPageEditUrl( line );
 
         public override object GetObsidianBlockInitialization()
         {
@@ -52,9 +48,13 @@ namespace org.secc.RegistrationCart.Blocks
             return new CartInitializationBox
             {
                 Navigation = BuildNavigation( cart ),
-                Cart = ToBag( manager?.Price( cart ) ?? global::org.secc.RegistrationCart.Domain.Pricing.PricedCart.Empty, cart )
+                Cart = ToBag( manager?.Price( cart ) ?? global::org.secc.RegistrationCart.Domain.Pricing.PricedCart.Empty, cart, Problems( cart ) )
             };
         }
+
+        /// <summary>What checkout would refuse, shown on the lines now so they can be fixed first.</summary>
+        private List<Services.CheckoutProblem> Problems( Model.Cart cart ) =>
+            cart?.LineItems.Any() == true ? new Services.CheckoutProcessor( RockContext ).Validate( cart ) : new List<Services.CheckoutProblem>();
 
         [BlockAction]
         public BlockActionResult RemoveLineItem( int lineItemId )
@@ -101,7 +101,7 @@ namespace org.secc.RegistrationCart.Blocks
             return ActionOk( new DiscountResultBag
             {
                 ErrorMessage = error,
-                Cart = ToBag( manager.Price( cart ), cart )
+                Cart = ToBag( manager.Price( cart ), cart, Problems( cart ) )
             } );
         }
     }

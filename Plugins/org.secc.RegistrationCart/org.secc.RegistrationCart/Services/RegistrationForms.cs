@@ -316,6 +316,233 @@ namespace org.secc.RegistrationCart.Services
 
         #endregion
 
+        #region Checking answers
+
+        /// <summary>
+        /// What stops a line's answers being used, so the cart never takes a payment for answers
+        /// checkout can't save: required fields left blank, and answers Rock would refuse when
+        /// checkout writes them (email, middle name, phone, address). Required means required on
+        /// the form the line gets: a wait-listed line only sees the fields Rock shows on the wait
+        /// list. Not checked for being blank: first and last name (always filled in), fields with
+        /// visibility rules (whether they show depends on other answers; Rock's server doesn't
+        /// check them either), and locked fields that already have a value (the answer isn't used).
+        /// Empty = OK.
+        /// </summary>
+        public List<string> CheckAnswers( RegistrationTemplate template, Person person, int? groupId, Dictionary<Guid, object> answers, bool isWaitList )
+        {
+            var problems = new List<string>();
+            var groupMember = GroupMemberFor( person, groupId );
+            foreach ( var field in template.Forms.OrderBy( f => f.Order ).SelectMany( VisibleFields ) )
+            {
+                if ( IsName( field ) || IsLocked( field, person, groupMember ) )
+                {
+                    continue;
+                }
+
+                var answer = answers?.GetValueOrNull( field.Guid ).ToStringSafe();
+                if ( IsBlankAnswer( field, answer ) )
+                {
+                    var isShown = !isWaitList || field.ShowOnWaitlist;
+                    if ( field.IsRequired && isShown && !field.FieldVisibilityRules.RuleList.Any() )
+                    {
+                        problems.Add( $"{FieldLabel( field )} is required." );
+                    }
+
+                    continue;
+                }
+
+                // Checkout writes every answer it has, shown or not, so each must be one Rock accepts.
+                var invalid = InvalidAnswer( field, answer );
+                if ( invalid != null )
+                {
+                    problems.Add( $"{FieldLabel( field )}: {invalid}" );
+                }
+            }
+
+            return problems;
+        }
+
+        /// <summary>
+        /// Rock's "lock if values exist": the field keeps the value the person (or their group
+        /// membership) already has, so checkout doesn't write the answer. A value exists as Rock's
+        /// registrant form judges it: a set date, a known gender, any part of the home address,
+        /// otherwise anything non-blank. Registrant attributes belong to a new registrant, so they
+        /// never lock.
+        /// </summary>
+        public bool IsLocked( RegistrationTemplateFormField field, Person person, GroupMember groupMember )
+        {
+            if ( !field.IsLockedIfValuesExist || person == null )
+            {
+                return false;
+            }
+
+            switch ( field.FieldSource )
+            {
+                case RegistrationFieldSource.PersonField:
+                    return HasPersonFieldValue( person, field.PersonFieldType );
+                case RegistrationFieldSource.PersonAttribute:
+                    return HasAttributeValue( person, field );
+                case RegistrationFieldSource.GroupMemberAttribute:
+                    return groupMember != null && HasAttributeValue( groupMember, field );
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>The person's membership in the instance's group, when they already have one.</summary>
+        public GroupMember GroupMemberFor( Person person, int? groupId ) =>
+            groupId.HasValue && person != null
+                ? new GroupMemberService( _rockContext ).GetByGroupIdAndPersonId( groupId.Value, person.Id ).FirstOrDefault()
+                : null;
+
+        private static bool IsName( RegistrationTemplateFormField field ) =>
+            field.FieldSource == RegistrationFieldSource.PersonField
+                && ( field.PersonFieldType == RegistrationPersonFieldType.FirstName || field.PersonFieldType == RegistrationPersonFieldType.LastName );
+
+        private bool HasPersonFieldValue( Person person, RegistrationPersonFieldType type )
+        {
+            switch ( type )
+            {
+                case RegistrationPersonFieldType.Email: return person.Email.IsNotNullOrWhiteSpace();
+                case RegistrationPersonFieldType.MiddleName: return person.MiddleName.IsNotNullOrWhiteSpace();
+                case RegistrationPersonFieldType.Campus: return person.PrimaryCampusId.HasValue;
+                case RegistrationPersonFieldType.Address: return person.GetHomeLocation( _rockContext ) != null;
+                case RegistrationPersonFieldType.Birthdate: return person.BirthDate.HasValue;
+                case RegistrationPersonFieldType.AnniversaryDate: return person.AnniversaryDate.HasValue;
+                case RegistrationPersonFieldType.Gender: return person.Gender != Gender.Unknown;
+                case RegistrationPersonFieldType.Grade: return person.GradeOffset.HasValue;
+                case RegistrationPersonFieldType.MaritalStatus: return person.MaritalStatusValueId.HasValue;
+                case RegistrationPersonFieldType.ConnectionStatus: return person.ConnectionStatusValueId.HasValue;
+                case RegistrationPersonFieldType.Race: return person.RaceValueId.HasValue;
+                case RegistrationPersonFieldType.Ethnicity: return person.EthnicityValueId.HasValue;
+                case RegistrationPersonFieldType.MobilePhone: return HasPhone( person, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE );
+                case RegistrationPersonFieldType.HomePhone: return HasPhone( person, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME );
+                case RegistrationPersonFieldType.WorkPhone: return HasPhone( person, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_WORK );
+                default: return false;
+            }
+        }
+
+        private static bool HasPhone( Person person, string phoneTypeGuid )
+        {
+            var numberTypeId = DefinedValueCache.GetId( phoneTypeGuid.AsGuid() );
+            return person.PhoneNumbers.Any( p => p.NumberTypeValueId == numberTypeId && p.Number.IsNotNullOrWhiteSpace() );
+        }
+
+        private bool HasAttributeValue( IHasAttributes entity, RegistrationTemplateFormField field )
+        {
+            var attribute = AttributeCache.Get( field.AttributeId ?? 0 );
+            if ( attribute == null )
+            {
+                return false;
+            }
+
+            if ( entity.Attributes == null )
+            {
+                entity.LoadAttributes( _rockContext );
+            }
+
+            return entity.GetAttributeValue( attribute.Key ).IsNotNullOrWhiteSpace();
+        }
+
+        private static bool IsBlankAnswer( RegistrationTemplateFormField field, string answer )
+        {
+            if ( field.FieldSource != RegistrationFieldSource.PersonField )
+            {
+                var attribute = AttributeCache.Get( field.AttributeId ?? 0 );
+                return answer.IsNullOrWhiteSpace() || attribute == null || PrivateValue( attribute, answer ).IsNullOrWhiteSpace();
+            }
+
+            switch ( field.PersonFieldType )
+            {
+                case RegistrationPersonFieldType.Address:
+                    return Domain.AnswerRules.IsBlank( Domain.AnswerKind.Address, answer );
+                case RegistrationPersonFieldType.Birthdate:
+                case RegistrationPersonFieldType.AnniversaryDate:
+                    return Domain.AnswerRules.IsBlank( Domain.AnswerKind.Date, answer );
+                case RegistrationPersonFieldType.MobilePhone:
+                case RegistrationPersonFieldType.HomePhone:
+                case RegistrationPersonFieldType.WorkPhone:
+                    return Domain.AnswerRules.IsBlank( Domain.AnswerKind.Phone, answer );
+                case RegistrationPersonFieldType.Gender:
+                    return Domain.AnswerRules.IsBlank( Domain.AnswerKind.Gender, answer );
+                default:
+                    return Domain.AnswerRules.IsBlank( Domain.AnswerKind.Text, answer );
+            }
+        }
+
+        /// <summary>Why Rock would refuse the answer when checkout writes it, or null.</summary>
+        private static string InvalidAnswer( RegistrationTemplateFormField field, string answer )
+        {
+            if ( field.FieldSource != RegistrationFieldSource.PersonField )
+            {
+                return null; // attribute values have no limits Rock enforces on save
+            }
+
+            switch ( field.PersonFieldType )
+            {
+                case RegistrationPersonFieldType.Email:
+                    return PropertyError( new Person(), nameof( Person.Email ), answer.Trim() );
+
+                case RegistrationPersonFieldType.MiddleName:
+                    return PropertyError( new Person(), nameof( Person.MiddleName ), answer.Trim() );
+
+                case RegistrationPersonFieldType.MobilePhone:
+                case RegistrationPersonFieldType.HomePhone:
+                case RegistrationPersonFieldType.WorkPhone:
+                    var withSms = answer.FromJsonOrNull<PhoneNumberBoxWithSmsControlBag>();
+                    return PropertyError( new PhoneNumber(), nameof( PhoneNumber.Number ), PhoneNumber.CleanNumber( withSms?.Number ?? answer ) );
+
+                case RegistrationPersonFieldType.Address:
+                    var location = ToLocation( answer.FromJsonOrNull<AddressControlBag>() );
+                    if ( location == null || !location.IsMinimumViableAddress() )
+                    {
+                        // Checkout saves only a usable address; a required field needs one.
+                        return field.IsRequired ? "Please enter a complete address." : null;
+                    }
+
+                    var results = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
+                    if ( !System.ComponentModel.DataAnnotations.Validator.TryValidateObject( location, new System.ComponentModel.DataAnnotations.ValidationContext( location ), results, true ) )
+                    {
+                        return results.Select( r => r.ErrorMessage ).JoinStrings( " " );
+                    }
+
+                    return LocationService.ValidateLocationAddressRequirements( location, out var addressError ) ? null : addressError;
+
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>The data annotation errors Rock's save would raise for one property value, or null.</summary>
+        private static string PropertyError( object entity, string propertyName, string value )
+        {
+            var results = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
+            var context = new System.ComponentModel.DataAnnotations.ValidationContext( entity ) { MemberName = propertyName };
+            return System.ComponentModel.DataAnnotations.Validator.TryValidateProperty( value, context, results )
+                ? null
+                : results.Select( r => r.ErrorMessage ).JoinStrings( " " );
+        }
+
+        /// <summary>The field's label as the form shows it.</summary>
+        private static string FieldLabel( RegistrationTemplateFormField field ) =>
+            field.FieldSource == RegistrationFieldSource.PersonField
+                ? field.PersonFieldType.ConvertToString()
+                : AttributeCache.Get( field.AttributeId ?? 0 )?.Name ?? "A question";
+
+        /// <summary>An address answer as the Location checkout would save (null when there's none).</summary>
+        private static Location ToLocation( AddressControlBag bag ) =>
+            bag == null ? null : new Location
+            {
+                Street1 = bag.Street1,
+                Street2 = bag.Street2,
+                City = bag.City,
+                State = bag.State,
+                PostalCode = bag.PostalCode,
+                Country = bag.Country ?? GlobalAttributesCache.Get().OrganizationCountry
+            };
+
+        #endregion
+
         #region Storing answers
 
         /// <summary>Answers as stored on the cart line.</summary>
@@ -624,19 +851,7 @@ namespace org.secc.RegistrationCart.Services
                     case RegistrationPersonFieldType.Address:
                         if ( !field.IsLockedIfValuesExist || person.GetHomeLocation( _rockContext ) == null )
                         {
-                            var bag = text.FromJsonOrNull<AddressControlBag>();
-                            if ( bag != null )
-                            {
-                                address = new Location
-                                {
-                                    Street1 = bag.Street1,
-                                    Street2 = bag.Street2,
-                                    City = bag.City,
-                                    State = bag.State,
-                                    PostalCode = bag.PostalCode,
-                                    Country = bag.Country ?? GlobalAttributesCache.Get().OrganizationCountry
-                                };
-                            }
+                            address = ToLocation( text.FromJsonOrNull<AddressControlBag>() ) ?? address;
                         }
 
                         break;

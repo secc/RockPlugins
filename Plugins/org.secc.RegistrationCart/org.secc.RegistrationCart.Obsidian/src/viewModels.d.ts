@@ -178,6 +178,8 @@ export type PricedLineBag = {
 
     offeringTitle?: string | null;
 
+    problem?: string | null;
+
     registrantId: number;
 
     registrantName?: string | null;
@@ -381,7 +383,19 @@ export type AddToCartRequestBag = {
     signatureData?: string | null;
 };
 
+export type AddToCartResultBag = {
+    errorMessage?: string | null;
+
+    isWaitList?: boolean | null;
+
+    navigation?: NavigationBag | null;
+};
+
 export type UpdateCartLineResultBag = {
+    errorMessage?: string | null;
+
+    isWaitList?: boolean | null;
+
     navigation?: NavigationBag | null;
 
     needsSignature: boolean;
@@ -430,6 +444,8 @@ export type CheckoutInitializationBox = {
 
     navigation?: NavigationBag | null;
 
+    notices?: string[] | null;
+
     payerEmail?: string | null;
 
     payerName?: string | null;
@@ -465,6 +481,8 @@ export type CheckoutResultBag = {
     isDeclined: boolean;
 
     itemDescriptions?: string[] | null;
+
+    problems?: string[] | null;
 
     success: boolean;
 

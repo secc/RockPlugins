@@ -42,6 +42,8 @@ namespace org.secc.RegistrationCart.Blocks
         Description = "My Well / gotnpgateway PUBLIC api key. Only needed when the gateway does not provide a hosted payment control." )]
     [LinkedPage( "Cart Page", Key = NavAttributeKey.CartPage, IsRequired = false, Order = 5 )]
     [LinkedPage( "Catalog Page", Key = NavAttributeKey.CatalogPage, IsRequired = false, Order = 6 )]
+    [LinkedPage( "Offering Detail Page", Key = NavAttributeKey.OfferingDetailPage, IsRequired = false, Order = 7,
+        Description = "Where a line's Edit link goes (the offering page in edit mode), e.g. to answer questions a camper owes after coming off a wait list." )]
 
     [Rock.SystemGuid.EntityTypeGuid( SystemGuid.EntityType.BLOCK_CHECKOUT )]
     [Rock.SystemGuid.BlockTypeGuid( SystemGuid.BlockType.CHECKOUT )]
@@ -58,6 +60,8 @@ namespace org.secc.RegistrationCart.Blocks
 
         public override string ObsidianFileUrl => ObsidianBlockUrl( "checkout" );
 
+        protected override string LineEditUrl( Model.CartLineItem line ) => OfferingPageEditUrl( line );
+
         public override object GetObsidianBlockInitialization()
         {
             var manager = GetCartManager();
@@ -65,28 +69,32 @@ namespace org.secc.RegistrationCart.Blocks
             var person = GetCurrentPerson();
 
             // Place campers in seats or on the wait list first, so the total shown is the one
-            // checkout will expect. ProcessCheckout places them again under the seat lock.
-            var problems = new List<string>();
+            // checkout will expect, and say so when that moved someone. Then check the cart for
+            // those places: a camper who just got a seat owes the questions the wait list skips.
+            // ProcessCheckout does both again under the seat lock.
+            var problems = new List<CheckoutProblem>();
+            var notices = new List<string>();
             if ( cart != null && cart.LineItems.Any() )
             {
-                var processor = new CheckoutProcessor( RockContext );
-                problems.AddRange( processor.Validate( cart ) );
-
                 var seats = new SeatPlanner( RockContext ).Place( cart );
-                problems.AddRange( seats.Problems );
                 if ( seats.Changes.Any() )
                 {
                     RockContext.SaveChanges();
+                    notices.AddRange( seats.Changes );
                 }
+
+                problems.AddRange( seats.Problems );
+                problems.AddRange( new CheckoutProcessor( RockContext ).Validate( cart ) );
             }
 
             var box = new CheckoutInitializationBox
             {
                 Navigation = BuildNavigation( cart ),
-                Cart = ToBag( manager?.Price( cart ) ?? global::org.secc.RegistrationCart.Domain.Pricing.PricedCart.Empty, cart ),
+                Cart = ToBag( manager?.Price( cart ) ?? global::org.secc.RegistrationCart.Domain.Pricing.PricedCart.Empty, cart, problems ),
                 PayerName = person?.FullName,
                 PayerEmail = person?.Email,
-                Problems = problems
+                Problems = problems.Select( p => p.Message ).Distinct().ToList(),
+                Notices = notices
             };
 
             var gateway = GetFinancialGateway();
@@ -173,11 +181,13 @@ namespace org.secc.RegistrationCart.Blocks
                 ItemDescriptions = result.ItemDescriptions
             };
 
-            if ( result.CartChanged )
+            if ( result.CartChanged || result.Problems.Any() )
             {
-                // Send the cart as it is now so the page can show what would be charged.
+                // Nothing was charged: send the cart as it is now, with what stops it, so the page
+                // shows what would be charged and what to fix.
                 var cart = manager.GetOpenCart();
-                bag.Cart = ToBag( manager.Price( cart ), cart );
+                bag.Cart = ToBag( manager.Price( cart ), cart, result.Problems );
+                bag.Problems = result.Problems.Select( p => p.Message ).Distinct().ToList();
             }
 
             return ActionOk( bag );
