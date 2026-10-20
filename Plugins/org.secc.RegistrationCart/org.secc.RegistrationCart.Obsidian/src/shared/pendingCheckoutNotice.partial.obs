@@ -1,0 +1,19 @@
+<template>
+    <div v-if="navigation.pendingCheckoutNotice" class="rc-notice rc-notice-danger" role="alert" style="margin-bottom: 20px;">
+        <svg class="rc-ico" style="margin-top: 3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <span>{{ navigation.pendingCheckoutNotice }}</span>
+    </div>
+</template>
+
+<script setup lang="ts">
+    import { PropType } from "vue";
+    import { NavigationBag } from "../viewModels";
+
+    /** Warns the payer when an earlier checkout may have taken a payment without finishing. */
+    defineProps({
+        navigation: {
+            type: Object as PropType<NavigationBag>,
+            required: true
+        }
+    });
+</script>

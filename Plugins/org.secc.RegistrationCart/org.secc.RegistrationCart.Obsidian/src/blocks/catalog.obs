@@ -1,0 +1,99 @@
+<template>
+    <div class="regcart">
+        <FieldGuide />
+        <header class="rc-header">
+            <div class="rc-header-text">
+                <span v-if="config.intro" class="rc-eyebrow">{{ config.intro }}</span>
+                <h1>{{ config.heading }}</h1>
+            </div>
+            <CartNav :navigation="navigation" />
+        </header>
+        <PendingCheckoutNotice :navigation="navigation" />
+
+        <div v-if="!offerings.length" class="rc-notice">
+            <svg class="rc-ico" style="margin-top: 3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
+            <span>Nothing is open for registration right now. Please check back soon.</span>
+        </div>
+
+        <template v-else>
+            <!-- Featured (first) offering -->
+            <article class="rc-feature">
+                <div class="rc-feature-side" :style="featured.imageUrl ? `background-image: linear-gradient(rgba(31,77,58,.55), rgba(31,77,58,.75)), url('${featured.imageUrl}')` : ''">
+                    <span class="rc-eyebrow">{{ featured.offeringTypeText || "Now open" }}</span>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span v-if="featured.dateText" class="rc-feature-date">{{ featured.dateText }}</span>
+                        <template v-else>
+                            <span class="rc-small" style="opacity: .85;">from</span>
+                            <span class="rc-feature-date">{{ money(featured.minPrice) }}</span>
+                        </template>
+                        <span class="rc-small" style="opacity: .9;">{{ optionSummary(featured) }}</span>
+                    </div>
+                </div>
+                <div class="rc-feature-body">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap;">
+                        <h2 style="font-size: 32px;">{{ featured.title }}</h2>
+                        <span class="rc-from">from <span class="rc-price">{{ money(featured.minPrice) }}</span></span>
+                    </div>
+                    <p v-if="featured.description" class="rc-lead" style="font-size: 16px;">{{ featured.description }}</p>
+                    <div class="rc-pills" v-if="featured.campusNames?.length">
+                        <span v-for="c in featured.campusNames" :key="c" class="rc-pill">{{ c }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
+                        <a class="rc-btn rc-btn-primary" :href="featured.detailUrl ?? '#'">
+                            View &amp; register
+                            <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- The rest -->
+            <div class="rc-grid" v-if="rest.length">
+                <article v-for="o in rest" :key="o.idKey ?? ''" class="rc-card rc-tile">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <span class="rc-eyebrow">{{ o.offeringTypeText || "Open" }}</span>
+                        <span class="rc-serif" style="font-size: 20px;" v-if="o.dateText">{{ o.dateText }}</span>
+                    </div>
+                    <h2>{{ o.title }}</h2>
+                    <p v-if="o.description" style="color: var(--rc-ink-soft);">{{ o.description }}</p>
+                    <p class="rc-small rc-muted">{{ optionSummary(o) }}</p>
+                    <div class="rc-tile-foot">
+                        <span class="rc-from">from <span class="rc-price">{{ money(o.minPrice) }}</span></span>
+                        <a class="rc-btn" :href="o.detailUrl ?? '#'">
+                            View
+                            <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                    </div>
+                </article>
+            </div>
+        </template>
+
+        <p class="rc-small rc-muted" style="margin-top: 24px; display: flex; gap: 8px; align-items: center;">
+            <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-5-6.3"/></svg>
+            Add each family member to your cart, then pay for everyone at once.
+        </p>
+    </div>
+</template>
+
+<script setup lang="ts">
+    import { computed } from "vue";
+    import { useConfigurationValues } from "@Obsidian/Utility/block";
+    import FieldGuide from "../shared/fieldGuide.partial.obs";
+    import CartNav from "../shared/cartNav.partial.obs";
+    import PendingCheckoutNotice from "../shared/pendingCheckoutNotice.partial.obs";
+    import { money } from "../shared/registrationCart.partial";
+    import { CatalogInitializationBox, NavigationBag, OfferingSummaryBag } from "../viewModels";
+
+    const config = useConfigurationValues<CatalogInitializationBox>();
+
+    const navigation = computed<NavigationBag>(() => config.navigation ?? { isSignedIn: false, cartItemCount: 0 });
+    const offerings = computed<OfferingSummaryBag[]>(() => config.offerings ?? []);
+    const featured = computed<OfferingSummaryBag>(() => offerings.value[0]);
+    const rest = computed<OfferingSummaryBag[]>(() => offerings.value.slice(1));
+
+    function optionSummary(o: OfferingSummaryBag): string {
+        const options = `${o.optionCount} option${o.optionCount === 1 ? "" : "s"}`;
+        const campuses = o.campusNames?.length ? ` · ${o.campusNames.join(" · ")}` : "";
+        return options + campuses;
+    }
+</script>

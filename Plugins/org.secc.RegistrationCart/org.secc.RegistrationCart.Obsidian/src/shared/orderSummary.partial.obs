@@ -1,0 +1,36 @@
+<template>
+    <dl class="rc-totals">
+        <div><dt>Subtotal</dt><dd>{{ money(cart.subtotal) }}</dd></div>
+        <div v-for="d in cart.discounts ?? []" :key="d.code ?? ''" class="rc-discount-row">
+            <dt>
+                {{ d.code }}
+                <button v-if="canRemoveDiscounts && d.cartDiscountId" type="button" class="rc-link-btn rc-link-danger" :aria-label="`Remove ${d.code}`" @click="$emit('removeDiscount', d.cartDiscountId)">
+                    <svg class="rc-ico" style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                </button>
+            </dt>
+            <dd>−{{ money(d.amount) }}</dd>
+        </div>
+        <div class="rc-grand"><dt>Total</dt><dd>{{ money(cart.total) }}</dd></div>
+    </dl>
+</template>
+
+<script setup lang="ts">
+    import { PropType } from "vue";
+    import { PricedCartBag } from "../viewModels";
+    import { money } from "./registrationCart.partial";
+
+    defineProps({
+        cart: {
+            type: Object as PropType<PricedCartBag>,
+            required: true
+        },
+        canRemoveDiscounts: {
+            type: Boolean as PropType<boolean>,
+            default: false
+        }
+    });
+
+    defineEmits<{
+        (e: "removeDiscount", cartDiscountId: number): void;
+    }>();
+</script>

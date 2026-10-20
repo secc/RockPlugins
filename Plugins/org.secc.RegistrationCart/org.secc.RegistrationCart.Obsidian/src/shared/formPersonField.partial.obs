@@ -1,0 +1,121 @@
+<!-- Adapted from Rock's RegistrationEntry registrantPersonField.partial.obs (Spark Development Network, Rock Community License). -->
+<template>
+    <div v-if="field.preHtml" v-html="field.preHtml"></div>
+    <component v-if="component" :is="component" v-bind="controlProps" v-model="fieldValues[field.guid]" />
+    <NotificationBox v-else alertType="danger">Could not load the control for person field {{ field.personFieldType }}.</NotificationBox>
+    <div v-if="field.postHtml" v-html="field.postHtml"></div>
+</template>
+
+<script setup lang="ts">
+    import { computed, PropType } from "vue";
+    import AddressControl from "@Obsidian/Controls/addressControl.obs";
+    import BirthdayPicker from "@Obsidian/Controls/birthdayPicker.obs";
+    import DropDownList from "@Obsidian/Controls/dropDownList.obs";
+    import EmailBox from "@Obsidian/Controls/emailBox.obs";
+    import GenderDropDownList from "@Obsidian/Controls/genderDropDownList.obs";
+    import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import PhoneNumberBox from "@Obsidian/Controls/phoneNumberBox.obs";
+    import TextBox from "@Obsidian/Controls/textBox.obs";
+    import { RegistrationPersonFieldType } from "@Obsidian/Enums/Event/registrationPersonFieldType";
+    import { Guid } from "@Obsidian/Types";
+    import { RegistrationEntryFormFieldBag } from "@Obsidian/ViewModels/Blocks/Event/RegistrationEntry/registrationEntryFormFieldBag";
+    import { FormListsBag } from "../viewModels";
+
+    const props = defineProps({
+        field: {
+            type: Object as PropType<RegistrationEntryFormFieldBag>,
+            required: true
+        },
+        /** Every answer, keyed by form field guid. Written in place. */
+        fieldValues: {
+            type: Object as PropType<Record<Guid, unknown>>,
+            required: true
+        },
+        lists: {
+            type: Object as PropType<FormListsBag>,
+            required: true
+        },
+        disabled: {
+            type: Boolean as PropType<boolean>,
+            default: false
+        }
+    });
+
+    /** The camper is chosen before the form; their name isn't edited here. */
+    const isName = computed<boolean>(() => props.field.personFieldType === RegistrationPersonFieldType.FirstName
+        || props.field.personFieldType === RegistrationPersonFieldType.LastName);
+
+    const component = computed(() => {
+        switch (props.field.personFieldType) {
+            case RegistrationPersonFieldType.FirstName:
+            case RegistrationPersonFieldType.LastName:
+            case RegistrationPersonFieldType.MiddleName:
+                return TextBox;
+            case RegistrationPersonFieldType.Email:
+                return EmailBox;
+            case RegistrationPersonFieldType.Gender:
+                return GenderDropDownList;
+            case RegistrationPersonFieldType.Birthdate:
+            case RegistrationPersonFieldType.AnniversaryDate:
+                return BirthdayPicker;
+            case RegistrationPersonFieldType.Address:
+                return AddressControl;
+            case RegistrationPersonFieldType.HomePhone:
+            case RegistrationPersonFieldType.WorkPhone:
+            case RegistrationPersonFieldType.MobilePhone:
+                return PhoneNumberBox;
+            case RegistrationPersonFieldType.Campus:
+            case RegistrationPersonFieldType.MaritalStatus:
+            case RegistrationPersonFieldType.ConnectionStatus:
+            case RegistrationPersonFieldType.Grade:
+            case RegistrationPersonFieldType.Race:
+            case RegistrationPersonFieldType.Ethnicity:
+                return DropDownList;
+            default:
+                return null;
+        }
+    });
+
+    const controlProps = computed<Record<string, unknown>>(() => {
+        const result: Record<string, unknown> = {
+            rules: props.field.isRequired ? "required" : "",
+            disabled: props.disabled || isName.value
+        };
+
+        switch (props.field.personFieldType) {
+            case RegistrationPersonFieldType.FirstName: result.label = "First Name"; break;
+            case RegistrationPersonFieldType.LastName: result.label = "Last Name"; break;
+            case RegistrationPersonFieldType.MiddleName: result.label = "Middle Name"; break;
+            case RegistrationPersonFieldType.Email: result.label = "Email"; break;
+            case RegistrationPersonFieldType.Birthdate: result.label = "Birthday"; break;
+            case RegistrationPersonFieldType.AnniversaryDate: result.label = "Anniversary Date"; break;
+            case RegistrationPersonFieldType.Address: result.label = "Address"; break;
+            case RegistrationPersonFieldType.HomePhone: result.label = "Home Phone"; break;
+            case RegistrationPersonFieldType.WorkPhone: result.label = "Work Phone"; break;
+            case RegistrationPersonFieldType.MobilePhone: result.label = "Mobile Phone"; break;
+            case RegistrationPersonFieldType.Campus: result.label = "Campus"; result.items = props.lists.campuses ?? []; break;
+            case RegistrationPersonFieldType.MaritalStatus: result.label = "Marital Status"; result.items = props.lists.maritalStatuses ?? []; break;
+            case RegistrationPersonFieldType.ConnectionStatus: result.label = "Connection Status"; result.items = props.lists.connectionStatuses ?? []; break;
+            case RegistrationPersonFieldType.Grade: result.label = "Grade"; result.items = props.lists.grades ?? []; break;
+            case RegistrationPersonFieldType.Race: result.label = "Race"; result.items = props.lists.races ?? []; break;
+            case RegistrationPersonFieldType.Ethnicity: result.label = "Ethnicity"; result.items = props.lists.ethnicities ?? []; break;
+        }
+
+        return result;
+    });
+
+    // Rock's starting value for a field the person has no answer for yet.
+    if (!(props.field.guid in props.fieldValues)) {
+        switch (props.field.personFieldType) {
+            case RegistrationPersonFieldType.Birthdate:
+            case RegistrationPersonFieldType.AnniversaryDate:
+                props.fieldValues[props.field.guid] = undefined;
+                break;
+            case RegistrationPersonFieldType.Address:
+                props.fieldValues[props.field.guid] = {};
+                break;
+            default:
+                props.fieldValues[props.field.guid] = "";
+        }
+    }
+</script>
