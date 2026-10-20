@@ -145,8 +145,7 @@
         </Rock:ModalDialog>
 
         <Rock:NotificationBox runat="server" NotificationBoxType="Warning" ID="nbChange" Visible="false">
-            Changes have been saved. If birthday or grade have been changed, the check-in information on this page may not
-            be accurate. To update check-in information reload page. 
+            Changes have been saved.
         </Rock:NotificationBox>
 
         <!-- New Family -->

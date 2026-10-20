@@ -183,10 +183,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         /// <summary>
         /// Re-runs the check-in workflow after a person is added or their age or grade changes, keeping the rooms
-        /// already selected for the family. Unlike ActivateFamily, an error shows a warning instead of leaving the family.
+        /// already selected for the family. Like ActivateFamily, an error goes back to the previous page.
         /// </summary>
         /// <param name="changedPersonId">The person who was added or changed. Their selections in groups that are now excluded are dropped.</param>
-        private void RefreshFamilyOptions( int changedPersonId )
+        /// <returns>false if the workflow failed and the page is navigating away.</returns>
+        private bool RefreshFamilyOptions( int changedPersonId )
         {
             // The workflow rebuilds every family member's group types, which clears their selections, so remember them first
             var selectedScheduleKeys = new HashSet<string>( CurrentCheckInState.CheckIn.CurrentFamily.People
@@ -199,6 +200,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             List<string> errorMessages = new List<string>();
             ProcessActivity( GetAttributeValue( "WorkflowActivity" ), out errorMessages );
+            if ( errorMessages.Any() )
+            {
+                // Rock stops at the first failed action, so the filters after it never ran and the family's options
+                // can't be trusted. Start a new workflow next time, so the failed activity doesn't run first on every
+                // later activity in this session.
+                CurrentWorkflow = null;
+                SaveState();
+                NavigateToPreviousPage();
+                return false;
+            }
 
             foreach ( var checkinPerson in CurrentCheckInState.CheckIn.CurrentFamily.People )
             {
@@ -222,20 +233,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
 
-            if ( errorMessages.Any() )
-            {
-                // Start a new workflow next time. Otherwise the failed activity stays active and runs first on every
-                // later activity in this session, including Complete Check-in.
-                CurrentWorkflow = null;
-            }
-
             SaveState();
             DisplayFamilyMemberMenu();
-
-            if ( errorMessages.Any() )
-            {
-                maWarning.Show( "The changes were saved, but the check-in options could not be refreshed: " + string.Join( " ", errorMessages ).EncodeHtml(), ModalAlertType.Warning );
-            }
+            return true;
         }
 
         private static string GetScheduleKey( CheckInPerson checkinPerson, CheckInGroup group, CheckInLocation location, CheckInSchedule schedule )
@@ -473,11 +473,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            int selectedPersonId;
+            // BuildGroupTypeModal handles a selected person who isn't in the check-in state
             if ( ViewState["SelectedPersonId"] != null )
             {
-                selectedPersonId = ( int ) ViewState["SelectedPersonId"];
-                var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).First();
                 CheckinModal();
             }
         }
@@ -753,8 +751,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
             ViewState["SelectedPersonId"] = person.Id;
-            RefreshFamilyOptions( person.Id );
-            EditPerson( person );
+            if ( RefreshFamilyOptions( person.Id ) )
+            {
+                EditPerson( person );
+            }
         }
 
         private void EditPerson( Person person, bool setValue = true )
@@ -925,7 +925,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             if ( person.BirthDate != originalBirthDate || person.GraduationYear != originalGraduationYear )
             {
                 // Age and grade decide which groups a person can check into, so rebuild their options
-                RefreshFamilyOptions( person.Id );
+                if ( !RefreshFamilyOptions( person.Id ) )
+                {
+                    return;
+                }
             }
             else
             {
