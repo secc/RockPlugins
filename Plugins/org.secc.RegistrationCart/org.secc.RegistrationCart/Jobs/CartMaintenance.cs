@@ -12,39 +12,88 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using org.secc.RegistrationCart.Domain;
 using org.secc.RegistrationCart.Model;
+using org.secc.RegistrationCart.Services;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Jobs;
+using Rock.Model;
 
 namespace org.secc.RegistrationCart.Jobs
 {
     /// <summary>
-    /// Housekeeping for Registration Cart: closes carts nobody has touched in a while. Open carts
-    /// hold no seats, so this is only so a family coming back months later starts fresh.
+    /// Housekeeping for Registration Cart: closes carts nobody has touched in a while (open carts
+    /// hold no seats, so this is only so a family coming back months later starts fresh), and
+    /// finishes signed documents whose PDF failed when their registration was paid for.
     /// </summary>
     [DisplayName( "Registration Cart Maintenance" )]
-    [Description( "Marks open Registration Cart carts nobody has changed in a while as abandoned." )]
+    [Description( "Marks open Registration Cart carts nobody has changed in a while as abandoned, and makes the PDFs of signed documents that failed at checkout." )]
 
     [IntegerField( "Abandon Open Carts After (days)", Key = AttributeKey.AbandonAfterDays, IsRequired = false, DefaultIntegerValue = 30, Order = 0,
         Description = "An open cart with no changes for this many days is marked abandoned; the family's next visit starts a new cart. 0 turns this off." )]
+    [IntegerField( "Retry Signed Document PDFs After (minutes)", Key = AttributeKey.DocumentRetryMinutes, IsRequired = false, DefaultIntegerValue = 10, Order = 1,
+        Description = "A signed document from a cart checkout that still has no PDF this long after it was saved gets its PDF made (and its completion email sent) by this job." )]
     public class CartMaintenance : RockJob
     {
         private static class AttributeKey
         {
             public const string AbandonAfterDays = "AbandonAfterDays";
+            public const string DocumentRetryMinutes = "DocumentRetryMinutes";
         }
 
         public override void Execute()
         {
             var results = new List<string>();
             results.Add( AbandonIdleCarts() );
+            results.Add( FinishSignedDocuments() );
             Result = results.Where( r => r.IsNotNullOrWhiteSpace() ).JoinStrings( " " );
+        }
+
+        /// <summary>
+        /// Signed documents saved with a cart's registrations whose PDF failed after the checkout:
+        /// makes the PDF and sends the completion email, as checkout would have.
+        /// </summary>
+        private string FinishSignedDocuments()
+        {
+            var minutes = GetAttributeValue( AttributeKey.DocumentRetryMinutes ).AsIntegerOrNull() ?? 10;
+            var cutoff = RockDateTime.Now.AddMinutes( -minutes );
+            List<int> documentIds;
+            using ( var rockContext = new RockContext() )
+            {
+                documentIds = new CartLineItemService( rockContext ).Queryable()
+                    .Where( l => l.RegistrationId.HasValue )
+                    .SelectMany( l => l.Registration.Registrants )
+                    .Where( r => r.SignatureDocumentId.HasValue
+                        && r.SignatureDocument.BinaryFileId == null
+                        && r.SignatureDocument.CreatedDateTime < cutoff )
+                    .Select( r => r.SignatureDocumentId.Value )
+                    .Distinct()
+                    .ToList();
+            }
+
+            var finished = 0;
+            foreach ( var documentId in documentIds )
+            {
+                try
+                {
+                    using ( var rockContext = new RockContext() )
+                    {
+                        finished += new RegistrationSignatures( rockContext ).Complete( documentId ) ? 1 : 0;
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( new Exception( $"Registration Cart: the PDF for signed document {documentId} still could not be made.", ex ) );
+                }
+            }
+
+            return documentIds.Any() ? $"{finished} of {documentIds.Count} signed document PDF{( documentIds.Count == 1 ? "" : "s" )} made." : "";
         }
 
         /// <summary>Open carts with no change to the cart or its lines for the configured days become Abandoned.</summary>

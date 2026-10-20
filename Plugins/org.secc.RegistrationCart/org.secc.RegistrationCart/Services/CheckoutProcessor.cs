@@ -32,14 +32,19 @@ namespace org.secc.RegistrationCart.Services
 {
     /// <summary>
     /// Turns an open cart into money and registrations:
-    ///   0. claims the cart (Open → Processing) with one conditional UPDATE,
+    ///   0. claims the cart (Open → Processing) with one conditional UPDATE, places seats and
+    ///      checks everything that could stop the registrations saving (answers, signed
+    ///      documents),
     ///   1. charges the gateway token once,
-    ///   2. creates one Rock Registration (+ registrant + fees) per line item,
-    ///   3. records one FinancialTransaction (batched) with a detail line per registration,
-    ///   4. closes the cart.
+    ///   2. in one transaction: creates one Rock Registration (+ registrant, fees, registrant
+    ///      answers and signed document) per line item, records one FinancialTransaction
+    ///      (batched) with a detail line per registration, and closes the cart,
+    ///   3. then, each step on its own: the signed documents' PDFs, the answers written to the
+    ///      people, and what Rock does after a registration is saved.
     /// The cart row is the idempotency record: only the request that claims the cart can
     /// charge it, and the cart goes back to Open only when nothing was charged
-    /// (<see cref="CheckoutRules.StatusAfterStop"/>).
+    /// (<see cref="CheckoutRules.StatusAfterStop"/>). Only what must stand with the payment is
+    /// in the transaction, so a failure after the charge can't leave money with nothing in Rock.
     /// </summary>
     public class CheckoutProcessor
     {
@@ -174,7 +179,9 @@ namespace org.secc.RegistrationCart.Services
                 }
             }
 
-            // Each camper's answers, for where they are placed now.
+            // Each camper's answers, for where they are placed now, and the document they signed
+            // for them.
+            var signatures = new RegistrationSignatures( _rockContext );
             var forms = new RegistrationForms( _rockContext );
             var catalog = new CatalogService( _rockContext );
             var personAliasService = new PersonAliasService( _rockContext );
@@ -190,6 +197,11 @@ namespace org.secc.RegistrationCart.Services
                 if ( answerProblems.Any() )
                 {
                     problems.Add( new CheckoutProblem( $"Please finish {Possessive( line.CartRegistrant.FirstName )} form for \"{instance.Name}\": {string.Join( " ", answerProblems )}", new[] { line.Id } ) );
+                }
+                else if ( signatures.RequiredDocument( instance.RegistrationTemplate ) != null
+                    && !signatures.IsUsable( instance.RegistrationTemplate, person, line.SignatureData, instance.Id, RegistrationForms.FromJson( line.FieldValuesJson ) ) )
+                {
+                    problems.Add( new CheckoutProblem( $"{Possessive( line.CartRegistrant.FirstName )} document for \"{instance.Name}\" needs to be signed again. Please edit the registration.", new[] { line.Id } ) );
                 }
             }
 
@@ -216,6 +228,7 @@ namespace org.secc.RegistrationCart.Services
             PricedCart priced;
             IGatewayComponent gateway = null;
             ReferencePaymentInfo paymentInfo = null;
+            Dictionary<int, RegistrationSignatures.PreparedDocument> documents;
 
             // Nothing below can have charged the card until the gateway call, so any failure
             // here hands a claimed cart back.
@@ -303,6 +316,20 @@ namespace org.secc.RegistrationCart.Services
                         $"Cart changed: shopper was shown {expectedTotal:0.00}, cart priced to {priced.Total:0.00}." );
                 }
 
+                // The signed documents, rendered and checked now: once the card is charged the
+                // registrations must save, so nothing that can fail (the document's Lava, a value
+                // Rock refuses) is left until after the charge.
+                documents = PrepareDocuments( cart, payer );
+                var documentProblems = documents
+                    .Where( d => d.Value?.Error != null )
+                    .Select( d => new CheckoutProblem( $"{Possessive( cart.LineItems.First( l => l.Id == d.Key ).CartRegistrant?.FirstName )} signed document: {d.Value.Error} Please edit the registration.", new[] { d.Key } ) )
+                    .ToList();
+                if ( documentProblems.Any() )
+                {
+                    result.Problems = documentProblems;
+                    return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", documentProblems.Select( p => p.Message ) ) );
+                }
+
                 var dateTexts = new CatalogService( _rockContext ).GetEventDateTexts( cart.LineItems.Select( l => l.RegistrationInstanceId ) );
                 var lineInstance = cart.LineItems.ToDictionary( l => l.Id, l => l.RegistrationInstanceId );
                 result.ItemDescriptions = priced.Lines.Select( l =>
@@ -387,12 +414,12 @@ namespace org.secc.RegistrationCart.Services
             {
                 _rockContext.WrapTransaction( () =>
                 {
-                    var registrationIds = CreateRegistrations( cart, payer, priced );
+                    var registrationIds = CreateRegistrations( cart, payer, priced, documents );
                     result.RegistrationIds = registrationIds.Values.ToList();
 
                     if ( transaction != null )
                     {
-                        SaveTransaction( transaction, cart, payer, priced, registrationIds, financialGateway, batchNamePrefix );
+                        SaveTransaction( transaction, cart, payer, priced, registrationIds, financialGateway, gateway, paymentInfo, batchNamePrefix );
                         cart.FinancialTransactionId = transaction.Id;
                         result.TransactionId = transaction.Id;
                     }
@@ -424,7 +451,7 @@ namespace org.secc.RegistrationCart.Services
                 return result;
             }
 
-            // ---- 4. What Rock does after a registration is saved -------------------
+            // ---- 4. Documents' PDFs, the people's answers, what Rock does after saving ----
             var lines = cart.LineItems
                 .Where( l => l.RegistrationId.HasValue )
                 .ToDictionary( l => l.RegistrationId.Value );
@@ -434,99 +461,111 @@ namespace org.secc.RegistrationCart.Services
         }
 
         /// <summary>
-        /// Once the registrations are committed, does what Rock's own RegistrationEntry block does
-        /// after saving a new registration: registrar history and notes, places registrants (not
-        /// wait-listed) in the instance's linked group, queues the confirmation email and the
-        /// staff notification, and launches the template's registrant workflow and the template
-        /// and instance registration workflows. Each registration is handled on its own context;
-        /// failures are logged, never thrown, because the registrations and the payment stand.
+        /// Once the registrations are committed, for each one: makes its signed documents' PDFs
+        /// (and sends the completion email that carries them), writes the person's answers, then
+        /// does what Rock's own RegistrationEntry block does after saving a new registration:
+        /// registrar history and notes, places registrants (not wait-listed) in the instance's
+        /// linked group, queues the confirmation email and the staff notification, and launches
+        /// the template's registrant workflow and the template and instance registration
+        /// workflows. Each step runs on its own context and a failure is logged, never thrown: the
+        /// registrations and the payment stand, and one step failing doesn't skip the others.
         /// </summary>
         private void RunPostSave( IEnumerable<int> registrationIds, Person payer, IDictionary<int, CartLineItem> linesByRegistration )
         {
             foreach ( var registrationId in registrationIds )
             {
-                try
+                var line = linesByRegistration.GetValueOrNull( registrationId );
+                var answers = RegistrationForms.FromJson( line?.FieldValuesJson );
+
+                // The documents were saved with the registration; the maintenance job retries a PDF that fails here.
+                PostSaveStep( registrationId, "the signed document's PDF", ( rockContext, registration, settings ) =>
                 {
-                    using ( var rockContext = new RockContext() )
+                    var signatures = new RegistrationSignatures( rockContext );
+                    foreach ( var documentId in registration.Registrants.Where( r => r.SignatureDocumentId.HasValue ).Select( r => r.SignatureDocumentId.Value ).Distinct().ToList() )
                     {
-                        var registration = new RegistrationService( rockContext ).Queryable()
-                            .Include( r => r.RegistrationInstance.RegistrationTemplate )
-                            .Include( r => r.Registrants.Select( rr => rr.PersonAlias.Person ) )
-                            .FirstOrDefault( r => r.Id == registrationId );
-                        if ( registration == null )
+                        signatures.Complete( documentId );
+                    }
+                } );
+
+                // The answers stay on the cart line, so support can apply them by hand if this fails.
+                PostSaveStep( registrationId, "writing the answers to the person", ( rockContext, registration, settings ) =>
+                {
+                    var forms = new RegistrationForms( rockContext );
+                    foreach ( var registrant in registration.Registrants.Where( r => r.PersonAlias?.Person != null ) )
+                    {
+                        forms.ApplyToPerson( registration.RegistrationInstance.RegistrationTemplate, registrant.PersonAlias.Person, answers );
+                    }
+                } );
+
+                PostSaveStep( registrationId, "the registrar's notes and history", ( rockContext, registration, settings ) =>
+                    registration.SavePersonNotesAndHistory( payer, payer.PrimaryAliasId, new List<int>() ) );
+
+                PostSaveStep( registrationId, "placing the registrants in the group", ( rockContext, registration, settings ) =>
+                    AddRegistrantsToGroup( rockContext, settings, registration, answers ) );
+
+                PostSaveStep( registrationId, "the confirmation email", ( rockContext, registration, settings ) =>
+                    new ProcessSendRegistrationConfirmation.Message { RegistrationId = registration.Id, AppRoot = AppRoot, ThemeRoot = ThemeRoot }.Send() );
+
+                PostSaveStep( registrationId, "the staff notification", ( rockContext, registration, settings ) =>
+                    new ProcessSendRegistrationNotification.Message { RegistrationId = registration.Id, AppRoot = AppRoot, ThemeRoot = ThemeRoot }.Send() );
+
+                PostSaveStep( registrationId, "the registrant workflow", ( rockContext, registration, settings ) =>
+                {
+                    foreach ( var registrant in registration.Registrants.Where( r => r.PersonAlias?.Person != null ) )
+                    {
+                        var parameters = new Dictionary<string, string>
                         {
-                            continue;
-                        }
+                            { "RegistrationId", registration.Id.ToString() },
+                            { "RegistrationRegistrantId", registrant.Id.ToString() }
+                        };
+                        registrant.LaunchWorkflow( settings.RegistrantWorkflowTypeId, registration.ToString(), parameters, null );
+                    }
+                } );
 
-                        var settings = new RegistrationSettings( registration.RegistrationInstance.RegistrationTemplate, registration.RegistrationInstance );
-
-                        var line = linesByRegistration.GetValueOrNull( registration.Id );
-                        var answers = RegistrationForms.FromJson( line?.FieldValuesJson );
-
-                        registration.SavePersonNotesAndHistory( payer, payer.PrimaryAliasId, new List<int>() );
-                        AddRegistrantsToGroup( rockContext, settings, registration, answers );
-                        SaveSignatureDocuments( rockContext, registration, payer, line?.SignatureData, answers );
-
-                        new ProcessSendRegistrationConfirmation.Message
-                        {
-                            RegistrationId = registration.Id,
-                            AppRoot = AppRoot,
-                            ThemeRoot = ThemeRoot
-                        }.Send();
-
-                        new ProcessSendRegistrationNotification.Message
-                        {
-                            RegistrationId = registration.Id,
-                            AppRoot = AppRoot,
-                            ThemeRoot = ThemeRoot
-                        }.Send();
-
-                        foreach ( var registrant in registration.Registrants.Where( r => r.PersonAlias?.Person != null ) )
-                        {
-                            var parameters = new Dictionary<string, string>
-                            {
-                                { "RegistrationId", registration.Id.ToString() },
-                                { "RegistrationRegistrantId", registrant.Id.ToString() }
-                            };
-                            registrant.LaunchWorkflow( settings.RegistrantWorkflowTypeId, registration.ToString(), parameters, null );
-                        }
-
-                        foreach ( var workflowTypeId in settings.WorkflowTypeIds )
+                // Each registration workflow on its own (e.g. financial assistance review), so one failing doesn't stop the next.
+                PostSaveStep( registrationId, "the registration workflows", ( rockContext, registration, settings ) =>
+                {
+                    foreach ( var workflowTypeId in settings.WorkflowTypeIds )
+                    {
+                        try
                         {
                             registration.LaunchWorkflow( workflowTypeId, registration.ToString(), null, null );
                         }
+                        catch ( Exception ex )
+                        {
+                            ExceptionLogService.LogException( new Exception( $"Registration Cart: registration workflow type {workflowTypeId} failed to launch for registration {registration.Id}.", ex ) );
+                        }
                     }
-                }
-                catch ( Exception ex )
-                {
-                    ExceptionLogService.LogException( new Exception( $"Registration Cart: post-save steps failed for registration {registrationId}.", ex ) );
-                }
+                } );
             }
         }
 
         /// <summary>
-        /// Creates the inline signature document the shopper signed for the registrant (or links
-        /// the earlier one they reused). Done after commit so a PDF failure can't undo a paid
-        /// registration; a failure is logged with the registration so staff can collect it.
+        /// One post-save step for one registration, read fresh on its own context so a failure
+        /// (logged with the registration) can't stop the steps after it or leave half-saved
+        /// changes for them to trip over.
         /// </summary>
-        private static void SaveSignatureDocuments( RockContext rockContext, Registration registration, Person payer, string signatureData, Dictionary<Guid, object> answers )
+        private static void PostSaveStep( int registrationId, string step, Action<RockContext, Registration, RegistrationSettings> action )
         {
-            if ( signatureData.IsNullOrWhiteSpace() )
+            try
             {
-                return;
-            }
+                using ( var rockContext = new RockContext() )
+                {
+                    var registration = new RegistrationService( rockContext ).Queryable()
+                        .Include( r => r.RegistrationInstance.RegistrationTemplate )
+                        .Include( r => r.Registrants.Select( rr => rr.PersonAlias.Person ) )
+                        .FirstOrDefault( r => r.Id == registrationId );
+                    if ( registration == null )
+                    {
+                        return;
+                    }
 
-            var signatures = new RegistrationSignatures( rockContext );
-            foreach ( var registrant in registration.Registrants.Where( r => r.PersonAlias?.Person != null ) )
+                    action( rockContext, registration, new RegistrationSettings( registration.RegistrationInstance.RegistrationTemplate, registration.RegistrationInstance ) );
+                }
+            }
+            catch ( Exception ex )
             {
-                try
-                {
-                    signatures.SaveForRegistrant( registration.RegistrationInstance, payer, registrant.PersonAlias.Person, registrant, signatureData, answers );
-                }
-                catch ( Exception ex )
-                {
-                    ExceptionLogService.LogException( new Exception( $"Registration Cart: the signed document for registration {registration.Id} ({registrant.PersonAlias.Person.FullName}) could not be saved.", ex ) );
-                }
+                ExceptionLogService.LogException( new Exception( $"Registration Cart: {step} failed for registration {registrationId}. The registration and payment stand.", ex ) );
             }
         }
 
@@ -718,12 +757,39 @@ namespace org.secc.RegistrationCart.Services
             return errorMessage.IsNotNullOrWhiteSpace() ? null : transaction;
         }
 
-        /// <summary>Creates one Registration per line item. Returns line item id → registration id.</summary>
-        private Dictionary<int, int> CreateRegistrations( Cart cart, Person payer, PricedCart priced )
+        /// <summary>
+        /// Before the charge: each line's signed document, ready to save (by line item id; no
+        /// entry when the template has none).
+        /// </summary>
+        private Dictionary<int, RegistrationSignatures.PreparedDocument> PrepareDocuments( Cart cart, Person payer )
+        {
+            var signatures = new RegistrationSignatures( _rockContext );
+            var personAliasService = new PersonAliasService( _rockContext );
+            var documents = new Dictionary<int, RegistrationSignatures.PreparedDocument>();
+            foreach ( var line in cart.LineItems )
+            {
+                var person = personAliasService.GetPerson( line.CartRegistrant.PersonAliasId );
+                var prepared = signatures.Prepare( line.RegistrationInstance, payer, person, line.SignatureData, RegistrationForms.FromJson( line.FieldValuesJson ) );
+                if ( prepared != null )
+                {
+                    documents[line.Id] = prepared;
+                }
+            }
+
+            return documents;
+        }
+
+        /// <summary>
+        /// Creates one Registration per line item, with its registrant, fees, registrant answers and
+        /// signed document. Returns line item id → registration id.
+        /// </summary>
+        private Dictionary<int, int> CreateRegistrations( Cart cart, Person payer, PricedCart priced, Dictionary<int, RegistrationSignatures.PreparedDocument> documents )
         {
             var registrationService = new RegistrationService( _rockContext );
             var instanceService = new RegistrationInstanceService( _rockContext );
             var feeItemService = new RegistrationTemplateFeeItemService( _rockContext );
+            var forms = new RegistrationForms( _rockContext );
+            var signatures = new RegistrationSignatures( _rockContext );
             var map = new Dictionary<int, int>();
 
             foreach ( var line in cart.LineItems )
@@ -788,12 +854,13 @@ namespace org.secc.RegistrationCart.Services
 
                 _rockContext.SaveChanges();
 
-                // The registrant's answers to the template's forms go to the person and the registrant
-                // (group member answers once they are in the group, after commit).
-                var registrantPerson = new PersonAliasService( _rockContext ).GetPerson( line.CartRegistrant.PersonAliasId );
-                if ( registrantPerson != null )
+                // The registrant's own answers and signed document stand with the registration. The
+                // person's answers are written after commit (group member answers once they are in
+                // the group).
+                forms.ApplyToRegistrant( instance.RegistrationTemplate, registrant, RegistrationForms.FromJson( line.FieldValuesJson ) );
+                if ( documents.TryGetValue( line.Id, out var document ) )
                 {
-                    new RegistrationForms( _rockContext ).ApplyToPersonAndRegistrant( instance.RegistrationTemplate, registrantPerson, registrant, RegistrationForms.FromJson( line.FieldValuesJson ) );
+                    signatures.Attach( registrant, document );
                 }
 
                 line.RegistrationId = registration.Id;
@@ -805,7 +872,7 @@ namespace org.secc.RegistrationCart.Services
         }
 
         private void SaveTransaction( FinancialTransaction transaction, Cart cart, Person payer, PricedCart priced,
-            Dictionary<int, int> registrationIds, FinancialGateway financialGateway, string batchNamePrefix )
+            Dictionary<int, int> registrationIds, FinancialGateway financialGateway, IGatewayComponent gateway, ReferencePaymentInfo paymentInfo, string batchNamePrefix )
         {
             var instanceService = new RegistrationInstanceService( _rockContext );
 
@@ -818,6 +885,13 @@ namespace org.secc.RegistrationCart.Services
             if ( transaction.FinancialPaymentDetail == null )
             {
                 transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
+            }
+
+            // As Rock's RegistrationEntry: the gateway knows the payment details best, so this only
+            // fills in what it left unset.
+            if ( paymentInfo != null )
+            {
+                transaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway as GatewayComponent, _rockContext );
             }
 
             var registrationEntityTypeId = EntityTypeCache.Get<Registration>().Id;

@@ -14,6 +14,7 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -34,9 +35,13 @@ namespace org.secc.RegistrationCart.Services
     /// The template's inline signature document (Rock's "embed" signature action), handled the
     /// way Rock's Obsidian RegistrationEntry handles it: the document is rendered from the
     /// registrant's answers, signed in the browser with Rock's electronic signature control, and
-    /// the signed data comes back encrypted, bound by a hash to the answers and the HTML that was
-    /// signed. Unlike Rock, the SignatureDocument (and its PDF) is created after the paid
-    /// registrations commit, so a PDF failure can't undo a registration someone paid for.
+    /// the signed data comes back encrypted, bound by a hash to the camper, the answers and the
+    /// HTML that was signed. At checkout the document is rendered and checked before the card is
+    /// charged (<see cref="Prepare"/>), saved with the registration in the same transaction
+    /// (<see cref="Attach"/>), and its PDF made once the registrations commit
+    /// (<see cref="Complete"/>), so a PDF failure never undoes a registration someone paid for
+    /// and every paid registration has its signed document. The maintenance job retries PDFs
+    /// that failed.
     /// </summary>
     public class RegistrationSignatures
     {
@@ -140,40 +145,123 @@ namespace org.secc.RegistrationCart.Services
             return signed != null && signed.SignedFor == Hash( SignedFor( person.Id, registrationInstanceId, template, answers ) );
         }
 
+        /// <summary>A cart line's signed document, ready to save with its registration.</summary>
+        public class PreparedDocument
+        {
+            /// <summary>A new document (not saved, no PDF yet).</summary>
+            public SignatureDocument Document { get; set; }
+
+            /// <summary>A still-valid document the person signed before, to link instead.</summary>
+            public int? ExistingDocumentId { get; set; }
+
+            /// <summary>Why the document can't be saved; checkout stops before the charge.</summary>
+            public string Error { get; set; }
+        }
+
         /// <summary>
-        /// Creates the registrant's signature document (re-rendering the HTML from the saved
-        /// answers rather than trusting what the browser sent, as Rock does), links it to the
-        /// registrant, and sends the template's completion communication. Returns the document id.
+        /// Before the charge: the line's signed document, rendered again from the saved answers
+        /// (rather than trusting what the browser sent, as Rock does) and checked against Rock's
+        /// rules, so saving it with the paid registration can't fail. Null when the template has
+        /// no inline document.
         /// </summary>
-        public int? SaveForRegistrant( RegistrationInstance instance, Person registrar, Person person, RegistrationRegistrant registrant, string signatureData, Dictionary<Guid, object> answers )
+        public PreparedDocument Prepare( RegistrationInstance instance, Person registrar, Person person, string signatureData, Dictionary<Guid, object> answers )
         {
             var template = RequiredDocument( instance.RegistrationTemplate );
-            if ( template == null || signatureData.IsNullOrWhiteSpace() )
+            if ( template == null )
             {
                 return null;
             }
 
-            var documentService = new SignatureDocumentService( _rockContext );
-            if ( signatureData.StartsWith( ExistingPrefix ) )
+            if ( signatureData.IsNullOrWhiteSpace() )
             {
-                var existingId = documentService.GetId( signatureData.Substring( ExistingPrefix.Length ).AsGuid() );
-                registrant.SignatureDocumentId = existingId;
-                _rockContext.SaveChanges();
-                return existingId;
+                return new PreparedDocument { Error = "The document hasn't been signed." };
             }
 
-            var signed = Encryption.DecryptString( signatureData ).FromJsonOrThrow<SignedData>();
+            if ( signatureData.StartsWith( ExistingPrefix ) )
+            {
+                var existingId = new SignatureDocumentService( _rockContext ).GetId( signatureData.Substring( ExistingPrefix.Length ).AsGuid() );
+                return existingId.HasValue
+                    ? new PreparedDocument { ExistingDocumentId = existingId }
+                    : new PreparedDocument { Error = "The document signed earlier can't be found. Please sign it again." };
+            }
+
+            var signed = Encryption.DecryptString( signatureData ).FromJsonOrNull<SignedData>();
+            if ( signed == null )
+            {
+                return new PreparedDocument { Error = "The signature can't be read. Please sign the document again." };
+            }
+
             var document = CreateDocument( template, signed, instance, registrar, person, answers );
-            documentService.Add( document );
-            registrant.SignatureDocument = document;
+            var results = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
+            if ( !System.ComponentModel.DataAnnotations.Validator.TryValidateObject( document, new System.ComponentModel.DataAnnotations.ValidationContext( document ), results, true ) )
+            {
+                return new PreparedDocument { Error = "The signed document can't be saved: " + results.Select( r => r.ErrorMessage ).JoinStrings( " " ) };
+            }
+
+            return new PreparedDocument { Document = document };
+        }
+
+        /// <summary>Links the prepared document to the registrant (adding a new one); saved with the registration.</summary>
+        public void Attach( RegistrationRegistrant registrant, PreparedDocument prepared )
+        {
+            if ( prepared?.ExistingDocumentId != null )
+            {
+                registrant.SignatureDocumentId = prepared.ExistingDocumentId;
+            }
+            else if ( prepared?.Document != null )
+            {
+                new SignatureDocumentService( _rockContext ).Add( prepared.Document );
+                registrant.SignatureDocument = prepared.Document;
+            }
+        }
+
+        /// <summary>
+        /// Makes a saved document's PDF (from its stored signed text and signature, as Rock's
+        /// RegistrationEntry does when it saves one) and then sends the template's completion
+        /// communication, which carries the PDF. Does nothing for a document that has its PDF.
+        /// True when it made one.
+        /// </summary>
+        public bool Complete( int signatureDocumentId )
+        {
+            var document = new SignatureDocumentService( _rockContext ).Queryable()
+                .Include( d => d.SignatureDocumentTemplate )
+                .Include( d => d.SignedByPersonAlias.Person )
+                .FirstOrDefault( d => d.Id == signatureDocumentId );
+            if ( document == null || document.BinaryFileId.HasValue || document.SignedDocumentText.IsNullOrWhiteSpace() )
+            {
+                return false;
+            }
+
+            var template = document.SignatureDocumentTemplate;
+            var signatureInformationHtml = ElectronicSignatureHelper.GetSignatureInformationHtml( new GetSignatureInformationHtmlOptions
+            {
+                SignatureType = template.SignatureType,
+                SignedName = document.SignedName,
+                DrawnSignatureDataUrl = document.SignatureData,
+                SignedByPerson = document.SignedByPersonAlias?.Person,
+                SignedDateTime = document.SignedDateTime,
+                SignedClientIp = document.SignedClientIp,
+                SignatureVerificationHash = document.SignatureVerificationHash
+            } );
+            var signedHtml = ElectronicSignatureHelper.GetSignedDocumentHtml( document.SignedDocumentText, signatureInformationHtml );
+
+            using ( var pdfGenerator = new PdfGenerator() )
+            {
+                var binaryFileTypeId = template.BinaryFileTypeId ?? BinaryFileTypeCache.GetId( Rock.SystemGuid.BinaryFiletype.DIGITALLY_SIGNED_DOCUMENTS.AsGuid() );
+                document.BinaryFile = pdfGenerator.GetAsBinaryFileFromHtml( binaryFileTypeId ?? 0, document.Name, signedHtml );
+                document.BinaryFile.ParentEntityId = template.Id;
+                document.BinaryFile.ParentEntityTypeId = EntityTypeCache.Get<SignatureDocumentTemplate>().Id;
+                document.BinaryFile.IsTemporary = false;
+            }
+
             _rockContext.SaveChanges();
 
-            if ( template.CompletionSystemCommunication != null )
+            if ( template.CompletionSystemCommunicationId.HasValue )
             {
                 ElectronicSignatureHelper.SendSignatureCompletionCommunication( document.Id, out _ );
             }
 
-            return document.Id;
+            return true;
         }
 
         #region Rendering
@@ -240,7 +328,7 @@ namespace org.secc.RegistrationCart.Services
             }
         }
 
-        /// <summary>What Rock's RegistrationEntry builds, with the PDF of the signed document.</summary>
+        /// <summary>What Rock's RegistrationEntry builds, without the PDF (<see cref="Complete"/> makes it once the registration is saved).</summary>
         private SignatureDocument CreateDocument( SignatureDocumentTemplate template, SignedData signed, RegistrationInstance instance, Person registrar, Person person, Dictionary<Guid, object> answers )
         {
             // Encode what the browser sent, and don't trust its HTML: render it again from the saved answers.
@@ -264,28 +352,6 @@ namespace org.secc.RegistrationCart.Services
             };
 
             document.SignatureVerificationHash = SignatureDocumentService.CalculateSignatureVerificationHash( document );
-
-            var signatureInformationHtml = ElectronicSignatureHelper.GetSignatureInformationHtml( new GetSignatureInformationHtmlOptions
-            {
-                SignatureType = template.SignatureType,
-                SignedName = document.SignedName,
-                DrawnSignatureDataUrl = document.SignatureData,
-                SignedByPerson = registrar,
-                SignedDateTime = document.SignedDateTime,
-                SignedClientIp = document.SignedClientIp,
-                SignatureVerificationHash = document.SignatureVerificationHash
-            } );
-            var signedHtml = ElectronicSignatureHelper.GetSignedDocumentHtml( documentHtml, signatureInformationHtml );
-
-            using ( var pdfGenerator = new PdfGenerator() )
-            {
-                var binaryFileTypeId = template.BinaryFileTypeId ?? BinaryFileTypeCache.GetId( Rock.SystemGuid.BinaryFiletype.DIGITALLY_SIGNED_DOCUMENTS.AsGuid() );
-                document.BinaryFile = pdfGenerator.GetAsBinaryFileFromHtml( binaryFileTypeId ?? 0, document.Name, signedHtml );
-                document.BinaryFile.ParentEntityId = template.Id;
-                document.BinaryFile.ParentEntityTypeId = EntityTypeCache.Get<SignatureDocumentTemplate>().Id;
-                document.BinaryFile.IsTemporary = false;
-            }
-
             return document;
         }
 

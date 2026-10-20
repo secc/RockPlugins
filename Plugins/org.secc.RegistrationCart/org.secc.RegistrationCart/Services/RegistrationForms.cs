@@ -698,12 +698,25 @@ namespace org.secc.RegistrationCart.Services
         #region Writing answers at checkout
 
         /// <summary>
-        /// Writes the person field and person attribute answers to the registrant's person (and
-        /// the family's campus and home address), and the registrant attribute answers to the
-        /// registrant, honouring "lock if values exist". Mirrors Rock's RegistrationEntry.
-        /// The registrant must already be saved.
+        /// Writes the registrant attribute answers to the registrant (Rock writes these even when
+        /// unanswered). Part of saving the registration; the registrant must already be saved.
         /// </summary>
-        public void ApplyToPersonAndRegistrant( RegistrationTemplate template, Person person, RegistrationRegistrant registrant, Dictionary<Guid, object> values )
+        public void ApplyToRegistrant( RegistrationTemplate template, RegistrationRegistrant registrant, Dictionary<Guid, object> values )
+        {
+            registrant.LoadAttributes( _rockContext );
+            if ( ApplyAttributes( template.Forms.SelectMany( f => f.Fields ).ToList(), RegistrationFieldSource.RegistrantAttribute, registrant, values, writeBlanks: true ) )
+            {
+                registrant.SaveAttributeValues( _rockContext );
+            }
+        }
+
+        /// <summary>
+        /// Writes the person field and person attribute answers to the registrant's person (and
+        /// the family's campus and home address), honouring "lock if values exist". Mirrors Rock's
+        /// RegistrationEntry. Checkout does this once the paid registrations have committed, so a
+        /// value Rock refuses here can't undo them.
+        /// </summary>
+        public void ApplyToPerson( RegistrationTemplate template, Person person, Dictionary<Guid, object> values )
         {
             var fields = template.Forms.SelectMany( f => f.Fields ).ToList();
             var personChanges = new History.HistoryChangeList();
@@ -714,12 +727,6 @@ namespace org.secc.RegistrationCart.Services
             if ( ApplyPersonAttributes( template, person, values ) )
             {
                 person.SaveAttributeValues( _rockContext );
-            }
-
-            registrant.LoadAttributes( _rockContext );
-            if ( ApplyAttributes( fields, RegistrationFieldSource.RegistrantAttribute, registrant, values, writeBlanks: true ) )
-            {
-                registrant.SaveAttributeValues( _rockContext );
             }
 
             if ( personChanges.Any() )
