@@ -70,22 +70,12 @@ namespace org.secc.RegistrationCart.Services
         /// <summary>Theme root for the confirmation and notification emails.</summary>
         public string ThemeRoot { get; set; }
 
-        /// <summary>Result of <see cref="ReassignSeats"/>.</summary>
-        public class SeatCheck
-        {
-            /// <summary>Campers that don't fit a camp with no wait list. Checkout can't go on.</summary>
-            public List<string> Problems { get; } = new List<string>();
-
-            /// <summary>Lines moved onto or off the wait list (already set on the cart, not saved). The total changed.</summary>
-            public List<string> Changes { get; } = new List<string>();
-        }
-
         /// <summary>
         /// Problems that stop this cart checking out, at most one per registration instance.
         /// Empty = OK. Re-checks at checkout what held when each line was added: the instance
         /// and its template are active and shown in the cart, registration is open, the
         /// instance has an account, and each line's extras are still offered. Seats are
-        /// <see cref="ReassignSeats"/>.
+        /// <see cref="SeatPlanner"/>'s.
         /// </summary>
         public List<string> Validate( Cart cart )
         {
@@ -155,93 +145,6 @@ namespace org.secc.RegistrationCart.Services
             }
 
             return problems;
-        }
-
-        /// <summary>
-        /// Places this cart's campers in the seats each camp has left, in cart order (the order
-        /// they were added). Campers who don't fit go on the wait list when the template has
-        /// one, else they are problems. A camper whose place changed (the camp filled up, or a
-        /// spot opened) has <see cref="CartLineItem.IsWaitList"/> updated on the cart, unsaved,
-        /// and is listed in <see cref="SeatCheck.Changes"/>: the total changed, so the shopper
-        /// must confirm it again.
-        /// </summary>
-        public SeatCheck ReassignSeats( Cart cart )
-        {
-            var check = new SeatCheck();
-            if ( cart == null || cart.LineItems.Count == 0 )
-            {
-                return check;
-            }
-
-            var linesByInstance = cart.LineItems
-                .GroupBy( l => l.RegistrationInstanceId )
-                .ToDictionary( g => g.Key, g => g.OrderBy( l => l.Id ).ToList() );
-            var instanceIds = linesByInstance.Keys.ToList();
-            var instances = new RegistrationInstanceService( _rockContext ).Queryable()
-                .Include( i => i.RegistrationTemplate )
-                .Where( i => instanceIds.Contains( i.Id ) )
-                .ToDictionary( i => i.Id );
-            var taken = SeatsTakenByOthers( instanceIds, cart.Id );
-
-            foreach ( var instanceId in instanceIds )
-            {
-                if ( !instances.TryGetValue( instanceId, out var instance ) )
-                {
-                    continue; // Validate reports a missing instance.
-                }
-
-                var lines = linesByInstance[instanceId];
-                var seats = CheckoutRules.AssignSeats( instance.MaxAttendees, taken[instanceId], lines.Count, instance.RegistrationTemplate.WaitListEnabled );
-                if ( seats.Refused > 0 )
-                {
-                    check.Problems.Add( seats.Seated == 0
-                        ? $"\"{instance.Name}\" is full."
-                        : $"\"{instance.Name}\" has only {seats.Seated} spot{( seats.Seated == 1 ? "" : "s" )} left, but your cart has {lines.Count}." );
-                    continue;
-                }
-
-                for ( var i = 0; i < lines.Count; i++ )
-                {
-                    var line = lines[i];
-                    var waitList = i >= seats.Seated;
-                    if ( line.IsWaitList == waitList )
-                    {
-                        continue;
-                    }
-
-                    line.IsWaitList = waitList;
-                    var name = line.CartRegistrant?.DisplayName ?? "A camper";
-                    check.Changes.Add( waitList
-                        ? $"\"{instance.Name}\" filled up, so {name} is now on the wait list (nothing is due for them now)."
-                        : $"A spot opened in \"{instance.Name}\", so {name} is no longer on the wait list." );
-                }
-            }
-
-            return check;
-        }
-
-        /// <summary>
-        /// Seats taken per instance by everyone but this cart: registrants not on the wait list
-        /// plus seated lines in other carts that are mid-checkout (Processing). Open carts don't
-        /// hold seats at checkout, so whoever checks out first gets them.
-        /// </summary>
-        private Dictionary<int, int> SeatsTakenByOthers( List<int> instanceIds, int cartId )
-        {
-            // Lines first, registrants second: a checkout that commits in between is counted
-            // twice (refusing a seat that was free) rather than not at all (overbooking).
-            var inFlight = new CartLineItemService( _rockContext ).Queryable()
-                .Where( l => instanceIds.Contains( l.RegistrationInstanceId ) && l.CartId != cartId && !l.IsWaitList && l.Cart.Status == CartStatus.Processing )
-                .GroupBy( l => l.RegistrationInstanceId )
-                .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
-                .ToDictionary( x => x.InstanceId, x => x.Count );
-            var registered = new RegistrationRegistrantService( _rockContext ).Queryable()
-                .Where( r => instanceIds.Contains( r.Registration.RegistrationInstanceId ) && !r.OnWaitList )
-                .GroupBy( r => r.Registration.RegistrationInstanceId )
-                .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
-                .ToDictionary( x => x.InstanceId, x => x.Count );
-
-            return instanceIds.ToDictionary( id => id, id =>
-                ( inFlight.TryGetValue( id, out var lines ) ? lines : 0 ) + ( registered.TryGetValue( id, out var registrants ) ? registrants : 0 ) );
         }
 
         /// <summary>
@@ -323,7 +226,7 @@ namespace org.secc.RegistrationCart.Services
                         return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", problems ) );
                     }
 
-                    var seats = ReassignSeats( cart );
+                    var seats = new SeatPlanner( _rockContext ).Place( cart );
                     if ( seats.Problems.Any() )
                     {
                         return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", seats.Problems ) );

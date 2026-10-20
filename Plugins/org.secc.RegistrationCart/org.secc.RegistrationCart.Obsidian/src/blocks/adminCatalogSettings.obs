@@ -57,7 +57,7 @@
                             <td>{{ i.bag.windowText }} <span v-if="!i.bag.isOpen" class="label label-default">closed</span></td>
                             <td>{{ i.bag.campusName || "—" }}</td>
                             <td class="text-right">{{ money(i.bag.price) }}</td>
-                            <td class="text-center">{{ i.bag.registeredCount }}<span v-if="i.bag.maxAttendees"> / {{ i.bag.maxAttendees }}</span></td>
+                            <td class="text-center">{{ i.bag.registeredCount }}<span v-if="i.bag.maxAttendees != null"> / {{ i.bag.maxAttendees }}</span></td>
                             <td><span v-if="i.bag.hasAccount" class="text-success"><i class="fa fa-check"></i></span><span v-else class="label label-danger" title="Checkout will refuse this instance until an account is set in Rock">none</span></td>
                             <td><CheckBox v-model="i.bag.isVisible" label="" :disabled="!config.canEdit" /></td>
                             <td><CheckBoxList v-model="i.bands" :items="eligibilityOptions" horizontal :disabled="!config.canEdit" /></td>

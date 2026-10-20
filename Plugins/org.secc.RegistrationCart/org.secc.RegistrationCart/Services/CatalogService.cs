@@ -60,10 +60,15 @@ namespace org.secc.RegistrationCart.Services
             /// <summary>"linked" (calendar event), "setting" (entered by staff) or null.</summary>
             public string EventDateSource { get; set; }
             public DateTime? RegistrationDeadline => Instance.EndDateTime;
+            /// <summary>
+            /// Seats left for one more camper from the viewer's cart (null = no limit): what
+            /// <see cref="SeatCounter"/> counts, less the viewer's own lines for this option.
+            /// </summary>
             public int? SpotsRemaining { get; set; }
             public bool IsFull => SpotsRemaining.HasValue && SpotsRemaining.Value <= 0;
             /// <summary>Rock's template setting: a full instance takes wait-list registrations.</summary>
             public bool WaitListEnabled => Instance.RegistrationTemplate.WaitListEnabled;
+            /// <summary>Registrants Rock counts against Max Attendees (wait list included).</summary>
             public int RegisteredCount { get; set; }
             public bool IsOpen { get; set; }
             public bool IsVisible => Setting?.IsVisible ?? true;
@@ -95,6 +100,9 @@ namespace org.secc.RegistrationCart.Services
         {
             _rockContext = rockContext;
         }
+
+        /// <summary>The cart of the person viewing, so spots remaining are what's left for their next camper.</summary>
+        public Model.Cart ViewerCart { get; set; }
 
         /// <summary>Templates with at least one open, visible instance — what shoppers see.</summary>
         public List<CatalogTemplate> GetCatalog()
@@ -256,18 +264,9 @@ namespace org.secc.RegistrationCart.Services
                 .GroupBy( l => l.InstanceId )
                 .ToDictionary( g => g.Key, g => g.First() );
 
-            // Seats taken: real registrants (not wait-listed) + seated lines in open carts and in
-            // carts mid-checkout (Processing), which are about to become registrants.
-            var registered = new RegistrationRegistrantService( _rockContext ).Queryable()
-                .Where( r => instanceIds.Contains( r.Registration.RegistrationInstanceId ) && !r.OnWaitList )
-                .GroupBy( r => r.Registration.RegistrationInstanceId )
-                .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
-                .ToDictionary( x => x.InstanceId, x => x.Count );
-            var reserved = new CartLineItemService( _rockContext ).Queryable()
-                .Where( l => instanceIds.Contains( l.RegistrationInstanceId ) && !l.IsWaitList && ( l.Cart.Status == CartStatus.Open || l.Cart.Status == CartStatus.Processing ) )
-                .GroupBy( l => l.RegistrationInstanceId )
-                .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
-                .ToDictionary( x => x.InstanceId, x => x.Count );
+            // Seats, counted as checkout counts them (open carts hold none), less the viewer's
+            // own campers for each option.
+            var seatCounts = new SeatCounter( _rockContext ).Count( instances, ViewerCart?.Id );
 
             var result = new List<CatalogTemplate>();
             foreach ( var group in instances.GroupBy( i => i.RegistrationTemplateId ) )
@@ -298,14 +297,15 @@ namespace org.secc.RegistrationCart.Services
                         EventStart = instanceSetting?.EventStartDate ?? linkage?.EventStart,
                         EventEnd = instanceSetting?.EventEndDate ?? ( instanceSetting?.EventStartDate != null ? null : linkage?.EventEnd ),
                         EventDateSource = instanceSetting?.EventStartDate != null ? "setting" : ( linkage?.EventStart != null ? "linked" : null ),
-                        RegisteredCount = registered.TryGetValue( instance.Id, out var rc ) ? rc : 0,
+                        RegisteredCount = seatCounts[instance.Id].Registrants,
                         IsOpen = CheckoutRules.IsWindowOpen( instance.StartDateTime, instance.EndDateTime, now )
                     };
 
-                    if ( instance.MaxAttendees.HasValue && instance.MaxAttendees.Value > 0 )
+                    var spots = CheckoutRules.SpotsAvailable( seatCounts[instance.Id] );
+                    if ( spots.HasValue )
                     {
-                        var taken = ci.RegisteredCount + ( reserved.TryGetValue( instance.Id, out var rv ) ? rv : 0 );
-                        ci.SpotsRemaining = Math.Max( 0, instance.MaxAttendees.Value - taken );
+                        var own = ViewerCart?.LineItems.Count( l => l.RegistrationInstanceId == instance.Id ) ?? 0;
+                        ci.SpotsRemaining = Math.Max( 0, spots.Value - own );
                     }
 
                     if ( !includeHidden && !ci.IsVisible )

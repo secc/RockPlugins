@@ -62,7 +62,7 @@ namespace org.secc.RegistrationCart.Blocks
 
             var key = PageParameter( OfferingKeyParameter );
             var templateId = key.IsNotNullOrWhiteSpace() ? new RegistrationTemplateService( RockContext ).Get( key, AllowIntegerIds )?.Id : null;
-            var template = templateId.HasValue ? new CatalogService( RockContext ).GetTemplate( templateId.Value ) : null;
+            var template = templateId.HasValue ? new CatalogService( RockContext ) { ViewerCart = cart }.GetTemplate( templateId.Value ) : null;
             if ( template == null )
             {
                 box.ErrorMessage = "That offering is not open for registration.";

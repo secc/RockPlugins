@@ -98,30 +98,70 @@ public class CheckoutRulesTests
 
     // ---- capacity ------------------------------------------------------
 
-    [Theory]
-    [InlineData(null, 500, 3)]
-    [InlineData(0, 500, 3)] // Rock treats 0 as no limit
-    public void No_limit_seats_everyone(int? max, int taken, int wanted)
+    [Fact]
+    public void No_limit_seats_everyone()
     {
-        Assert.Equal(new SeatAssignment(wanted, 0, 0), CheckoutRules.AssignSeats(max, taken, wanted, waitListEnabled: false));
+        Assert.Null(CheckoutRules.SpotsAvailable(new SeatCounts(null, 500, 10, true, 4)));
+        Assert.Equal(new SeatAssignment(3, 0, 0), CheckoutRules.AssignSeats(null, 3, waitListEnabled: false));
+    }
+
+    [Fact]
+    public void Zero_max_attendees_has_no_spots()
+    {
+        // Rock: only a blank Max Attendees is unlimited; 0 makes the camp wait-list-only (or closed).
+        Assert.Equal(0, CheckoutRules.SpotsAvailable(new SeatCounts(0, 0, 0, false, 0)));
+        Assert.Equal(new SeatAssignment(0, 2, 0), CheckoutRules.AssignSeats(0, 2, waitListEnabled: true));
+        Assert.Equal(new SeatAssignment(0, 0, 2), CheckoutRules.AssignSeats(0, 2, waitListEnabled: false));
+    }
+
+    [Fact]
+    public void Wait_listed_registrants_take_seats_as_in_Rock()
+    {
+        // 50 registered + 5 waiting counts 55 of 50: a cancellation frees nothing for newcomers.
+        Assert.Equal(0, CheckoutRules.SpotsAvailable(new SeatCounts(50, 54, 0, false, 0)));
     }
 
     [Theory]
-    [InlineData(100, 97, 3, 3, 0)]  // exactly fills the camp
-    [InlineData(100, 98, 3, 2, 1)]  // one of this cart's campers doesn't fit
-    [InlineData(100, 100, 2, 0, 2)] // full before this cart
-    [InlineData(100, 105, 1, 0, 1)] // already overbooked (e.g. staff added registrants): still just this cart's line
-    public void Campers_who_do_not_fit_are_refused_without_a_wait_list(int max, int taken, int wanted, int seated, int refused)
+    [InlineData(true, 3)]  // timeout on: Rock's in-progress registrations hold seats
+    [InlineData(false, 5)] // timeout off: they hold nothing
+    public void Rock_sessions_count_only_with_the_registration_timeout_on(bool timeoutEnabled, int expected)
     {
-        Assert.Equal(new SeatAssignment(seated, 0, refused), CheckoutRules.AssignSeats(max, taken, wanted, waitListEnabled: false));
+        Assert.Equal(expected, CheckoutRules.SpotsAvailable(new SeatCounts(10, 5, 2, timeoutEnabled, 0)));
+    }
+
+    [Fact]
+    public void Rock_sessions_count_only_while_seats_remain()
+    {
+        // As Rock: once registrants fill the camp, sessions don't take it further below zero.
+        Assert.Equal(0, CheckoutRules.SpotsAvailable(new SeatCounts(10, 10, 4, true, 0)));
+    }
+
+    [Fact]
+    public void Lines_in_other_carts_mid_checkout_always_take_seats()
+    {
+        Assert.Equal(1, CheckoutRules.SpotsAvailable(new SeatCounts(10, 6, 0, false, 3)));
+    }
+
+    [Fact]
+    public void Spots_never_go_below_zero()
+    {
+        Assert.Equal(0, CheckoutRules.SpotsAvailable(new SeatCounts(10, 12, 0, false, 2))); // staff overfilled it
     }
 
     [Theory]
-    [InlineData(100, 98, 3, 2, 1)]
-    [InlineData(100, 100, 2, 0, 2)]
-    [InlineData(100, 105, 1, 0, 1)]
-    public void Campers_who_do_not_fit_go_on_the_wait_list_when_the_template_has_one(int max, int taken, int wanted, int seated, int waitListed)
+    [InlineData(3, 3, 3, 0)] // exactly fills the camp
+    [InlineData(2, 3, 2, 1)] // one of this cart's campers doesn't fit
+    [InlineData(0, 2, 0, 2)] // full before this cart
+    public void Campers_who_do_not_fit_are_refused_without_a_wait_list(int spots, int wanted, int seated, int refused)
     {
-        Assert.Equal(new SeatAssignment(seated, waitListed, 0), CheckoutRules.AssignSeats(max, taken, wanted, waitListEnabled: true));
+        Assert.Equal(new SeatAssignment(seated, 0, refused), CheckoutRules.AssignSeats(spots, wanted, waitListEnabled: false));
+    }
+
+    [Theory]
+    [InlineData(2, 3, 2, 1)]
+    [InlineData(0, 2, 0, 2)]
+    public void Campers_who_do_not_fit_go_on_the_wait_list_when_the_template_has_one(int spots, int wanted, int seated, int waitListed)
+    {
+        Assert.Equal(new SeatAssignment(seated, waitListed, 0), CheckoutRules.AssignSeats(spots, wanted, waitListEnabled: true));
     }
 }

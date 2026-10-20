@@ -72,7 +72,7 @@ namespace org.secc.RegistrationCart.Blocks
                 var processor = new CheckoutProcessor( RockContext );
                 problems.AddRange( processor.Validate( cart ) );
 
-                var seats = processor.ReassignSeats( cart );
+                var seats = new SeatPlanner( RockContext ).Place( cart );
                 problems.AddRange( seats.Problems );
                 if ( seats.Changes.Any() )
                 {

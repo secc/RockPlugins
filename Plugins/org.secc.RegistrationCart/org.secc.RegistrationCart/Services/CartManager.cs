@@ -302,11 +302,14 @@ namespace org.secc.RegistrationCart.Services
                 return null;
             }
 
-            // A full camp takes the camper on its wait list when Rock's template allows one.
-            // Checkout re-places every camper anyway, so this only decides what the cart shows.
-            // A line staying on its option keeps its place (its own seat counts toward "full").
+            // Seat or wait list, counted the way checkout counts: this cart's lines for the option
+            // in cart order (a new line last, an edited one keeps its place). A full camp takes the
+            // camper on its wait list when Rock's template allows one.
             var sameOption = existing != null && existing.RegistrationInstanceId == option.Instance.Id;
-            if ( !sameOption && option.IsFull && !option.WaitListEnabled )
+            var probe = new CartLineItem { Id = existing?.Id ?? 0, RegistrationInstanceId = option.Instance.Id };
+            var optionLines = cart.LineItems.Where( l => l.RegistrationInstanceId == option.Instance.Id && l.Id != probe.Id ).ToList();
+            var seatPlan = new SeatPlanner( _rockContext ).Plan( cart.Id, optionLines.Concat( new[] { probe } ) );
+            if ( !seatPlan.TryGetValue( probe, out var place ) || place == SeatPlace.Refused )
             {
                 errorMessage = $"{option.Instance.Name} is full.";
                 return null;
@@ -382,9 +385,18 @@ namespace org.secc.RegistrationCart.Services
                 CartRegistrantId = registrant.Id,
                 RegistrationTemplateId = template.Template.Id
             };
+            var leftInstanceId = existing != null && !sameOption ? existing.RegistrationInstanceId : ( int? ) null;
             line.SnapshotBasePrice = sameOption ? existing.SnapshotBasePrice : option.Price;
-            line.IsWaitList = sameOption ? existing.IsWaitList : option.IsFull;
+            line.IsWaitList = place == SeatPlace.WaitList;
             line.RegistrationInstanceId = option.Instance.Id;
+
+            // The cart's other campers for the option, and for the option this line left, take
+            // their places again (one behind it on the wait list may move up).
+            ApplyPlan( seatPlan, optionLines );
+            if ( leftInstanceId.HasValue )
+            {
+                Replace( cart, leftInstanceId.Value, line.Id );
+            }
             line.FieldValuesJson = RegistrationForms.ToJson( answers );
             line.SignatureData = signature;
 
@@ -428,7 +440,9 @@ namespace org.secc.RegistrationCart.Services
             }
 
             var registrantId = line.CartRegistrantId;
+            var instanceId = line.RegistrationInstanceId;
             new CartLineItemService( _rockContext ).Delete( line );
+            Replace( cart, instanceId, lineItemId );
             _rockContext.SaveChanges();
 
             if ( !new CartLineItemService( _rockContext ).Queryable().Any( l => l.CartRegistrantId == registrantId ) )
@@ -443,6 +457,31 @@ namespace org.secc.RegistrationCart.Services
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Places the cart's lines for <paramref name="instanceId"/> again, without the line
+        /// <paramref name="leavingLineId"/> that left it (unsaved). Lines that would be refused
+        /// keep their place; checkout reports them.
+        /// </summary>
+        private void Replace( Cart cart, int instanceId, int leavingLineId )
+        {
+            var lines = cart.LineItems.Where( l => l.RegistrationInstanceId == instanceId && l.Id != leavingLineId ).ToList();
+            if ( lines.Any() )
+            {
+                ApplyPlan( new SeatPlanner( _rockContext ).Plan( cart.Id, lines ), lines );
+            }
+        }
+
+        private static void ApplyPlan( Dictionary<CartLineItem, SeatPlace> plan, IEnumerable<CartLineItem> lines )
+        {
+            foreach ( var line in lines )
+            {
+                if ( plan.TryGetValue( line, out var place ) && place != SeatPlace.Refused )
+                {
+                    line.IsWaitList = place == SeatPlace.WaitList;
+                }
+            }
         }
 
         #endregion

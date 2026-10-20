@@ -88,4 +88,9 @@ namespace org.secc.RegistrationCart.SystemGuid
         public const string ADMIN_DISCOUNT_CODES = "324EBB98-E4E7-4CA4-BB75-C6CB5A7BE268";
     }
 
+    public static class ServiceJob
+    {
+        public const string CART_MAINTENANCE = "8CE4900A-F653-4003-BB87-7A964DB5B595";
+    }
+
 }
