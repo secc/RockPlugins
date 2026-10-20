@@ -106,10 +106,6 @@ namespace org.secc.RegistrationCart.Services
                 .Select( v => new ListItemBag { Value = v.Guid.ToString(), Text = v.Value } )
                 .ToList() ?? new List<ListItemBag>();
 
-        /// <summary>Whether the template asks anything at all (so the cart can skip the step).</summary>
-        public static bool HasFields( RegistrationTemplate template ) =>
-            template.Forms.Any( f => VisibleFields( f ).Any() );
-
         private static IEnumerable<RegistrationTemplateFormField> VisibleFields( RegistrationTemplateForm form ) =>
             form.Fields
                 .Where( f => !f.IsInternal && ( f.Attribute == null || f.Attribute.IsActive ) )

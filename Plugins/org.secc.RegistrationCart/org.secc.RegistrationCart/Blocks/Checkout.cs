@@ -36,8 +36,10 @@ namespace org.secc.RegistrationCart.Blocks
         Description = "The gateway (e.g. My Well) used to charge the card. Gateways that support Rock's hosted payment control are used directly; otherwise the tokenizer settings below are used." )]
     [TextField( "Batch Name Prefix", Key = AttributeKey.BatchNamePrefix, IsRequired = false, DefaultValue = "Registration Cart", Order = 1,
         Description = "Prefix for the financial batch new payments are placed in." )]
-    [TextField( "Tokenizer Script URL", Key = AttributeKey.TokenizerScriptUrl, IsRequired = false, DefaultValue = "https://sandbox.gotnpgateway.com/tokenizer/tokenizer.js", Category = "Tokenizer Fallback", Order = 2 )]
-    [TextField( "Tokenizer Gateway URL", Key = AttributeKey.TokenizerGatewayUrl, IsRequired = false, DefaultValue = "https://sandbox.gotnpgateway.com", Category = "Tokenizer Fallback", Order = 3 )]
+    [TextField( "Tokenizer Script URL", Key = AttributeKey.TokenizerScriptUrl, IsRequired = false, Category = "Tokenizer Fallback", Order = 2,
+        Description = "The gateway's tokenizer script, e.g. https://app.gotnpgateway.com/tokenizer/tokenizer.js (the sandbox's is on sandbox.gotnpgateway.com). Only needed when the gateway does not provide a hosted payment control." )]
+    [TextField( "Tokenizer Gateway URL", Key = AttributeKey.TokenizerGatewayUrl, IsRequired = false, Category = "Tokenizer Fallback", Order = 3,
+        Description = "The gateway's base URL, e.g. https://app.gotnpgateway.com. Only needed when the gateway does not provide a hosted payment control." )]
     [TextField( "Tokenizer Public Key", Key = AttributeKey.TokenizerPublicKey, IsRequired = false, Category = "Tokenizer Fallback", Order = 4,
         Description = "My Well / gotnpgateway PUBLIC api key. Only needed when the gateway does not provide a hosted payment control." )]
     [LinkedPage( "Cart Page", Key = NavAttributeKey.CartPage, IsRequired = false, Order = 5 )]
@@ -116,19 +118,20 @@ namespace org.secc.RegistrationCart.Blocks
                 }
                 else
                 {
-                    var publicKey = GetAttributeValue( AttributeKey.TokenizerPublicKey );
-                    if ( publicKey.IsNotNullOrWhiteSpace() )
+                    // No sandbox defaults: a live page must name the live gateway explicitly.
+                    var tokenizer = new TokenizerSettingsBag
                     {
-                        box.Tokenizer = new TokenizerSettingsBag
-                        {
-                            ScriptUrl = GetAttributeValue( AttributeKey.TokenizerScriptUrl ),
-                            GatewayUrl = GetAttributeValue( AttributeKey.TokenizerGatewayUrl ),
-                            PublicKey = publicKey
-                        };
+                        ScriptUrl = GetAttributeValue( AttributeKey.TokenizerScriptUrl ),
+                        GatewayUrl = GetAttributeValue( AttributeKey.TokenizerGatewayUrl ),
+                        PublicKey = GetAttributeValue( AttributeKey.TokenizerPublicKey )
+                    };
+                    if ( tokenizer.ScriptUrl.IsNotNullOrWhiteSpace() && tokenizer.GatewayUrl.IsNotNullOrWhiteSpace() && tokenizer.PublicKey.IsNotNullOrWhiteSpace() )
+                    {
+                        box.Tokenizer = tokenizer;
                     }
                     else
                     {
-                        box.Problems.Add( "The payment gateway does not provide a hosted payment form and no tokenizer public key is configured on this block." );
+                        box.Problems.Add( "The payment gateway does not provide a hosted payment form and the tokenizer settings on this block (script URL, gateway URL and public key) are not all set." );
                     }
                 }
             }

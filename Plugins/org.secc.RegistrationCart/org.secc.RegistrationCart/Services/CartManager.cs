@@ -205,7 +205,7 @@ namespace org.secc.RegistrationCart.Services
         /// <summary>
         /// Creates a new child in the current person's family. Returns the new person.
         /// </summary>
-        public Person AddChildToFamily( string firstName, string lastName, GradeBand band, string errorPrefix, out string errorMessage )
+        public Person AddChildToFamily( string firstName, string lastName, GradeBand band, out string errorMessage )
         {
             errorMessage = null;
             firstName = ( firstName ?? "" ).Trim();

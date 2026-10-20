@@ -310,9 +310,7 @@ namespace org.secc.RegistrationCart.Services
                         PersonId = previewPerson.Id,
                         Person = previewPerson,
                         GroupMemberStatus = registrationTemplate.GroupMemberStatus,
-                        GroupRoleId = registrationTemplate.GroupTypeId == group.GroupTypeId && registrationTemplate.GroupMemberRoleId.HasValue
-                            ? registrationTemplate.GroupMemberRoleId.Value
-                            : group.GroupType.DefaultGroupRoleId ?? group.GroupType.Roles.Select( r => r.Id ).FirstOrDefault()
+                        GroupRoleId = CatalogService.GroupRoleId( registrationTemplate.GroupTypeId, registrationTemplate.GroupMemberRoleId, group )
                     };
                     forms.ApplyGroupMemberAttributes( registrationTemplate, groupMember, answers );
                 }

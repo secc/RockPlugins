@@ -140,19 +140,5 @@ namespace org.secc.RegistrationCart.Blocks
         }
 
         protected static string DateRangeText( DateTime? start, DateTime? end ) => CatalogService.DateRangeText( start, end );
-
-        protected static string OfferingTypeText( OfferingType type )
-        {
-            switch ( type )
-            {
-                case OfferingType.Camp: return "Camp";
-                case OfferingType.Retreat: return "Retreat";
-                case OfferingType.MissionTrip: return "Mission Trip";
-                case OfferingType.Class: return "Class";
-                case OfferingType.Event: return "Event";
-                case OfferingType.Merchandise: return "Merchandise";
-                default: return type.ToString();
-            }
-        }
     }
 }

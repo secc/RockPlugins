@@ -59,12 +59,6 @@ public class Cart
 
     public CartStatus Status { get; set; } = CartStatus.Open;
 
-    /// <summary>
-    /// Stable key generated once per cart. Not used by the Rock plugin, which uses the
-    /// cart row (Model/Cart.Status) as its idempotency record.
-    /// </summary>
-    public Guid IdempotencyKey { get; set; } = Guid.NewGuid();
-
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Registrant> Registrants { get; set; } = new List<Registrant>();
@@ -132,21 +126,6 @@ public class CartLineItemAddOn
     /// a template discount (the line's own code) applies to it as well as the base price.
     /// </summary>
     public bool DiscountApplies { get; set; }
-}
-
-/// <summary>
-/// One audit record per checkout attempt (success or failure). Written regardless of
-/// outcome so ops can reconstruct what happened for any cart.
-/// </summary>
-public class AuditLog
-{
-    public int Id { get; set; }
-    public int? CartId { get; set; }
-    public string Action { get; set; } = "";     // "checkout", "refund", etc.
-    public string Outcome { get; set; } = "";    // "Success" | "Failure"
-    public string? Detail { get; set; }           // JSON error detail on failure
-    public string? RockRefs { get; set; }         // JSON: { transactionId, registrationIds }
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }
 
 /// <summary>A discount code applied to a cart.</summary>

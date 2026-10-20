@@ -163,6 +163,16 @@ namespace org.secc.RegistrationCart.Services
                 .FirstOrDefault();
         }
 
+        /// <summary>
+        /// The role a registrant gets in the linked group, as Rock's RegistrationEntry picks it:
+        /// the template's group member role when the group is of the template's group type, else
+        /// the group type's default role (or its first).
+        /// </summary>
+        public static int GroupRoleId( int? templateGroupTypeId, int? templateGroupMemberRoleId, Group group ) =>
+            templateGroupTypeId == group.GroupTypeId && templateGroupMemberRoleId.HasValue
+                ? templateGroupMemberRoleId.Value
+                : group.GroupType.DefaultGroupRoleId ?? group.GroupType.Roles.Select( r => r.Id ).FirstOrDefault();
+
         /// <summary>Event date text per instance id, for cart and checkout lines (empty when unknown).</summary>
         public Dictionary<int, string> GetEventDateTexts( IEnumerable<int> instanceIds )
         {
@@ -174,37 +184,55 @@ namespace org.secc.RegistrationCart.Services
             }
 
             var settings = new InstanceSettingService( _rockContext ).Queryable()
-                .Where( s => ids.Contains( s.RegistrationInstanceId ) && s.EventStartDate != null )
+                .Where( s => ids.Contains( s.RegistrationInstanceId ) )
                 .Select( s => new { s.RegistrationInstanceId, s.EventStartDate, s.EventEndDate } )
-                .ToList();
-            var linkages = new EventItemOccurrenceGroupMapService( _rockContext ).Queryable()
-                .Where( m => m.RegistrationInstanceId.HasValue && ids.Contains( m.RegistrationInstanceId.Value ) )
-                .Select( m => new
-                {
-                    InstanceId = m.RegistrationInstanceId.Value,
-                    Start = m.EventItemOccurrence.Schedule.EffectiveStartDate ?? m.EventItemOccurrence.NextStartDateTime,
-                    End = m.EventItemOccurrence.Schedule.EffectiveEndDate
-                } )
-                .ToList();
+                .ToList()
+                .ToDictionary( s => s.RegistrationInstanceId );
+            var linked = LinkedEvents( ids );
 
             foreach ( var id in ids )
             {
-                var setting = settings.FirstOrDefault( s => s.RegistrationInstanceId == id );
-                if ( setting != null )
-                {
-                    result[id] = DateRangeText( setting.EventStartDate, setting.EventEndDate );
-                    continue;
-                }
-
-                var link = linkages.FirstOrDefault( l => l.InstanceId == id );
-                if ( link?.Start != null )
-                {
-                    result[id] = DateRangeText( link.Start, link.End );
-                }
+                settings.TryGetValue( id, out var setting );
+                linked.TryGetValue( id, out var link );
+                var (start, end) = EventDates( setting?.EventStartDate, setting?.EventEndDate, link?.Start, link?.End );
+                result[id] = DateRangeText( start, end );
             }
 
             return result;
         }
+
+        /// <summary>
+        /// An instance's event dates: the ones staff entered in the cart's settings (a start
+        /// date is what makes them count), else its linked calendar occurrence's.
+        /// </summary>
+        private static (DateTime? Start, DateTime? End) EventDates( DateTime? settingStart, DateTime? settingEnd, DateTime? linkedStart, DateTime? linkedEnd ) =>
+            settingStart.HasValue ? (settingStart, settingEnd) : (linkedStart, linkedEnd);
+
+        /// <summary>An instance's first calendar linkage: its campus, occurrence dates and event photo.</summary>
+        private class LinkedEvent
+        {
+            public int InstanceId { get; set; }
+            public int? CampusId { get; set; }
+            public DateTime? Start { get; set; }
+            public DateTime? End { get; set; }
+            public int? PhotoId { get; set; }
+        }
+
+        private Dictionary<int, LinkedEvent> LinkedEvents( List<int> instanceIds ) =>
+            new EventItemOccurrenceGroupMapService( _rockContext ).Queryable()
+                .Where( m => m.RegistrationInstanceId.HasValue && instanceIds.Contains( m.RegistrationInstanceId.Value ) )
+                .OrderBy( m => m.Id )
+                .Select( m => new LinkedEvent
+                {
+                    InstanceId = m.RegistrationInstanceId.Value,
+                    CampusId = m.CampusId ?? m.EventItemOccurrence.CampusId,
+                    Start = m.EventItemOccurrence.Schedule.EffectiveStartDate ?? m.EventItemOccurrence.NextStartDateTime,
+                    End = m.EventItemOccurrence.Schedule.EffectiveEndDate,
+                    PhotoId = m.EventItemOccurrence.EventItem.PhotoId
+                } )
+                .ToList()
+                .GroupBy( l => l.InstanceId )
+                .ToDictionary( g => g.Key, g => g.First() );
 
         /// <summary>"Jul 5–9, 2027", "Sep 17 – Oct 2, 2027", "Jul 5, 2027".</summary>
         public static string DateRangeText( DateTime? start, DateTime? end )
@@ -257,19 +285,7 @@ namespace org.secc.RegistrationCart.Services
                 .ToDictionary( s => s.RegistrationTemplateFeeItemId );
 
             // Campus + event date via the instance's event linkage (if any).
-            var linkages = new EventItemOccurrenceGroupMapService( _rockContext ).Queryable()
-                .Where( m => m.RegistrationInstanceId.HasValue && instanceIds.Contains( m.RegistrationInstanceId.Value ) )
-                .Select( m => new
-                {
-                    InstanceId = m.RegistrationInstanceId.Value,
-                    CampusId = m.CampusId ?? m.EventItemOccurrence.CampusId,
-                    EventStart = m.EventItemOccurrence.Schedule.EffectiveStartDate ?? m.EventItemOccurrence.NextStartDateTime,
-                    EventEnd = m.EventItemOccurrence.Schedule.EffectiveEndDate,
-                    PhotoId = m.EventItemOccurrence.EventItem.PhotoId
-                } )
-                .ToList()
-                .GroupBy( l => l.InstanceId )
-                .ToDictionary( g => g.Key, g => g.First() );
+            var linkages = LinkedEvents( instanceIds );
 
             // Seats, counted as checkout counts them (open carts hold none), less the viewer's
             // own campers for each option.
@@ -295,6 +311,7 @@ namespace org.secc.RegistrationCart.Services
                     linkages.TryGetValue( instance.Id, out var linkage );
                     photoId = photoId ?? linkage?.PhotoId;
 
+                    var (eventStart, eventEnd) = EventDates( instanceSetting?.EventStartDate, instanceSetting?.EventEndDate, linkage?.Start, linkage?.End );
                     var ci = new CatalogInstance
                     {
                         Instance = instance,
@@ -302,9 +319,9 @@ namespace org.secc.RegistrationCart.Services
                         Price = template.SetCostOnInstance == true ? ( instance.Cost ?? 0m ) : template.Cost,
                         CampusId = linkage?.CampusId,
                         CampusName = linkage?.CampusId != null ? CampusCache.Get( linkage.CampusId.Value )?.Name : null,
-                        EventStart = instanceSetting?.EventStartDate ?? linkage?.EventStart,
-                        EventEnd = instanceSetting?.EventEndDate ?? ( instanceSetting?.EventStartDate != null ? null : linkage?.EventEnd ),
-                        EventDateSource = instanceSetting?.EventStartDate != null ? "setting" : ( linkage?.EventStart != null ? "linked" : null ),
+                        EventStart = eventStart,
+                        EventEnd = eventEnd,
+                        EventDateSource = instanceSetting?.EventStartDate != null ? "setting" : ( linkage?.Start != null ? "linked" : null ),
                         RegisteredCount = seatCounts[instance.Id].Registrants,
                         IsOpen = CheckoutRules.IsWindowOpen( instance.StartDateTime, instance.EndDateTime, now )
                     };

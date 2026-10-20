@@ -204,13 +204,14 @@ namespace org.secc.RegistrationCart.Services
                     continue;
                 }
 
-                var answerProblems = forms.CheckAnswers( instance.RegistrationTemplate, person, catalog.GetLinkedGroupId( instance.Id ), RegistrationForms.FromJson( line.FieldValuesJson ), line.IsWaitList );
+                var answers = RegistrationForms.FromJson( line.FieldValuesJson );
+                var answerProblems = forms.CheckAnswers( instance.RegistrationTemplate, person, catalog.GetLinkedGroupId( instance.Id ), answers, line.IsWaitList );
                 if ( answerProblems.Any() )
                 {
                     problems.Add( new CheckoutProblem( $"Please finish {Possessive( line.CartRegistrant.FirstName )} form for \"{instance.Name}\": {string.Join( " ", answerProblems )}", new[] { line.Id } ) );
                 }
                 else if ( signatures.RequiredDocument( instance.RegistrationTemplate ) != null
-                    && !signatures.IsUsable( instance.RegistrationTemplate, person, line.SignatureData, instance.Id, RegistrationForms.FromJson( line.FieldValuesJson ) ) )
+                    && !signatures.IsUsable( instance.RegistrationTemplate, person, line.SignatureData, instance.Id, answers ) )
                 {
                     problems.Add( new CheckoutProblem( $"{Possessive( line.CartRegistrant.FirstName )} document for \"{instance.Name}\" needs to be signed again. Please edit the registration.", new[] { line.Id } ) );
                 }
@@ -610,9 +611,7 @@ namespace org.secc.RegistrationCart.Services
                         GroupId = group.Id,
                         PersonId = personId,
                         GroupMemberStatus = settings.GroupMemberStatus,
-                        GroupRoleId = settings.GroupTypeId == group.GroupTypeId && settings.GroupMemberRoleId.HasValue
-                            ? settings.GroupMemberRoleId.Value
-                            : group.GroupType.DefaultGroupRoleId ?? group.GroupType.Roles.Select( r => r.Id ).FirstOrDefault()
+                        GroupRoleId = CatalogService.GroupRoleId( settings.GroupTypeId, settings.GroupMemberRoleId, group )
                     };
                     groupMemberService.Add( groupMember );
                 }

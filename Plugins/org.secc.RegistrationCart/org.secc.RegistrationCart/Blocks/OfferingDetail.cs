@@ -303,7 +303,7 @@ namespace org.secc.RegistrationCart.Blocks
                 return ActionForbidden( "Adding family members is turned off." );
             }
 
-            var person = manager.AddChildToFamily( request?.FirstName, request?.LastName, ( GradeBand ) ( request?.GradeBand ?? 0 ), "", out var error );
+            var person = manager.AddChildToFamily( request?.FirstName, request?.LastName, ( GradeBand ) ( request?.GradeBand ?? 0 ), out var error );
             if ( person == null )
             {
                 return ActionBadRequest( error ?? "The person could not be added." );
