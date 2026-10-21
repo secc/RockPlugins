@@ -82,7 +82,8 @@ namespace org.secc.Rest.Controllers
                 var scope = groupMemberServiceHelper.GetScopedGroupMembers( group, currentUser.Person );
                 if ( !scope.SenderHasScope )
                 {
-                    return Ok( GroupMemberServiceHelper.NotAssignedToTableMessage );
+                    // A flag the app can test, rather than a bare message string.
+                    return Ok( new { NotAssignedToTable = true, Message = GroupMemberServiceHelper.NotAssignedToTableMessage } );
                 }
 
                 var groupMembers = scope.Members;
@@ -370,6 +371,15 @@ namespace org.secc.Rest.Controllers
                 return BadRequest( "Invalid request. Please provide a valid First Name and Last Name and/or a valid Date of Birth, Email, or Mobile Number." );
             }
 
+            // Table-based groups: the new member joins the caller's table. A caller with no table
+            // would add someone no table can see, so only staff with a security grant may (and
+            // their adds leave TableNumber unset rather than writing a blank value).
+            var scope = new GroupMemberServiceHelper( _context ).GetScopedGroupMembers( group, currentUser.Person );
+            if ( !scope.SenderHasScope && !GroupMemberServiceHelper.HasSecurityGrant( group, currentUser.Person ) )
+            {
+                return BadRequest( GroupMemberServiceHelper.NotAssignedToTableMessage );
+            }
+
             Person person = null;
 
             var phoneNumber = personToAdd.MobileNumber.IsNullOrWhiteSpace() ? null : personToAdd.MobileNumber.AsNumeric();
@@ -455,13 +465,10 @@ namespace org.secc.Rest.Controllers
                 _context.SaveChanges();
             }
 
-            // Table-based groups: the new member joins the caller's table. A caller with no
-            // table leaves TableNumber unset rather than writing a blank value.
-            var callerTableNumber = new GroupMemberServiceHelper( _context ).GetScopedGroupMembers( group, currentUser.Person ).TableNumber;
-            if ( callerTableNumber != null )
+            if ( scope.TableNumber != null )
             {
                 groupMember.LoadAttributes();
-                groupMember.SetAttributeValue( "TableNumber", callerTableNumber );
+                groupMember.SetAttributeValue( "TableNumber", scope.TableNumber );
                 groupMember.SaveAttributeValues();
             }
 
@@ -511,13 +518,9 @@ namespace org.secc.Rest.Controllers
                 var members = scope.Members;
                 if ( !scope.SenderHasScope )
                 {
-                    // Staff who hold EDIT + MANAGE_MEMBERS through Rock security (not a group
-                    // role) oversee the whole group, so a caller with no table falls back to the
-                    // full roster. Authorization.Authorized skips Group.IsAuthorized's group-role
-                    // grant, so a table leader with a blank TableNumber still gets the 400.
-                    var hasSecurityGrant = Rock.Security.Authorization.Authorized( group, Rock.Security.Authorization.EDIT, currentUser.Person )
-                        && Rock.Security.Authorization.Authorized( group, Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person );
-                    if ( !hasSecurityGrant )
+                    // Staff with a security grant fall back to the full roster; a table leader
+                    // with a blank TableNumber still gets the 400.
+                    if ( !GroupMemberServiceHelper.HasSecurityGrant( group, currentUser.Person ) )
                     {
                         return BadRequest( GroupMemberServiceHelper.NotAssignedToTableMessage );
                     }
@@ -622,6 +625,18 @@ namespace org.secc.Rest.Controllers
                 .ToList()
                 .Select( v => v.AsIntegerOrNull() )
                 .Any( id => id == group.GroupTypeId );
+        }
+
+        /// <summary>
+        /// True when <paramref name="person"/> holds EDIT + MANAGE_MEMBERS on the group through
+        /// Rock security rather than a group role. Such staff oversee the whole group, so they
+        /// may manage members without a table. Authorization.Authorized skips Group.IsAuthorized's
+        /// group-role grant, so a table leader with a blank TableNumber does not qualify.
+        /// </summary>
+        public static bool HasSecurityGrant( Group group, Person person )
+        {
+            return Rock.Security.Authorization.Authorized( group, Rock.Security.Authorization.EDIT, person )
+                && Rock.Security.Authorization.Authorized( group, Rock.Security.Authorization.MANAGE_MEMBERS, person );
         }
 
         /// <summary>
