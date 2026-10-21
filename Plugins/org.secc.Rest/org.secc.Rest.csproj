@@ -92,7 +92,6 @@
   <ItemGroup>
     <Compile Include="Controllers\AccountController.Partial.cs" />
     <Compile Include="Controllers\ChannelItemController.Partial.cs" />
-    <Compile Include="Controllers\FinancialTransactionsExtensionsController.Partial.cs" />
     <Compile Include="Controllers\GroupAppAttendanceController.Partial.cs" />
     <Compile Include="Controllers\GroupAppGroupListController.Partial.cs" />
     <Compile Include="Controllers\GroupAppGroupLocationController.Partial.cs" />

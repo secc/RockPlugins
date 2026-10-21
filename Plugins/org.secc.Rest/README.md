@@ -1,12 +1,12 @@
 # org.secc.Rest
 
-> Custom Rock REST controllers for SECC's apps — account/SMS login, the Groups mobile app, content-channel/sermon feeds, and financial-statement data.
+> Custom Rock REST controllers for SECC's apps — account/SMS login, the Groups mobile app, and content-channel/sermon feeds.
 
 > **Doc tier: deep.** This is an externally-facing API surface (several endpoints back native/mobile apps and OAuth clients), with non-trivial auth contracts that differ per controller — so it's documented at the deeper tier (per-endpoint reference, auth model, request/response shapes, extending). Most SECC plugins use the lighter standard tier.
 
 ## Overview
 
-This plugin adds Web API controllers to Rock that aren't part of core. They fall into a few groups: **Account / Security** endpoints that back OAuth-client account creation and SMS/forgot-password login flows; the **GroupApp** family that powers SECC's Groups mobile app (group list, members, attendance/self-check-in, schedule and location editing, leader communication); read-only **content feeds** (`ChannelItems`, `SermonFeed`); and an **extension** controller for `FinancialTransactions` contribution data. Controllers are discovered by Rock's standard Web API routing; one (`SecurityController`) maps its own session-enabled routes.
+This plugin adds Web API controllers to Rock that aren't part of core. They fall into a few groups: **Account / Security** endpoints that back OAuth-client account creation and SMS/forgot-password login flows; the **GroupApp** family that powers SECC's Groups mobile app (group list, members, attendance/self-check-in, schedule and location editing, leader communication); and read-only **content feeds** (`ChannelItems`, `SermonFeed`). Controllers are discovered by Rock's standard Web API routing; one (`SecurityController`) maps its own session-enabled routes.
 
 ## Project Info
 
@@ -39,16 +39,13 @@ flowchart TD
     B -->|IHasCustomHttpRoutes| D[SecurityController.AddRoutes -> SessionRouteHandler]
     C --> E{Auth model on the action}
     D --> E
-    E -->|"[Authenticate, Secured]"| F[Rock login + entity security]
     E -->|"[Authorize] + OAuth client check"| G[ASP.NET principal == OAuth API key, client.Active]
     E -->|UserLoginService.GetCurrentUser| H[Logged-in Rock user, else 401/403]
-    F --> I[Handler logic]
-    G --> I
+    G --> I[Handler logic]
     H --> I
 ```
 
 **Auth models in use (they are not uniform — confirm per endpoint):**
-- **`[Authenticate, Secured]`** — Rock's filter pair: authenticates the caller and checks entity-level security on the controller action. Used by `FinancialTransactionsExtensionsController`.
 - **`[Authorize]` + OAuth client gate** — `AccountController` resolves the ASP.NET identity name as an OAuth API key via `ClientService.GetByApiKey(...)` and requires `client.Active`. Backs OAuth-client app flows.
 - **`UserLoginService.GetCurrentUser()`** — the GroupApp controllers call `GetCurrentUser()` and return `401` if null, then do their own per-group leader/member checks (`group.IsAuthorized`, group-member role queries) before acting.
 - **`GetPerson()` + `IsAuthorized(VIEW, ...)`** — the content feeds resolve the caller's person and check VIEW on the content channel.
@@ -89,15 +86,16 @@ All require a logged-in user (`GetCurrentUser`, else `401`) and apply per-group 
 | `api/GroupApp/Groups/{groupId}/Schedule` | GET / PUT | leader | Read/update the group's weekly schedule as iCal (forks a shared schedule on edit). |
 | `api/GroupApp/Groups/{groupId}/Location` | GET / PUT | GET: member, PUT: leader | Read/replace the group's single location; PUT runs Rock address `Verify` (geocode). |
 
-### Content / extension
+### Content / retired
 
 | Route | Method | Auth | Purpose |
 |-------|--------|------|---------|
 | `api/ChannelItems/{contentChannelId}[/{tag}]` | GET | content-channel VIEW | Paged content-channel items with attributes, tags, child/parent ids; query-string keys filter on attribute values. |
 | `api/ChannelItem/{identifier}` | GET | content-channel VIEW | One item by id or slug. |
 | `api/sermonfeed/[{slug}/]` | GET | none declared | Speaker-filtered sermon series feed (1-hour `RockCache`). Hardcodes content-channel ids (24/23) and the Speaker attribute id (30285). |
-| `api/secc/FinancialTransactions/GetContributionTransactions/{groupId}[/{personId}]` | POST | `[Authenticate, Secured]` | Build a `DataSet` of contribution transactions (cash only) for a giving group or person. |
 | `api/People/MatchOrCreatePerson` | POST | none | **Retired** (ROCK-8827). Always returns `410 Gone`. *(RetiredEndpointsController)* |
+
+`api/secc/FinancialTransactions/GetContributionTransactions/{groupId}[/{personId}]` was removed in ROCK-9312 and now returns `404`. It returned any person's giving with no check that the caller could see it. Contribution statements use Rock core's `StatementGenerator` / `FinancialGivingStatement` endpoints.
 
 ## Detailed Reference
 
@@ -140,12 +138,9 @@ Reserved query keys (`contentchannelid`, `tag`, `take`, `page`, `hideInactive`, 
 
 **Same-key collision precedence:** the same attribute key can exist on both a `ContentChannelTypeId`-qualified and a `ContentChannelId`-qualified attribute. In both `ChannelItems` and `ChannelItem` responses the **channel-qualified value wins** the collision (previously this crashed with an HTTP 500), and query-string attribute filtering applies the same precedence — when a key exists in both scopes, only the channel-scoped attribute's values are matched, so filtering and the returned `Attributes` dictionary agree.
 
-### Contribution transactions *(FinancialTransactionsExtensionsController)*
-Returns a nested `DataSet` (transactions + per-account details), filtered to the Contribution transaction type and excluding the **non-cash** currency type (`F64662E7-0E12-4604-BBB0-DB774AC3C830`). Without `personId`, pulls everyone whose `GivingGroupId` equals `groupId`.
-
 ## Dependencies & Integrations
 
-- **Rock:** `Rock.Rest` (`ApiControllerBase`, `IHasCustomHttpRoutes`, `[Authenticate]`/`[Secured]` filters), Web API, `RockContext` and many services (Person, Group, GroupMember, Attendance, Communication, ContentChannelItem, Schedule, Location, FinancialTransaction), `RockCache`, defined values, `SMSAuthentication`, Rock email/communication.
+- **Rock:** `Rock.Rest` (`ApiControllerBase`, `IHasCustomHttpRoutes`), Web API, `RockContext` and many services (Person, Group, GroupMember, Attendance, Communication, ContentChannelItem, Schedule, Location), `RockCache`, defined values, `SMSAuthentication`, Rock email/communication.
 - **Cross-plugin:** [org.secc.OAuth](../org.secc.OAuth/README.md) (client/API-key validation in `AccountController`), [org.secc.Authentication](../org.secc.Authentication/README.md), [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (`GetByMatch`).
 - **Third-party:** Newtonsoft.Json, ASP.NET Web API, EntityFramework, System.Linq.Dynamic (used for the `orderby` string in `ChannelItems`).
 
@@ -203,4 +198,4 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 
 ---
 
-**Last updated:** 2026-10-14
+**Last updated:** 2026-10-21
