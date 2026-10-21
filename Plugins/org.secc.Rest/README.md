@@ -203,4 +203,4 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 
 ---
 
-**Last updated:** 2026-10-14
+**Last updated:** 2026-10-21
