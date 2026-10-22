@@ -193,6 +193,54 @@ namespace org.secc.Rest.Controllers
             return true;
         }
 
+        /// <summary>
+        /// The cached attribute with this Guid, or null when there is none.
+        /// </summary>
+        protected virtual AttributeCache GetAttributeCache( Guid guid )
+        {
+            return AttributeCache.Get( guid );
+        }
+
+        /// <summary>
+        /// The cached defined value with this Guid, or null when there is none.
+        /// </summary>
+        protected virtual DefinedValueCache GetDefinedValueCache( Guid guid )
+        {
+            return DefinedValueCache.Get( guid );
+        }
+
+        /// <summary>
+        /// Rock's default phone country code.
+        /// </summary>
+        protected virtual string GetDefaultCountryCode()
+        {
+            return PhoneNumber.DefaultCountryCode();
+        }
+
+        /// <summary>
+        /// A new Rock database context.
+        /// </summary>
+        protected virtual Rock.Data.RockContext CreateRockContext()
+        {
+            return new Rock.Data.RockContext();
+        }
+
+        /// <summary>
+        /// The people matching the account's name, birthdate, email address and mobile number.
+        /// </summary>
+        protected virtual IEnumerable<Person> GetMatchingPeople( PersonService personService, Account account )
+        {
+            return personService.GetByMatch( account.FirstName, account.LastName, account.Birthdate, account.EmailAddress, account.MobileNumber, null, null );
+        }
+
+        /// <summary>
+        /// Saves a person that CreateAccount created, with Rock's PersonService.SaveNewPerson.
+        /// </summary>
+        protected virtual void SaveNewPerson( Person person, Rock.Data.RockContext rockContext )
+        {
+            PersonService.SaveNewPerson( person, rockContext );
+        }
+
         [Route( "api/account/create" )]
         [Authorize]
         public HttpResponseMessage CreateAccount( Account account )
@@ -236,8 +284,8 @@ namespace org.secc.Rest.Controllers
                 // unknown key, so without the migration we would create logins and email codes
                 // that were never stored and can never be confirmed. Failing here leaves no
                 // half-created account and no burned username behind.
-                if ( AttributeCache.Get( CONFIRMATION_CODE_HASH_ATTRIBUTE_GUID.AsGuid() ) == null
-                  || AttributeCache.Get( CONFIRMATION_CODE_ISSUED_ATTRIBUTE_GUID.AsGuid() ) == null )
+                if ( GetAttributeCache( CONFIRMATION_CODE_HASH_ATTRIBUTE_GUID.AsGuid() ) == null
+                  || GetAttributeCache( CONFIRMATION_CODE_ISSUED_ATTRIBUTE_GUID.AsGuid() ) == null )
                 {
                     if ( ConfirmationAttempts.ShouldLogRefusal( "create|missing-migration" ) )
                     {
@@ -252,7 +300,7 @@ namespace org.secc.Rest.Controllers
                     } );
                 }
 
-                var rockContext = new Rock.Data.RockContext();
+                var rockContext = CreateRockContext();
                 PersonService personService = new PersonService( rockContext );
                 UserLoginService userLoginService = new UserLoginService( rockContext );
 
@@ -272,7 +320,7 @@ namespace org.secc.Rest.Controllers
                 }
 
                 // Try to match the person
-                var matchPerson = personService.GetByMatch( account.FirstName, account.LastName, account.Birthdate, account.EmailAddress, account.MobileNumber, null, null );
+                var matchPerson = GetMatchingPeople( personService, account );
 
                 // Never auto-confirm a login bound to an existing person from an OAuth
                 // client-credentials request. Any login created below is unconfirmed and
@@ -297,8 +345,8 @@ namespace org.secc.Rest.Controllers
                 // If we don't have a match, create a new web prospect
                 if ( !matched )
                 {
-                    DefinedValueCache dvcConnectionStatus = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() );
-                    DefinedValueCache dvcRecordStatus = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() );
+                    DefinedValueCache dvcConnectionStatus = GetDefinedValueCache( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() );
+                    DefinedValueCache dvcRecordStatus = GetDefinedValueCache( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() );
 
                     person.FirstName = account.FirstName;
                     person.LastName = account.LastName;
@@ -306,7 +354,7 @@ namespace org.secc.Rest.Controllers
                     person.Email = account.EmailAddress;
                     person.IsEmailActive = true;
                     person.EmailPreference = EmailPreference.EmailAllowed;
-                    person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                    person.RecordTypeValueId = GetDefinedValueCache( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
                     if ( dvcConnectionStatus != null )
                     {
                         person.ConnectionStatusValueId = dvcConnectionStatus.Id;
@@ -330,17 +378,14 @@ namespace org.secc.Rest.Controllers
                         }
                     }
 
-                    if ( !string.IsNullOrWhiteSpace( account.MobileNumber ) )
+                    var newMobilePhone = CreateNewPersonMobilePhone( account,
+                        GetDefinedValueCache( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id, GetDefaultCountryCode() );
+                    if ( newMobilePhone != null )
                     {
-                        string cleanNumber = PhoneNumber.CleanNumber( account.MobileNumber );
-                        var phoneNumber = new PhoneNumber { NumberTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id };
-                        person.PhoneNumbers.Add( phoneNumber );
-                        phoneNumber.CountryCode = cleanNumber.Length > 10 ? cleanNumber.Left( cleanNumber.Length - 10 ) : PhoneNumber.DefaultCountryCode();
-                        phoneNumber.Number = cleanNumber.Right( 10 );
-                        phoneNumber.IsMessagingEnabled = true;
+                        person.PhoneNumbers.Add( newMobilePhone );
                     }
 
-                    PersonService.SaveNewPerson( person, rockContext );
+                    SaveNewPerson( person, rockContext );
                 }
                 UserLogin userLogin = null;
 
@@ -505,6 +550,28 @@ namespace org.secc.Rest.Controllers
             }
 
             return errors;
+        }
+
+        /// <summary>
+        /// The mobile phone CreateAccount adds to a person it creates from the account, or null when
+        /// the account has no mobile number. SMS messaging is enabled only when the account's
+        /// SmsOptIn is true.
+        /// </summary>
+        internal static PhoneNumber CreateNewPersonMobilePhone( Account account, int mobileNumberTypeValueId, string defaultCountryCode )
+        {
+            if ( string.IsNullOrWhiteSpace( account.MobileNumber ) )
+            {
+                return null;
+            }
+
+            string cleanNumber = PhoneNumber.CleanNumber( account.MobileNumber );
+            return new PhoneNumber
+            {
+                NumberTypeValueId = mobileNumberTypeValueId,
+                CountryCode = cleanNumber.Length > 10 ? cleanNumber.Left( cleanNumber.Length - 10 ) : defaultCountryCode,
+                Number = cleanNumber.Right( 10 ),
+                IsMessagingEnabled = account.SmsOptIn == true
+            };
         }
 
         /// <summary>
@@ -1486,6 +1553,11 @@ namespace org.secc.Rest.Controllers
             public string Username { get; set; }
 
             public string Password { get; set; }
+
+            /// <summary>
+            /// Optional. When true, the mobile number of a newly created person is enabled for SMS messaging.
+            /// </summary>
+            public bool? SmsOptIn { get; set; }
         }
 
         /// <summary>
