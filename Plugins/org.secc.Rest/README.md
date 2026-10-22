@@ -53,6 +53,10 @@ flowchart TD
 - **`UserLoginService.GetCurrentUser()`** — the GroupApp controllers call `GetCurrentUser()` and return `401` if null, then do their own per-group leader/member checks (`group.IsAuthorized`, group-member role queries) before acting.
 - **`GetPerson()` + `IsAuthorized(VIEW, ...)`** — the content feeds resolve the caller's person and check VIEW on the content channel.
 
+### OData query options
+
+`QueryOptionsStartup` (an `IRockStartup`) adds `QueryOptionsHandler` as the first Web API message handler, so it sees every `api/...` request, core and plugin, after the route is matched and before controller selection and the `[Authenticate]`/`[Secured]` checks. A request whose `$expand`, `$select`, `$filter` or `$orderby` query option refers to a property named `Users` (in any letter case) gets a `400` with the message "The query specified in the URI is not valid." Quoted string values in `$filter`, the other query options and other query-string keys are not checked, except as follows. A request on one of the GroupMembers controller's convention (`api/{controller}...`) or OData routes, such as `api/GroupMembers`, `api/GroupMembers/{id}` or `api/GroupMembers({key})`, gets the same `400`, with any HTTP method, when its query string has an `IncludeDeceased` key with any value after `=` (including an empty one; the key in any letter case). The controller's attribute-routed actions (`api/GroupMembers/KnownRelationship` and `api/GroupMembers/GetGroupPlacementGroupMembers`) and requests to other controllers, such as `api/People`, are not affected.
+
 ## REST Endpoints
 
 ### Account / Security

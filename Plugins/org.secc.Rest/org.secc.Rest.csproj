@@ -101,6 +101,8 @@
     <Compile Include="Controllers\RetiredEndpointsController.Partial.cs" />
     <Compile Include="Controllers\SecurityController.Partial.cs" />
     <Compile Include="Controllers\SermonController.Partial.cs" />
+    <Compile Include="Handlers\QueryOptionsHandler.cs" />
+    <Compile Include="Handlers\QueryOptionsStartup.cs" />
     <Compile Include="Handlers\SessionControllerHandler.cs" />
     <Compile Include="Handlers\SessionRouteHandler.cs" />
     <Compile Include="Models\ChannelItem.cs" />
