@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <!-- Build org.secc.Authentication and org.secc.PersonMatch, which org.secc.Rest references,
+         only through org.secc.Rest, so the properties below apply to them too. -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <!-- Resolve RockWeb the same way LinkList.Tests does: honor an explicit
+       /p:RockWebPath, then probe the rock-dev-tool layout (Rock next to the
+       plugin folder) and the Rock solution layout (SolutionDir). -->
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('..\..\Rock\RockWeb\Bin')">..\..\Rock\RockWeb</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- org.secc.Rest, org.secc.OAuth, org.secc.Authentication and org.secc.PersonMatch skip their
+         copy into RockWeb when CopyToRockWeb is false, and an empty PostBuildEvent turns off any
+         project's post-build event. Both apply when MSBuild builds the plugins through these
+         references from the command line, including the projects the plugins reference. Visual
+         Studio builds each plugin as its own project, so building in a solution that contains the
+         plugins, or building a plugin on its own or from Rock.sln, still copies it. -->
+    <ProjectReference Include="..\org.secc.Rest.csproj" AdditionalProperties="CopyToRockWeb=false;PostBuildEvent=" />
+    <!-- The OAuth client check tests create org.secc.OAuth Client objects. -->
+    <ProjectReference Include="..\..\org.secc.OAuth\org.secc.OAuth.csproj" AdditionalProperties="CopyToRockWeb=false;PostBuildEvent=" />
+    <!-- AccountController is a Web API controller that uses Rock types, so the compiler needs
+         System.Web.Http and the Rock assemblies. The tests call its static helpers, and its
+         actions on a subclass that replaces the OAuth client lookup, Rock's password rule and
+         the create budget. None of this touches the database or HttpContext. -->
+    <Reference Include="Rock">
+      <HintPath>$(RockWebPath)\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common">
+      <HintPath>$(RockWebPath)\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http">
+      <HintPath>$(RockWebPath)\Bin\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+</Project>

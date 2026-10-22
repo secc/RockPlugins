@@ -13,7 +13,7 @@ This plugin adds Web API controllers to Rock that aren't part of core. They fall
 - **Project file:** `org.secc.Rest.csproj`
 - **Root namespace:** `org.secc.Rest` (the sermon controller lives under `org.secc.SermonFeed.Rest`)
 - **Target framework:** .NET Framework 4.7.2
-- **Deploys to:** `RockWeb/bin/` (assembly only, via `xcopy` PostBuildEvent)
+- **Deploys to:** `RockWeb/bin/` (assembly only, via `xcopy` PostBuildEvent). Building with `-p:CopyToRockWeb=false` skips the copy, for this plugin and for the plugins it references; `org.secc.Rest.Tests` passes that property to the plugins it builds.
 - **Cross-plugin dependencies:** [org.secc.OAuth](../org.secc.OAuth/README.md), [org.secc.Authentication](../org.secc.Authentication/README.md), [org.secc.PersonMatch](../org.secc.PersonMatch/README.md)
 
 ## How Routing & Auth Work
@@ -60,7 +60,7 @@ flowchart TD
 | Route | Method | Auth | Purpose |
 |-------|--------|------|---------|
 | `api/account/create` | POST | `[Authorize]` + active OAuth client | Match-or-create a person; any `UserLogin` it creates (Internal or SMS) is **unconfirmed** and triggers a confirmation email — a matched existing person is **never** auto-confirmed (the login is unusable until the emailed code is redeemed). A match with **no** username creates no login and returns an "account already exists" message. Email match is case-insensitive. A failed confirmation-email send returns a retryable `503` rather than a success response; on the username path the just-created login is also deleted so the username isn't trapped. The minimum-age (13) check applies when a `Username` is supplied, i.e. when a login is being created. |
-| `api/account/confirmaccount` | POST | `[Authorize]` + active OAuth client | Confirm an account by Rock confirmation code, or by a 6-digit MD5-derived mobile code. |
+| `api/account/confirmaccount` | POST | `[Authorize]` + active OAuth client | Confirm an account by Rock confirmation code, or by the 6-digit mobile code from the confirmation email. The mobile code is random, single use, and expires 60 minutes after it is issued. |
 | `api/account/family` | GET | `[Authorize]` | Family members of the current user (`UserLoginService.GetCurrentUser`). |
 | `api/account/forgotpassword` | POST | `[Authorize]` + active OAuth client | Send a forgot-username/password email for resettable logins matching an address. |
 | `api/account/profile` | GET | `[Authorize]` | Current user's `Profile`. |
@@ -133,7 +133,7 @@ Org policy: communications may not be sent to minors unless another adult is inc
 | **Username / Password** | Optional; password validated via `UserLoginService.IsPasswordValid`. |
 | **Birthdate** | Min age **13** (`MINIMUM_AGE`). The check applies when a `Username` is supplied, i.e. when a login is being created. |
 | Match path | `PersonService.GetByMatch`; single match + matching email → reuse the existing person, else create a Web-Prospect/Pending person. **Any login created is unconfirmed and requires email confirmation — a match is never auto-confirmed.** A match with no supplied username creates no login (returns "account already exists"). |
-| Confirmation email | Sent to the person's **stored** address. `RockMessage.Send()` returns `false` (doesn't throw) on failure, so both paths fail closed with a retryable `503` instead of a `200` claiming an email was sent. Username path: the login was already committed by `UserLoginService.Create`, so it is deleted — otherwise it orphans the account and traps the username against the uniqueness check. Email-only/SMS path: the `SMS_<personId>` login was only added to the context, so returning early persists nothing; `SMSAuthentication.SendSMSAuthentication` re-creates it at the next SMS login. The **person** record survives either way (`SaveNewPerson` commits it), so a retry of the email-only path matches that person and returns "account already exists". |
+| Confirmation email | Sent to the person's **stored** address. `RockMessage.Send()` returns `false` (doesn't throw) on failure, so both paths fail closed with a retryable `503` instead of a `200` claiming an email was sent. Username path: the login was already committed by `UserLoginService.Create`, so it is deleted — otherwise it orphans the account and traps the username against the uniqueness check. Email-only/SMS path: the `SMS_<personId>` login and its confirmation-code rows are saved before the email is sent and are kept when the send fails; `SMSAuthentication.SendSMSAuthentication` finds that login by name at the next SMS login, and the unused code expires and is removed by the expired-code cleanup. The **person** record survives either way (`SaveNewPerson` commits it), so a retry of the email-only path matches that person and returns "account already exists". |
 
 ### ChannelItems query filtering *(ChannelItemController)*
 Reserved query keys (`contentchannelid`, `tag`, `take`, `page`, `hideInactive`, `orderby`, `reverse`) control paging/sort; **any other query key** is treated as a content-channel-item **attribute key** and filtered on exact attribute value.
@@ -203,4 +203,4 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 
 ---
 
-**Last updated:** 2026-10-14
+**Last updated:** 2026-10-20
