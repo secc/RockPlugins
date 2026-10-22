@@ -194,13 +194,20 @@ namespace RockWeb.Plugins.org_secc.Cms
 
             foreach ( var key in GuidParameterKeys )
             {
-                var guid = PageParameter( key ).AsGuidOrNull();
-                if ( !guid.HasValue )
+                var value = PageParameter( key );
+                if ( value.IsNullOrWhiteSpace() )
                 {
                     continue;
                 }
 
+                // A malformed value still counts as a request, so a broken link is logged even when a fallback delivers.
                 targetRequested = true;
+
+                var guid = value.AsGuidOrNull();
+                if ( !guid.HasValue )
+                {
+                    continue;
+                }
 
                 if ( group == null )
                 {
