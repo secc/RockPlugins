@@ -24,7 +24,8 @@ the `SignNowSDK` project for the actual API calls.
 /Workflows/    SignNowCreate.cs    — upload PDF, create signer, build invite link
                SignNowDownload.cs  — check for a signature, download the signed PDF
 /Properties/   AssemblyInfo.cs
-/org.secc.SignNowWorkflow.Tests/  xunit tests for SignNowCreate's temp file path (not deployed to RockWeb)
+/org.secc.SignNowWorkflow.Tests/  xunit tests for SignNowCreate's temp file path and SignNowDownload's
+                                  document id check and error messages (not deployed to RockWeb)
 ```
 
 ## Components
@@ -53,7 +54,7 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
 
 | Setting | Type | Notes |
 |---------|------|-------|
-| **SignNow Document Id** | Workflow attribute (Text) | Input — document to check (required; errors if blank). |
+| **SignNow Document Id** | Workflow attribute (Text) | Input — the SignNow document id to check (required). Surrounding whitespace is ignored. The action errors without calling SignNow if the value is blank or is not 40 ASCII letters, digits or underscores (the SignNow document id format). |
 | **Document** | Workflow attribute (BinaryFile/File) | Output — where the signed PDF is stored. |
 | **PDF Signed** | Workflow attribute (Boolean) | Output — `True` once a signature is detected, else `False`. |
 
@@ -91,11 +92,17 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
   `SignNow Create` also removes its upload temp directory in a `finally`, including on error returns.
 - **SDK error handling:** SignNowSDK uses RestSharp 105, which never throws on transport failures. The SDK
   then returns `null`, or the raw error body (object, array, or non-JSON), instead of the expected object.
-  The `Document.Get`, `Download`, and `Create` calls treat the result as untyped, report
-  "No response from SignNow" for `null`, and catch `JsonException` for non-JSON bodies. `Document.Download`
-  sends the request twice and saves the second body without a status check, so `SignNow Download` only
-  accepts the file if it starts with `%PDF-`; otherwise it errors and leaves `PDF Signed` unchanged so the
-  workflow keeps polling. The existing-file branch also resets `MimeType` to `application/pdf`.
+  The `Document.Get`, `Download`, and `Create` calls treat the result as untyped, describe `null` as
+  "No response from SignNow.", and catch `JsonException` for non-JSON bodies. `SignNow Download`
+  shows a fixed message ("SignNow Document Error: the document could not be retrieved from
+  SignNow." or "SignNow Download Error: the signed document could not be downloaded from SignNow.") and
+  writes the detail to Rock's exception log (Exception List): the entry starts with the same message,
+  then names the action type id and, once the workflow is saved, the workflow id, followed by the SignNow
+  response (or the first 500 bytes of a download that isn't a PDF); a caught exception is logged as its
+  inner exception. `Document.Download` sends the request
+  twice and saves the second body without a status check, so `SignNow Download` only accepts the file if
+  it has the `%PDF-` header; otherwise it errors and leaves `PDF Signed` unchanged so the workflow keeps
+  polling. The existing-file branch also resets `MimeType` to `application/pdf`.
 - **Improvement:** The "is it signed?" check is a simple `signatures.Count > 0` poll with no timeout or
   expiration handling — the workflow must re-run `SignNow Download` itself (e.g. on a delay/loop) until a
   signature appears. There's no detection of a declined/expired invite.
@@ -113,4 +120,4 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
   `[Description]`, `[Export(typeof(ActionComponent))]`, and `[ExportMetadata("ComponentName", …)]`, then
   add it to the `<Compile>` list in the `.csproj`.
 
-Last updated: 2026-10-15
+Last updated: 2026-10-16

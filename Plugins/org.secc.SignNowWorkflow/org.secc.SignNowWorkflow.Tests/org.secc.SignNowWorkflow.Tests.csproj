@@ -3,9 +3,10 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <IsPackable>false</IsPackable>
-    <!-- Test project: do not copy anything into RockWeb. -->
-    <CopyToRockWeb>false</CopyToRockWeb>
     <LangVersion>latest</LangVersion>
+    <!-- Build org.secc.DevLib only through the plugin's own reference, so the empty
+         PostBuildEvent below applies to it too. -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
   </PropertyGroup>
 
   <!-- Resolve RockWeb the same way LinkList.Tests does: honor an explicit
@@ -23,9 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\org.secc.SignNowWorkflow.csproj" />
-    <!-- SignNowCreate derives from Rock's ActionComponent, so the compiler needs Rock.dll.
-         The tests only call the static path helper, which doesn't touch the database. -->
+    <!-- The post-build events of the plugin and of org.secc.DevLib, which it references, copy
+         their files into RockWeb. An empty PostBuildEvent for this reference turns both off when
+         they're built for the tests; building them on their own or from Rock.sln still copies them. -->
+    <ProjectReference Include="..\org.secc.SignNowWorkflow.csproj" AdditionalProperties="PostBuildEvent=" />
+    <!-- The workflow actions derive from Rock's ActionComponent, so the compiler needs Rock.dll.
+         The tests don't touch the database or SignNow. -->
     <Reference Include="Rock">
       <HintPath>$(RockWebPath)\Bin\Rock.dll</HintPath>
     </Reference>

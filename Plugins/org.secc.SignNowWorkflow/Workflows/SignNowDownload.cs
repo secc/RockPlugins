@@ -45,32 +45,30 @@ namespace org.secc.SignNowWorkflow
     [WorkflowAttribute( "PDF Signed", "Indicator that we have a signed document from SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BooleanFieldType" } )]
     class SignNowDownload : ActionComponent
     {
+        private const string InvalidDocumentIdMessage = "A valid SignNow document id is required to complete this action.";
+        private const string DocumentErrorMessage = "SignNow Document Error: the document could not be retrieved from SignNow.";
+        private const string DownloadErrorMessage = "SignNow Download Error: the signed document could not be downloaded from SignNow.";
 
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
             errorMessages = new List<string>();
 
-            string signNowDocumentId = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid() );
-            if ( string.IsNullOrEmpty( signNowDocumentId ) )
+            string signNowDocumentId = GetDocumentId( GetDocumentIdValue( action ), errorMessages );
+            if ( signNowDocumentId == null )
             {
-                errorMessages.Add( "A sign now document is required to complete this action" );
                 return false;
             }
 
-            Guid documentGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "Document" ).AsGuid() ).AsGuid();
-
-
-            BinaryFileService binaryfileService = new BinaryFileService( rockContext );
-
-
-            SignNow signNow = new SignNow();
             string snErrorMessage = "";
-            string token = signNow.GetAccessToken( false, out snErrorMessage );
+            string token = RequestAccessToken( out snErrorMessage );
             if ( !string.IsNullOrEmpty( snErrorMessage ) )
             {
                 errorMessages.Add( snErrorMessage );
                 return false;
             }
+
+            Guid documentGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "Document" ).AsGuid() ).AsGuid();
+            BinaryFileService binaryfileService = new BinaryFileService( rockContext );
 
             //Check if document is signed.
             // The SDK returns null when the request fails, and a non-object JSON body or a non-JSON body
@@ -82,7 +80,7 @@ namespace org.secc.SignNowWorkflow
             }
             catch ( JsonException ex )
             {
-                errorMessages.Add( "SignNow Document Error: " + ex.Message );
+                errorMessages.Add( ReportFailure( DocumentErrorMessage, action, null, ex ) );
                 return false;
             }
 
@@ -90,7 +88,7 @@ namespace org.secc.SignNowWorkflow
             var signatures = document?["signatures"] as JArray;
             if ( signatures == null )
             {
-                errorMessages.Add( "SignNow Document Error: " + DescribeResponse( documentResult ) );
+                errorMessages.Add( ReportFailure( DocumentErrorMessage, action, DescribeResponse( documentResult ), null ) );
                 return false;
             }
 
@@ -165,7 +163,7 @@ namespace org.secc.SignNowWorkflow
                     string downloadedFilePath = ( downloadResult as JObject )?.Value<string>( "file" );
                     if ( string.IsNullOrWhiteSpace( downloadedFilePath ) || !File.Exists( downloadedFilePath ) )
                     {
-                        errorMessages.Add( "SignNow Download Error: " + DescribeResponse( downloadResult ) );
+                        errorMessages.Add( ReportFailure( DownloadErrorMessage, action, DescribeResponse( downloadResult ), null ) );
                         return false;
                     }
 
@@ -176,14 +174,14 @@ namespace org.secc.SignNowWorkflow
                     if ( !IsPdf( signedPdfBytes ) )
                     {
                         string body = Encoding.UTF8.GetString( signedPdfBytes, 0, Math.Min( signedPdfBytes.Length, 500 ) );
-                        errorMessages.Add( "SignNow Download Error: the downloaded file is not a PDF. " + body );
+                        errorMessages.Add( ReportFailure( DownloadErrorMessage, action, "The downloaded file is not a PDF. " + body, null ) );
                         return false;
                     }
                 }
                 // ArgumentNullException: the SDK's second request failed and it tried to save a null body.
                 catch ( Exception ex ) when ( ex is IOException || ex is UnauthorizedAccessException || ex is JsonException || ex is ArgumentNullException )
                 {
-                    errorMessages.Add( "SignNow Download Error: " + ex.Message );
+                    errorMessages.Add( ReportFailure( DownloadErrorMessage, action, null, ex ) );
                     return false;
                 }
                 finally
@@ -247,9 +245,101 @@ namespace org.secc.SignNowWorkflow
             return true;
         }
 
+        /// <summary>
+        /// Reads the value of the workflow attribute named by the SignNow Document Id setting.
+        /// </summary>
+        protected virtual string GetDocumentIdValue( WorkflowAction action )
+        {
+            return action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid() );
+        }
+
+        /// <summary>
+        /// Requests a SignNow access token from Rock's SignNow provider. On failure, the provider sets the error message.
+        /// </summary>
+        protected virtual string RequestAccessToken( out string errorMessage )
+        {
+            return new SignNow().GetAccessToken( false, out errorMessage );
+        }
+
         private static string DescribeResponse( object response )
         {
             return response == null ? "No response from SignNow." : response.ToString();
+        }
+
+        /// <summary>
+        /// Returns the trimmed SignNow Document Id value, which Execute passes to SignNow. When the value is blank or
+        /// isn't in the SignNow document id format, adds the error message and returns null.
+        /// </summary>
+        internal static string GetDocumentId( string value, List<string> errorMessages )
+        {
+            if ( string.IsNullOrEmpty( value ) )
+            {
+                errorMessages.Add( "A sign now document is required to complete this action" );
+                return null;
+            }
+
+            string documentId = value.Trim();
+            if ( !IsValidDocumentId( documentId ) )
+            {
+                errorMessages.Add( InvalidDocumentIdMessage );
+                return null;
+            }
+
+            return documentId;
+        }
+
+        /// <summary>
+        /// Returns true when the value is in the SignNow document id format: exactly 40 characters, each an ASCII
+        /// letter, digit or underscore. This matches the document id check in the vendor's SignNow.NET SDK (not the
+        /// SignNowSDK project bundled with Rock).
+        /// </summary>
+        internal static bool IsValidDocumentId( string documentId )
+        {
+            if ( documentId == null || documentId.Length != 40 )
+            {
+                return false;
+            }
+
+            foreach ( char c in documentId )
+            {
+                bool isIdCharacter = ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ) || ( c >= '0' && c <= '9' ) || c == '_';
+                if ( !isIdCharacter )
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static string ReportFailure( string userMessage, WorkflowAction action, string detail, Exception exception )
+        {
+            return ReportFailure( userMessage, action.ActionTypeId, action.Activity?.Workflow?.Id, detail, exception, ExceptionLogService.LogException );
+        }
+
+        /// <summary>
+        /// Sends the failure detail to <paramref name="log"/> and returns the message to show on the workflow, which is
+        /// always <paramref name="userMessage"/>. The logged message starts with <paramref name="userMessage"/> (Rock's
+        /// Exception List groups entries by their first characters), then names the action type and workflow, then
+        /// gives the detail. A caught exception is logged as the inner exception.
+        /// </summary>
+        internal static string ReportFailure( string userMessage, int actionTypeId, int? workflowId, string detail, Exception exception, Action<Exception> log )
+        {
+            var logMessage = new StringBuilder( userMessage );
+            logMessage.AppendFormat( " (action type {0}", actionTypeId );
+            if ( workflowId > 0 )
+            {
+                logMessage.AppendFormat( ", workflow {0}", workflowId );
+            }
+
+            logMessage.Append( ')' );
+            if ( !string.IsNullOrEmpty( detail ) )
+            {
+                logMessage.Append( ' ' ).Append( detail );
+            }
+
+            log( new Exception( logMessage.ToString(), exception ) );
+            return userMessage;
         }
 
         private static bool IsPdf( byte[] content )
