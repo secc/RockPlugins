@@ -485,7 +485,12 @@ namespace RockWeb.Plugins.GroupManager
                 }
             }
 
-            if (publishGroup.PublishGroupStatus == PublishGroupStatus.Approved)
+            // Editing a live (Approved) listing used to clone it with a new Guid and delete the original
+            // row below, which killed every contact link already rendered, cached, bookmarked or indexed
+            // (ROCK-9153). The clone only has a purpose when the result is a Draft, so the live row can
+            // stay published alongside it. Every other outcome deletes the original in the same save, so
+            // edit in place and keep the Guid stable.
+            if (publishGroup.PublishGroupStatus == PublishGroupStatus.Approved && publishGroupStatus == PublishGroupStatus.Draft)
             {
                 var tempGroup = publishGroup.Group;
                 publishGroup = (PublishGroup) publishGroup.Clone();
