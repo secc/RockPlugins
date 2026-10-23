@@ -42,6 +42,7 @@
     "overrides": {
         "@typescript-eslint/typescript-estree": {
             "minimatch": "^9.0.9"
-        }
+        },
+        "postcss-selector-parser": "^7.1.6"
     }
 }
