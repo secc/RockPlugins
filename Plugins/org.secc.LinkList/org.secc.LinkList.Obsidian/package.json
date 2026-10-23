@@ -43,6 +43,12 @@
         "@typescript-eslint/typescript-estree": {
             "minimatch": "^9.0.9"
         },
-        "postcss-selector-parser": "^7.1.6"
+        "postcss-selector-parser": "7.1.6",
+        "@sparkdevnetwork/obsidian-build-tools": {
+            "@babel/core": "^7.29.6"
+        },
+        "@rollup/plugin-terser": {
+            "serialize-javascript": "7.0.5"
+        }
     }
 }
