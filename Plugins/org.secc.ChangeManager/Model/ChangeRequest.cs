@@ -134,13 +134,21 @@ namespace org.secc.ChangeManager.Model
 
             using ( var dbContextTransaction = rockContext.Database.BeginTransaction() )
             {
+                var isCommitted = false;
                 try
                 {
                     IEntity entity = GetEntity( EntityTypeId, EntityId, rockContext, FamilyGroupOfPersonAliasId, errors );
 
                     //Make changes
-                    foreach ( var changeRecord in ChangeRecords.Where( r => r.WasApplied != true && r.IsRejected == false ) )
+                    foreach ( var changeRecord in ChangeRecords.Where( r => r.WasApplied != true && r.IsRejected == false ).OrderBy( r => r.Id ) )
                     {
+                        //Any error rolls back the whole request. A failed save also leaves its entity tracked
+                        //in the context, so every later SaveChanges would fail with the same error. Stop here.
+                        if ( errors.Any() )
+                        {
+                            break;
+                        }
+
                         var targetEntity = entity;
                         if ( changeRecord.RelatedEntityTypeId.HasValue )
                         {
@@ -240,8 +248,13 @@ namespace org.secc.ChangeManager.Model
                     }
 
                     //Undo Changes
-                    foreach ( var changeRecord in ChangeRecords.Where( r => r.WasApplied == true && r.IsRejected == true ) )
+                    foreach ( var changeRecord in ChangeRecords.Where( r => r.WasApplied == true && r.IsRejected == true ).OrderBy( r => r.Id ) )
                     {
+                        if ( errors.Any() )
+                        {
+                            break;
+                        }
+
                         var targetEntity = entity;
 
                         if ( changeRecord.RelatedEntityTypeId.HasValue && changeRecord.Action != ChangeRecordAction.Delete )
@@ -307,35 +320,51 @@ namespace org.secc.ChangeManager.Model
                     }
 
 
-                    try
+                    if ( !errors.Any() )
                     {
-                        rockContext.SaveChanges();
-                    }
-                    catch ( Exception e )
-                    {
-                        errors.AddRange( e.Messages() );
+                        try
+                        {
+                            rockContext.SaveChanges();
+                        }
+                        catch ( Exception e )
+                        {
+                            errors.AddRange( e.Messages() );
+                        }
                     }
 
                     if ( errors.Any() )
                     {
                         dbContextTransaction.Rollback();
-                    }
-                    else
-                    {
-                        dbContextTransaction.Commit();
+                        return;
                     }
 
-                    if ( entity.GetType()?.BaseType == typeof( Person ) && securityChangeDetail.ChangeDetails.Any() )
+                    dbContextTransaction.Commit();
+                    isCommitted = true;
+
+                    //Only send the security notice for changes that were actually saved
+                    if ( entity?.GetType().BaseType == typeof( Person ) && securityChangeDetail.ChangeDetails.Any() )
                     {
-                        var workflowGuid = GlobalAttributesCache.Get().GetValue( "ChangeManagerSecurityWorkflow" ).AsGuidOrNull();
-                        this.LaunchWorkflow( workflowGuid,
-                            "Change Request Security Notice",
-                            new Dictionary<string, string> { { "ChangeDetail", securityChangeDetail.ToJson() } }, null );
+                        try
+                        {
+                            var workflowGuid = GlobalAttributesCache.Get().GetValue( "ChangeManagerSecurityWorkflow" ).AsGuidOrNull();
+                            this.LaunchWorkflow( workflowGuid,
+                                "Change Request Security Notice",
+                                new Dictionary<string, string> { { "ChangeDetail", securityChangeDetail.ToJson() } }, null );
+                        }
+                        catch ( Exception e )
+                        {
+                            //The changes are already committed, so log this rather than report the request as failed
+                            ExceptionLogService.LogException( new Exception( "Error launching security notice for change request: " + Id.ToString(), e ) );
+                        }
                     }
                 }
                 catch ( Exception e )
                 {
-                    dbContextTransaction.Rollback();
+                    //Rolling back a committed transaction throws, which would hide the original error
+                    if ( !isCommitted )
+                    {
+                        dbContextTransaction.Rollback();
+                    }
                     errors.AddRange( e.Messages() );
                 }
                 finally
@@ -417,7 +446,8 @@ namespace org.secc.ChangeManager.Model
                 }
 
                 var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
-                MethodInfo addMethodInfo = entityService.GetType().GetMethod( "Add" );
+                //Match on the entity type parameter in case the service overloads Add (as with Delete)
+                MethodInfo addMethodInfo = entityService.GetType().GetMethod( "Add", new Type[] { entityType } );
                 object[] parametersArray = new object[] { entity };
 
                 if ( !addToDatabase )
