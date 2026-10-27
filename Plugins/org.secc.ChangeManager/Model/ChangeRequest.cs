@@ -154,7 +154,12 @@ namespace org.secc.ChangeManager.Model
                             {
                                 //new entity
                                 targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, errors );
-                                changeRecord.RelatedEntityId = targetEntity.Id;
+
+                                //CreateNewEntity returns null (and records the error) when the entity can't be saved
+                                if ( targetEntity != null )
+                                {
+                                    changeRecord.RelatedEntityId = targetEntity.Id;
+                                }
 
                                 //if we add a phone number add that to the change list
                                 if ( targetEntity?.GetType() == typeof( PhoneNumber ) )
@@ -260,7 +265,10 @@ namespace org.secc.ChangeManager.Model
                         if ( changeRecord.RelatedEntityTypeId.HasValue && changeRecord.Action == ChangeRecordAction.Delete )
                         {
                             targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext, errors );
-                            changeRecord.RelatedEntityId = targetEntity.Id;
+                            if ( targetEntity != null )
+                            {
+                                changeRecord.RelatedEntityId = targetEntity.Id;
+                            }
                         }
                         else if ( changeRecord.Action == ChangeRecordAction.Attribute )
                         {
@@ -381,7 +389,8 @@ namespace org.secc.ChangeManager.Model
                 var entityTypeCache = EntityTypeCache.Get( targetEntity.TypeId );
                 var entityType = entityTypeCache.GetEntityType();
                 var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
-                MethodInfo deleteMethodInfo = entityService.GetType().GetMethod( "Delete" );
+                //Some services (e.g. GroupMemberService) overload Delete, so match on the entity type parameter
+                MethodInfo deleteMethodInfo = entityService.GetType().GetMethod( "Delete", new Type[] { entityType } );
                 object[] parametersArray = new object[] { targetEntity };
                 deleteMethodInfo.Invoke( entityService, parametersArray );
                 dbContext.SaveChanges();
