@@ -154,7 +154,14 @@ namespace org.secc.ChangeManager.Model
             if ( !isCommitted )
             {
                 //Callers such as ChangeEntry and CMPublicProfileEdit keep saving on this context after a failure
-                DiscardPendingChanges( rockContext );
+                try
+                {
+                    DiscardPendingChanges( rockContext );
+                }
+                catch ( Exception e )
+                {
+                    errorList.AddRange( e.Messages() );
+                }
             }
             else if ( entity?.GetType().BaseType == typeof( Person ) && securityChangeDetail.ChangeDetails.Any() )
             {
@@ -401,6 +408,11 @@ namespace org.secc.ChangeManager.Model
                         break;
                     case EntityState.Modified:
                     case EntityState.Deleted:
+                        if ( entry.State == EntityState.Deleted )
+                        {
+                            //EF can't read CurrentValues while an entry is Deleted (e.g. after a failed DeleteEntity)
+                            entry.State = EntityState.Unchanged;
+                        }
                         entry.CurrentValues.SetValues( entry.OriginalValues );
                         entry.State = EntityState.Unchanged;
                         break;
