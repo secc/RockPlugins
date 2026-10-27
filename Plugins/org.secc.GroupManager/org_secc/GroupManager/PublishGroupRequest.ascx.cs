@@ -520,7 +520,13 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.ChildcareOptions = (ChildcareOptions) ddlChildcareOptions.SelectedValue.AsInteger();
             publishGroup.ChildcareAvailable = ddlChildcareOptions.SelectedValue.AsInteger() > 0;
             publishGroup.ChildcareRegistrationLink = publishGroup.ChildcareAvailable ? tbChildcareRegistrationLink.Text : "";
-            publishGroup.AudienceValues = GetSelectedAudience( rockContext );
+            // Update the existing collection rather than replacing it: reading it first loads the current
+            // links, so EF deletes the deselected ones instead of re-inserting rows that already exist.
+            publishGroup.AudienceValues.Clear();
+            foreach (var audienceValue in GetSelectedAudience( rockContext ))
+            {
+                publishGroup.AudienceValues.Add( audienceValue );
+            }
             publishGroup.ContactPersonAliasId = pContactPerson.PersonAliasId.Value;
             publishGroup.RequestorAliasId = CurrentPersonAliasId.Value;
             publishGroup.ContactEmail = tbContactEmail.Text;

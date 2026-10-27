@@ -60,10 +60,14 @@ Blocks are configured through standard Rock block attributes. Notable settings:
   (Approved listings only). Publish-group recipients fall back Contact Email → Contact Person →
   Default Recipient → Default Contact Group. Note the fallback runs first: a dead guid on a block
   with a Default Recipient still delivers (to the fallback) and shows the Response Message, so the
-  Error Message only renders when nothing resolves and no fallback is configured, or the send fails;
-  those two cases also write an Exception Log entry with page context. Unresolved targets and skipped
-  recipients are written to the Rock log (CMS domain, Warning level; enable that domain in
-  Admin Tools → System Settings → Rock Logs to see them).
+  Error Message only renders when nothing resolves and no fallback is configured, or no recipient
+  could be sent the message. If some recipients got it and others failed, the visitor sees the
+  Response Message (a resubmit would send duplicates) and the failures are logged. Failed sends and
+  "nothing resolved" write an Exception Log entry with page context. Unresolved targets, skipped
+  recipients and groups with no active leaders are written to the Rock log (CMS domain, Warning
+  level; enable that domain in Admin Tools → System Settings → Rock Logs to see them). The captcha
+  (when configured) is checked before any of this. With `Save Communication History` on, the
+  history record shows the visitor as sender and Reply-To, as it did before the From change.
 - **PublicProfileEdit** — `Show Family Members`, `Address Type`, `Phone Numbers`, family/adult/child
   `AttributeField`s, `Connection Status` for new people.
 - **LoginStatus** — `Logged In Page List` (key/value, Lava links), `Enable Notifications`,
