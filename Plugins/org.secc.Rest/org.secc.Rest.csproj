@@ -101,6 +101,8 @@
     <Compile Include="Controllers\RetiredEndpointsController.Partial.cs" />
     <Compile Include="Controllers\SecurityController.Partial.cs" />
     <Compile Include="Controllers\SermonController.Partial.cs" />
+    <Compile Include="Handlers\QueryOptionsHandler.cs" />
+    <Compile Include="Handlers\QueryOptionsStartup.cs" />
     <Compile Include="Handlers\SessionControllerHandler.cs" />
     <Compile Include="Handlers\SessionRouteHandler.cs" />
     <Compile Include="Models\ChannelItem.cs" />
@@ -130,7 +132,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
+  <!-- The post-build event copies the plugin into RockWeb. Builds that set CopyToRockWeb to false (test builds) skip it. -->
+  <PropertyGroup Condition="'$(CopyToRockWeb)' != 'false'">
     <PostBuildEvent>xcopy /Y /R "$(TargetDir)org.secc.Rest.dll" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

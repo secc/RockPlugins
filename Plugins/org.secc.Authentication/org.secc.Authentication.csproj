@@ -78,7 +78,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
+  <!-- The post-build event copies the plugin into RockWeb. Builds that set CopyToRockWeb to false (test builds) skip it. -->
+  <PropertyGroup Condition="'$(CopyToRockWeb)' != 'false'">
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
 xcopy /Y /R "$(TargetDir)org.secc.Authentication.dll" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
