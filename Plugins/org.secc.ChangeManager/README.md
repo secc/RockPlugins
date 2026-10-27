@@ -64,6 +64,8 @@ Category in Rock: **SECC > CRM**.
 
 **Auto-apply gating:** `ChangeEntry` applies changes immediately when `AutoApply` is on, but a requestor in the **Blacklist Data View** is always held for review, and an **Approved Updaters Data View** overrides `AutoApply`. `ChangeRequests`/`ChangeRequestDetail` restrict non-`EDIT`-authorized users to requests where they are the requestor.
 
+**Apply failures:** if applying a request fails, `CompleteChanges` rolls it back and the request stays pending for review. `ChangeEntry` (auto-apply) and `ManagedAttributeValues` then show the errors instead of returning to the person. `CMPublicProfileEdit` shows a general "our staff will review them" message instead of the raw errors, which are in the Exception Log.
+
 ## Dependencies & Integrations
 
 - **Rock:** `RockContext` / `Rock.Data.DbContext`, `Rock.Data.Model<T>` + `ISecured`, EntityType/DefinedValue/GroupType caches, `Reflection.GetServiceForEntityType` (reflection-based entity service resolution), `IHasAttributes` (load/set/save attribute values), the workflow engine (`LaunchWorkflow`), `GlobalAttributesCache`, the Rock block/UI framework, plugin migrations (`Rock.Plugin`).

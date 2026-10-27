@@ -167,6 +167,13 @@
                     </div>
 
                 </asp:Panel>
+
+                <asp:Panel ID="pnlApplyError" runat="server" Visible="false">
+                    <Rock:NotificationBox ID="nbApplyError" runat="server" NotificationBoxType="Warning" Text="We received your changes, but some of them could not be saved right away. Our staff will review them." />
+                    <div class="actions">
+                        <asp:LinkButton ID="btnApplyErrorContinue" runat="server" Text="Continue" CssClass="btn btn-primary" CausesValidation="false" OnClick="btnCancel_Click" />
+                    </div>
+                </asp:Panel>
             </div>
         </div>
     </ContentTemplate>
