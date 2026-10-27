@@ -387,9 +387,13 @@ namespace RockWeb.Plugins.org_secc.Communication
                 .ToList();
             var membershipGroupIds = CommunicationMembership.Select( m => m.GroupId ).ToList();
             var tempGroups = groupService.Queryable().AsNoTracking()
-                 .Where( g => g.IsPublic &&
-                     ( g.GroupTypeId == communicationListGroupTypeId
-                     || membershipGroupIds.Contains( g.Id ) && g.GroupTypeId == communicationListGroupTypeId ) )
+                 // Inactive lists are hidden from staff in the Communication Lists grid, so a
+                 // public one shown here can't be found and fixed. Hide it, even from members,
+                 // to match the keyword panel above.
+                 .Where( g => g.GroupTypeId == communicationListGroupTypeId
+                     && g.IsPublic
+                     && g.IsActive
+                     && !g.IsArchived )
                  .OrderBy( g => g.Name )
                  .ToList();
 
