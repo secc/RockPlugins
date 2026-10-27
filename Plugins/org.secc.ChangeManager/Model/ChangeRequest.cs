@@ -124,7 +124,9 @@ namespace org.secc.ChangeManager.Model
 
         public void CompleteChanges( RockContext rockContext, out List<string> errors )
         {
-            errors = new List<string>();
+            //errors is an out parameter, which a lambda can't capture
+            var errorList = new List<string>();
+            errors = errorList;
 
             SecurityChangeDetail securityChangeDetail = new SecurityChangeDetail
             {
@@ -132,248 +134,276 @@ namespace org.secc.ChangeManager.Model
                 ChangeDetails = new List<string>()
             };
 
-            using ( var dbContextTransaction = rockContext.Database.BeginTransaction() )
+            IEntity entity = null;
+            var isCommitted = false;
+            try
             {
-                var isCommitted = false;
+                //WrapTransactionIf (unlike a raw BeginTransaction) makes Rock hold its after-commit actions
+                //(such as the cache and message updates from GroupLocation and attribute value saves) until the commit
+                isCommitted = rockContext.WrapTransactionIf( () =>
+                {
+                    entity = ApplyChangeRecords( rockContext, errorList, securityChangeDetail );
+                    return !errorList.Any();
+                } );
+            }
+            catch ( Exception e )
+            {
+                errorList.AddRange( e.Messages() );
+            }
+
+            if ( !isCommitted )
+            {
+                //Callers such as ChangeEntry and CMPublicProfileEdit keep saving on this context after a failure
+                DiscardPendingChanges( rockContext );
+            }
+            else if ( entity?.GetType().BaseType == typeof( Person ) && securityChangeDetail.ChangeDetails.Any() )
+            {
+                //Only send the security notice for changes that were actually saved
                 try
                 {
-                    IEntity entity = GetEntity( EntityTypeId, EntityId, rockContext, FamilyGroupOfPersonAliasId, errors );
-
-                    //Make changes
-                    foreach ( var changeRecord in ChangeRecords.Where( r => r.WasApplied != true && r.IsRejected == false ).OrderBy( r => r.Id ) )
-                    {
-                        //Any error rolls back the whole request. A failed save also leaves its entity tracked
-                        //in the context, so every later SaveChanges would fail with the same error. Stop here.
-                        if ( errors.Any() )
-                        {
-                            break;
-                        }
-
-                        var targetEntity = entity;
-                        if ( changeRecord.RelatedEntityTypeId.HasValue )
-                        {
-                            if ( changeRecord.RelatedEntityId.HasValue &&
-                                !( changeRecord.RelatedEntityId == 0 || changeRecord.Action == ChangeRecordAction.Create ) )
-                            {
-                                //existing entity
-                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, null, errors );
-                            }
-                            else
-                            {
-                                //new entity
-                                targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, errors );
-
-                                //CreateNewEntity returns null (and records the error) when the entity can't be saved
-                                if ( targetEntity != null )
-                                {
-                                    changeRecord.RelatedEntityId = targetEntity.Id;
-                                }
-
-                                //if we add a phone number add that to the change list
-                                if ( targetEntity?.GetType() == typeof( PhoneNumber ) )
-                                {
-                                    var number = targetEntity as PhoneNumber;
-                                    var numberType = DefinedValueCache.GetValue( number.NumberTypeValueId.Value );
-                                    securityChangeDetail.ChangeDetails.Add( string.Format( "Added {0} phone number {1}", numberType, number.NumberFormatted ) );
-                                }
-                            }
-                        }
-
-                        //Some times entitities can be deleted (such as a binary file being cleaned up)
-                        //And cannot update, delete or change and attribute on it anymore
-                        if ( targetEntity == null )
-                        {
-                            continue;
-                        }
-
-                        //Remove records marked as delete
-                        if ( changeRecord.Action == ChangeRecordAction.Delete )
-                        {
-                            DeleteEntity( targetEntity, rockContext, errors );
-                        }
-                        else if ( changeRecord.Action == ChangeRecordAction.Attribute )
-                        {
-                            UpdateAttribute( targetEntity, changeRecord.Property, changeRecord.NewValue, rockContext, errors );
-                        }
-                        else if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
-                        {
-                            PropertyInfo prop = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
-
-                            if ( prop != null && prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
-                            {
-                                PropertyInfo propId = targetEntity.GetType().GetProperty( changeRecord.Property + "Id", BindingFlags.Public | BindingFlags.Instance );
-                                var newObject = changeRecord.NewValue.FromJsonOrNull<BasicEntity>();
-                                prop.SetValue( targetEntity, null, null );
-                                if ( newObject != null )
-                                {
-                                    propId.SetValue( targetEntity, newObject.Id );
-                                }
-                                else
-                                {
-                                    propId.SetValue( targetEntity, null, null );
-                                }
-                            }
-                            else
-                            {
-                                SetProperty( targetEntity, prop, changeRecord.NewValue, errors );
-                            }
-                        }
-                        changeRecord.WasApplied = true;
-
-                        //Check to see if the email address was changed
-                        var targetEntityType = targetEntity?.GetType();
-                        if ( targetEntityType?.BaseType == typeof( Person ) // is a person
-                            && changeRecord.Property == "Email" // and changed email
-                            && changeRecord.OldValue.IsNotNullOrWhiteSpace() //old value isn't blank
-                            && changeRecord.NewValue.IsNotNullOrWhiteSpace() //new value isn't blank
-                            )
-                        {
-                            securityChangeDetail.ChangeDetails.Add( string.Format( "Changed email address from {0} to {1}", changeRecord.OldValue, changeRecord.NewValue ) );
-                            securityChangeDetail.CurrentEmail = changeRecord.NewValue;
-                            securityChangeDetail.PreviousEmail = changeRecord.OldValue;
-                        }
-
-                        //Check to see if the phone number was changed
-                        if ( targetEntityType?.BaseType == typeof( PhoneNumber ) //is a phonenuumber
-                            && changeRecord.Property == "Number"  //is a number change
-                            )
-                        {
-                            var number = targetEntity as PhoneNumber;
-                            var numberType = DefinedValueCache.GetValue( number.NumberTypeValueId.Value );
-                            securityChangeDetail.ChangeDetails.Add( string.Format( "Changed {0} phone number from {1} to {2}",
-                                numberType,
-                                PhoneNumber.FormattedNumber( PhoneNumber.DefaultCountryCode(), changeRecord.OldValue ),
-                                PhoneNumber.FormattedNumber( PhoneNumber.DefaultCountryCode(), changeRecord.NewValue ) ) );
-                        }
-                    }
-
-                    //Undo Changes
-                    foreach ( var changeRecord in ChangeRecords.Where( r => r.WasApplied == true && r.IsRejected == true ).OrderBy( r => r.Id ) )
-                    {
-                        if ( errors.Any() )
-                        {
-                            break;
-                        }
-
-                        var targetEntity = entity;
-
-                        if ( changeRecord.RelatedEntityTypeId.HasValue && changeRecord.Action != ChangeRecordAction.Delete )
-                        {
-                            if ( changeRecord.RelatedEntityId.HasValue && changeRecord.Action != ChangeRecordAction.Create )
-                            {
-                                //existing entity
-                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, null, errors );
-                            }
-                            else
-                            {
-                                //This was a created entity that we must now murder in cold blood.
-                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, null, errors );
-                                DeleteEntity( targetEntity, rockContext, errors );
-                                changeRecord.WasApplied = false;
-                                continue;
-                            }
-                        }
-
-                        //Undelete
-                        if ( changeRecord.RelatedEntityTypeId.HasValue && changeRecord.Action == ChangeRecordAction.Delete )
-                        {
-                            targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext, errors );
-                            if ( targetEntity != null )
-                            {
-                                changeRecord.RelatedEntityId = targetEntity.Id;
-                            }
-                        }
-                        else if ( changeRecord.Action == ChangeRecordAction.Attribute )
-                        {
-                            UpdateAttribute( targetEntity, changeRecord.Property, changeRecord.OldValue, rockContext, errors );
-                        }
-                        //Property changes
-                        else if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
-                        {
-                            PropertyInfo prop = targetEntity?.GetType()?.GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
-                            if ( targetEntity == null || prop == null )
-                            {
-                                //Entity was probably deleted after the change request
-                                continue;
-                            }
-
-                            if ( prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
-                            {
-                                PropertyInfo propId = targetEntity.GetType().GetProperty( changeRecord.Property + "Id", BindingFlags.Public | BindingFlags.Instance );
-                                var oldObject = changeRecord.OldValue.FromJsonOrNull<BasicEntity>();
-                                prop.SetValue( targetEntity, null, null );
-                                if ( oldObject != null )
-                                {
-                                    propId.SetValue( targetEntity, oldObject.Id );
-                                }
-                                else
-                                {
-                                    propId.SetValue( targetEntity, null, null );
-                                }
-                            }
-                            else
-                            {
-                                SetProperty( targetEntity, prop, changeRecord.OldValue, errors );
-                            }
-                        }
-                        changeRecord.WasApplied = false;
-                    }
-
-
-                    if ( !errors.Any() )
-                    {
-                        try
-                        {
-                            rockContext.SaveChanges();
-                        }
-                        catch ( Exception e )
-                        {
-                            errors.AddRange( e.Messages() );
-                        }
-                    }
-
-                    if ( errors.Any() )
-                    {
-                        dbContextTransaction.Rollback();
-                        return;
-                    }
-
-                    dbContextTransaction.Commit();
-                    isCommitted = true;
-
-                    //Only send the security notice for changes that were actually saved
-                    if ( entity?.GetType().BaseType == typeof( Person ) && securityChangeDetail.ChangeDetails.Any() )
-                    {
-                        try
-                        {
-                            var workflowGuid = GlobalAttributesCache.Get().GetValue( "ChangeManagerSecurityWorkflow" ).AsGuidOrNull();
-                            this.LaunchWorkflow( workflowGuid,
-                                "Change Request Security Notice",
-                                new Dictionary<string, string> { { "ChangeDetail", securityChangeDetail.ToJson() } }, null );
-                        }
-                        catch ( Exception e )
-                        {
-                            //The changes are already committed, so log this rather than report the request as failed
-                            ExceptionLogService.LogException( new Exception( "Error launching security notice for change request: " + Id.ToString(), e ) );
-                        }
-                    }
+                    var workflowGuid = GlobalAttributesCache.Get().GetValue( "ChangeManagerSecurityWorkflow" ).AsGuidOrNull();
+                    this.LaunchWorkflow( workflowGuid,
+                        "Change Request Security Notice",
+                        new Dictionary<string, string> { { "ChangeDetail", securityChangeDetail.ToJson() } }, null );
                 }
                 catch ( Exception e )
                 {
-                    //Rolling back a committed transaction throws, which would hide the original error
-                    if ( !isCommitted )
+                    //The changes are already committed, so log this rather than report the request as failed
+                    ExceptionLogService.LogException( new Exception( "Error launching security notice for change request: " + Id.ToString(), e ) );
+                }
+            }
+
+            if ( errorList.Any() )
+            {
+                ExceptionLogService.LogException( new Exception( "Error while completing change request: " + Id.ToString(),
+                    new Exception( string.Join( " *** ", errorList ) ) ) );
+            }
+        }
+
+        /// <summary>
+        /// Applies pending change records and reverses rejected ones. Must run inside a transaction;
+        /// the caller commits only if no errors were added.
+        /// </summary>
+        /// <returns>The entity the change request targets, or null if it no longer exists.</returns>
+        private IEntity ApplyChangeRecords( RockContext rockContext, List<string> errors, SecurityChangeDetail securityChangeDetail )
+        {
+            IEntity entity = GetEntity( EntityTypeId, EntityId, rockContext, FamilyGroupOfPersonAliasId, errors );
+
+            //Make changes
+            foreach ( var changeRecord in ChangeRecords.Where( r => r.WasApplied != true && r.IsRejected == false ).OrderBy( r => r.Id ) )
+            {
+                //Any error rolls back the whole request. A failed save also leaves its entity tracked
+                //in the context, so every later SaveChanges would fail with the same error. Stop here.
+                if ( errors.Any() )
+                {
+                    break;
+                }
+
+                var targetEntity = entity;
+                if ( changeRecord.RelatedEntityTypeId.HasValue )
+                {
+                    if ( changeRecord.RelatedEntityId.HasValue &&
+                        !( changeRecord.RelatedEntityId == 0 || changeRecord.Action == ChangeRecordAction.Create ) )
                     {
-                        dbContextTransaction.Rollback();
+                        //existing entity
+                        targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, null, errors );
                     }
+                    else
+                    {
+                        //new entity
+                        targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, errors );
+
+                        //CreateNewEntity returns null (and records the error) when the entity can't be saved
+                        if ( targetEntity != null )
+                        {
+                            changeRecord.RelatedEntityId = targetEntity.Id;
+                        }
+
+                        //if we add a phone number add that to the change list
+                        if ( targetEntity?.GetType() == typeof( PhoneNumber ) )
+                        {
+                            var number = targetEntity as PhoneNumber;
+                            var numberType = DefinedValueCache.GetValue( number.NumberTypeValueId.Value );
+                            securityChangeDetail.ChangeDetails.Add( string.Format( "Added {0} phone number {1}", numberType, number.NumberFormatted ) );
+                        }
+                    }
+                }
+
+                //Some times entitities can be deleted (such as a binary file being cleaned up)
+                //And cannot update, delete or change and attribute on it anymore
+                if ( targetEntity == null )
+                {
+                    continue;
+                }
+
+                //Remove records marked as delete
+                if ( changeRecord.Action == ChangeRecordAction.Delete )
+                {
+                    DeleteEntity( targetEntity, rockContext, errors );
+                }
+                else if ( changeRecord.Action == ChangeRecordAction.Attribute )
+                {
+                    UpdateAttribute( targetEntity, changeRecord.Property, changeRecord.NewValue, rockContext, errors );
+                }
+                else if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
+                {
+                    PropertyInfo prop = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
+
+                    if ( prop != null && prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
+                    {
+                        PropertyInfo propId = targetEntity.GetType().GetProperty( changeRecord.Property + "Id", BindingFlags.Public | BindingFlags.Instance );
+                        var newObject = changeRecord.NewValue.FromJsonOrNull<BasicEntity>();
+                        prop.SetValue( targetEntity, null, null );
+                        if ( newObject != null )
+                        {
+                            propId.SetValue( targetEntity, newObject.Id );
+                        }
+                        else
+                        {
+                            propId.SetValue( targetEntity, null, null );
+                        }
+                    }
+                    else
+                    {
+                        SetProperty( targetEntity, prop, changeRecord.NewValue, errors );
+                    }
+                }
+                changeRecord.WasApplied = true;
+
+                //Check to see if the email address was changed
+                var targetEntityType = targetEntity?.GetType();
+                if ( targetEntityType?.BaseType == typeof( Person ) // is a person
+                    && changeRecord.Property == "Email" // and changed email
+                    && changeRecord.OldValue.IsNotNullOrWhiteSpace() //old value isn't blank
+                    && changeRecord.NewValue.IsNotNullOrWhiteSpace() //new value isn't blank
+                    )
+                {
+                    securityChangeDetail.ChangeDetails.Add( string.Format( "Changed email address from {0} to {1}", changeRecord.OldValue, changeRecord.NewValue ) );
+                    securityChangeDetail.CurrentEmail = changeRecord.NewValue;
+                    securityChangeDetail.PreviousEmail = changeRecord.OldValue;
+                }
+
+                //Check to see if the phone number was changed
+                if ( targetEntityType?.BaseType == typeof( PhoneNumber ) //is a phonenuumber
+                    && changeRecord.Property == "Number"  //is a number change
+                    )
+                {
+                    var number = targetEntity as PhoneNumber;
+                    var numberType = DefinedValueCache.GetValue( number.NumberTypeValueId.Value );
+                    securityChangeDetail.ChangeDetails.Add( string.Format( "Changed {0} phone number from {1} to {2}",
+                        numberType,
+                        PhoneNumber.FormattedNumber( PhoneNumber.DefaultCountryCode(), changeRecord.OldValue ),
+                        PhoneNumber.FormattedNumber( PhoneNumber.DefaultCountryCode(), changeRecord.NewValue ) ) );
+                }
+            }
+
+            //Undo Changes
+            foreach ( var changeRecord in ChangeRecords.Where( r => r.WasApplied == true && r.IsRejected == true ).OrderBy( r => r.Id ) )
+            {
+                if ( errors.Any() )
+                {
+                    break;
+                }
+
+                var targetEntity = entity;
+
+                if ( changeRecord.RelatedEntityTypeId.HasValue && changeRecord.Action != ChangeRecordAction.Delete )
+                {
+                    if ( changeRecord.RelatedEntityId.HasValue && changeRecord.Action != ChangeRecordAction.Create )
+                    {
+                        //existing entity
+                        targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, null, errors );
+                    }
+                    else
+                    {
+                        //This was a created entity that we must now murder in cold blood.
+                        targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, null, errors );
+                        DeleteEntity( targetEntity, rockContext, errors );
+                        changeRecord.WasApplied = false;
+                        continue;
+                    }
+                }
+
+                //Undelete
+                if ( changeRecord.RelatedEntityTypeId.HasValue && changeRecord.Action == ChangeRecordAction.Delete )
+                {
+                    targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext, errors );
+                    if ( targetEntity != null )
+                    {
+                        changeRecord.RelatedEntityId = targetEntity.Id;
+                    }
+                }
+                else if ( changeRecord.Action == ChangeRecordAction.Attribute )
+                {
+                    UpdateAttribute( targetEntity, changeRecord.Property, changeRecord.OldValue, rockContext, errors );
+                }
+                //Property changes
+                else if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
+                {
+                    PropertyInfo prop = targetEntity?.GetType()?.GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
+                    if ( targetEntity == null || prop == null )
+                    {
+                        //Entity was probably deleted after the change request
+                        continue;
+                    }
+
+                    if ( prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
+                    {
+                        PropertyInfo propId = targetEntity.GetType().GetProperty( changeRecord.Property + "Id", BindingFlags.Public | BindingFlags.Instance );
+                        var oldObject = changeRecord.OldValue.FromJsonOrNull<BasicEntity>();
+                        prop.SetValue( targetEntity, null, null );
+                        if ( oldObject != null )
+                        {
+                            propId.SetValue( targetEntity, oldObject.Id );
+                        }
+                        else
+                        {
+                            propId.SetValue( targetEntity, null, null );
+                        }
+                    }
+                    else
+                    {
+                        SetProperty( targetEntity, prop, changeRecord.OldValue, errors );
+                    }
+                }
+                changeRecord.WasApplied = false;
+            }
+
+
+            if ( !errors.Any() )
+            {
+                try
+                {
+                    rockContext.SaveChanges();
+                }
+                catch ( Exception e )
+                {
                     errors.AddRange( e.Messages() );
                 }
-                finally
+            }
+
+            return entity;
+        }
+
+        /// <summary>
+        /// Drops pending changes from the context after a rollback, so a failed save is not retried by the
+        /// caller's next SaveChanges. Entities already saved inside the rolled-back transaction stay Unchanged
+        /// in memory, so callers should not rely on them.
+        /// </summary>
+        private static void DiscardPendingChanges( RockContext rockContext )
+        {
+            foreach ( var entry in rockContext.ChangeTracker.Entries().ToList() )
+            {
+                switch ( entry.State )
                 {
-                    if ( errors.Any() )
-                    {
-                        ExceptionLogService.LogException( new Exception( "Error while completing change request: " + Id.ToString(),
-                            new Exception( string.Join( " *** ", errors ) ) ) );
-                    }
+                    case EntityState.Added:
+                        entry.State = EntityState.Detached;
+                        break;
+                    case EntityState.Modified:
+                    case EntityState.Deleted:
+                        entry.CurrentValues.SetValues( entry.OriginalValues );
+                        entry.State = EntityState.Unchanged;
+                        break;
                 }
             }
         }
