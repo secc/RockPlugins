@@ -12,7 +12,9 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using org.secc.Security.Utility;
 using Rock.Model;
 using Xunit;
@@ -95,14 +97,15 @@ namespace org.secc.Security.Tests
 
         /// <summary>
         /// Stands in for the login table: answers whether a user name is taken and records each user name asked about.
+        /// User names are compared the way the database compares them: case-insensitive, ignoring trailing spaces.
         /// </summary>
         private class Logins
         {
-            private readonly HashSet<string> _userNames;
+            private readonly List<string> _userNames;
 
             public Logins( params string[] userNames )
             {
-                _userNames = new HashSet<string>( userNames );
+                _userNames = new List<string>( userNames );
             }
 
             public List<string> Asked { get; } = new List<string>();
@@ -110,7 +113,7 @@ namespace org.secc.Security.Tests
             public bool IsTaken( string userName )
             {
                 Asked.Add( userName );
-                return _userNames.Contains( userName );
+                return _userNames.Any( u => string.Equals( u.TrimEnd( ' ' ), userName.TrimEnd( ' ' ), StringComparison.OrdinalIgnoreCase ) );
             }
         }
 
@@ -178,6 +181,8 @@ namespace org.secc.Security.Tests
         // The characters on either side of 0-9.
         [InlineData( "12/3456" )]
         [InlineData( "12:3456" )]
+        // A non-digit in the last place.
+        [InlineData( "123456:" )]
         public void CheckPin_NewPinWithNonDigits_IsRefused( string text )
         {
             var logins = new Logins();
@@ -214,6 +219,16 @@ namespace org.secc.Security.Tests
 
             Assert.Equal( ConvertMessage, Check( text, null, logins, out _ ) );
             Assert.Empty( logins.Asked );
+        }
+
+        [Fact]
+        public void CheckPin_NewPinWithOneSignificantDigit_IsAccepted()
+        {
+            var logins = new Logins();
+
+            Assert.Null( Check( "000001", null, logins, out var pin ) );
+            Assert.Equal( "000001", pin );
+            Assert.Equal( new[] { "000001" }, logins.Asked );
         }
 
         [Fact]
@@ -296,7 +311,8 @@ namespace org.secc.Security.Tests
         {
             var logins = new Logins( " 123456" );
 
-            Assert.Null( Check( " 123456", " 123456", logins, out var pin ) );
+            // The block's PIN box posts its text trimmed.
+            Assert.Null( Check( "123456", " 123456", logins, out var pin ) );
             Assert.Equal( " 123456", pin );
             Assert.Empty( logins.Asked );
         }
@@ -306,7 +322,8 @@ namespace org.secc.Security.Tests
         {
             var logins = new Logins( "123456 " );
 
-            Assert.Null( Check( "123456 ", "123456 ", logins, out var pin ) );
+            // The block's PIN box posts its text trimmed.
+            Assert.Null( Check( "123456", "123456 ", logins, out var pin ) );
             Assert.Equal( "123456 ", pin );
             Assert.Empty( logins.Asked );
         }
