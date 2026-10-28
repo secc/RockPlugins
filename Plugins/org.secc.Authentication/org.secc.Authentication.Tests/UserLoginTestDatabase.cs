@@ -13,8 +13,10 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Runtime.Serialization;
+using System.Web;
 using Rock.Model;
 using Rock.Security.ExternalAuthentication;
 
@@ -168,9 +170,10 @@ namespace org.secc.Authentication.Tests
     }
 
     /// <summary>
-    /// SMSAuthentication with its SQL sent to a <see cref="UserLoginTestDatabase"/>. It is created without
-    /// running its constructors, because Rock's Component constructor loads the component's attributes
-    /// from Rock's database; Authenticate doesn't use them.
+    /// SMSAuthentication with its SQL sent to a <see cref="UserLoginTestDatabase"/>, its request set by the
+    /// test and its log messages recorded. It is created without running its constructors, because Rock's
+    /// Component constructor loads the component's attributes from Rock's database; Authenticate doesn't
+    /// use them.
     /// </summary>
     public class TestSMSAuthentication : SMSAuthentication
     {
@@ -181,10 +184,28 @@ namespace org.secc.Authentication.Tests
         /// </summary>
         public Action<string> BeforeStatement { get; set; }
 
+        /// <summary>
+        /// The request the caller address is read from. <see cref="Create"/> gives each instance a connecting
+        /// address of its own, so each test's code entries are counted separately.
+        /// </summary>
+        public HttpRequestBase Request { get; set; }
+
+        /// <summary>
+        /// When true, the request comes from SMSAuthentication's own GetCurrentRequest instead.
+        /// </summary>
+        public bool UseCurrentRequest { get; set; }
+
+        /// <summary>
+        /// The messages written through Log.
+        /// </summary>
+        public List<string> Logged { get; private set; }
+
         public static TestSMSAuthentication Create( UserLoginTestDatabase database )
         {
             var authentication = ( TestSMSAuthentication ) FormatterServices.GetUninitializedObject( typeof( TestSMSAuthentication ) );
             authentication._database = database;
+            authentication.Request = new FakeRequest( remoteAddress: FakeRequest.NewAddress() );
+            authentication.Logged = new List<string>();
             return authentication;
         }
 
@@ -192,6 +213,19 @@ namespace org.secc.Authentication.Tests
         {
             BeforeStatement?.Invoke( sql );
             return _database.ExecuteSql( sql, parameters );
+        }
+
+        protected override HttpRequestBase GetCurrentRequest()
+        {
+            return UseCurrentRequest ? base.GetCurrentRequest() : Request;
+        }
+
+        protected override void Log( string message )
+        {
+            lock ( Logged )
+            {
+                Logged.Add( message );
+            }
         }
     }
 }
