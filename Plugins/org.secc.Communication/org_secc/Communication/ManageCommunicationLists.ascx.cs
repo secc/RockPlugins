@@ -170,14 +170,20 @@ namespace RockWeb.Plugins.org_secc.Communication
             GroupService groupService = new GroupService( rockContext );
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
 
-            var tempCommunicationGroups = groupService.Queryable().Where( g => CommunicationGroupIds.Contains( g.Id ) ).ToList();
+            CommunicationMembership = groupMemberService.Queryable().Where( m => CommunicationMembershipIds.Contains( m.Id ) ).ToList();
+            var membershipGroupIds = CommunicationMembership.Select( m => m.GroupId ).ToList();
+
+            // Re-apply the visibility rule: a list deactivated since the page loaded must not
+            // stay subscribable from the IDs cached in ViewState.
+            var tempCommunicationGroups = groupService.Queryable()
+                .Where( g => CommunicationGroupIds.Contains( g.Id ) )
+                .WhereVisible( membershipGroupIds )
+                .ToList();
             CommunicationGroups = new List<Group>();
             foreach ( var id in CommunicationGroupIds )
             {
                 CommunicationGroups.AddRange( tempCommunicationGroups.Where( g => g.Id == id ) );
             }
-
-            CommunicationMembership = groupMemberService.Queryable().Where( m => CommunicationMembershipIds.Contains( m.Id ) ).ToList();
 
             if ( ViewState["KeywordGroupId"] != null && ViewState["KeywordGroupId"] is int )
             {
@@ -243,25 +249,27 @@ namespace RockWeb.Plugins.org_secc.Communication
                 return;
             }
 
+            // Narrow in SQL, then match whole keywords in memory so VBS doesn't match VBSX.
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-            var attributeValue = attributeValueService.Queryable().AsNoTracking()
-                .Where( av => av.AttributeId == attribute.Id &&
-                 ( av.Value == keyword
-                 || av.Value.Contains( "|" + keyword )
-                 || av.Value.Contains( keyword + "|" )
-                 || av.Value.Contains( "|" + keyword + "|" ) )
-                ).FirstOrDefault();
+            var candidateGroupIds = attributeValueService.Queryable().AsNoTracking()
+                .Where( av => av.AttributeId == attribute.Id && av.EntityId.HasValue && av.Value.Contains( keyword ) )
+                .Select( av => new { GroupId = av.EntityId.Value, av.Value } )
+                .ToList()
+                .Where( av => CommunicationLists.KeywordMatches( av.Value, keyword ) )
+                .Select( av => av.GroupId )
+                .ToList();
 
-            if ( attributeValue == null )
-            {
-                pnlKeyword.Visible = false;
-                return;
-            }
-
+            // Same visibility rule as the list below (public, active), so a keyword shared with
+            // an inactive or non-public list resolves to the active public one.
             GroupService groupService = new GroupService( rockContext );
-            var group = groupService.Get( attributeValue.EntityId ?? 0 );
+            var group = groupService.Queryable()
+                .Where( g => candidateGroupIds.Contains( g.Id ) )
+                .WhereVisible()
+                .OrderBy( g => g.Name )
+                .ThenBy( g => g.Id )
+                .FirstOrDefault();
 
-            if ( group == null || !group.IsActive || group.IsArchived )
+            if ( group == null )
             {
                 pnlKeyword.Visible = false;
                 return;
@@ -387,13 +395,10 @@ namespace RockWeb.Plugins.org_secc.Communication
                 .ToList();
             var membershipGroupIds = CommunicationMembership.Select( m => m.GroupId ).ToList();
             var tempGroups = groupService.Queryable().AsNoTracking()
-                 // Inactive lists are hidden from staff in the Communication Lists grid, so a
-                 // public one shown here can't be found and fixed. Hide it, even from members,
-                 // to match the keyword panel above.
-                 .Where( g => g.GroupTypeId == communicationListGroupTypeId
-                     && g.IsPublic
-                     && g.IsActive
-                     && !g.IsArchived )
+                 // Inactive lists are hidden from non-members, but stay visible to their active
+                 // members: Rock still sends to a list's active members regardless of the list's
+                 // IsActive flag, so members need this page to unsubscribe.
+                 .WhereVisible( membershipGroupIds )
                  .OrderBy( g => g.Name )
                  .ToList();
 
@@ -689,7 +694,13 @@ namespace RockWeb.Plugins.org_secc.Communication
                 .FirstOrDefault();
             PanelWidget pnlWidget = phGroups.FindControl( panelId ) as PanelWidget;
 
-            if ( communicationGroup == null || pnlWidget == null )
+            // An inactive list is only shown so its members can manage or leave it; nobody
+            // (including a member who just unsubscribed) may join it.
+            var isInactiveForPerson = communicationGroup != null
+                && !communicationGroup.IsActive
+                && !CommunicationMembership.Any( m => m.GroupId == groupId );
+
+            if ( communicationGroup == null || pnlWidget == null || isInactiveForPerson )
             {
                 ShowNotice( "Unable to Subscribe",
                     "We were unable to process your subscription. Please reload the page and try again.",
@@ -1003,7 +1014,16 @@ namespace RockWeb.Plugins.org_secc.Communication
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
             GroupService groupService = new GroupService( rockContext );
 
-            var group = groupService.Get( groupId );
+            // Re-check: the list may have been deactivated or made non-public since the page loaded.
+            var group = groupService.Queryable().Where( g => g.Id == groupId ).WhereVisible().FirstOrDefault();
+            if ( group == null )
+            {
+                ShowNotice( "Unable to Subscribe",
+                    "We were unable to process your subscription. Please reload the page and try again.",
+                    NotificationBoxType.Danger );
+                return;
+            }
+
             var defaultGroupRoleId = group.GroupType.DefaultGroupRoleId;
 
 
