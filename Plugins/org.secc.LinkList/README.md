@@ -142,6 +142,16 @@ Interaction medium/channel for analytics.
 - **Frontend:** `@rockrms/obsidian-framework`, Vue 3, chart.js (analytics panel), rollup (web
   component bundle), jest (frontend tests). External fonts: Google Fonts always; the Adobe
   IvyJournal kit only when the org-wide toggle is on (licensed domains).
+- **npm `overrides`** (security fixes for dev-only build deps; `vue` stays pinned at `3.2.35`
+  to match Rock's Obsidian runtime):
+  - `postcss-selector-parser` pinned to exactly `7.1.6`, the first patched release (Dependabot
+    alert #287). `@sparkdevnetwork/obsidian-build-tools` (via cssnano 6) and
+    `eslint-plugin-vue` still declare `^6`. Don't float it: 7.1.7 changes cssnano output.
+    Remove the override once both declare `^7`.
+  - `serialize-javascript` `7.1.4` under `@rollup/plugin-terser` and `@babel/core` `^7.29.6`
+    under `obsidian-build-tools` (which pins `7.28.5` exactly). Remove each once build-tools
+    ships the patched version. `serialize-javascript` 7 needs Node 20 or later.
+  - `minimatch` `^9.0.9` under `@typescript-eslint/typescript-estree`.
 - **Cross-plugin:** none at build time. The legacy WebForms `LinkListEditUsers` block lives in
   [org.secc.Cms](../org.secc.Cms/README.md) and manages the same per-list security groups.
 
@@ -195,4 +205,4 @@ Interaction medium/channel for analytics.
 - Related: [org.secc.Cms](../org.secc.Cms/README.md) (legacy `LinkListEditUsers` block over the
   same security groups).
 
-Last updated: 2026-09-03
+Last updated: 2026-10-27
