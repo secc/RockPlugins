@@ -71,13 +71,6 @@ Not a Rock REST endpoint — a plain C# facade other code (the block, and potent
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** The SOAP binding in `app.config` uses `<security mode="None">`, so EMS
-  credentials (`Settings.UserName` / `Settings.Password`) and all booking data travel **unencrypted**
-  unless the EMS endpoint URL is itself HTTPS. Worth confirming the configured endpoint is `https://`
-  and that the binding/transport security matches.
-- **Security (low):** EMS credentials are read from plain Rock/web `AppSettings` keys (`EmsUser`,
-  `EmsPassword`) via `ConfigurationManager`, not Rock's encrypted attribute storage. Confirm
-  `web.config` is not exposed and that these keys are managed as secrets.
 - **Improvement:** `Settings.HVAC_enabled_booking_status_ids` and `Default_web_event_status_ids` are
   hard-coded to `{ "1" }` in code. Changing which EMS booking statuses are considered "confirmed"
   requires a recompile rather than configuration.

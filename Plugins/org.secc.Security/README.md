@@ -2,7 +2,7 @@
 
 > A grab-bag of SECC security/identity Rock **blocks** — Wi-Fi captive portals, SAML/SSO redirects to third-party services (WellRight, Church Online), PIN management, and self-service account blocks — plus a small reusable SAML 2.0 assertion library.
 
-> **Doc tier: deep.** This plugin brokers credentials and identity to external systems (it builds and signs SAML assertions, derives SSO tokens, and stands up public Wi-Fi onboarding pages), so it's documented at the deeper technical tier — the SSO/redirect flow, per-block config attributes, and the security-sensitive edges. Most SECC plugins use the lighter standard tier.
+> **Doc tier: deep.** This plugin brokers credentials and identity to external systems (it builds and signs SAML assertions, derives SSO tokens, and stands up public Wi-Fi onboarding pages), so it's documented at the deeper technical tier — the SSO/redirect flow and per-block config attributes. Most SECC plugins use the lighter standard tier.
 
 ## Overview
 
@@ -68,7 +68,7 @@ Category in Rock: **SECC > Security** (the Captive Portal block uses the plain *
 | PIN Manager | Person-context block to add/edit/remove PIN logins (`PINAuthentication`), tagged by a "purpose" defined type. |
 | ChurchOnline SSO Redirect | Logs the user into Church Online via an encrypted+signed MultiPass token; also posts a check-in `Attendance` record. |
 | Wellright Redirect | Logs the user into WellRight by POSTing a signed SAML 2.0 assertion. |
-| SignNow Test | Developer/test harness that pushes a hardcoded Binary File to SignNow and resolves an invite link. Not a production block (see Observations). |
+| SignNow Test | Developer/test harness that pushes a hardcoded Binary File to SignNow and resolves an invite link. Not a production block. |
 
 #### Captive Portal  *(Security)*
 Keys in **bold** are the block attribute keys.
@@ -104,7 +104,7 @@ Reads the `FrontporchAPIToken` / `FrontporchHost` global attributes for the API 
 | **RequestUrl** | text | `Recipient`/request URL put in the SAML assertion. |
 | **PostUrl** | text | Where the signed `SAMLResponse` form auto-POSTs. |
 | **CertificateFile** | file (Binary File) | PFX certificate used to sign the assertion. |
-| **CertificatePassword** | text | PFX password (stored as a plain block setting — see Observations). |
+| **CertificatePassword** | text | PFX password. |
 | **DaysValid** | integer (default 30) | Assertion lifetime (converted to minutes). |
 | **ShowDebug** | bool (default false) | Show admins the formatted XML before forwarding. |
 
@@ -152,20 +152,14 @@ Both `RockBlock`s with a **Detail Page** (`LinkedPage`, Detail only), a **Show (
 ## Edge Cases & Constraints
 
 - **WellRight requires a birthdate.** `GetResponse()` calls `CurrentPerson.BirthDate.Value.ToString("o")` with no null check — a logged-in person without a DOB throws. Confirm the WellRight audience always has DOB, or guard it.
-- **Captive Portal `CreateRedirectUrl` appends `Request.QueryString` verbatim** onto the release link. The release link itself is validated as an absolute http/https URL, but the trailing query string is the raw inbound one.
 - **Admin users never actually SSO.** WellRight, Church Online and the Captive Portal all short-circuit for `ADMINISTRATE` users into a debug message rather than redirecting — testing SSO end-to-end requires a non-admin account (or, for WellRight, `?Continue=true`).
-- **Church Online MultiPass tokens are short-lived** (`Expires = now + 5 minutes`, UTC) and the init vector is the fixed string `"OpenSSL for Ruby"` — a MultiPass/Tymio convention, not a per-request IV.
-- **PIN Manager parses PINs as numbers.** A PIN is converted via `AsDouble()`; a PIN of `0` (or non-numeric) is rejected, and uniqueness is checked against existing usernames before save.
+- **Church Online MultiPass tokens are short-lived** (`Expires = now + 5 minutes`, UTC).
 
 ## Observations
 
-*Noticed while documenting — not a full audit; the SSO/redirect blocks and the test block stood out.*
+*Noticed while documenting — not a full audit.*
 
-- **Security (review):** `WellrightRedirect.CertificatePassword` is a plain `TextField` block setting (the PFX itself is a Binary File). Anyone who can administer the block can read the signing-cert password, and it isn't an `EncryptedTextField` like Staff Captive Portal's `SECCSecure`. Worth confirming block security is locked to trusted staff and considering an encrypted attribute.
-- **Security (review):** Church Online's SSO scheme uses a **fixed IV** (`"OpenSSL for Ruby"`) and HMAC-**SHA1**. Both are dictated by the Church Online/MultiPass spec, so they likely can't change unilaterally, but they're weak primitives worth noting if the integration is ever revisited. The `SSOKey` is a non-encrypted password `TextField`.
-- **Security (low):** `SignNowTest` is a "Test for sign now" block with a **hardcoded document Guid** (`5bb17a5b-…`) that creates a SignNow document/invite for `CurrentPerson` on every page load, writes a temp PDF to disk, and has no auth gating beyond page security. It looks like dev scaffolding; confirm it isn't deployed on a reachable production page.
-- **Security (low):** `CertificateUtility` exports the signing cert's private key to an XML string (`PrivateKey.ToXmlString(true)`) and re-imports it into a CSP on every sign. Functional, but the private key transits managed memory in the clear; fine for an internal signing path, noted for awareness.
-- **Key storage (ROCK-9041):** `WellrightRedirect` loads the PFX with `Exportable | MachineKeySet` (no `PersistKeySet`) and disposes the `X509Certificate2` after signing, and `CertificateUtility` disposes its `RSACryptoServiceProvider` (`PersistKeyInCsp = false`). Before this, every WellRight page load left a new private-key file in the machine key store.
+- **Key storage (ROCK-9041):** `WellrightRedirect` loads the PFX with `Exportable | MachineKeySet` (no `PersistKeySet`) and disposes the `X509Certificate2` after signing, and `CertificateUtility` disposes its `RSACryptoServiceProvider` (`PersistKeyInCsp = false`).
 - **Improvement:** Several blocks `new RockContext()` repeatedly within a single request (e.g. Captive Portal creates a fresh context in `DoesPersonalDeviceExist`, `CreateDevice`, `VerifyDeviceInfo`, `Prefill`). Minor, but consolidating to one context per request would be cleaner.
 - **Improvement:** The compiled assembly contains only the SAML2 library; everything else is RockWeb-compiled. A maintainer touching a block won't see it in the csproj — note that when adding files.
 

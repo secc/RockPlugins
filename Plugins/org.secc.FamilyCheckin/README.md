@@ -26,7 +26,8 @@ pre-registration, mobile start). Used by check-in staff and parents at kiosks an
 ```
 /Model/          Kiosk, CheckinKioskType, MobileCheckinRecord entities + services (EF, custom tables)
 /Data/           FamilyCheckinContext — plugin EF DbContext (NullDatabaseInitializer; uses RockContext db)
-/Cache/          CheckinCache<T> + KioskType/MobileCheckinRecord/Attendance/Occurrence caches
+/Cache/          CheckinCache<T> + KioskType/MobileCheckinRecord/Attendance/Occurrence caches;
+                 CheckinKeyList maintains each cache type's key list
 /Workflows/      ~25 custom CheckInActionComponent actions (load, filter, save, reserve, labels)
 /Rest/           FamilyCheckinController + session-enabled route/controller handlers
 /Jobs/           Quartz IJob — expire mobile reservations, reset disabled group-location-schedules
@@ -180,29 +181,6 @@ attributes (don't hand-edit ones that have already run):
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** Check-in handles minors' PII (names, birthdays, grade, medical/medication
-  consent, allergy data driving labels). Confirm the Rock **page/block security** on the consent and
-  pre-registration blocks, and that the kiosk-facing pages are restricted to the intended check-in
-  roles.
-- **Security (review):** Mobile check-in is gated by `MobileCheckinRecord.AccessKey` (a unique
-  string consumed by `GetByAccessKey`). Worth confirming the access key is generated from a
-  cryptographically strong, non-guessable source, since possessing it identifies a family's
-  reservation.
-- **Security (ROCK-8765, addressed on `sl-bugfix-8765`):** `FamilyCheckinController.Family` returned
-  full `CheckInFamily` graphs (family captions + members' first names, incl. minors) to any caller
-  whose session had a `BlockGuid`. Investigation found the mobile-checkin vector does **not** actually
-  leak — its workflow activity (`Person Search → Find Family Members`) assumes a selected family and
-  errors under a phone search — so the real exposure is the kiosk QuickSearch path, which requires a
-  staff-provisioned kiosk session. Because a console `fetch` on the kiosk page is indistinguishable
-  from the page's own AJAX, the kiosk path can't be blocked in code without breaking check-in; that
-  residual risk is accepted and gated by kiosk provisioning + rate limiting. Fix adds a `BlockGuid`
-  provenance check (rejects non-QuickSearch sessions, incl. mobile), server-side length enforcement,
-  per-session rate limiting, and a projected response. Note `CheckInFamily.SubCaption` is member
-  first names by design (`Rock/Workflow/Action/CheckIn/FindFamilies.cs`), so it is still returned on
-  the legitimate kiosk path.
-- **Security (low):** `Family` decrypts the `LocalDeviceConfig` cookie and trusts `CurrentKioskId`
-  from it to pick the kiosk; worth confirming the cookie's integrity protection is sufficient for the
-  device-config trust placed in it.
 - **Improvement (done):** The REST `Family` and `ProcessMobileCheckin` handlers now share the
   activate-workflow / process / save-state block via the private `RunCheckinWorkflow` helper, and
   the `?UserName=` impersonation gate is shared with the MobileCheckinStart block via
@@ -216,9 +194,40 @@ attributes (don't hand-edit ones that have already run):
 - Kiosk/KioskType/MobileCheckinRecord shape changes go in `Model/` plus a new numbered migration
   under `/Migrations/`; the cache wrappers in `Cache/` must be kept in sync (see the desync checks
   in `MobileCheckinRecordCache`).
+- **Cache key lists (ROCK-8772):** each `CheckinCache<T>` type keeps a list of its cached keys
+  (`AllKeys`), maintained by `Cache/CheckinKeyList.cs`. The published list is a read-only snapshot:
+  every change builds and publishes a new list, so callers can enumerate `AllKeys(...)` without
+  copying or locking it, and must never cast it back to a mutable list. A null list means "not
+  loaded"; an empty list is a valid cached result. The key factory (a DB query) runs outside the
+  update lock and is throttled to one reload per 10 seconds (monotonic clock); changes made while it
+  runs are replayed onto its result. `CheckinCacheConsumer` ignores messages from its own node and
+  applies other nodes' adds/removes through `CheckinCache<T>.ApplyRemoteKeyChange` rather than
+  dropping the list. Unit tests: `../org.secc.FamilyCheckin.Tests` (build with MSBuild, passing
+  `/p:SolutionDir=` your Rock checkout, then `dotnet test` the output DLL).
+- **Cache loads never overwrite newer writes (ROCK-8818):** a load reads from the DB and then
+  caches what it read. `Cache/CheckinWriteGuard.cs` makes sure that copy is dropped if a live
+  update (`AddOrUpdate`, `Remove`, `Clear`, or a message from another node via
+  `CheckinCacheConsumer`) changed the same key after the load began. Every cache write goes
+  through the guard: live writes call `RecordWrite`/`RecordClear`, and loads call
+  `BeginLoad` → `AddLoaded` → `EndLoad`, taking the stamp **before** the query. Keep the cache
+  writes in-memory only, because they run under the guard's lock.
+- **AttendanceCache bulk load (ROCK-8818):** `AttendanceCache.All()` loads cache misses in bulk
+  instead of one query per key. When at least half the keys are missing (a cold cache), it runs
+  one query over today's attendance. Otherwise it queries the missing ids in chunks of 500. The
+  occurrence lookup (`OccurrenceCache.CreateLookup()`) is built before the attendance query. Only
+  one bulk load runs at a time (`Cache/SingleFlight.cs`): callers that arrive mid-load share its
+  result, or its exception, and do not queue to repeat it. Keys with no matching attendance, and
+  keys that aren't exactly `AttendanceCache:<id>`, are removed from the key list after the load.
+  When every key is cached (the warm path, e.g. CheckinMonitor's per-room calls every 10 s), `All()`
+  returns a list sized to the key count, which stays off the Large Object Heap up to ~10,600 keys.
+  A local integration harness (fixture SQL + a localhost-only `.ashx`) lives in
+  `../org.secc.FamilyCheckin.Tests/Harness/`; see its README. Never deploy it to a shared server.
+- **Attendance with no person:** an attendance with no `PersonAlias` is cached as `PersonId` 0 /
+  "Unnamed Person". It counts toward `OccurrenceCache.IsFull`, matching the DB row count. It is
+  excluded from RoomScanner's volunteer count, because it can't count as a known adult in the room.
 - Kiosk-facing UI lives in `org_secc/FamilyCheckin/*.ascx[.cs]`; visual theming lives under
   `/Themes/`.
 - Related: scannable codes come from [org.secc.QRManager](../org.secc.QRManager/README.md);
   shared helpers from [org.secc.DevLib](../org.secc.DevLib/README.md).
 
-**Last updated:** 2026-08-23
+**Last updated:** 2026-10-12

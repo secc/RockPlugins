@@ -17,10 +17,12 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Web;
 using System.Web.Http;
 using System.Web.Routing;
@@ -66,23 +68,21 @@ namespace org.secc.Rest.Controllers
 
         /// <summary>
         /// Number of digits in the emailed confirmation code. Kept short because users type it
-        /// into the mobile app by hand. NOTE: 6 digits is only a 10^6 space, so the expiry window
-        /// and the attempt budgets below are what actually make guessing impractical -- see the
-        /// residual-risk note on ROCK-8762 before loosening either.
+        /// into the mobile app by hand. The code lifetime and the attempt budgets below are sized
+        /// together with it; see ROCK-8762 before changing any of them.
         /// </summary>
         private const int CONFIRMATION_CODE_DIGITS = 6;
 
         /// <summary>
-        /// How long an issued confirmation code stays valid. Shorter is materially safer: the
-        /// chance a blind guess hits *some* account scales with the number of live codes.
+        /// How long an issued confirmation code stays valid. Sized together with
+        /// CONFIRMATION_CODE_DIGITS and the attempt budgets (ROCK-8762).
         /// </summary>
         private const int CONFIRMATION_CODE_LIFETIME_MINUTES = 60;
 
         /// <summary>
         /// Confirmation attempts allowed per window for a single forwarded client IP. Tight,
-        /// because a legitimate user needs one or two tries. Note that X-Forwarded-For is
-        /// caller-supplied, so this budget alone can be escaped by rotating the header -- hence
-        /// the socket-level budget below.
+        /// because a legitimate user needs one or two tries. X-Forwarded-For comes from the
+        /// request, so the socket-level budget below applies as well.
         /// </summary>
         private const int CONFIRMATION_MAX_ATTEMPTS_PER_FORWARDED_IP = 10;
 
@@ -95,20 +95,16 @@ namespace org.secc.Rest.Controllers
         private const int CONFIRMATION_MAX_ATTEMPTS_PER_PEER = 120;
 
         /// <summary>
-        /// Attempts per window across the whole OAuth client that trigger an alert. This is
-        /// deliberately a log threshold and NOT a block: every user of the mobile app shares one
-        /// OAuth client, so refusing requests at this level would let one attacker stop everyone
-        /// from confirming their account.
+        /// Attempts per window across the whole OAuth client that trigger an alert. This is a log
+        /// threshold, not a block: every user of the mobile app shares one OAuth client, so this
+        /// count covers all of them together.
         /// </summary>
         private const int CONFIRMATION_ALERT_THRESHOLD_PER_CLIENT = 100;
 
         private const int CONFIRMATION_ATTEMPT_WINDOW_MINUTES = 15;
 
         /// <summary>
-        /// Logins with a still-live confirmation code allowed per person. This bounds the number of
-        /// live codes, and therefore the odds a blind guess matches *something*: a guess lands with
-        /// roughly (live codes / 10^DIGITS) probability. Without a cap, api/account/create could be
-        /// called in a loop against one person to stack up thousands of simultaneously-valid codes.
+        /// Logins with a still-live confirmation code allowed per person (ROCK-8762).
         ///
         /// Counted over the code lifetime rather than over all unconfirmed logins, so it self-clears
         /// and so people who already have abandoned unconfirmed logins from the old flow are not
@@ -117,60 +113,166 @@ namespace org.secc.Rest.Controllers
         private const int MAX_LIVE_CONFIRMATION_CODES_PER_PERSON = 3;
 
         /// <summary>
-        /// Account creations allowed per window for one forwarded client IP. api/account/create is
-        /// what manufactures confirmation codes, so leaving it unthrottled lets an attacker seed a
-        /// large live-code population and drive the per-guess hit rate up by orders of magnitude.
-        /// Throttling issuance matters as much as throttling verification.
+        /// Expired confirmation code cleanup: at most one run per interval on each server, each
+        /// looking at the oldest batch of issued-code rows.
+        /// </summary>
+        private const int CONFIRMATION_CODE_CLEANUP_INTERVAL_MINUTES = 10;
+        private const int CONFIRMATION_CODE_CLEANUP_BATCH_SIZE = 500;
+        private static readonly CleanupSlot _confirmationCodeCleanupSlot = new CleanupSlot();
+
+        /// <summary>
+        /// Account creations allowed per window for one forwarded client IP. api/account/create
+        /// issues confirmation codes, so it has its own budget alongside the confirmation budget.
         /// </summary>
         private const int CREATE_MAX_ATTEMPTS_PER_FORWARDED_IP = 5;
 
         /// <summary>
         /// Account creations allowed per window for one socket peer. Sized generously for the same
         /// reason as the confirmation peer budget: behind a reverse proxy every user of the app
-        /// shares one REMOTE_ADDR, so a tight number here would refuse legitimate signups for the
-        /// whole church rather than for one abuser.
+        /// shares one REMOTE_ADDR, so this is a ceiling on one network's signups, not a per-user
+        /// limit.
         /// </summary>
         private const int CREATE_MAX_ATTEMPTS_PER_PEER = 200;
 
         #endregion
 
+        /// <summary>
+        /// The caller check for the OAuth-client-only actions: the caller's identity name is not
+        /// blank, and parsed as a Guid it is the ApiKey of an OAuth client that is Active.
+        /// </summary>
+        internal static bool IsActiveOAuthClient( string clientId, Func<Guid, Client> getClientByApiKey )
+        {
+            if ( clientId.IsNullOrWhiteSpace() )
+            {
+                return false;
+            }
+
+            var oAuthClient = getClientByApiKey( clientId.AsGuid() );
+            return oAuthClient != null && oAuthClient.Active;
+        }
+
+        /// <summary>
+        /// <see cref="IsActiveOAuthClient"/> against the OAuth clients stored in Rock.
+        /// </summary>
+        protected virtual bool IsCallerActiveOAuthClient( string clientId )
+        {
+            return IsActiveOAuthClient( clientId, new ClientService( new OAuthContext() ).GetByApiKey );
+        }
+
+        /// <summary>
+        /// <see cref="GetPreThrottleInputErrors(Account, Func{string, bool}, string, DateTime)"/> with
+        /// Rock's password rule and today's date.
+        /// </summary>
+        protected virtual List<KeyValuePair<string, string>> GetPreThrottleInputErrors( Account account )
+        {
+            return GetPreThrottleInputErrors( account, UserLoginService.IsPasswordValid, UserLoginService.FriendlyPasswordRules(), RockDateTime.Today );
+        }
+
+        /// <summary>
+        /// Counts an account creation attempt against the caller's create budgets. Returns false when
+        /// a budget is already spent, and logs that refusal at most once per window.
+        /// </summary>
+        protected virtual bool TryRegisterAccountCreationAttempt( string clientId )
+        {
+            var createPeerKey = "create|client:" + clientId + "|peer:" + GetPeerIpAddress();
+            var createForwardedKey = "create|client:" + clientId + "|fwd:" + GetForwardedIpAddress();
+
+            if ( !ConfirmationAttempts.TryRegisterAttempt( createPeerKey, CREATE_MAX_ATTEMPTS_PER_PEER )
+              || !ConfirmationAttempts.TryRegisterAttempt( createForwardedKey, CREATE_MAX_ATTEMPTS_PER_FORWARDED_IP ) )
+            {
+                if ( ConfirmationAttempts.ShouldLogRefusal( createPeerKey ) )
+                {
+                    ExceptionLogService.LogException( new Exception( string.Format(
+                        "Account creation budget exceeded. Client: {0} PeerIP: {1} ForwardedIP: {2}",
+                        clientId, GetPeerIpAddress(), GetForwardedIpAddress() ) ) );
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// The cached attribute with this Guid, or null when there is none.
+        /// </summary>
+        protected virtual AttributeCache GetAttributeCache( Guid guid )
+        {
+            return AttributeCache.Get( guid );
+        }
+
+        /// <summary>
+        /// The cached defined value with this Guid, or null when there is none.
+        /// </summary>
+        protected virtual DefinedValueCache GetDefinedValueCache( Guid guid )
+        {
+            return DefinedValueCache.Get( guid );
+        }
+
+        /// <summary>
+        /// Rock's default phone country code.
+        /// </summary>
+        protected virtual string GetDefaultCountryCode()
+        {
+            return PhoneNumber.DefaultCountryCode();
+        }
+
+        /// <summary>
+        /// A new Rock database context.
+        /// </summary>
+        protected virtual Rock.Data.RockContext CreateRockContext()
+        {
+            return new Rock.Data.RockContext();
+        }
+
+        /// <summary>
+        /// The people matching the account's name, birthdate, email address and mobile number.
+        /// </summary>
+        protected virtual IEnumerable<Person> GetMatchingPeople( PersonService personService, Account account )
+        {
+            return personService.GetByMatch( account.FirstName, account.LastName, account.Birthdate, account.EmailAddress, account.MobileNumber, null, null );
+        }
+
+        /// <summary>
+        /// Saves a person that CreateAccount created, with Rock's PersonService.SaveNewPerson.
+        /// </summary>
+        protected virtual void SaveNewPerson( Person person, Rock.Data.RockContext rockContext )
+        {
+            PersonService.SaveNewPerson( person, rockContext );
+        }
+
         [Route( "api/account/create" )]
         [Authorize]
         public HttpResponseMessage CreateAccount( Account account )
         {
-            OAuthContext oAuthContext = new OAuthContext();
-            ClientService clientService = new ClientService( oAuthContext );
             var clientId = HttpContext.Current?.User?.Identity?.Name;
 
-            if ( clientId.IsNullOrWhiteSpace() )
+            if ( IsCallerActiveOAuthClient( clientId ) )
             {
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden );
-            }
-
-            Client oAuthClient = clientService.GetByApiKey( clientId.AsGuid() );
-            if ( oAuthClient != null && oAuthClient.Active )
-            {
-                // Throttle issuance, not just verification. api/account/create is what mints
-                // confirmation codes, so an unthrottled create lets an attacker seed a large live
-                // code population and raise the per-guess hit rate by orders of magnitude.
-                //
-                // Same two-tier keying as confirmation: tight on the forwarded client IP so one
-                // abuser is contained, generous on the socket peer so the shared proxy address is
-                // not a church-wide signup outage. Throttled before the missing-migration check
-                // below so that a misconfigured deploy cannot be turned into unbounded logging.
-                var createPeerKey = "create|client:" + clientId + "|peer:" + GetPeerIpAddress();
-                var createForwardedKey = "create|client:" + clientId + "|fwd:" + GetForwardedIpAddress();
-
-                if ( !ConfirmationAttempts.TryRegisterAttempt( createPeerKey, CREATE_MAX_ATTEMPTS_PER_PEER )
-                  || !ConfirmationAttempts.TryRegisterAttempt( createForwardedKey, CREATE_MAX_ATTEMPTS_PER_FORWARDED_IP ) )
+                if ( account == null )
                 {
-                    if ( ConfirmationAttempts.ShouldLogRefusal( createPeerKey ) )
-                    {
-                        ExceptionLogService.LogException( new Exception( string.Format(
-                            "Account creation budget exceeded. Client: {0} PeerIP: {1} ForwardedIP: {2}",
-                            clientId, GetPeerIpAddress(), GetForwardedIpAddress() ) ) );
-                    }
+                    ModelState.AddModelError( "Account", "Account information is required." );
+                    return Request.CreateErrorResponse( HttpStatusCode.BadRequest, ModelState );
+                }
 
+                // The password and age checks need no lookup, so they run before the throttle and a
+                // rejected attempt does not use up the caller's budget. The username check stays after it.
+                foreach ( var error in GetPreThrottleInputErrors( account ) )
+                {
+                    ModelState.AddModelError( error.Key, error.Value );
+                }
+
+                if ( !ModelState.IsValid )
+                {
+                    return Request.CreateErrorResponse( HttpStatusCode.BadRequest, ModelState );
+                }
+
+                // Budget account creation, which issues confirmation codes. Same two-tier keying as
+                // confirmation: tight on the forwarded client IP, generous on the socket peer, which
+                // every user behind the reverse proxy shares. Checked before the missing-migration
+                // check below so its logging is also budgeted.
+                if ( !TryRegisterAccountCreationAttempt( clientId ) )
+                {
                     return ControllerContext.Request.CreateResponse( ( HttpStatusCode ) 429, new StandardResponse()
                     {
                         Message = "Too many account creation attempts. Please try again later.",
@@ -182,8 +284,8 @@ namespace org.secc.Rest.Controllers
                 // unknown key, so without the migration we would create logins and email codes
                 // that were never stored and can never be confirmed. Failing here leaves no
                 // half-created account and no burned username behind.
-                if ( AttributeCache.Get( CONFIRMATION_CODE_HASH_ATTRIBUTE_GUID.AsGuid() ) == null
-                  || AttributeCache.Get( CONFIRMATION_CODE_ISSUED_ATTRIBUTE_GUID.AsGuid() ) == null )
+                if ( GetAttributeCache( CONFIRMATION_CODE_HASH_ATTRIBUTE_GUID.AsGuid() ) == null
+                  || GetAttributeCache( CONFIRMATION_CODE_ISSUED_ATTRIBUTE_GUID.AsGuid() ) == null )
                 {
                     if ( ConfirmationAttempts.ShouldLogRefusal( "create|missing-migration" ) )
                     {
@@ -198,7 +300,7 @@ namespace org.secc.Rest.Controllers
                     } );
                 }
 
-                var rockContext = new Rock.Data.RockContext();
+                var rockContext = CreateRockContext();
                 PersonService personService = new PersonService( rockContext );
                 UserLoginService userLoginService = new UserLoginService( rockContext );
 
@@ -211,19 +313,6 @@ namespace org.secc.Rest.Controllers
                     {
                         ModelState.AddModelError( "Account.Username", "Username already exists" );
                     }
-
-                    // Make sure the password is valid
-                    if ( !UserLoginService.IsPasswordValid( account.Password ) )
-                    {
-                        ModelState.AddModelError( "Account.Password", UserLoginService.FriendlyPasswordRules() );
-                    }
-
-                    // Make sure this person meets the minimum age requirement
-                    var birthday = account.Birthdate ?? Rock.RockDateTime.Today;
-                    if ( RockDateTime.Today.AddYears( MINIMUM_AGE * -1 ) < birthday )
-                    {
-                        ModelState.AddModelError( "Account.Birthdate", string.Format( "We are sorry, you must be at least {0} years old to create an account.", MINIMUM_AGE ) );
-                    }
                 }
                 if ( !ModelState.IsValid )
                 {
@@ -231,7 +320,7 @@ namespace org.secc.Rest.Controllers
                 }
 
                 // Try to match the person
-                var matchPerson = personService.GetByMatch( account.FirstName, account.LastName, account.Birthdate, account.EmailAddress, account.MobileNumber, null, null );
+                var matchPerson = GetMatchingPeople( personService, account );
 
                 // Never auto-confirm a login bound to an existing person from an OAuth
                 // client-credentials request. Any login created below is unconfirmed and
@@ -256,8 +345,8 @@ namespace org.secc.Rest.Controllers
                 // If we don't have a match, create a new web prospect
                 if ( !matched )
                 {
-                    DefinedValueCache dvcConnectionStatus = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() );
-                    DefinedValueCache dvcRecordStatus = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() );
+                    DefinedValueCache dvcConnectionStatus = GetDefinedValueCache( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() );
+                    DefinedValueCache dvcRecordStatus = GetDefinedValueCache( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() );
 
                     person.FirstName = account.FirstName;
                     person.LastName = account.LastName;
@@ -265,7 +354,7 @@ namespace org.secc.Rest.Controllers
                     person.Email = account.EmailAddress;
                     person.IsEmailActive = true;
                     person.EmailPreference = EmailPreference.EmailAllowed;
-                    person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                    person.RecordTypeValueId = GetDefinedValueCache( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
                     if ( dvcConnectionStatus != null )
                     {
                         person.ConnectionStatusValueId = dvcConnectionStatus.Id;
@@ -289,29 +378,20 @@ namespace org.secc.Rest.Controllers
                         }
                     }
 
-                    if ( !string.IsNullOrWhiteSpace( account.MobileNumber ) )
+                    var newMobilePhone = CreateNewPersonMobilePhone( account,
+                        GetDefinedValueCache( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id, GetDefaultCountryCode() );
+                    if ( newMobilePhone != null )
                     {
-                        string cleanNumber = PhoneNumber.CleanNumber( account.MobileNumber );
-                        var phoneNumber = new PhoneNumber { NumberTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id };
-                        person.PhoneNumbers.Add( phoneNumber );
-                        phoneNumber.CountryCode = cleanNumber.Length > 10 ? cleanNumber.Left( cleanNumber.Length - 10 ) : PhoneNumber.DefaultCountryCode();
-                        phoneNumber.Number = cleanNumber.Right( 10 );
-                        phoneNumber.IsMessagingEnabled = true;
+                        person.PhoneNumbers.Add( newMobilePhone );
                     }
 
-                    PersonService.SaveNewPerson( person, rockContext );
+                    SaveNewPerson( person, rockContext );
                 }
                 UserLogin userLogin = null;
 
                 if ( !string.IsNullOrWhiteSpace( account.Username ) && UserLoginService.IsPasswordValid( account.Password ) )
                 {
-                    // Bound how many confirmation codes can be live for one person at once
-                    // (ROCK-8762). Without this, api/account/create can be called repeatedly
-                    // against a matched person to stack up simultaneously-valid codes, and the odds
-                    // that a blind guess at api/account/confirmaccount lands on one of them rise
-                    // with every extra code. Since ROCK-8761 the confirmation step is the only
-                    // thing standing between a requester-supplied password and the matched person's
-                    // account, so the size of this population is a security property.
+                    // Bound how many confirmation codes can be live for one person at once (ROCK-8762).
                     //
                     // Only the window matters, not the all-time count: people with abandoned
                     // unconfirmed logins from the old flow must not be locked out of signing up,
@@ -320,8 +400,7 @@ namespace org.secc.Rest.Controllers
                     // Scoped to this branch, which is the path that stacks codes onto an *existing*
                     // person. The SMS branch below only runs for a person who was not matched, i.e.
                     // one just created by this request, so a per-person cap could never bind there;
-                    // inflating the code population that way means creating a new person per code,
-                    // which is what the create rate limit above is for.
+                    // there a new person is created per code, which the create budget above covers.
                     var liveCodeCutoff = Rock.RockDateTime.Now.AddMinutes( -CONFIRMATION_CODE_LIFETIME_MINUTES );
 
                     if ( person.Id > 0
@@ -377,8 +456,7 @@ namespace org.secc.Rest.Controllers
 
                     // For mobile we issue a custom/short confirmation code. It is randomly
                     // generated, expiring and single-use, and only its hash is persisted
-                    // (ROCK-8762). The previous code was MD5( userLogin.Guid ) truncated to six
-                    // digits, which is deterministic and therefore guessable.
+                    // (ROCK-8762).
                     var mobileConfirmationCode = IssueConfirmationCode( userLogin, rockContext );
                     var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, person );
                     mergeFields.Add( "MobileConfirmationCode", mobileConfirmationCode );
@@ -404,10 +482,10 @@ namespace org.secc.Rest.Controllers
                     // blocking any retry. The Person and its "User Login" history entry survive the
                     // delete; a retry matches that person and binds the new login to it.
                     //
-                    // SMS path: the SMS_<personId> login has only been Add()ed to this context, so
-                    // returning before SaveChanges leaves nothing persisted and nothing to clean up.
-                    // Rock's SMSAuthentication.SendSMSAuthentication re-creates that login on demand at
-                    // the next SMS login attempt.
+                    // SMS path: the SMS_<personId> login and its code rows were saved above and are
+                    // kept. SMSAuthentication.SendSMSAuthentication finds that login by name at the
+                    // next SMS login attempt. The unused code expires, and the expired-code cleanup
+                    // removes its rows.
                     if ( !message.Send() )
                     {
                         if ( !string.IsNullOrWhiteSpace( account.Username ) )
@@ -442,6 +520,61 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
+        /// The account checks that need no lookup: password rules and minimum age. They run whenever
+        /// the username is not null or empty, including a whitespace-only username, which CreateAccount
+        /// treats as no username.
+        /// </summary>
+        internal static List<KeyValuePair<string, string>> GetPreThrottleInputErrors( Account account, Func<string, bool> isPasswordValid, string passwordRulesMessage, DateTime today )
+        {
+            var errors = new List<KeyValuePair<string, string>>();
+
+            if ( string.IsNullOrEmpty( account.Username ) )
+            {
+                return errors;
+            }
+
+            // Make sure the password is valid. A username that is not whitespace gets a password
+            // login in CreateAccount, so it needs a password. For a whitespace-only username a
+            // missing password is checked as an empty one.
+            if ( ( account.Password == null && !string.IsNullOrWhiteSpace( account.Username ) )
+              || !isPasswordValid( account.Password ?? string.Empty ) )
+            {
+                errors.Add( new KeyValuePair<string, string>( "Account.Password", passwordRulesMessage ) );
+            }
+
+            // Make sure this person meets the minimum age requirement
+            var birthday = account.Birthdate ?? today;
+            if ( today.AddYears( MINIMUM_AGE * -1 ) < birthday )
+            {
+                errors.Add( new KeyValuePair<string, string>( "Account.Birthdate", string.Format( "We are sorry, you must be at least {0} years old to create an account.", MINIMUM_AGE ) ) );
+            }
+
+            return errors;
+        }
+
+        /// <summary>
+        /// The mobile phone CreateAccount adds to a person it creates from the account, or null when
+        /// the account has no mobile number. SMS messaging is enabled only when the account's
+        /// SmsOptIn is true.
+        /// </summary>
+        internal static PhoneNumber CreateNewPersonMobilePhone( Account account, int mobileNumberTypeValueId, string defaultCountryCode )
+        {
+            if ( string.IsNullOrWhiteSpace( account.MobileNumber ) )
+            {
+                return null;
+            }
+
+            string cleanNumber = PhoneNumber.CleanNumber( account.MobileNumber );
+            return new PhoneNumber
+            {
+                NumberTypeValueId = mobileNumberTypeValueId,
+                CountryCode = cleanNumber.Length > 10 ? cleanNumber.Left( cleanNumber.Length - 10 ) : defaultCountryCode,
+                Number = cleanNumber.Right( 10 ),
+                IsMessagingEnabled = account.SmsOptIn == true
+            };
+        }
+
+        /// <summary>
         /// API method to confirm an account given the confirmation code
         /// </summary>
         /// <param name="confirmationCode">A confirmation code for a user's account.</param>
@@ -450,25 +583,16 @@ namespace org.secc.Rest.Controllers
         [Authorize]
         public HttpResponseMessage ConfirmAccount( [FromBody] string confirmationCode )
         {
-            OAuthContext oAuthContext = new OAuthContext();
-            ClientService clientService = new ClientService( oAuthContext );
             var clientId = HttpContext.Current?.User?.Identity?.Name;
 
-            if ( clientId.IsNullOrWhiteSpace() )
+            if ( !IsCallerActiveOAuthClient( clientId ) )
             {
                 return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden );
             }
 
-            Client oAuthClient = clientService.GetByApiKey( clientId.AsGuid() );
-            if ( oAuthClient == null || !oAuthClient.Active )
-            {
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden );
-            }
-
-            // Throttle before doing any lookup work. Budgets are keyed on the caller, not on the
-            // target account: a confirmation request never names an account, so a per-account
-            // counter would not observe a code-space sweep at all. Keying on the caller also
-            // avoids handing an attacker a way to lock a victim out of confirming.
+            // Throttle before doing any lookup work. Budgets are keyed on the caller (the OAuth
+            // client plus the forwarded IP or the socket peer), not on an account: a confirmation
+            // request carries only the code and never names an account.
             //
             // The attempt is registered up front, so the check and the increment are a single
             // atomic operation. Checking first and incrementing later would let concurrent requests
@@ -486,8 +610,8 @@ namespace org.secc.Rest.Controllers
 
             if ( !withinBudget )
             {
-                // Logged at most once per key per window: an attacker who keeps hammering after
-                // being throttled must not be able to turn each request into an ExceptionLog row.
+                // Logged at most once per key per window, so further refused requests for the same
+                // key in that window add no ExceptionLog rows.
                 if ( ConfirmationAttempts.ShouldLogRefusal( peerKey ) )
                 {
                     ExceptionLogService.LogException( new Exception( string.Format(
@@ -502,10 +626,9 @@ namespace org.secc.Rest.Controllers
                 } );
             }
 
-            // Client-wide volume is watched but never blocked: every user of the mobile app shares
-            // one OAuth client, so refusing at this level would let one attacker stop everyone from
-            // confirming their account. Counted only for requests that were inside budget, so a
-            // caller who keeps hammering after a 429 cannot inflate the tracking state.
+            // Client-wide volume is logged, never blocked, because every user of the mobile app
+            // shares one OAuth client. Counted only for requests that were inside budget, so
+            // requests refused with 429 do not add to it.
             if ( ConfirmationAttempts.RegisterAndCheckAlertThreshold( clientKey, CONFIRMATION_ALERT_THRESHOLD_PER_CLIENT ) )
             {
                 ExceptionLogService.LogException( new Exception( string.Format(
@@ -528,21 +651,17 @@ namespace org.secc.Rest.Controllers
             if ( user == null )
             {
                 // Short mobile code. Single scoped lookup against the stored hash, which resolves
-                // to at most one account. The previous implementation loaded *every* unconfirmed
-                // login and compared a deterministic MD5( Guid ) code, so one guess could confirm
-                // any account in the unconfirmed population (ROCK-8762).
+                // to at most one account (ROCK-8762).
                 user = FindLoginByConfirmationCode( confirmationCode, rockContext );
 
                 if ( user != null )
                 {
                     var issuedDateTime = GetConfirmationCodeIssuedDateTime( user, rockContext );
 
-                    if ( !issuedDateTime.HasValue
-                      || issuedDateTime.Value.AddMinutes( CONFIRMATION_CODE_LIFETIME_MINUTES ) < Rock.RockDateTime.Now )
+                    if ( IsConfirmationCodeExpired( issuedDateTime, Rock.RockDateTime.Now ) )
                     {
-                        // Expired. Burn the code so it cannot be replayed, and return the same
-                        // generic failure body as an unknown code so the response does not confirm
-                        // that the guessed code was ever real.
+                        // Expired. Delete the code so it cannot be used again, and return the same
+                        // failure response as an unknown code.
                         ClearConfirmationCode( user, rockContext );
 
                         return ConfirmationFailedResponse();
@@ -561,11 +680,9 @@ namespace org.secc.Rest.Controllers
             // Single use: a consumed code must not confirm anything again.
             ClearConfirmationCode( user, rockContext );
 
-            // Deliberately no budget refund on success. A refund looks user-friendly, but an
-            // attacker can mint a valid code for a throwaway account of their own at will, so
-            // "confirm something successfully" would be a budget reset they control -- which would
-            // make the budgets unbounded. Ten attempts per window is ample for someone mistyping
-            // their own code.
+            // No budget refund on success: every attempt counts, including successful ones, since
+            // any caller can create an account and confirm its code. Ten attempts per window is
+            // ample for someone mistyping their own code.
 
             return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new StandardResponse() { Message = "Account has been confirmed", Result = StandardResponse.ResultCode.Success } );
         }
@@ -618,11 +735,8 @@ namespace org.secc.Rest.Controllers
         /// Hashes a confirmation code for storage and lookup.
         /// </summary>
         /// <remarks>
-        /// Deliberately an unsalted digest: the code has to be findable by value, which a
-        /// per-row salt would prevent. That means a reader of the AttributeValue table could
-        /// recover a six-digit code by brute force, but anyone with that access can already set
-        /// IsConfirmed directly, so this does not widen the attack surface. What it does buy is
-        /// that the codes are not sitting in the database in plaintext.
+        /// An unsalted digest, because the code has to be found by value, which a per-row salt
+        /// would prevent. Only the digest is stored, never the code itself.
         /// </remarks>
         private static string HashConfirmationCode( string code )
         {
@@ -648,14 +762,15 @@ namespace org.secc.Rest.Controllers
                 throw new Exception( "Account confirmation code attributes are missing. Run org.secc.Migrations migration 034 (ROCK-8762) before creating accounts." );
             }
 
+            DeleteExpiredConfirmationCodes();
+
             string code = null;
             string hash = null;
             bool unique = false;
 
-            // A code must not collide with any other outstanding code, otherwise one guess could
-            // match more than one account and the wrong row could be consumed. Collisions are
-            // unlikely; if we somehow cannot find a free code, fail rather than issue an ambiguous
-            // one.
+            // Each new code must differ from every outstanding code, so a code matches at most one
+            // login. Collisions are unlikely; if no free code is found in 10 tries, fail rather than
+            // issue an ambiguous one.
             for ( int attempt = 0; attempt < 10 && !unique; attempt++ )
             {
                 code = GenerateConfirmationCode();
@@ -731,8 +846,14 @@ namespace org.secc.Rest.Controllers
         {
             userLogin.LoadAttributes( rockContext );
 
-            var issued = userLogin.GetAttributeValue( ATTRIBUTE_KEY_CONFIRMATION_CODE_ISSUED );
+            return ParseConfirmationCodeIssued( userLogin.GetAttributeValue( ATTRIBUTE_KEY_CONFIRMATION_CODE_ISSUED ) );
+        }
 
+        /// <summary>
+        /// Parses a stored issued value (ticks), or returns null if it is blank or unparseable.
+        /// </summary>
+        internal static DateTime? ParseConfirmationCodeIssued( string issued )
+        {
             long ticks;
             if ( !issued.IsNullOrWhiteSpace()
               && long.TryParse( issued, NumberStyles.Integer, CultureInfo.InvariantCulture, out ticks )
@@ -746,6 +867,61 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
+        /// The expiry rule for confirmation codes, used by ConfirmAccount and the cleanup. A missing
+        /// issued time counts as expired; a code is still live exactly at the end of its lifetime.
+        /// </summary>
+        internal static bool IsConfirmationCodeExpired( DateTime? issued, DateTime now )
+        {
+            return !issued.HasValue || issued.Value < now.AddMinutes( -CONFIRMATION_CODE_LIFETIME_MINUTES );
+        }
+
+        /// <summary>
+        /// Returns the login ids whose issued value is expired, without duplicates, in input order.
+        /// </summary>
+        internal static List<int> SelectExpiredLoginIds( IEnumerable<KeyValuePair<int, string>> issuedRows, DateTime now )
+        {
+            return issuedRows
+                .Where( row => IsConfirmationCodeExpired( ParseConfirmationCodeIssued( row.Value ), now ) )
+                .Select( row => row.Key )
+                .Distinct()
+                .ToList();
+        }
+
+        /// <summary>
+        /// Deletes the rows of expired codes among the oldest issued-code rows, if this server's
+        /// cleanup slot is free. A failure is logged and does not stop the new code being issued.
+        /// </summary>
+        private static void DeleteExpiredConfirmationCodes()
+        {
+            var now = Rock.RockDateTime.Now;
+
+            if ( !_confirmationCodeCleanupSlot.TryClaim( now ) )
+            {
+                return;
+            }
+
+            try
+            {
+                var issuedAttributeId = AttributeCache.Get( CONFIRMATION_CODE_ISSUED_ATTRIBUTE_GUID.AsGuid() )?.Id;
+                var rockContext = new Rock.Data.RockContext();
+
+                var issuedRows = new AttributeValueService( rockContext ).Queryable()
+                    .Where( av => av.AttributeId == issuedAttributeId && av.EntityId.HasValue )
+                    .OrderBy( av => av.Id )
+                    .Take( CONFIRMATION_CODE_CLEANUP_BATCH_SIZE )
+                    .Select( av => new { EntityId = av.EntityId.Value, av.Value } )
+                    .ToList();
+
+                var expiredLoginIds = SelectExpiredLoginIds( issuedRows.Select( av => new KeyValuePair<int, string>( av.EntityId, av.Value ) ), now );
+                DeleteConfirmationCodeRows( rockContext, expiredLoginIds );
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex );
+            }
+        }
+
+        /// <summary>
         /// Clears any outstanding confirmation code so it cannot be reused.
         /// </summary>
         /// <remarks>
@@ -755,6 +931,15 @@ namespace org.secc.Rest.Controllers
         /// hashes around to collide with freshly issued codes.
         /// </remarks>
         private static void ClearConfirmationCode( UserLogin userLogin, Rock.Data.RockContext rockContext )
+        {
+            DeleteConfirmationCodeRows( rockContext, new[] { userLogin.Id } );
+        }
+
+        /// <summary>
+        /// Deletes the code hash and issued rows of the given logins in one statement. Rows that
+        /// are already gone (e.g. removed by a concurrent cleanup) are not an error.
+        /// </summary>
+        private static void DeleteConfirmationCodeRows( Rock.Data.RockContext rockContext, ICollection<int> userLoginIds )
         {
             var attributeIds = new List<int>();
 
@@ -768,39 +953,34 @@ namespace org.secc.Rest.Controllers
                 }
             }
 
-            if ( !attributeIds.Any() )
+            if ( !attributeIds.Any() || !userLoginIds.Any() )
             {
                 return;
             }
 
-            var attributeValueService = new AttributeValueService( rockContext );
+            rockContext.BulkDelete( new AttributeValueService( rockContext ).Queryable()
+                .Where( ConfirmationCodeRowsOf( attributeIds, EntityTypeCache.Get<UserLogin>().Id, userLoginIds ) ) );
+        }
 
-            var staleValues = attributeValueService.Queryable()
-                .Where( av => attributeIds.Contains( av.AttributeId ) && av.EntityId == userLogin.Id )
-                .ToList();
-
-            if ( !staleValues.Any() )
-            {
-                return;
-            }
-
-            foreach ( var staleValue in staleValues )
-            {
-                attributeValueService.Delete( staleValue );
-            }
-
-            rockContext.SaveChanges();
+        /// <summary>
+        /// The rows <see cref="DeleteConfirmationCodeRows"/> deletes: values of the given attributes
+        /// on the given logins, limited to attributes of the UserLogin entity type.
+        /// </summary>
+        internal static Expression<Func<AttributeValue, bool>> ConfirmationCodeRowsOf( ICollection<int> attributeIds, int userLoginEntityTypeId, ICollection<int> userLoginIds )
+        {
+            return av => attributeIds.Contains( av.AttributeId )
+                && av.Attribute.EntityTypeId == userLoginEntityTypeId
+                && av.EntityId.HasValue
+                && userLoginIds.Contains( av.EntityId.Value );
         }
 
         /// <summary>
         /// The client IP from X-Forwarded-For, falling back to the socket peer.
         /// </summary>
         /// <remarks>
-        /// Reads the RIGHTMOST entry, not the leftmost. Proxies append, so the rightmost value is
-        /// the one our own edge observed, whereas the leftmost is whatever the caller chose to send
-        /// and can be forged freely -- keying a budget on it would let an attacker mint a fresh
-        /// budget per request. Note this assumes a single trusted proxy hop; if a second reverse
-        /// proxy is ever put in front, this needs to select the Nth-from-right entry instead.
+        /// Reads the RIGHTMOST entry: proxies append, so it is the value our own edge recorded; the
+        /// leftmost entries are client-supplied. Assumes a single trusted proxy hop; with a second
+        /// reverse proxy in front, select the Nth-from-right entry instead.
         ///
         /// This is still only used to subdivide a budget, never to grant access, and the socket
         /// peer is budgeted separately as the value the caller genuinely cannot control.
@@ -861,26 +1041,20 @@ namespace org.secc.Rest.Controllers
         /// </summary>
         /// <remarks>
         /// Attempts are registered before the code is checked, so the check and the increment are
-        /// one atomic operation under the lock. Nothing is ever refunded: a caller who can produce a
-        /// valid code on demand (by creating a throwaway account of their own) would otherwise be
-        /// able to reset their own budget at will.
+        /// one atomic operation under the lock. Attempts are not refunded.
         ///
-        /// State is per-server and is lost on an app-pool recycle, so behind a load balancer with
-        /// N servers the real budget is N times the configured one. For a throttle that is an
-        /// acceptable looseness -- it costs an attacker a constant factor -- which is why the code
-        /// hashes themselves are persisted in the database rather than held here. If the budgets
-        /// ever need to be exact, back this with RockCache instead.
+        /// State is per server and is reset when the app pool recycles, so each server behind a
+        /// load balancer applies the budgets separately. The code hashes are stored in the
+        /// database, not here. To share the budgets across servers, back this with RockCache.
         /// </remarks>
         private static class ConfirmationAttempts
         {
             /// <summary>
-            /// Ceiling on tracked keys. An attacker rotating X-Forwarded-For mints a new key per
-            /// request, so the table needs a hard bound. When it is reached the oldest windows are
-            /// evicted, which is fail-open -- eviction only ever discards state, so it cannot
-            /// wrongly refuse a real user. Note that the socket-peer keys are among the oldest and
-            /// so are evicted first; what makes key-flooding unprofitable is not eviction order but
-            /// that a spent peer budget short-circuits registration of any further forwarded keys,
-            /// capping how many keys one peer can mint in a window.
+            /// Ceiling on tracked keys. Each distinct X-Forwarded-For value gets its own key, so the
+            /// table has a hard bound. When it is reached the oldest windows are evicted; eviction
+            /// only discards counts, so it never refuses a request. The peer key is registered
+            /// first, so once a peer's budget is spent no further forwarded keys are added for it
+            /// in that window.
             /// </summary>
             private const int MAX_TRACKED_KEYS = 20000;
 
@@ -933,8 +1107,8 @@ namespace org.secc.Rest.Controllers
             }
 
             /// <summary>
-            /// Rate-limits the refusal logging itself, so hammering a spent budget cannot be turned
-            /// into unbounded ExceptionLog writes.
+            /// Limits how often refusals are written to the Exception Log for a given key: true at
+            /// most once per key per window.
             /// </summary>
             public static bool ShouldLogRefusal( string key )
             {
@@ -1027,6 +1201,23 @@ namespace org.secc.Rest.Controllers
             }
         }
 
+        /// <summary>
+        /// Gives the cleanup to one caller per interval on this server. Claimed before the cleanup
+        /// runs, so a failed run still waits for the next interval.
+        /// </summary>
+        internal class CleanupSlot
+        {
+            private long _lastClaimTicks;
+
+            internal bool TryClaim( DateTime now )
+            {
+                var lastClaimTicks = Interlocked.Read( ref _lastClaimTicks );
+
+                return now.Ticks - lastClaimTicks >= TimeSpan.FromMinutes( CONFIRMATION_CODE_CLEANUP_INTERVAL_MINUTES ).Ticks
+                    && Interlocked.CompareExchange( ref _lastClaimTicks, now.Ticks, lastClaimTicks ) == lastClaimTicks;
+            }
+        }
+
         #endregion
 
 
@@ -1081,13 +1272,20 @@ namespace org.secc.Rest.Controllers
         [Authorize]
         public HttpResponseMessage ForgotPassword( [FromBody] string email )
         {
-            OAuthContext oAuthContext = new OAuthContext();
-            ClientService clientService = new ClientService( oAuthContext );
-            var clientId = HttpContext.Current.User.Identity.Name;
-            Client oAuthClient = clientService.GetByApiKey( clientId.AsGuid() );
-            if ( oAuthClient.Active )
+            var clientId = HttpContext.Current?.User?.Identity?.Name;
+
+            if ( IsCallerActiveOAuthClient( clientId ) )
             {
                 var response = new StandardResponse();
+
+                // A blank email gets the no-accounts response without a person lookup.
+                if ( string.IsNullOrWhiteSpace( email ) )
+                {
+                    response.Result = StandardResponse.ResultCode.Error;
+                    response.Message = "No accounts associated with this email address are able to be reset via email.";
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, response );
+                }
+
                 var rockContext = new Rock.Data.RockContext();
                 PersonService personService = new PersonService( rockContext );
                 UserLoginService userLoginService = new UserLoginService( rockContext );
@@ -1183,17 +1381,9 @@ namespace org.secc.Rest.Controllers
         [Authorize]
         public HttpResponseMessage SMSLogin( [FromBody] string phoneNumber )
         {
-            OAuthContext oAuthContext = new OAuthContext();
-            ClientService clientService = new ClientService( oAuthContext );
             var clientId = HttpContext.Current?.User?.Identity?.Name;
 
-            if ( clientId.IsNullOrWhiteSpace() )
-            {
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden );
-            }
-
-            Client oAuthClient = clientService.GetByApiKey( clientId.AsGuid() );
-            if ( oAuthClient != null && oAuthClient.Active )
+            if ( IsCallerActiveOAuthClient( clientId ) )
             {
                 Rock.Data.RockContext rockContext = new Rock.Data.RockContext();
                 var smsAuth = ( SMSAuthentication ) Rock.Security.AuthenticationContainer.GetComponent( "Rock.Security.ExternalAuthentication.SMSAuthentication" );
@@ -1363,6 +1553,11 @@ namespace org.secc.Rest.Controllers
             public string Username { get; set; }
 
             public string Password { get; set; }
+
+            /// <summary>
+            /// Optional. When true, the mobile number of a newly created person is enabled for SMS messaging.
+            /// </summary>
+            public bool? SmsOptIn { get; set; }
         }
 
         /// <summary>

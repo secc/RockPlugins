@@ -61,10 +61,7 @@ Per-group attributes the block reads (must exist on the child groups / their tra
 
 *Noticed while documenting — not a full audit.*
 
-- **Improvement:** Card markup is built by `string.Format` against unencoded group/track/teacher
-  values (`Name`, `Description`, `Teacher`, location name) injected into HTML. These are
-  staff-entered fields, so exposure is limited, but HTML-encoding the values would be safer and is
-  cheap. The first card template also has a mismatched tag (`<h3>…</h2>`).
+- **Improvement:** The first card template has a mismatched tag (`<h3>…</h2>`).
 - **Improvement:** `OnLoad` builds the whole list every postback (no `!IsPostBack` guard) and queries
   group membership/capacity per render; fine for a short class list, worth noting if the parent group
   grows. `trackAbout` is computed but never rendered.

@@ -1,19 +1,19 @@
 # org.secc.Rest
 
-> Custom Rock REST controllers for SECC's apps — account/SMS login, the Groups mobile app, content-channel/sermon feeds, person matching, and financial-statement data.
+> Custom Rock REST controllers for SECC's apps — account/SMS login, the Groups mobile app, and content-channel/sermon feeds.
 
 > **Doc tier: deep.** This is an externally-facing API surface (several endpoints back native/mobile apps and OAuth clients), with non-trivial auth contracts that differ per controller — so it's documented at the deeper tier (per-endpoint reference, auth model, request/response shapes, extending). Most SECC plugins use the lighter standard tier.
 
 ## Overview
 
-This plugin adds Web API controllers to Rock that aren't part of core. They fall into a few groups: **Account / Security** endpoints that back OAuth-client account creation and SMS/forgot-password login flows; the **GroupApp** family that powers SECC's Groups mobile app (group list, members, attendance/self-check-in, schedule and location editing, leader communication); read-only **content feeds** (`ChannelItems`, `SermonFeed`); and a few **extension** controllers (`People/MatchOrCreatePerson`, `GroupMembers/OData`, `Groups` photo upload, `FinancialTransactions` contribution data). Controllers are discovered by Rock's standard Web API routing; one (`SecurityController`) maps its own session-enabled routes.
+This plugin adds Web API controllers to Rock that aren't part of core. They fall into a few groups: **Account / Security** endpoints that back OAuth-client account creation and SMS/forgot-password login flows; the **GroupApp** family that powers SECC's Groups mobile app (group list, members, attendance/self-check-in, schedule and location editing, leader communication); and read-only **content feeds** (`ChannelItems`, `SermonFeed`). Controllers are discovered by Rock's standard Web API routing; one (`SecurityController`) maps its own session-enabled routes.
 
 ## Project Info
 
 - **Project file:** `org.secc.Rest.csproj`
 - **Root namespace:** `org.secc.Rest` (the sermon controller lives under `org.secc.SermonFeed.Rest`)
 - **Target framework:** .NET Framework 4.7.2
-- **Deploys to:** `RockWeb/bin/` (assembly only, via `xcopy` PostBuildEvent)
+- **Deploys to:** `RockWeb/bin/` (assembly only, via `xcopy` PostBuildEvent). Building with `-p:CopyToRockWeb=false` skips the copy, for this plugin and for the plugins it references; `org.secc.Rest.Tests` passes that property to the plugins it builds.
 - **Cross-plugin dependencies:** [org.secc.OAuth](../org.secc.OAuth/README.md), [org.secc.Authentication](../org.secc.Authentication/README.md), [org.secc.PersonMatch](../org.secc.PersonMatch/README.md)
 
 ## How Routing & Auth Work
@@ -39,19 +39,20 @@ flowchart TD
     B -->|IHasCustomHttpRoutes| D[SecurityController.AddRoutes -> SessionRouteHandler]
     C --> E{Auth model on the action}
     D --> E
-    E -->|"[Authenticate, Secured]"| F[Rock login + entity security]
     E -->|"[Authorize] + OAuth client check"| G[ASP.NET principal == OAuth API key, client.Active]
     E -->|UserLoginService.GetCurrentUser| H[Logged-in Rock user, else 401/403]
-    F --> I[Handler logic]
-    G --> I
+    G --> I[Handler logic]
     H --> I
 ```
 
 **Auth models in use (they are not uniform — confirm per endpoint):**
-- **`[Authenticate, Secured]`** — Rock's filter pair: authenticates the caller and checks entity-level security on the controller action. Used by the extension controllers.
 - **`[Authorize]` + OAuth client gate** — `AccountController` resolves the ASP.NET identity name as an OAuth API key via `ClientService.GetByApiKey(...)` and requires `client.Active`. Backs OAuth-client app flows.
-- **`UserLoginService.GetCurrentUser()`** — the GroupApp controllers have **no auth attribute**; they call `GetCurrentUser()` and return `401` if null, then do their own per-group leader/member checks (`group.IsAuthorized`, group-member role queries) before acting.
+- **`UserLoginService.GetCurrentUser()`** — the GroupApp controllers call `GetCurrentUser()` and return `401` if null, then do their own per-group leader/member checks (`group.IsAuthorized`, group-member role queries) before acting.
 - **`GetPerson()` + `IsAuthorized(VIEW, ...)`** — the content feeds resolve the caller's person and check VIEW on the content channel.
+
+### OData query options
+
+`QueryOptionsStartup` (an `IRockStartup`) adds `QueryOptionsHandler` as the first Web API message handler, so it sees every `api/...` request, core and plugin, after the route is matched and before controller selection and the `[Authenticate]`/`[Secured]` checks. A request whose `$expand`, `$select`, `$filter` or `$orderby` query option refers to a property named `Users` (in any letter case) gets a `400` with the message "The query specified in the URI is not valid." Quoted string values in `$filter`, the other query options and other query-string keys are not checked, except as follows. A request on one of the GroupMembers controller's convention (`api/{controller}...`) or OData routes, such as `api/GroupMembers`, `api/GroupMembers/{id}` or `api/GroupMembers({key})`, gets the same `400`, with any HTTP method, when its query string has an `IncludeDeceased` key with any value after `=` (including an empty one; the key in any letter case). The controller's attribute-routed actions (`api/GroupMembers/KnownRelationship` and `api/GroupMembers/GetGroupPlacementGroupMembers`) and requests to other controllers, such as `api/People`, are not affected.
 
 ## REST Endpoints
 
@@ -59,8 +60,8 @@ flowchart TD
 
 | Route | Method | Auth | Purpose |
 |-------|--------|------|---------|
-| `api/account/create` | POST | `[Authorize]` + active OAuth client | Match-or-create a person; any `UserLogin` it creates (Internal or SMS) is **unconfirmed** and triggers a confirmation email — a matched existing person is **never** auto-confirmed (the login is unusable until the emailed code is redeemed). A match with **no** username creates no login and returns an "account already exists" message. Email match is case-insensitive. A failed confirmation-email send returns a retryable `503` rather than a success response; on the username path the just-created login is also deleted so the username isn't trapped. Min age 13 is enforced only when a `Username` is supplied (the validation block is gated on a non-empty username). |
-| `api/account/confirmaccount` | POST | `[Authorize]` + active OAuth client | Confirm an account by Rock confirmation code, or by a 6-digit MD5-derived mobile code. |
+| `api/account/create` | POST | `[Authorize]` + active OAuth client | Match-or-create a person; any `UserLogin` it creates (Internal or SMS) is **unconfirmed** and triggers a confirmation email — a matched existing person is **never** auto-confirmed (the login is unusable until the emailed code is redeemed). A match with **no** username creates no login and returns an "account already exists" message. Email match is case-insensitive. A failed confirmation-email send returns a retryable `503` rather than a success response; on the username path the just-created login is also deleted so the username isn't trapped. The minimum-age (13) check applies when a `Username` is supplied, i.e. when a login is being created. |
+| `api/account/confirmaccount` | POST | `[Authorize]` + active OAuth client | Confirm an account by Rock confirmation code, or by the 6-digit mobile code from the confirmation email. The mobile code is random, single use, and expires 60 minutes after it is issued. |
 | `api/account/family` | GET | `[Authorize]` | Family members of the current user (`UserLoginService.GetCurrentUser`). |
 | `api/account/forgotpassword` | POST | `[Authorize]` + active OAuth client | Send a forgot-username/password email for resettable logins matching an address. |
 | `api/account/profile` | GET | `[Authorize]` | Current user's `Profile`. |
@@ -76,31 +77,29 @@ All require a logged-in user (`GetCurrentUser`, else `401`) and apply per-group 
 |-------|--------|---------------|---------|
 | `api/GroupApp/GroupList/` | GET | current user | Groups the user is an active member of, within configured GroupApp group types. |
 | `api/GroupApp/GetGroup/{groupId}` | GET | member or VIEW | Group summary; optional `getContent` / `getAllowEmailParents`. |
-| `api/GroupApp/GetGroupMembers/{groupId}` | GET | member or VIEW | Members; leaders also see address/email/phone/parent contact and an `IsMinor` flag (leader-gated). Table-based groups show only the caller's own table (`TableNumber` match is case-sensitive, surrounding whitespace ignored); a caller with no table gets `200 "You are not assigned to a table"`. |
+| `api/GroupApp/GetGroupMembers/{groupId}` | GET | member or VIEW | Members; leaders also see address/email/phone/parent contact and an `IsMinor` flag (leader-gated). Table-based groups show only the caller's own table (`TableNumber` match is case-sensitive, surrounding whitespace ignored); a caller with no table gets `200 { "NotAssignedToTable": true, "Message": "You are not assigned to a table" }` (older builds sent the bare string). |
 | `api/GroupApp/GroupMembers/{groupId}/Communicate` | POST | EDIT **and** MANAGE_MEMBERS | Send an email to all/one member (optionally parents). Recipients are the caller's scope from `GetGroupMembers` (own table for table-based groups; `400` if the caller has no table) and only **Active** members. The target `GroupMemberId` must be in that scope (else `404`) and Active (else `400`). Individual sends to a minor auto-CC the minor's parents/guardians, or return `400` if no parent email is on record (see minor-communication policy below). `SendToParents` follows the Group Manager website: family adults receive the email themselves, minors' parents receive it for them. |
-| `api/GroupApp/GroupMembers/{groupId}/Add` | POST | EDIT **and** MANAGE_MEMBERS | Match-or-create a person and add as a member; copies the caller's `TableNumber` when they have one. |
+| `api/GroupApp/GroupMembers/{groupId}/Add` | POST | EDIT **and** MANAGE_MEMBERS | Match-or-create a person and add as a member. Table-based groups: the new member gets the caller's `TableNumber`; a caller with no table gets `400 "You are not assigned to a table"` (no staff exception, so no member is created that no table can see); a person already in the group at another table stays there and the call returns `400`. |
 | `api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}` | DELETE | EDIT **and** MANAGE_MEMBERS | Hard-delete a group member. The target must be in the caller's scope from `GetGroupMembers` (own table for table-based groups) and not archived, else `404`. A caller with no table in a table-based group gets `400`, unless they hold EDIT + MANAGE_MEMBERS through Rock security (not a group role), in which case the whole group is in scope. Refuses the last active member of the scope whose role has `CanEdit` (`400`), since that role flag is what grants these permissions to group members. Registrant links are cleared first, so a member placed by an event registration deletes cleanly. |
 | `api/GroupApp/Attendance/{groupId}/{occurrenceDate}` | GET | VIEW or leader | Attendance for an occurrence. |
-| `api/GroupApp/Attendance/` | POST | leader | Mark a member (of this group) present. Reconciles with the member's existing attendance for the group+date: with `locationId`, matches within that room (+`scheduleId`); without it, matches by group+person+date, preferring a kiosk-origin row, so a kiosk check-in is flipped rather than duplicated. Creates a row if none exists. |
+| `api/GroupApp/Attendance/` | POST | leader | Mark a member (of this group) present. Reconciles with the member's existing attendance for the group+date: with `locationId`, matches within that room (+`scheduleId`); without it, matches by group+person+date, preferring a kiosk-origin row, so a kiosk check-in is flipped rather than duplicated. Creates a row if none exists, at the group's attendance location. |
 | `api/GroupApp/Attendances/{attendanceId}` | DELETE | leader | Delete an attendance record. |
-| `api/GroupApp/Attendance/SelfReport` | GET / POST | member (POST: adult only) | Read/set the current user's own attendance, gated to a window around the occurrence start. |
-| `api/GroupApp/Attendance/DidNotMeet` | POST | leader | Mark an occurrence as "Did Not Meet" and clear its attendance. |
+| `api/GroupApp/Attendance/SelfReport` | GET / POST | member (POST: adult only) | Read/set the current user's own attendance, gated to a window around the occurrence start. POST records against the group's attendance location. |
+| `api/GroupApp/Attendance/DidNotMeet` | POST | leader | Mark an occurrence as "Did Not Meet" and clear its attendance. Without a `locationId`, records against the group's attendance location (see *Attendance location* below). |
 | `api/GroupApp/AttendanceSchedules/{groupId}` | GET | VIEW or leader | Past-12-months occurrence list (scheduled + recorded). |
 | `api/GroupApp/Groups/{groupId}/Schedule` | GET / PUT | leader | Read/update the group's weekly schedule as iCal (forks a shared schedule on edit). |
 | `api/GroupApp/Groups/{groupId}/Location` | GET / PUT | GET: member, PUT: leader | Read/replace the group's single location; PUT runs Rock address `Verify` (geocode). |
 
-### Content / extension
+### Content / retired
 
 | Route | Method | Auth | Purpose |
 |-------|--------|------|---------|
 | `api/ChannelItems/{contentChannelId}[/{tag}]` | GET | content-channel VIEW | Paged content-channel items with attributes, tags, child/parent ids; query-string keys filter on attribute values. |
 | `api/ChannelItem/{identifier}` | GET | content-channel VIEW | One item by id or slug. |
 | `api/sermonfeed/[{slug}/]` | GET | none declared | Speaker-filtered sermon series feed (1-hour `RockCache`). Hardcodes content-channel ids (24/23) and the Speaker attribute id (30285). |
-| `api/People/MatchOrCreatePerson` | POST | `[Authenticate, Secured]` | Match a person via [PersonMatch](../org.secc.PersonMatch/README.md); add if none, return the id. |
-| `api/GroupMembers/OData` | GET | `[Authenticate, Secured]` | OData query over `GroupMember` with expand support (math functions only). |
-| `api/Groups/GetPhoto/{id}` | GET | `[Authenticate, Secured]` | URL of the group's `GroupPhoto` attribute binary file. |
-| `api/Groups/UploadPhoto/{id}` | POST | `[Authenticate, Secured]` + binary-file-type EDIT | Upload/replace the group's `GroupPhoto`. |
-| `api/secc/FinancialTransactions/GetContributionTransactions/{groupId}[/{personId}]` | POST | `[Authenticate, Secured]` | Build a `DataSet` of contribution transactions (cash only) for a giving group or person. |
+| `api/People/MatchOrCreatePerson` | POST | none | **Retired** (ROCK-8827). Always returns `410 Gone`. *(RetiredEndpointsController)* |
+
+`api/secc/FinancialTransactions/GetContributionTransactions/{groupId}[/{personId}]` was removed in ROCK-9312 and now returns `404`. It returned any person's giving with no check that the caller could see it. Contribution statements use Rock core's `StatementGenerator` / `FinancialGivingStatement` endpoints.
 
 ## Detailed Reference
 
@@ -134,39 +133,34 @@ Org policy: communications may not be sent to minors unless another adult is inc
 |-------|-------|
 | **EmailAddress** | Compared **case-insensitively** to an existing person for a confident match; mobile last-10 also compared. |
 | **Username / Password** | Optional; password validated via `UserLoginService.IsPasswordValid`. |
-| **Birthdate** | Min age **13** (`MINIMUM_AGE`) enforced — but only inside the `if ( !string.IsNullOrEmpty( account.Username ) )` block, so a request with no username skips the age check. |
+| **Birthdate** | Min age **13** (`MINIMUM_AGE`). The check applies when a `Username` is supplied, i.e. when a login is being created. |
+| **SmsOptIn** | Optional boolean. When true, the mobile number saved for a newly created person is enabled for SMS messaging; otherwise it is not. Ignored when the request matches an existing person; that person's phone numbers are not changed. |
 | Match path | `PersonService.GetByMatch`; single match + matching email → reuse the existing person, else create a Web-Prospect/Pending person. **Any login created is unconfirmed and requires email confirmation — a match is never auto-confirmed.** A match with no supplied username creates no login (returns "account already exists"). |
-| Confirmation email | Sent to the person's **stored** address. `RockMessage.Send()` returns `false` (doesn't throw) on failure, so both paths fail closed with a retryable `503` instead of a `200` claiming an email was sent. Username path: the login was already committed by `UserLoginService.Create`, so it is deleted — otherwise it orphans the account and traps the username against the uniqueness check. Email-only/SMS path: the `SMS_<personId>` login was only added to the context, so returning early persists nothing; `SMSAuthentication.SendSMSAuthentication` re-creates it at the next SMS login. The **person** record survives either way (`SaveNewPerson` commits it), so a retry of the email-only path matches that person and returns "account already exists". |
+| Confirmation email | Sent to the person's **stored** address. `RockMessage.Send()` returns `false` (doesn't throw) on failure, so both paths fail closed with a retryable `503` instead of a `200` claiming an email was sent. Username path: the login was already committed by `UserLoginService.Create`, so it is deleted — otherwise it orphans the account and traps the username against the uniqueness check. Email-only/SMS path: the `SMS_<personId>` login and its confirmation-code rows are saved before the email is sent and are kept when the send fails; `SMSAuthentication.SendSMSAuthentication` finds that login by name at the next SMS login, and the unused code expires and is removed by the expired-code cleanup. The **person** record survives either way (`SaveNewPerson` commits it), so a retry of the email-only path matches that person and returns "account already exists". |
 
 ### ChannelItems query filtering *(ChannelItemController)*
 Reserved query keys (`contentchannelid`, `tag`, `take`, `page`, `hideInactive`, `orderby`, `reverse`) control paging/sort; **any other query key** is treated as a content-channel-item **attribute key** and filtered on exact attribute value.
 
 **Same-key collision precedence:** the same attribute key can exist on both a `ContentChannelTypeId`-qualified and a `ContentChannelId`-qualified attribute. In both `ChannelItems` and `ChannelItem` responses the **channel-qualified value wins** the collision (previously this crashed with an HTTP 500), and query-string attribute filtering applies the same precedence — when a key exists in both scopes, only the channel-scoped attribute's values are matched, so filtering and the returned `Attributes` dictionary agree.
 
-### Contribution transactions *(FinancialTransactionsExtensionsController)*
-Returns a nested `DataSet` (transactions + per-account details), filtered to the Contribution transaction type and excluding the **non-cash** currency type (`F64662E7-0E12-4604-BBB0-DB774AC3C830`). Without `personId`, pulls everyone whose `GivingGroupId` equals `groupId`.
-
 ## Dependencies & Integrations
 
-- **Rock:** `Rock.Rest` (`ApiControllerBase`, `IHasCustomHttpRoutes`, `[Authenticate]`/`[Secured]` filters), Web API + OData, `RockContext` and many services (Person, Group, GroupMember, Attendance, Communication, ContentChannelItem, Schedule, Location, FinancialTransaction), `RockCache`, defined values, `SMSAuthentication`, Rock email/communication.
-- **Cross-plugin:** [org.secc.OAuth](../org.secc.OAuth/README.md) (client/API-key validation in `AccountController`), [org.secc.Authentication](../org.secc.Authentication/README.md), [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (`GetByMatch`, `MatchOrCreatePerson`).
-- **Third-party:** Newtonsoft.Json, ASP.NET Web API (incl. OData), EntityFramework, System.Linq.Dynamic (used for the `orderby` string in `ChannelItems`).
+- **Rock:** `Rock.Rest` (`ApiControllerBase`, `IHasCustomHttpRoutes`), Web API, `RockContext` and many services (Person, Group, GroupMember, Attendance, Communication, ContentChannelItem, Schedule, Location), `RockCache`, defined values, `SMSAuthentication`, Rock email/communication.
+- **Cross-plugin:** [org.secc.OAuth](../org.secc.OAuth/README.md) (client/API-key validation in `AccountController`), [org.secc.Authentication](../org.secc.Authentication/README.md), [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (`GetByMatch`).
+- **Third-party:** Newtonsoft.Json, ASP.NET Web API, EntityFramework, System.Linq.Dynamic (used for the `orderby` string in `ChannelItems`).
 
 ## Edge Cases & Constraints
 
-- **GroupApp endpoints carry no auth attribute.** They rely entirely on `GetCurrentUser()` plus hand-rolled per-group checks. Any new GroupApp action must repeat that pattern — there is no filter enforcing it.
-- **Hardcoded ids.** `SermonController` hardcodes content-channel ids (24, 23) and a Speaker attribute id (30285); `GetGroups` hardcodes GroupTypeIds 107/109 and CampusId 1; some location lookups use literal `GroupLocationTypeValueId` 19/209. These break if the target environment's ids differ.
+- **Hardcoded ids.** `SermonController` hardcodes content-channel ids (24, 23) and a Speaker attribute id (30285); `GetGroups` hardcodes GroupTypeIds 107/109 and CampusId 1; these break if the target environment's ids differ. (Location types are resolved by Rock system Guids everywhere in the GroupApp controllers.)
+- **Attendance location.** `GroupAppAttendanceController` records attendance, "Did Not Meet" and self check-in against one location per group: its Meeting Location, else its Home location, else its first location (lowest GroupLocation Id), else none — the same order the GroupApp location endpoint uses for the address it shows. It never uses location 0 (before ROCK-9170, groups whose only location had no type got 0 and every "Did Not Meet" and self check-in failed with a foreign-key error). The weekly schedule list links a saved occurrence to a scheduled date only when the location matches, so if a group's attendance location changes (e.g. a Meeting Location is added later), older occurrences at the previous location show as separate dates.
 - **Schedule edit forks shared schedules.** `PUT .../Schedule` creates a new `Schedule` if the current one is shared by another group/group-location, then repoints the group; legacy `WeeklyDayOfWeek`/`WeeklyTimeOfDay` are cleared in favor of iCal.
 - **Location PUT is destructive.** It deletes *all* existing `GroupLocation` rows for the group before adding one (single-location app requirement).
-- **`MatchOrCreatePerson` adds the posted `Person` directly** when no match is found — the request body is persisted as a new person with no field sanitization beyond what matching uses.
 
 ## Observations
 
-*Noticed while documenting — not a full audit; the auth surface and a few endpoints stood out.*
+*Noticed while documenting — not a full audit.*
 
-- **Security (review):** Authorization is inconsistent across controllers and several checks are easy to read as inverted/loose — worth a careful pass. In `ChannelItemController.ChannelItems` the guard is `if ( !contentChannel.IsAuthorized( VIEW, GetPerson() ) ) throw Unauthorized`, but `GetGroup` in `GroupAppGroupListController` uses `if ( isGroupMember || !group.IsAuthorized( VIEW, ... ) )` to *grant* access — i.e. it returns the group when the user is **not** authorized to view it. That condition reads backwards and should be confirmed against intent.
-- **Security (low/medium):** GroupApp endpoints have no `[Authenticate]`/`[Secured]` filter and depend solely on `GetCurrentUser()` + manual checks; `GetGroupMembers` exposes member email/phone/address and minors' parent contact info to group leaders. Confirm leader determination is correct and that these routes can't be reached by an unauthenticated session. `api/sermonfeed` has no declared authorization.
-- **Improvement:** Several handlers `new RockContext()` per request (`GetGroupMembers` calls `_personService.Get` and `GetFamily` per member — an N+1). `AccountController` calls `MD5` for a 6-digit confirmation code, which is fine for non-secret short codes but shouldn't be mistaken for a security primitive.
+- **Improvement:** Several handlers `new RockContext()` per request (`GetGroupMembers` calls `_personService.Get` and `GetFamily` per member — an N+1).
 - **Improvement:** `AssemblyInfo.cs` still carries the Visual Studio template metadata (`AssemblyCompany("Microsoft")`, `Copyright © Microsoft 2016`) — cosmetic, but worth fixing to SECC.
 - **Improvement:** The `.csproj` lists `Rock.Rest` and `DotLiquid` `ProjectReference`s twice each (duplicate entries) — harmless but worth cleaning.
 
@@ -209,4 +203,4 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 
 ---
 
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-21

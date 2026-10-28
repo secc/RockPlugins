@@ -25,22 +25,46 @@ namespace org.secc.RoomScanner.Utilities
 {
     public static class DataHelper
     {
-        private static int personEntityTypeId = EntityTypeCache.Get( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
         private const string locationEntityTypeGuid = "0D6410AD-C83C-47AC-AF3D-616D09EDF63B";
-        private static int locationEntityTypeId = EntityTypeCache.Get( locationEntityTypeGuid.AsGuid() ).Id;
-        private static int allergyAttributeId = AttributeCache.Get( Rock.SystemGuid.Attribute.PERSON_ALLERGY.AsGuid() ).Id;
+
+        // Resolved per call rather than in static initializers so a missing cache entry fails only
+        // the current request instead of poisoning the type until the app pool recycles.
+        private static int personEntityTypeId => GetEntityTypeId( Rock.SystemGuid.EntityType.PERSON );
+        private static int locationEntityTypeId => GetEntityTypeId( locationEntityTypeGuid );
+        private static int allergyAttributeId => GetAttributeId( Rock.SystemGuid.Attribute.PERSON_ALLERGY );
+
+        private static int GetEntityTypeId( string guid )
+        {
+            var entityType = EntityTypeCache.Get( guid.AsGuid() );
+            if ( entityType == null )
+            {
+                throw new InvalidOperationException( string.Format( "RoomScanner could not find entity type {0}", guid ) );
+            }
+            return entityType.Id;
+        }
+
+        private static int GetAttributeId( string guid )
+        {
+            var attribute = AttributeCache.Get( guid.AsGuid() );
+            if ( attribute == null )
+            {
+                throw new InvalidOperationException( string.Format( "RoomScanner could not find attribute {0}", guid ) );
+            }
+            return attribute.Id;
+        }
 
         public static string GetHostInfo()
         {
+            // Returns the client IP address. The previous synchronous reverse DNS lookup ran on
+            // every history write and could stall the request for seconds when the address did
+            // not resolve.
             var hostInfo = "Unknown Host";
             try
             {
-
-                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
-                var host = System.Net.Dns.GetHostEntry( hostInfo );
-                if ( host != null )
+                var clientIp = Rock.Web.UI.RockPage.GetClientIpAddress();
+                if ( !string.IsNullOrWhiteSpace( clientIp ) )
                 {
-                    hostInfo = host.HostName;
+                    hostInfo = clientIp;
                 }
             }
             catch { }

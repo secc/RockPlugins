@@ -41,7 +41,7 @@ flowchart TD
     B -->|recurring schedule setup| D["SetPayPeriod(recurringInfo, freq)"]
     D --> D1[Map frequency Guid -> PayFlow<br/>PayPeriod code WEEK/BIWK/MONT/FRWK/...]
     B -->|download payments job| E["GetPayments(gateway, start, end, out err)"]
-    E --> E1[Force TLS 1.0/1.1/1.2]
+    E --> E1[Set TLS protocol]
     E1 --> E2[RecurringBillingReport<br/>via Rock.PayFlowPro.Reporting.Api]
     E2 --> E3[CustomReport for amount/<br/>tender/email by transaction id]
     E3 --> E4{txn found<br/>in custom report?}
@@ -78,7 +78,7 @@ flowchart TD
 | `SupportedPaymentSchedules` | Advertises only One-Time, Weekly, Bi-Weekly, Monthly (Twice-Monthly is commented out). The base set is replaced. |
 | `SetPayPeriod` (private) | Maps each Rock frequency Guid to a PayFlow `PayPeriod` code, including the SECC-specific `FRWK` (Every 4 Weeks); One-Time becomes a 1-term yearly profile. |
 | `Charge` | After `base.Charge`, if a `ReferencePaymentInfo` charge fails with `"[19] Original transaction ID not found"` **and** a matching `FinancialPersonSavedAccount` is found (by `TransactionCode` + gateway id), deletes that saved account and replaces the error with a user-readable message. If no matching saved account is found, the original `[19]` error is left untouched. |
-| `GetPayments` | Replaces payment download: forces TLS, then queries `RecurringBillingReport` + `CustomReport` (+ a `TransactionIDSearch` fallback) via `Rock.PayFlowPro.Reporting.Api` to build `Payment` rows with amount, tender, schedule, and billing email (as a `CCEmail` attribute). |
+| `GetPayments` | Replaces payment download: sets the TLS protocol, then queries `RecurringBillingReport` + `CustomReport` (+ a `TransactionIDSearch` fallback) via `Rock.PayFlowPro.Reporting.Api` to build `Payment` rows with amount, tender, schedule, and billing email (as a `CCEmail` attribute). |
 
 ## Dependencies & Integrations
 
@@ -96,7 +96,6 @@ Ships one Rock plugin migration under `/Migrations/`:
 ## Edge Cases & Constraints
 
 - **`Mode` only switches the *reporting* host.** In `GetPayments`, `Mode == "Test"` selects the PayFlow test reporting endpoint. The base gateway is responsible for honoring `Mode` on the charge path — confirm both sides agree before testing against production credentials.
-- **TLS is forced inside `GetPayments`.** It sets `ServicePointManager.SecurityProtocol` to `Tls | Tls11 | Tls12` for the *whole process*, which re-enables TLS 1.0/1.1 globally (see Observations).
 - **`Charge` deletes saved accounts on a specific error string.** The cleanup only triggers on the exact message `"[19] Original transaction ID not found"`; if PayFlow changes that string the saved account won't be removed and the cryptic error surfaces to the donor. Also note the friendly message is only substituted **inside** the "saved account found" branch — if the `[19]` error fires but no matching saved account row exists, the donor still sees the raw `[19]` text.
 - **`GetPayments` short-circuits on the first un-resolvable transaction.** If even one recurring-billing row can't be matched by `CustomReport` or `TransactionIDSearch`, the method sets `errorMessage` and returns `null` — discarding any payments already collected for that run.
 - **Amounts are divided by 100.** Report amounts are treated as cents (`amount / 100`); a report that returns dollars would be off by 100×.
@@ -104,11 +103,9 @@ Ships one Rock plugin migration under `/Migrations/`:
 
 ## Observations
 
-*Noticed while documenting — not a full audit; this plugin handles payments, so flagged for confirmation.*
+*Noticed while documenting — not a full audit.*
 
 - **Tier mismatch (process):** This is effectively a **standard-tier** plugin by size — one gateway class and one defined-value migration, no blocks/REST/jobs/Lava. It was assigned the deep tier (and written as such) on the reasonable grounds that it processes money and brokers PayPal credentials, but a human may prefer to downgrade it to standard to match siblings like [org.secc.QRManager](../org.secc.QRManager/README.md).
-- **Security (review):** `GetPayments` sets `ServicePointManager.SecurityProtocol = Tls | Tls11 | Tls12`, which **re-enables TLS 1.0 and 1.1** process-wide (not just for this call) and clobbers any stricter policy Rock or the host set. Worth confirming PayPal still requires anything below TLS 1.2; if not, narrow this to `Tls12` (or `Tls12 | Tls13`).
-- **Security (low):** The PayFlow `Password` attribute is declared password-masked (`isPassword: true`), but `User`/`Vendor`/`Partner` are plain text fields and the billing email is copied into a `CCEmail` payment attribute. Standard for a gateway, but confirm gateway-admin access is restricted to trusted finance staff.
 - **Improvement:** `GetPayments` is a long single method that builds a ~50-key `customParams` dictionary inline and does per-transaction fallback API calls in a loop (N extra round-trips when `CustomReport` misses rows). For large date ranges this is chatty; the parameter block could be extracted and the fallback batched.
 - **Improvement:** The migration's namespace (`org.secc.PayFloPro`) and class name (`CreateCurrencyType`) don't match what it does or where it lives. Harmless, but confusing for future maintainers grepping for the frequency seed.
 

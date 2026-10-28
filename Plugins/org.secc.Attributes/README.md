@@ -106,17 +106,6 @@ a link. Condensed/grid contexts show an `"N files"` count rather than embedded m
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** `CascadingDropDownFieldType`'s "Data Matrix" config can be a raw SQL `SELECT`
-  executed via `DbService.GetDataTable( config, CommandType.Text, null )` (any string containing
-  `SELECT` and `FROM`). This runs with the app's DB credentials. The config is only editable by users
-  with attribute-edit rights, so the threat surface is limited to admins, but it is effectively
-  arbitrary SQL stored in an attribute qualifier — worth confirming who can edit these attributes and
-  that the SQL is trusted.
-- **Security (low):** `MultiFileFieldType`/`MultiFileUpload` enforce the allowed-extension whitelist
-  and max-file count **client-side only** (JS pre-checks before the XHR upload). The actual
-  `/FileUploader.ashx` upload and `BinaryFileType` rules are the real gate; a crafted request could
-  bypass the client checks. Confirm the chosen `BinaryFileType` has appropriate server-side
-  restrictions if extension filtering matters for security (vs. UX).
 - **Improvement:** `MultiFileFieldType.GetEditValue` performs several `SaveChanges()` calls and
   per-row `LoadAttributes()` inside a loop — workable for a handful of files, but chatty for large
   sets. The shared-template Id is cached statically (`_sharedTemplateIdCache`), which is fine, but the

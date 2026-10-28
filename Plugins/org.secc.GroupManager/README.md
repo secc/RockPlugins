@@ -47,6 +47,22 @@ user preference), the current group member, and an optional member-attribute fil
 access. Block settings: **Home Page** (redirect target), **GroupType** (restrict to one type),
 **Leaders Only** (leaders-only access).
 
+**Member filter.** The filter turns on only when the current group's type inherits directly
+(`InheritedGroupTypeId`) from the group type named by the `FilterGroupType` **global** attribute.
+The member-attribute key comes from the `FilterAttribute` **group-type** attribute on that group
+type:
+
+- The value is a comma-separated list of GroupMember attribute keys. Keys are trimmed and blank
+  entries dropped; a null or blank value means no filter.
+- Only the **first** key is used. In `Grade,Campus`, members are filtered by `Grade` and `Campus`
+  is ignored.
+- Leaders see only members whose value for that key equals their own. A leader with a blank value
+  sees only members whose value is also blank.
+- Keys are case-sensitive and must name a GroupMember attribute on the group.
+
+In production (2026-10-14), `FilterGroupType` is type 178 "Filtered Group Parent", and its
+children 176 (`TableLeader`) and 375 (`TableNumber`) are the only filtered types.
+
 ### Blocks
 
 Categories in Rock: **SECC > Groups**, **SECC > Camp**, and **Groups**.
@@ -138,11 +154,6 @@ Ships Rock plugin migrations under `/Migrations/` that build up the `PublishGrou
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** The Camp Allergies block surfaces camper medical/allergy PII, and roster
-  blocks expose member contact details. Confirm the Rock **page/block security** on these is
-  scoped to the appropriate leader/staff roles. The `Leaders Only` block setting on
-  `GroupManagerBlock` gates member-facing pages — worth verifying it's set on every page that
-  should be leader-restricted, since it defaults off.
 - **Improvement:** `GetFilteredMembers` / `GetCurrentGroupFilterValues` call `member.LoadAttributes()`
   inside a loop over `CurrentGroup.Members`, so attribute loading is per-member (N round-trips) on
   every render of the filtered roster blocks. Fine for small groups, costly for large ones.

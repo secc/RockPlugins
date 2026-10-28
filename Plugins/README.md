@@ -13,8 +13,8 @@ observations → making changes). High-traffic, complex, or externally-facing pl
 **deep** tier, which adds a data-flow diagram, per-component config-attribute tables, edge cases,
 and an extending guide. The Tier column below flags which is which.
 
-Each plugin's **Observations** section captures security/improvement notes spotted *while
-documenting* — they are starting points, not a completed security audit.
+Each plugin's **Observations** section captures improvement notes spotted *while
+documenting* — they are starting points, not a completed audit.
 
 ---
 
@@ -126,7 +126,7 @@ documenting* — they are starting points, not a completed security audit.
 
 | Plugin | Tier | What it does |
 |--------|------|--------------|
-| [Rest](./org.secc.Rest/README.md) | deep | Custom Rock REST controllers for SECC's apps — account/SMS login, the Groups mobile app, content-channel/sermon feeds, person matching, and financial-statement data. |
+| [Rest](./org.secc.Rest/README.md) | deep | Custom Rock REST controllers for SECC's apps — account/SMS login, the Groups mobile app, and content-channel/sermon feeds. |
 | [PersonMatch](./org.secc.PersonMatch/README.md) | standard | A `PersonService.GetByMatch` extension method that resolves loose name/contact fields to existing Rock people (nickname-aware), with optional nameless-person creation. |
 | [Administration](./org.secc.Administration/README.md) | standard | A grab-bag of admin-only Rock UI blocks — system diagnostics, one-off data migrations, and group/device housekeeping tools. |
 | [ChangeManager](./org.secc.ChangeManager/README.md) | standard | A change-request/approval framework that captures edits to any Rock entity as reviewable `ChangeRecord`s and applies (or reverses) them transactionally on approval. |

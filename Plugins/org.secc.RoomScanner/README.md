@@ -96,19 +96,22 @@ Plain serialization types returned by / posted to the controller — not EF enti
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** The "PIN" for overrides/inserts is a person's `UserLogin` **username**
-  (`UserLoginService.GetByUserName`), gated on membership in the configured `AllowedGroupId` group.
-  It is not a password and is matched as a plain username, so its security rests entirely on that
-  group's membership being tightly controlled. Worth confirming `AllowedGroupId` is locked to
-  trusted staff and that usernames in scope aren't easily guessable.
-- **Improvement:** `ValidationHelper` reads `RoomScannerSettings` into **static fields initialized
-  once at type load** (`settings`, `allowedGroupId`, `subroomLocationTypeId`). Changing those global
-  attributes via the Configuration block won't take effect until the app domain recycles. Same
-  pattern in `DataHelper` static ids. Consider reading the settings per request.
-- **Improvement:** `GetAttendeeAttendance` (`ValidationHelper`) has a likely bug in its
-  username-fallback branch — the predicate references `attendeeAttendance.StartDateTime` (the
-  local being assigned, still null) instead of the row `a.StartDateTime`, so that lambda would throw
-  / never match as intended. Worth reviewing; in practice callers pass an `AttendanceGuid`.
+- **Behaviour (2026-10-03):** `ValidationHelper` and `DataHelper` read `RoomScannerSettings` and
+  the cached entity-type/attribute ids **per request** rather than in static initializers. A missing
+  key fails only that request, logged as
+  `InvalidOperationException: RoomScanner is not configured: missing RoomScannerSettings[<key>]`; a
+  non-integer value is logged as `…: RoomScannerSettings[<key>] is not a valid integer`. Neither
+  poisons the type until the app pool recycles, and changes made in the Configuration block take
+  effect without a recycle. A key that is present but blank means that feature is not configured
+  (no override group, so every PIN is "not authorized"; no subroom location type), as before.
+- **Behaviour (2026-10-03):** `GetAttendeeAttendance`'s username/PIN fallback now matches the row's
+  own `StartDateTime` within today, so `entry`/`exit` with a username return a normal response instead
+  of "An error occured". It prefers today's open attendance, newest first, over a closed one.
+- **Behaviour (2026-10-03):** `LocationsFull` treats a null `FirmRoomThreshold`/`SoftRoomThreshold`
+  as no limit (core check-in manager semantics; previously null meant full) and counts the batch being
+  moved against the threshold (`occupancy + moving > threshold`, excluding batch rows already in the room).
+- **Behaviour (2026-10-03):** person History `RelatedData` written by the scanner records the client
+  IP address.
 - **Improvement:** `CategoryCache.Get( 4 )` and `CategoryId == 4` are **hard-coded integer ids** for
   the person-history category (in `DataHelper` and `RoomReport`). A Guid lookup would survive a
   reseed/import. There are also **OAuth copy-paste leftovers** in the **Configuration** block — its
@@ -126,7 +129,13 @@ Plain serialization types returned by / posted to the controller — not EF enti
   ratio/threshold and subroom logic in `Utilities/ValidationHelper.cs` and the attendance-mutation +
   person-history writes in `Utilities/DataHelper.cs`.
 - The override group and subroom location type are data in the `RoomScannerSettings` global
-  attribute, edited via the **RoomScanner Configuration** block (note the static-cache caveat above).
+  attribute, edited via the **RoomScanner Configuration** block (read per request; both keys must be
+  present, a blank value turns that feature off, and a non-numeric value fails the request with the
+  configuration error noted above).
 - Live in-room counts, volunteer detection, and the "with parent" flag come from
   [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md)'s `AttendanceCache` / `OccurrenceCache` —
   changes to room state should go through that cache so the scanner and check-in stay consistent.
+- The two-volunteer rule counts distinct volunteers in the room. Attendance with no person
+  (`PersonId` 0 in `AttendanceCache`) is not counted, since it can't be a known adult (ROCK-8818).
+
+**Last updated:** 2026-10-13

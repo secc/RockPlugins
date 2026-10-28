@@ -136,11 +136,6 @@ Category in Rock: **SECC > Workflow**.
 - **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by *Person Attribute From Fields*).
 - **Third-party:** Twilio (lookup).
 
-## Edge Cases & Constraints
-
-- **Person matching can create records.** *Person Attribute From Fields* will insert a person
-  unless `Match Only` is set — review that flag in any workflow that takes public input.
-
 ## Extending
 
 To add an action, drop a class in the relevant area folder following this shape:

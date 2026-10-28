@@ -124,13 +124,6 @@ Ships Rock plugin migrations under `/Migrations/` (all compiled per the `.csproj
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** `SQLFilter` runs arbitrary operator-supplied SQL directly against the Rock
-  database (`Context.Database.SqlQuery<int>(selection)`). The UI shows a prominent warning, and the filter
-  is only usable by people who can edit data views, but it is effectively raw DB access via the reporting
-  UI. The cache-maintenance paths in `GetExpression` and `SqlFilterCleanupTransaction` also build
-  `DELETE`/`IN` statements via `string.Format` with the MD5 hash and entity Ids; the hash and Ids are not
-  externally controlled, so injection risk there is low, but the design is worth confirming against
-  Southeast's data-access policy.
 - **Improvement:** `GetExpression` (a data-view filter evaluation) **writes to the database** — it bulk-inserts
   and deletes cache rows for result sets over 1000. Filter evaluation thus has side effects and isn't
   idempotent; large data views will repeatedly churn the cache table. The orphan cleanup runs as a queued
