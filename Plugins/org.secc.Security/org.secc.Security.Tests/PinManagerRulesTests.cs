@@ -151,12 +151,14 @@ namespace org.secc.Security.Tests
             Assert.Equal( new[] { "0123456" }, logins.Asked );
         }
 
-        [Fact]
-        public void CheckPin_NewPinWithSurroundingSpaces_IsTrimmed()
+        [Theory]
+        [InlineData( " 0123456 " )]
+        [InlineData( "\t0123456\r\n" )]
+        public void CheckPin_NewPinWithSurroundingWhitespace_IsTrimmed( string text )
         {
             var logins = new Logins();
 
-            Assert.Null( Check( " 0123456 ", null, logins, out var pin ) );
+            Assert.Null( Check( text, null, logins, out var pin ) );
             Assert.Equal( "0123456", pin );
             Assert.Equal( new[] { "0123456" }, logins.Asked );
         }
@@ -237,6 +239,15 @@ namespace org.secc.Security.Tests
             var logins = new Logins();
 
             Assert.Equal( "Error: Requested PIN must be 6 digits or greater.", Check( "12345", null, logins, out _ ) );
+            Assert.Empty( logins.Asked );
+        }
+
+        [Fact]
+        public void CheckPin_NewPinShorterThanTheMinimumOnceTrimmed_IsRefused()
+        {
+            var logins = new Logins();
+
+            Assert.Equal( "Error: Requested PIN must be 6 digits or greater.", Check( " 12345 ", null, logins, out _ ) );
             Assert.Empty( logins.Asked );
         }
 
@@ -328,6 +339,19 @@ namespace org.secc.Security.Tests
             Assert.Empty( logins.Asked );
         }
 
+        [Theory]
+        [InlineData( "\t123456" )]
+        [InlineData( "123456 " )]
+        public void CheckPin_UnchangedPinWithOtherSurroundingWhitespace_KeepsItsValue( string stored )
+        {
+            var logins = new Logins( stored );
+
+            // The block's PIN box posts its text trimmed.
+            Assert.Null( Check( "123456", stored, logins, out var pin ) );
+            Assert.Equal( stored, pin );
+            Assert.Empty( logins.Asked );
+        }
+
         [Fact]
         public void CheckPin_UnchangedPinTypedWithSurroundingSpaces_KeepsItsValue()
         {
@@ -335,6 +359,25 @@ namespace org.secc.Security.Tests
 
             Assert.Null( Check( " 1234567 ", "1234567", logins, out var pin ) );
             Assert.Equal( "1234567", pin );
+            Assert.Empty( logins.Asked );
+        }
+
+        [Fact]
+        public void CheckPin_UnchangedEmptyPin_KeepsItsValue()
+        {
+            var logins = new Logins( "" );
+
+            Assert.Null( Check( "", "", logins, out var pin ) );
+            Assert.Equal( "", pin );
+            Assert.Empty( logins.Asked );
+        }
+
+        [Fact]
+        public void CheckPin_PinDifferingFromTheCurrentPinOnlyInCase_IsCheckedAsChanged()
+        {
+            var logins = new Logins( "abc123" );
+
+            Assert.Equal( ConvertMessage, Check( "ABC123", "abc123", logins, out _ ) );
             Assert.Empty( logins.Asked );
         }
 
