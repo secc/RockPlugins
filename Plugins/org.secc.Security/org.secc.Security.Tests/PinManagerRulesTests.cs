@@ -22,8 +22,8 @@ using Xunit;
 namespace org.secc.Security.Tests
 {
     /// <summary>
-    /// PinManagerRules.IsPersonPin for each kind of login, and PinManagerRules.CheckPin for new, changed and
-    /// unchanged PINs.
+    /// PinManagerRules.DisplayPin for users who can and can't administrate PINs, PinManagerRules.IsPersonPin for
+    /// each kind of login, and PinManagerRules.CheckPin for new, changed and unchanged PINs.
     /// </summary>
     public class PinManagerRulesTests
     {
@@ -34,6 +34,47 @@ namespace org.secc.Security.Tests
 
         private const string ConvertMessage = "Error: Requested PIN could not be converted to number.";
         private const string TakenMessage = "This PIN has already been taken.";
+
+        #region DisplayPin
+
+        [Fact]
+        public void MaskedPin_IsFourBullets()
+        {
+            Assert.Equal( "\u2022\u2022\u2022\u2022", PinManagerRules.MaskedPin );
+        }
+
+        [Theory]
+        [InlineData( "123456" )]
+        [InlineData( "012345" )]
+        [InlineData( "98765432101" )]
+        [InlineData( " 123456 " )]
+        public void DisplayPin_Administrator_SeesThePin( string pin )
+        {
+            Assert.Equal( pin, PinManagerRules.DisplayPin( pin, true ) );
+        }
+
+        [Theory]
+        [InlineData( "123456" )]
+        [InlineData( "012345" )]
+        [InlineData( "98765432101" )]
+        [InlineData( "1234" )]
+        [InlineData( "" )]
+        [InlineData( null )]
+        public void DisplayPin_NonAdministrator_SeesTheMask( string pin )
+        {
+            var shown = PinManagerRules.DisplayPin( pin, false );
+
+            Assert.Equal( PinManagerRules.MaskedPin, shown );
+            Assert.DoesNotContain( shown, char.IsDigit );
+        }
+
+        [Fact]
+        public void DisplayPin_NonAdministrator_SeesTheSameTextForPinsOfDifferentLengths()
+        {
+            Assert.Equal( PinManagerRules.DisplayPin( "123456", false ), PinManagerRules.DisplayPin( "98765432101", false ) );
+        }
+
+        #endregion
 
         #region IsPersonPin
 

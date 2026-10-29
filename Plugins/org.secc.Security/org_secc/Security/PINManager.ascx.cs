@@ -139,7 +139,7 @@ namespace RockWeb.Plugins.org_secc.Security
                 }
 
                 RockLiteral rockLiteral = new RockLiteral();
-                rockLiteral.Label = pin.UserName.EncodeHtml();
+                rockLiteral.Label = PinManagerRules.DisplayPin( pin.UserName, userAuthorized ).EncodeHtml();
                 rockLiteral.Text = string.Join( ", ", purpose );
                 secondPanel.Controls.Add( rockLiteral );
 

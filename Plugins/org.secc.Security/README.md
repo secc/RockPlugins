@@ -22,7 +22,8 @@ This is Southeast's catch-all **security and identity** plugin. Most of it is Ro
 /                       org.secc.Security.csproj (compiles SAML2/ and Utility/)
 /SAML2/                 SAML 2.0 assertion library: SAML20Assertion (build+sign Response),
                         CertificateUtility (X509 XML signing), SAMLSchema (xsd-generated OASIS types)
-/Utility/               PinManagerRules: the PIN Manager's login and PIN checks (IsPersonPin, CheckPin)
+/Utility/               PinManagerRules: the PIN Manager's PIN display and its login and PIN checks
+                        (DisplayPin, IsPersonPin, CheckPin)
 /org.secc.Security.Tests/ xUnit tests for PinManagerRules (Tools/add-plugins-to-solution.ps1 adds it to
                         Rock.sln with the plugin projects)
 /org_secc/Security/     RockWeb blocks (.ascx + .ascx.cs) — the bulk of the plugin (see Components)
@@ -130,7 +131,7 @@ On load it posts an `Attendance` record (if group+campus+active schedule resolve
 | **PurposeDefinedType** | defined type | Source of the PIN "purpose" checkbox list (stored on the `PINPurpose` UserLogin attribute). |
 | **MinimumPINLength** | integer (default 6) | Minimum number of digits for a new or changed PIN; leading zeros count. |
 
-A `PersonBlock`; add/edit/delete are gated on `PINAuthentication` entity-type `ADMINISTRATE` authorization. Edit, save and remove act only on PIN logins of the person on the page; any other login is left unchanged.
+A `PersonBlock`; add/edit/delete are gated on `PINAuthentication` entity-type `ADMINISTRATE` authorization. Edit, save and remove act only on PIN logins of the person on the page; any other login is left unchanged. The list shows each PIN's value to users with that authorization and a fixed mask (`••••`) to everyone else; each PIN's purposes are shown to everyone who can view the block.
 
 A new or changed PIN has its surrounding whitespace removed and must be digits 0-9 only, at least **MinimumPINLength** digits (leading zeros count and are kept), not all zeros, and not the user name of any existing login. Saving without changing the PIN only updates its purposes and keeps the stored value as it is.
 
@@ -203,7 +204,7 @@ There is no MEF/registration step — these are Rock blocks, placed on a page vi
 ## Making Changes
 
 - Block behavior lives in `org_secc/Security/<Block>.ascx.cs` (markup in the matching `.ascx`); these are RockWeb-compiled, not in the csproj.
-- The PIN Manager's checks of which login it may edit, save or remove and of a typed PIN live in `Utility/PinManagerRules.cs` (compiled into `org.secc.Security.dll`) and are tested in `org.secc.Security.Tests`.
+- The PIN Manager's choice between a PIN's value and the mask in its list, and its checks of which login it may edit, save or remove and of a typed PIN, live in `Utility/PinManagerRules.cs` (compiled into `org.secc.Security.dll`) and are tested in `org.secc.Security.Tests`.
 - SAML payload/signing changes go in `SAML2/SAML20Assertion.cs` / `CertificateUtility.cs` (compiled into `org.secc.Security.dll`).
 - Captive-portal person matching delegates to the `GetByMatch` extension method in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (invoked on `PersonService`) — change matching there, not here.
 - The bundled `Themes/my-secc` theme (Layouts/Styles/Lava partials) is deployed by the same PostBuildEvent; theme edits live under `Themes/my-secc/`.

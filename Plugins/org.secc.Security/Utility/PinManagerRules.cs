@@ -19,10 +19,27 @@ using Rock.Model;
 namespace org.secc.Security.Utility
 {
     /// <summary>
-    /// The rules the PIN Manager block applies when it edits, saves or removes a PIN.
+    /// The rules the PIN Manager block applies when it shows, edits, saves or removes a PIN.
     /// </summary>
     public static class PinManagerRules
     {
+        /// <summary>
+        /// The text shown in place of a PIN to users who can't administrate PINs.
+        /// </summary>
+        public const string MaskedPin = "\u2022\u2022\u2022\u2022";
+
+        /// <summary>
+        /// Returns the text the PIN Manager list shows for a PIN: the PIN itself for users who can administrate
+        /// PINs, and <see cref="MaskedPin"/> for everyone else.
+        /// </summary>
+        /// <param name="pin">The PIN.</param>
+        /// <param name="canAdministrate">True when the user can administrate PINs.</param>
+        /// <returns></returns>
+        public static string DisplayPin( string pin, bool canAdministrate )
+        {
+            return canAdministrate ? pin : MaskedPin;
+        }
+
         /// <summary>
         /// Returns true when the login is a PIN login of the person.
         /// </summary>
