@@ -98,6 +98,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommunicationLists.cs" />
     <Compile Include="Components\MessagingServiceSettings.cs" />
     <Compile Include="Data\CommunicationDataContext.cs" />
     <Compile Include="Data\CommunicationDataService.cs" />
