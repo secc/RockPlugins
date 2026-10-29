@@ -37,8 +37,12 @@
          System.Web.Http and the Rock assemblies. The tests call its static helpers, and its
          actions on subclasses that replace the OAuth client lookup, Rock's password rule and
          the create budget, and for the new-person tests also the cache lookups, the database
-         context, the person match and the save. None of this touches the database or
-         HttpContext. -->
+         context, the person match and the save. The account limit tests replace the current
+         request, the attribute cache lookup (GetAttributeCache), the database context
+         (CreateRockContext) and the refusal log write (LogException) instead of the create
+         budget. None of this touches the database (Rock writes
+         the Exception Log lines to App_Data\Logs in the test output folder instead), and only
+         the account limit tests set HttpContext.Current, to requests they build. -->
     <Reference Include="Rock">
       <HintPath>$(RockWebPath)\Bin\Rock.dll</HintPath>
     </Reference>
@@ -65,6 +69,9 @@
     <Reference Include="System.Net.Http.Formatting">
       <HintPath>$(RockWebPath)\Bin\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
+    <!-- The account limit tests give the controller requests with chosen addresses. -->
+    <Reference Include="System.Web" />
+    <Compile Include="..\..\org.secc.Authentication\org.secc.Authentication.Tests\TestRequests.cs" Link="TestRequests.cs" />
   </ItemGroup>
 
 </Project>
