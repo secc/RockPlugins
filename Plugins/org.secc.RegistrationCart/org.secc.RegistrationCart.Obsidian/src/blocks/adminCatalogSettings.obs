@@ -1,0 +1,165 @@
+<template>
+    <Panel title="Registration Cart Catalog" titleIconCssClass="fa fa-campground" type="block">
+        <template #headerActions>
+            <a v-if="config.catalogUrl" class="btn btn-default btn-xs" :href="config.catalogUrl" target="_blank"><i class="fa fa-external-link"></i> View catalog</a>
+        </template>
+
+        <NotificationBox alertType="info">
+            Registration Cart sells Rock's own <strong>registration instances</strong>. Set a camp, retreat or class up the normal Rock way
+            (Registration Templates → Instances, with a financial account) and it appears here. Use this page only to hide things
+            from the cart, restrict who may register, and add a catalog image.
+            <template v-if="config.defaultsText"><br />{{ config.defaultsText }}</template>
+        </NotificationBox>
+        <NotificationBox v-if="!config.canEdit" alertType="warning">You can view these settings but not change them.</NotificationBox>
+        <NotificationBox v-if="!templates.length" alertType="warning">No active registration templates with active instances were found in Rock.</NotificationBox>
+
+        <Panel v-for="t in templates" :key="t.bag.id" :title="t.bag.name" hasCollapse v-model="t.open">
+            <template #headerActions>
+                <span v-if="!t.bag.isVisible" class="label label-default">Hidden</span>
+                <span v-else-if="openCount(t) === 0" class="label label-warning">No open instances</span>
+                <span v-else class="label label-success">{{ openCount(t) }} open</span>
+            </template>
+
+            <NotificationBox v-if="t.error" alertType="danger" dismissible @dismiss="t.error = ''">{{ t.error }}</NotificationBox>
+            <NotificationBox v-if="t.saved" alertType="success" dismissible @dismiss="t.saved = false">Saved.</NotificationBox>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <CheckBox v-model="t.bag.isVisible" label="Show in Registration Cart" :disabled="!config.canEdit" />
+                    <NumberBox v-model="t.bag.order" label="Sort order" help="Lower numbers show first." />
+                </div>
+                <div class="col-md-8">
+                    <TextBox v-model="t.bag.imageUrl" label="Catalog image URL" help="Optional. Otherwise the linked event's photo is used, if any." />
+                    <TextBox v-model="t.bag.catalogDescription" label="Catalog description" textMode="multiline" :rows="2" :help="t.bag.rockDescription ? `Optional. Rock's description: ${t.bag.rockDescription}` : 'Optional.'" />
+                </div>
+            </div>
+
+            <h5>Registration instances</h5>
+            <p v-if="!t.instances.length" class="text-muted">This template has no active instances.</p>
+            <div v-else class="table-responsive">
+                <table class="table table-condensed regcart-settings-table">
+                    <thead>
+                        <tr><th>Instance</th><th>Event dates</th><th>Registration window</th><th>Campus</th><th class="text-right">Price</th><th class="text-center">Seats</th><th>Account</th><th>Show</th><th>Who may register</th><th style="width: 90px;">Order</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="i in t.instances" :key="i.bag.id" :class="{ 'text-muted': !i.bag.isOpen }">
+                            <td><strong>{{ i.bag.name }}</strong></td>
+                            <td style="min-width: 260px;">
+                                <div style="display: flex; gap: 6px;">
+                                    <DatePicker v-model="i.bag.eventStartDate" :disabled="!config.canEdit" />
+                                    <DatePicker v-model="i.bag.eventEndDate" :disabled="!config.canEdit" />
+                                </div>
+                                <div class="text-muted small">
+                                    <span v-if="i.bag.eventDateSource === 'linked'">Shown: {{ i.bag.eventDateText }} (from the linked calendar event)</span>
+                                    <span v-else-if="i.bag.eventDateSource === 'setting'">Shown: {{ i.bag.eventDateText }}</span>
+                                    <span v-else class="text-warning"><i class="fa fa-exclamation-triangle"></i> No dates — enter them here or link the instance to a calendar event.</span>
+                                </div>
+                            </td>
+                            <td>{{ i.bag.windowText }} <span v-if="!i.bag.isOpen" class="label label-default">closed</span></td>
+                            <td>{{ i.bag.campusName || "—" }}</td>
+                            <td class="text-right">{{ money(i.bag.price) }}</td>
+                            <td class="text-center">{{ i.bag.registeredCount }}<span v-if="i.bag.maxAttendees != null"> / {{ i.bag.maxAttendees }}</span></td>
+                            <td><span v-if="i.bag.hasAccount" class="text-success"><i class="fa fa-check"></i></span><span v-else class="label label-danger" title="Checkout will refuse this instance until an account is set in Rock">none</span></td>
+                            <td><CheckBox v-model="i.bag.isVisible" label="" :disabled="!config.canEdit" /></td>
+                            <td><CheckBoxList v-model="i.bands" :items="eligibilityOptions" horizontal :disabled="!config.canEdit" /></td>
+                            <td><NumberBox v-model="i.bag.order" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <template v-if="t.fees.length">
+                <h5>Fees (shown as add-ons)</h5>
+                <div v-for="f in t.fees" :key="f.bag.id" class="regcart-fee">
+                    <div><strong>{{ f.bag.name }}</strong> <span class="text-muted small">{{ f.bag.ruleText }}</span></div>
+                    <table class="table table-condensed regcart-settings-table">
+                        <tbody>
+                            <tr v-for="item in f.items" :key="item.bag.id">
+                                <td style="width: 40%;">{{ item.bag.name }} <span class="text-muted">{{ money(item.bag.cost) }}</span></td>
+                                <td><CheckBoxList v-model="item.bands" :items="eligibilityOptions" horizontal :disabled="!config.canEdit" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+
+            <div class="actions">
+                <RockButton v-if="config.canEdit" btnType="primary" btnSize="sm" :isLoading="t.saving" @click="save(t)">Save</RockButton>
+            </div>
+        </Panel>
+    </Panel>
+</template>
+
+<style>
+.regcart-settings-table .form-group { margin-bottom: 0; }
+.regcart-settings-table td { vertical-align: middle !important; }
+.regcart-fee { margin-bottom: 1rem; }
+</style>
+
+<script setup lang="ts">
+    import { ref } from "vue";
+    import CheckBox from "@Obsidian/Controls/checkBox.obs";
+    import CheckBoxList from "@Obsidian/Controls/checkBoxList.obs";
+    import DatePicker from "@Obsidian/Controls/datePicker.obs";
+    import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import NumberBox from "@Obsidian/Controls/numberBox.obs";
+    import Panel from "@Obsidian/Controls/panel.obs";
+    import RockButton from "@Obsidian/Controls/rockButton.obs";
+    import TextBox from "@Obsidian/Controls/textBox.obs";
+    import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
+    import { WithStrings, eligibilityOptions, flagsToList, listToFlags, money } from "../shared/registrationCart.partial";
+    import { AdminFeeBag, AdminFeeItemBag, AdminInstanceBag, AdminTemplateBag, CatalogSettingsInitializationBox, SaveTemplateResultBag } from "../viewModels";
+
+    const config = useConfigurationValues<CatalogSettingsInitializationBox>();
+    const invokeBlockAction = useInvokeBlockAction();
+
+    type InstanceRow = { bag: AdminInstanceBag; bands: string[] };
+    type FeeItemRow = { bag: AdminFeeItemBag; bands: string[] };
+    type FeeRow = { bag: AdminFeeBag; items: FeeItemRow[] };
+    type TemplateRow = { bag: WithStrings<AdminTemplateBag>; instances: InstanceRow[]; fees: FeeRow[]; saving: boolean; saved: boolean; error: string; open: boolean };
+
+    function toRow(t: AdminTemplateBag): TemplateRow {
+        return {
+            bag: { id: t.id, name: t.name ?? "", categoryName: t.categoryName ?? "", rockDescription: t.rockDescription ?? "", isVisible: t.isVisible, imageUrl: t.imageUrl ?? "", catalogDescription: t.catalogDescription ?? "", order: t.order, instances: null, fees: null },
+            instances: (t.instances ?? []).map(i => ({ bag: { ...i, eventStartDate: i.eventStartDate ?? "", eventEndDate: i.eventEndDate ?? "" }, bands: flagsToList(i.eligibleGradeBands) })),
+            fees: (t.fees ?? []).map(f => ({ bag: { ...f }, items: (f.items ?? []).map(i => ({ bag: { ...i }, bands: flagsToList(i.eligibleGradeBands) })) })),
+            saving: false,
+            saved: false,
+            error: "",
+            open: false
+        };
+    }
+
+    const templates = ref<TemplateRow[]>((config.templates ?? []).map(toRow));
+
+    function openCount(t: TemplateRow): number {
+        return t.instances.filter(i => i.bag.isOpen && i.bag.isVisible).length;
+    }
+
+    async function save(t: TemplateRow): Promise<void> {
+        t.saving = true;
+        t.saved = false;
+        t.error = "";
+        try {
+            const bag: AdminTemplateBag = {
+                ...t.bag,
+                instances: t.instances.map(i => ({ ...i.bag, eligibleGradeBands: listToFlags(i.bands) })),
+                fees: t.fees.map(f => ({ ...f.bag, items: f.items.map(i => ({ ...i.bag, eligibleGradeBands: listToFlags(i.bands) })) }))
+            };
+            const result = await invokeBlockAction<SaveTemplateResultBag>("SaveTemplate", { bag });
+            if (result.isSuccess && result.data?.template) {
+                const fresh = toRow(result.data.template);
+                t.bag = fresh.bag;
+                t.instances = fresh.instances;
+                t.fees = fresh.fees;
+                t.saved = true;
+            }
+            else {
+                t.error = result.errorMessage || result.data?.errorMessage || "The settings could not be saved.";
+            }
+        }
+        finally {
+            t.saving = false;
+        }
+    }
+</script>

@@ -1,0 +1,25 @@
+<template>
+    <nav class="rc-nav" aria-label="Registration">
+        <a v-if="navigation.catalogUrl" :href="navigation.catalogUrl">
+            <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            Browse
+        </a>
+        <a v-if="navigation.cartUrl" :href="navigation.cartUrl">
+            <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>
+            Cart
+            <span v-if="navigation.cartItemCount > 0" class="rc-badge">{{ navigation.cartItemCount }}</span>
+        </a>
+    </nav>
+</template>
+
+<script setup lang="ts">
+    import { PropType } from "vue";
+    import { NavigationBag } from "../viewModels";
+
+    defineProps({
+        navigation: {
+            type: Object as PropType<NavigationBag>,
+            required: true
+        }
+    });
+</script>
