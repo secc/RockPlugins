@@ -485,7 +485,12 @@ namespace RockWeb.Plugins.GroupManager
                 }
             }
 
-            if (publishGroup.PublishGroupStatus == PublishGroupStatus.Approved)
+            // Editing a live (Approved) listing used to clone it with a new Guid and delete the original
+            // row below, which killed every contact link already rendered, cached, bookmarked or indexed
+            // (ROCK-9153). The clone only has a purpose when the result is a Draft, so the live row can
+            // stay published alongside it. Every other outcome deletes the original in the same save, so
+            // edit in place and keep the Guid stable.
+            if (publishGroup.PublishGroupStatus == PublishGroupStatus.Approved && publishGroupStatus == PublishGroupStatus.Draft)
             {
                 var tempGroup = publishGroup.Group;
                 publishGroup = (PublishGroup) publishGroup.Clone();
@@ -515,7 +520,13 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.ChildcareOptions = (ChildcareOptions) ddlChildcareOptions.SelectedValue.AsInteger();
             publishGroup.ChildcareAvailable = ddlChildcareOptions.SelectedValue.AsInteger() > 0;
             publishGroup.ChildcareRegistrationLink = publishGroup.ChildcareAvailable ? tbChildcareRegistrationLink.Text : "";
-            publishGroup.AudienceValues = GetSelectedAudience( rockContext );
+            // Update the existing collection rather than replacing it: reading it first loads the current
+            // links, so EF deletes the deselected ones instead of re-inserting rows that already exist.
+            publishGroup.AudienceValues.Clear();
+            foreach (var audienceValue in GetSelectedAudience( rockContext ))
+            {
+                publishGroup.AudienceValues.Add( audienceValue );
+            }
             publishGroup.ContactPersonAliasId = pContactPerson.PersonAliasId.Value;
             publishGroup.RequestorAliasId = CurrentPersonAliasId.Value;
             publishGroup.ContactEmail = tbContactEmail.Text;
