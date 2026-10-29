@@ -11,8 +11,8 @@ Grow Family Resources Resources Page
 		{%- endif -%}
 	{%- endfor -%}
 {%- endcontentchannelitem -%}
-{%-  assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble -%}
-{%-  assign itemStartDateTime = SEKidsItem.StartDateTime | Date:'yyMMddHHmm' | AsDouble -%}
+{%-  assign currentDateTime = 'Now' | Date:'yyMMdd.HHmm' | AsDouble -%}
+{%-  assign itemStartDateTime = SEKidsItem.StartDateTime | Date:'yyMMdd.HHmm' | AsDouble -%}
 {%-  assign itemImage = SEKidsItem | Attribute:'Image' -%}
 {%-  assign itemImageGuid = SEKidsItem | Attribute:'Image','RawValue' -%}
 {%- if SEKidsItem and itemStartDateTime <= currentDateTime -%}
