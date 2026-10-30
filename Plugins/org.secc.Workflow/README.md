@@ -127,7 +127,8 @@ another with computed values.
 
 A reopened workflow has no active activities, so processing completes it again unless the activated
 activity stays active (a form or delay). Activate a long-lived activity first; the action logs a
-warning when the target re-completes.
+warning when the target re-completes. A target reopened with no activity activated is left open, but
+the Process Workflows job completes it again on its next pass.
 
 ### SMS Send  *(Communication)*
 | Setting | Type | Notes |

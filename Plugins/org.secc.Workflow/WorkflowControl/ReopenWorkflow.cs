@@ -105,7 +105,7 @@ namespace org.secc.Workflow.WorkflowControl
 
                 if ( workflow.IsProcessing )
                 {
-                    return Fail( action, errorMessages, "Target workflow is currently being processed" );
+                    return Fail( action, errorMessages, string.Format( "Target workflow {0} is currently being processed. If this persists, its IsProcessing flag may be stuck from an earlier failed run.", workflow.Id ) );
                 }
 
                 // Resolve and validate the activity type before changing anything, so a bad
@@ -140,7 +140,8 @@ namespace org.secc.Workflow.WorkflowControl
                 if ( workflow.CompletedDateTime.HasValue )
                 {
                     workflow.CompletedDateTime = null;
-                    workflow.Status = GetAttributeValue( action, "Status" ).ResolveMergeFields( mergeFields );
+                    // Status is required and limited to 100 characters; an invalid value would fail the save.
+                    workflow.Status = GetAttributeValue( action, "Status" ).ResolveMergeFields( mergeFields ).Trim().IfEmpty( "Active" ).Truncate( 100 );
                     workflow.AddLogEntry( GetAttributeValue( action, "LogText" ).ResolveMergeFields( mergeFields ), true );
                     reopened = true;
                     action.AddLogEntry( string.Format( "Reopened workflow {0} '{1}'", workflow.Id, workflow.Name ) );
@@ -174,7 +175,7 @@ namespace org.secc.Workflow.WorkflowControl
                     if ( reopened && !activated )
                     {
                         // A reopened workflow has no active activities, so processing it would just complete it again.
-                        action.AddLogEntry( string.Format( "Skipped processing workflow {0} because no activity was activated on it", workflow.Id ), true );
+                        action.AddLogEntry( string.Format( "Skipped processing workflow {0} because no activity was activated on it. The Process Workflows job will complete it again on its next pass.", workflow.Id ), true );
                     }
                     else
                     {
