@@ -111,6 +111,10 @@ In the `CardWizard/` card partials, a card is a link when its partition is unlim
 blank or `!`, so `Limit` is null) or still has spots left. A full card shows "Full" and is not a
 link.
 
+Some prod wizards include their own copies of these partials from `Content/Lava/Shine`,
+`Content/Lava/24HoursofPrayer` and `Content/Lava/18DaysofPrayer` (`CardWizard/`). Those live on the
+Content share and are copied there by hand, so a change to the partials here has to be made there too.
+
 ## Dependencies & Integrations
 
 - **Rock:** `RockContext`, connection model (`ConnectionRequest`, `ConnectionOpportunity`,
@@ -161,4 +165,4 @@ link.
 - If a URL-supplied attribute value isn't landing on the connection request, check the merge in the
   `RoleRequests` getter and the apply step in `AddGroupMemberAttributes` — a key has to survive both.
 
-Last updated: 2026-10-29
+Last updated: 2026-10-30
