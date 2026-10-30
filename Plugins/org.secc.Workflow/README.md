@@ -72,6 +72,7 @@ flowchart TD
 | Activate Workflow with Lava | Workflow Control | Activate a new workflow with provided attribute values. |
 | ProcessWorkflow | Workflow Control | Process another workflow with provided attribute values. |
 | ReActivateActivity | Workflow Control | Reactivate an activity and its actions. |
+| Reopen Workflow | Workflow Control | Reopen a completed workflow (other than the running one) and optionally activate an activity in it. |
 | DeleteVisitActivity | Workflow Control | Delete a visit activity and its actions. |
 | ClearAuthCache | Workflow Control | Clear the authorization cache. |
 | ScheduleNextStartDate | Schedule | Get the next start date for a schedule. |
@@ -111,6 +112,22 @@ creates one when no single match is found (unless `Match Only`).
 
 Attribute values for the new workflow are supplied via Lava — letting one workflow spin up
 another with computed values.
+
+### Reopen Workflow  *(Workflow Control)*
+| Setting | Type | Notes |
+|---------|------|-------|
+| **Workflow** | text-or-attribute (Lava) | Id or Guid of the target workflow. Cannot be the workflow running the action. |
+| Activity Type | text-or-attribute (Lava) | Id or Guid of an activity type on the target's workflow type. |
+| Only Activate If Reopened | bool (default false) | Activate the activity only when the target was completed. |
+| Status | text (Lava, default `Active`) | Status set on the target when reopened. |
+| Log Text | text (Lava) | Log entry written on the target when reopened (always logged). |
+| Reopened Attribute | attribute (output) | `True` if this action reopened the target, else `False`. |
+| Process Target Workflow | bool (default true) | Process the target right away. Skipped when it was reopened but nothing was activated. |
+| Continue On Error | bool (default false) | Log failures and let the calling workflow continue. |
+
+A reopened workflow has no active activities, so processing completes it again unless the activated
+activity stays active (a form or delay). Activate a long-lived activity first; the action logs a
+warning when the target re-completes.
 
 ### SMS Send  *(Communication)*
 | Setting | Type | Notes |
@@ -168,4 +185,4 @@ and the attributes render the configuration UI automatically.
   sibling as a template.
 - Person-matching behavior lives in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md), not here.
 
-**Last updated:** 2026-07-07
+**Last updated:** 2026-10-30
