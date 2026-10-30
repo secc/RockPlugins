@@ -724,10 +724,13 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 errors.Add( "Person Id is not valid." );
 
             }
-            var pinRegex = @"^\d+$";
-            if (!System.Text.RegularExpressions.Regex.IsMatch( pin, pinRegex ))
+            if ( pin.Length == 0 || !pin.All( c => c >= '0' && c <= '9' ) )
             {
-                errors.Add( "PIN must be numeric." );
+                errors.Add( "PIN must contain only the numbers 0-9." );
+            }
+            else if ( pin.All( c => c == '0' ) )
+            {
+                errors.Add( "PIN cannot be all zeros." );
             }
 
             if(pin.Length <4)
@@ -743,7 +746,6 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 var loginService = new UserLoginService( rockContext );
                 var loginExists = loginService.Queryable().AsNoTracking()
                     .Where( l => l.UserName == pin )
-                    .Where( l => l.EntityTypeId == pinEntityType.Id )
                     .Any();
 
                 if (loginExists)

@@ -117,7 +117,19 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             var pin = tbPIN.Text.Trim();
             if(pin.IsNullOrWhiteSpace() || pin.Length < minPinLength)
             {
-                ShowAlert( "PIN Not Valid", $"PIN must be at least {minPinLength} long." );
+                ShowAlert( "PIN Not Valid", $"PIN must be at least {minPinLength} characters long." );
+                return;
+            }
+
+            if ( !pin.All( c => c >= '0' && c <= '9' ) )
+            {
+                ShowAlert( "PIN Not Valid", "PIN must contain only the numbers 0-9." );
+                return;
+            }
+
+            if ( pin.All( c => c == '0' ) )
+            {
+                ShowAlert( "PIN Not Valid", "PIN cannot be all zeros." );
                 return;
             }
 
