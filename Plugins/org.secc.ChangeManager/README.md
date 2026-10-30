@@ -36,7 +36,7 @@ EF entities on `ChangeManagerContext` (shares the `RockContext` connection; init
 
 `ChangeRecordAction` enum: `Update (0)`, `Create (1)`, `Delete (2)`, `Attribute (3)`.
 
-`ChangeRequest.CompleteChanges(...)` is the core apply engine: inside a `BeginTransaction`, it applies pending records (set property via reflection, set attribute, create/delete related entity) and reverses any `WasApplied && IsRejected` records, committing only if no errors accumulate. Records are processed in `Id` order (so a request's deletes run before the creates recorded after them), and processing stops at the first error. Related-entity services are resolved by reflection with typed `Add`/`Delete` lookups, because services such as `GroupMemberService` overload those methods. Person email/phone changes are collected into a `SecurityChangeDetail`; only after a successful commit, if there are any, they launch the workflow named in the **`ChangeManagerSecurityWorkflow`** global attribute.
+`ChangeRequest.CompleteChanges(...)` is the core apply engine: inside Rock's `WrapTransactionIf`, it applies pending records (set property via reflection, set attribute, create/delete related entity) and reverses any `WasApplied && IsRejected` records, committing only if no errors accumulate. Records are processed in `Id` order (so a request's deletes run before the creates recorded after them), and processing stops at the first error. Related-entity services are resolved by reflection with typed `Add`/`Delete` lookups, because services such as `GroupMemberService` overload those methods. Person email/phone changes are collected into a `SecurityChangeDetail`; only after a successful commit, if there are any, they launch the workflow named in the **`ChangeManagerSecurityWorkflow`** global attribute.
 
 ### Utilities
 
@@ -83,7 +83,7 @@ Ships Rock plugin migrations under `/Migrations/`:
 *Noticed while documenting — not a full audit.*
 
 - **Note:** In `CompleteChanges`, errors are accumulated into a list and the whole transaction rolls back on any failure. It stops at the first error because a failed save leaves its entity tracked in the context, and every later `SaveChanges` would throw the same error again. A failure to launch the security-notice workflow after commit is logged to the Exception Log, not returned as an error, since the changes are already saved.
-- **Note:** `CompleteChanges` uses a raw `Database.BeginTransaction()`, not Rock's `WrapTransactionIf`, so Rock post-save side effects (cache/bus/index after-commit actions, group-member history) can run even when the request later rolls back.
+- **Note:** `CompleteChanges` runs in Rock's `WrapTransactionIf`, so Rock holds after-commit actions (cache and message updates, such as those from `GroupLocation` and attribute value saves) until the commit. Two side effects still escape a rollback: group-member history, which `GroupMember` writes on a background task with its own context, and after-commit actions queued before the rollback, which Rock keeps on the context. After a rollback, `CompleteChanges` also discards the context's pending changes, because callers such as `ChangeEntry` and `CMPublicProfileEdit` keep saving on the same context.
 - **Improvement:** `EvaluateAttributes` news up its own `RockContext` per call to reload the persisted entity, separate from any context the caller holds. Fine for one-offs, an extra round-trip in loops.
 
 ## Making Changes
