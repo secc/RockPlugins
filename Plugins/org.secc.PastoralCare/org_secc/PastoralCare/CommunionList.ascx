@@ -23,9 +23,9 @@
                 </Rock:GridFilter>
                 <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results" ExportFilename="CommunionList" ShowActionRow="false">
                     <Columns>
-                        <Rock:RockBoundField DataField="Campus" HeaderText="Campus" SortExpression="Campus" ExcelExportBehavior="AlwaysInclude"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="Campus" HeaderText="Campus" SortExpression="Campus.Name" ExcelExportBehavior="AlwaysInclude"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Location" HeaderText="Location" SortExpression="Location" ExcelExportBehavior="AlwaysInclude"></Rock:RockBoundField>
-                        <Rock:PersonField DataField="Person" HeaderText="Person" SortExpression="Person" ExcelExportBehavior="AlwaysInclude"/>
+                        <Rock:PersonField DataField="Person" HeaderText="Person" SortExpression="Person.LastName" ExcelExportBehavior="AlwaysInclude"/>
                         <Rock:RockBoundField DataField="Age" HeaderText="Age" SortExpression="Person.Age" ExcelExportBehavior="NeverInclude"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Address" HeaderText="Street Address" ExcelExportBehavior="NeverInclude"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="City" HeaderText="City" ExcelExportBehavior="NeverInclude"></Rock:RockBoundField>

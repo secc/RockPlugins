@@ -107,6 +107,14 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
 | `CardPage.lava` | Single page of card panels (best for 1–2 partitions). |
 | `CardWizard.lava` | Animated left-to-right cards; `CardWizardMode` `Single` or `Multiple` (default `Single`). |
 
+In the `CardWizard/` card partials, a card is a link when its partition is unlimited (its count is
+blank or `!`, so `Limit` is null) or still has spots left. A full card shows "Full" and is not a
+link.
+
+Some prod wizards include their own copies of these partials from `Content/Lava/Shine`,
+`Content/Lava/24HoursofPrayer` and `Content/Lava/18DaysofPrayer` (`CardWizard/`). Those live on the
+Content share and are copied there by hand, so a change to the partials here has to be made there too.
+
 ## Dependencies & Integrations
 
 - **Rock:** `RockContext`, connection model (`ConnectionRequest`, `ConnectionOpportunity`,
@@ -157,4 +165,4 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
 - If a URL-supplied attribute value isn't landing on the connection request, check the merge in the
   `RoleRequests` getter and the apply step in `AddGroupMemberAttributes` — a key has to survive both.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-30
