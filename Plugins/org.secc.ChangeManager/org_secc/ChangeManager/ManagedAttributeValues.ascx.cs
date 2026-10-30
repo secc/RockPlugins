@@ -249,6 +249,14 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                         rockContext.SaveChanges();
                         List<string> errors;
                         changeRequest.CompleteChanges( rockContext, out errors );
+
+                        //A failed apply rolls back, so the request is left pending for review
+                        if ( errors.Any() )
+                        {
+                            nbApplyError.Visible = true;
+                            nbApplyError.Text = "These changes could not be applied and are pending review."
+                                + "<ul>" + string.Join( "", errors.Select( ex => string.Format( "<li>{0}</li>", ex.EncodeHtml() ) ) ) + "</ul>";
+                        }
                     }
                 }
                 else if ( ViewMode == VIEW_MODE_ORDER && _canAdministrate )

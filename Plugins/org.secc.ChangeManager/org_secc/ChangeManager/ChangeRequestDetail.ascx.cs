@@ -417,7 +417,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             if ( errors.Any() )
             {
                 nbError.Visible = true;
-                nbError.Text = "<ul>" + string.Join( "", errors.Select( ex => string.Format( "<li>{0}</li>", ex ) ) ) + "</ul>";
+                nbError.Text = "<ul>" + string.Join( "", errors.Select( ex => string.Format( "<li>{0}</li>", ex.EncodeHtml() ) ) ) + "</ul>";
             }
             else
             {
