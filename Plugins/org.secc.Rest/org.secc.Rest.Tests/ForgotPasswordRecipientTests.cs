@@ -34,7 +34,7 @@ namespace org.secc.Rest.Tests
     /// login lookup, password-change check, application root, email message creation, email send and exception
     /// log are replaced. The message's recipients are recorded instead of sent. Every test uses email addresses
     /// that no other test uses, so the action's per-address limits apply only where a test spends them, and
-    /// each request comes from a connecting address that no other request uses.
+    /// each request comes from a connecting address that no other request uses unless the test sets one.
     /// </summary>
     public class ForgotPasswordRecipientTests
     {
@@ -74,6 +74,11 @@ namespace org.secc.Rest.Tests
             public List<string> Logged { get; } = new List<string>();
 
             /// <summary>
+            /// The connecting address of every request, or null for a new one per request.
+            /// </summary>
+            public string PeerAddress { get; set; }
+
+            /// <summary>
             /// The email address the person lookup was asked for.
             /// </summary>
             public string LookedUpEmail { get; private set; }
@@ -90,7 +95,7 @@ namespace org.secc.Rest.Tests
 
             protected override HttpRequestBase GetCurrentRequest()
             {
-                return new FakeRequest( null, FakeRequest.NewAddress() );
+                return new FakeRequest( null, PeerAddress ?? FakeRequest.NewAddress() );
             }
 
             protected override RockContext CreateRockContext()
@@ -394,6 +399,25 @@ namespace org.secc.Rest.Tests
         }
 
         [Fact]
+        public void SpentStoredAddress_RefusalsFromOneClientAndAddress_AreLoggedOnce()
+        {
+            var spellings = CollationEqualSpellings( NewNumber() );
+            _controller.AddPerson( 1, spellings[0] );
+            _controller.PeerAddress = FakeRequest.NewAddress();
+
+            // Three emails, then three refused by the stored address's budget; no spelling is typed more than twice.
+            for ( var i = 0; i < 6; i++ )
+            {
+                AssertNeutral( Forgot( spellings[i % 4] ) );
+            }
+
+            Assert.Equal( 3, _controller.Sends.Count );
+            var line = Assert.Single( _controller.Logged );
+            Assert.StartsWith( "Forgot password stored email address budget exceeded. Request from Client: ", line );
+            Assert.Contains( "PeerIP: " + _controller.PeerAddress + " ", line );
+        }
+
+        [Fact]
         public void TypedAsStored_ThreeRequests_AllSend()
         {
             var stored = "pat.sample." + NewNumber() + "@example.test";
@@ -529,6 +553,75 @@ namespace org.secc.Rest.Tests
             Assert.All( recipients, r => Assert.Equal( "https://www.example.test/ConfirmAccount", r.MergeFields["ConfirmAccountUrl"] ) );
             Assert.Equal( new[] { new List<string> { "patsample1" }, new List<string>() }, PasswordChangeLogins( recipients[0] ) );
             Assert.Equal( new[] { new List<string> { "patsample3" } }, PasswordChangeLogins( recipients[1] ) );
+        }
+
+        /// <summary>
+        /// An authentication provider whose only behavior is whether it lets the person change their password.
+        /// </summary>
+        private abstract class TestAuthenticationComponent : Rock.Security.AuthenticationComponent
+        {
+            public override Rock.Model.AuthenticationServiceType ServiceType => Rock.Model.AuthenticationServiceType.Internal;
+
+            public override bool RequiresRemoteAuthentication => false;
+
+            public override bool Authenticate( UserLogin user, string password ) => throw new System.NotSupportedException();
+
+            public override bool Authenticate( System.Web.HttpRequest request, out string userName, out string returnUrl ) => throw new System.NotSupportedException();
+
+            public override string EncodePassword( UserLogin user, string password ) => throw new System.NotSupportedException();
+
+            public override System.Uri GenerateLoginUrl( System.Web.HttpRequest request ) => throw new System.NotSupportedException();
+
+            public override bool IsReturningFromAuthentication( System.Web.HttpRequest request ) => throw new System.NotSupportedException();
+
+            public override string ImageUrl() => throw new System.NotSupportedException();
+
+            public override bool ChangePassword( UserLogin user, string oldPassword, string newPassword, out string warningMessage ) => throw new System.NotSupportedException();
+
+            public override void SetPassword( UserLogin user, string password ) => throw new System.NotSupportedException();
+        }
+
+        private class ChangePasswordProvider : TestAuthenticationComponent
+        {
+            public override bool SupportsChangePassword => true;
+        }
+
+        private class NoChangePasswordProvider : TestAuthenticationComponent
+        {
+            public override bool SupportsChangePassword => false;
+        }
+
+        /// <summary>
+        /// A provider instance created without running its constructors, because a component's constructor
+        /// loads its attributes from the database.
+        /// </summary>
+        private static T Provider<T>() where T : TestAuthenticationComponent
+        {
+            return ( T ) System.Runtime.Serialization.FormatterServices.GetUninitializedObject( typeof( T ) );
+        }
+
+        [Fact]
+        public void ProviderSupportsChangePassword_IsTheProvidersSetting()
+        {
+            Assert.True( AccountController.ProviderSupportsChangePassword( Provider<ChangePasswordProvider>() ) );
+            Assert.False( AccountController.ProviderSupportsChangePassword( Provider<NoChangePasswordProvider>() ) );
+        }
+
+        [Fact]
+        public void ProviderSupportsChangePassword_IsFalseWithoutAProvider()
+        {
+            Assert.False( AccountController.ProviderSupportsChangePassword( null ) );
+        }
+
+        [Theory]
+        [InlineData( "https://www.example.test" )]
+        [InlineData( "https://www.example.test/" )]
+        public void ConfirmAccountUrl_HasOneSlashAfterTheApplicationRoot( string publicApplicationRoot )
+        {
+            var applicationRoot = AccountController.ApplicationRootFrom( publicApplicationRoot );
+
+            Assert.Equal( "https://www.example.test/", applicationRoot );
+            Assert.Equal( "https://www.example.test/ConfirmAccount", AccountController.ConfirmAccountUrlFrom( applicationRoot ) );
         }
     }
 }

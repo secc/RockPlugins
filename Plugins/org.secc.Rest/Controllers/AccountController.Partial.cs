@@ -394,6 +394,14 @@ namespace org.secc.Rest.Controllers
         protected virtual bool SupportsChangePassword( UserLogin user )
         {
             var component = user.EntityType != null ? Rock.Security.AuthenticationContainer.GetComponent( user.EntityType.Name ) : null;
+            return ProviderSupportsChangePassword( component );
+        }
+
+        /// <summary>
+        /// Whether this authentication provider lets the person change their password; false when there is none.
+        /// </summary>
+        internal static bool ProviderSupportsChangePassword( Rock.Security.AuthenticationComponent component )
+        {
             return component != null && component.SupportsChangePassword;
         }
 
@@ -402,7 +410,23 @@ namespace org.secc.Rest.Controllers
         /// </summary>
         protected virtual string GetPublicApplicationRoot()
         {
-            return GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash();
+            return ApplicationRootFrom( GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ) );
+        }
+
+        /// <summary>
+        /// A PublicApplicationRoot value, ending in a forward slash.
+        /// </summary>
+        internal static string ApplicationRootFrom( string publicApplicationRoot )
+        {
+            return publicApplicationRoot.EnsureTrailingForwardslash();
+        }
+
+        /// <summary>
+        /// The ConfirmAccount page address under an application root that ends in a forward slash.
+        /// </summary>
+        internal static string ConfirmAccountUrlFrom( string applicationRoot )
+        {
+            return applicationRoot + "ConfirmAccount";
         }
 
         /// <summary>
@@ -1499,7 +1523,7 @@ namespace org.secc.Rest.Controllers
                 PersonService personService = new PersonService( rockContext );
                 UserLoginService userLoginService = new UserLoginService( rockContext );
                 var recipients = new List<RockEmailMessageRecipient>();
-                var confirmAccountUrl = GetPublicApplicationRoot() + "ConfirmAccount";
+                var confirmAccountUrl = ConfirmAccountUrlFrom( GetPublicApplicationRoot() );
 
                 // Each email goes to the stored address of the people it lists, one email per stored address.
                 var people = GetPeopleByEmail( personService, email ).OrderBy( p => p.Id ).ToList();
