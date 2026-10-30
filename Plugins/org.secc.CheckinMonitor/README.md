@@ -121,6 +121,11 @@ Keys in **bold** are the attribute keys used in code.
 - Manual check-in behavior (add person/phone/PIN, QR validation, reprint) is all in
   `SuperCheckin.ascx.cs`; the workflow activity names it drives come from the **Checkin Activity** /
   **Reprint Activity** block settings, so wiring it to a different check-in template is a config change.
+- **Label printing:** Super Checkin and the Mobile Check-in Viewer print server labels through FamilyCheckin's
+  `LabelPrinter` (see [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md)). A printer that can't be
+  reached or fails doesn't stop the check-in, and the failure is written to the Exception Log. Completing a mobile
+  check-in still marks the record complete and its children attended, so staff should confirm the labels printed
+  and reprint from Super Checkin if they didn't.
 - **Grade on Add/Edit Person:** the Grade picker is the only grade input; the graduation year is
   calculated on the server from it (`Person.GraduationYearFromGradeOffset`). Both pickers get a
   **"Newborn to Pre-K"** option (value `prek`, added in `OnInit`) that saves no grade, so staff don't
@@ -151,4 +156,4 @@ Keys in **bold** are the attribute keys used in code.
 - Search input is seeded into the standard check-in workflow in `SuperSearch.ascx.cs`
   (`ProcessActivity`), so the matching/family logic lives in the configured workflow, not this block.
 
-Last updated: 2026-10-20
+Last updated: 2026-10-28

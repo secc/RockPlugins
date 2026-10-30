@@ -132,6 +132,13 @@ occurrence unresolvable in cache even though the reservation is still valid and 
 completion path works straight off the attendance records. By design, closing a room does **not**
 cancel existing mobile reservations for it; the children's team moves those attendees manually.
 
+**Server label printing:** `Utilities/LabelPrinter.cs` sends server-printed labels to each label's printer IP
+address on port 9100, one connection per printer in the order the printers first appear, with a delay cut
+(`^XB`) on all but that printer's last label so its strip is cut once. Labels with no printer address, or whose
+label file isn't found, are skipped. If a printer doesn't answer within 5 seconds, or printing to it fails, the
+error is written to the Exception Log (`Could not connect to the label printer at <address>.` or
+`Could not print to the label printer at <address>.`) and the other printers and the check-in continue.
+
 ### Jobs
 
 Quartz `IJob`s (both `[DisallowConcurrentExecution]`); scheduled in Rock, not self-registered.
@@ -230,4 +237,4 @@ attributes (don't hand-edit ones that have already run):
 - Related: scannable codes come from [org.secc.QRManager](../org.secc.QRManager/README.md);
   shared helpers from [org.secc.DevLib](../org.secc.DevLib/README.md).
 
-**Last updated:** 2026-10-12
+**Last updated:** 2026-10-28

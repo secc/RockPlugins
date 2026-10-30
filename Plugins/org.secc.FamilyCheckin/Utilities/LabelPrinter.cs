@@ -12,6 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -34,6 +35,11 @@ namespace org.secc.FamilyCheckin.Utilities
         public HttpRequest Request { get; set; }
 
         public List<CheckInLabel> Labels { get; set; }
+
+        /// <summary>
+        /// Gets or sets the TCP port that network label printers listen on.
+        /// </summary>
+        internal int PrinterPort { get; set; } = 9100;
 
         /// <summary>
         /// Gets a count of the current labesl to print over network
@@ -132,30 +138,22 @@ namespace org.secc.FamilyCheckin.Utilities
         /// </summary>
         public void PrintNetworkLabels()
         {
-            var printQueue = new Dictionary<string, StringBuilder>();
             // Print server labels
             if ( Labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Server ) )
             {
                 string delayCut = @"^XB";
                 string endingTag = @"^XZ";
-                var printerIp = string.Empty;
-                var labelContent = new StringBuilder();
+
+                // each printer's labels, with the printers in the order they first appear
+                var printerAddresses = new List<string>();
+                var printerLabels = new Dictionary<string, List<string>>();
 
                 // make sure labels have a valid ip
-                var lastLabel = Labels.Last();
                 foreach ( var label in Labels.Where( l => l.PrintFrom == PrintFrom.Server && !string.IsNullOrEmpty( l.PrinterAddress ) ) )
                 {
-                    var labelCache = KioskLabel.Get( label.FileGuid );
-                    if ( labelCache != null )
+                    var printContent = GetLabelContent( label.FileGuid );
+                    if ( printContent != null )
                     {
-                        if ( printerIp != label.PrinterAddress )
-                        {
-                            printQueue.AddOrReplace( label.PrinterAddress, labelContent );
-                            printerIp = label.PrinterAddress;
-                            labelContent = new StringBuilder();
-                        }
-
-                        var printContent = labelCache.FileContent;
                         foreach ( var mergeField in label.MergeFields )
                         {
                             if ( !string.IsNullOrWhiteSpace( mergeField.Value ) )
@@ -169,62 +167,84 @@ namespace org.secc.FamilyCheckin.Utilities
                             }
                         }
 
-                        // send a Delay Cut command at the end to prevent cutting intermediary labels
-                        if ( label != lastLabel )
+                        List<string> contents;
+                        if ( !printerLabels.TryGetValue( label.PrinterAddress, out contents ) )
                         {
-                            printContent = Regex.Replace( printContent.Trim(), @"\" + endingTag + @"$", delayCut + endingTag );
+                            contents = new List<string>();
+                            printerLabels.Add( label.PrinterAddress, contents );
+                            printerAddresses.Add( label.PrinterAddress );
                         }
 
-                        labelContent.Append( printContent );
+                        contents.Add( printContent );
                     }
                 }
 
-                printQueue.AddOrReplace( printerIp, labelContent );
-            }
+                foreach ( var printerAddress in printerAddresses )
+                {
+                    var contents = printerLabels[printerAddress];
+                    var labelContent = new StringBuilder();
+                    for ( int i = 0; i < contents.Count; i++ )
+                    {
+                        // send a Delay Cut command on all but this printer's last label so its strip is cut once, at the end
+                        labelContent.Append( i < contents.Count - 1
+                            ? Regex.Replace( contents[i].Trim(), @"\" + endingTag + @"$", delayCut + endingTag )
+                            : contents[i] );
+                    }
 
-            if ( printQueue.Any() )
-            {
-                SendNetworkPrintData( printQueue );
-                printQueue.Clear();
+                    SendToPrinter( printerAddress, labelContent.ToString() );
+                }
             }
         }
-
 
         /// <summary>
-        /// Prints the labels.
+        /// Sends label content to the network printer at the specified address. A failure is written
+        /// to the exception log, and the connection is always closed.
         /// </summary>
-        /// <param name="families">The families.</param>
-        private void SendNetworkPrintData( Dictionary<string, StringBuilder> printerContent )
+        /// <param name="address">The printer's IP address.</param>
+        /// <param name="content">The label content.</param>
+        private void SendToPrinter( string address, string content )
         {
-            foreach ( var printerIp in printerContent.Keys.Where( k => !string.IsNullOrEmpty( k ) ) )
+            try
             {
-                StringBuilder labelContent;
-                if ( printerContent.TryGetValue( printerIp, out labelContent ) )
+                using ( var socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp ) )
                 {
-                    var socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
-                    var printerIpEndPoint = new IPEndPoint( IPAddress.Parse( printerIp ), 9100 );
-                    var result = socket.BeginConnect( printerIpEndPoint, null, null );
-                    bool success = result.AsyncWaitHandle.WaitOne( 5000, true );
-
-                    if ( socket.Connected )
+                    var result = socket.BeginConnect( new IPEndPoint( IPAddress.Parse( address ), PrinterPort ), null, null );
+                    if ( !WaitForConnection( result ) )
                     {
-                        var ns = new NetworkStream( socket );
-                        byte[] toSend = System.Text.Encoding.ASCII.GetBytes( labelContent.ToString() );
+                        LogPrintError( new Exception( "Could not connect to the label printer at " + address + "." ) );
+                        return;
+                    }
+
+                    socket.EndConnect( result );
+                    using ( var ns = new NetworkStream( socket ) )
+                    {
+                        byte[] toSend = System.Text.Encoding.ASCII.GetBytes( content );
                         ns.Write( toSend, 0, toSend.Length );
                     }
-                    else
-                    {
-                        //phPrinterStatus.Controls.Add(new LiteralControl(string.Format("Can't connect to printer: {0}", printerIp)));
-                    }
 
-                    if ( socket != null && socket.Connected )
-                    {
-                        socket.Shutdown( SocketShutdown.Both );
-                        socket.Close();
-                    }
+                    socket.Shutdown( SocketShutdown.Both );
                 }
             }
+            catch ( Exception ex )
+            {
+                LogPrintError( new Exception( "Could not print to the label printer at " + address + ".", ex ) );
+            }
         }
+
+        /// <summary>
+        /// Gets the ZPL content of the label file with the specified unique identifier, or null if there is none.
+        /// </summary>
+        protected virtual string GetLabelContent( Guid fileGuid ) => KioskLabel.Get( fileGuid )?.FileContent;
+
+        /// <summary>
+        /// Waits up to five seconds for a printer connection and returns whether it completed.
+        /// </summary>
+        protected virtual bool WaitForConnection( IAsyncResult connect ) => connect.AsyncWaitHandle.WaitOne( 5000, true );
+
+        /// <summary>
+        /// Writes a printing error to the Rock exception log.
+        /// </summary>
+        protected virtual void LogPrintError( Exception ex ) => ExceptionLogService.LogException( ex );
 
         /// <summary>
         /// Adds the label script.

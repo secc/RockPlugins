@@ -6,6 +6,17 @@
     <!-- Test project: do not copy anything into RockWeb. -->
     <CopyToRockWeb>false</CopyToRockWeb>
     <LangVersion>latest</LangVersion>
+    <!-- Build org.secc.DevLib, which org.secc.FamilyCheckin references, only through
+         org.secc.FamilyCheckin, so the properties below apply to it too. -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <!-- Resolve RockWeb: honor an explicit /p:RockWebPath, then the Rock solution layout
+       (SolutionDir), then a Rock checkout in the Plugins folder (the layout LinkList.Tests and
+       Rest.Tests probe). -->
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('..\Rock\RockWeb\Bin')">..\Rock\RockWeb</RockWebPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,8 +26,26 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The tests only touch CheckinKeyList, which has no Rock dependencies. -->
-    <ProjectReference Include="..\org.secc.FamilyCheckin\org.secc.FamilyCheckin.csproj" />
+    <!-- org.secc.FamilyCheckin skips its copy into RockWeb when CopyToRockWeb is false, and an empty
+         PostBuildEvent turns off any project's post-build event. Both apply when MSBuild builds the
+         plugin through this reference from the command line, including org.secc.DevLib. Visual
+         Studio builds each plugin as its own project, so building the plugin on its own or from
+         Rock.sln still copies it. -->
+    <ProjectReference Include="..\org.secc.FamilyCheckin\org.secc.FamilyCheckin.csproj" AdditionalProperties="CopyToRockWeb=false;PostBuildEvent=" />
+    <!-- The cache key list tests use no Rock types. The label printer tests build Rock check-in
+         labels and run LabelPrinter, which exposes an HttpRequest, against stand-in printers on
+         the loopback address; they replace the label file lookup and the exception log, so
+         they don't touch the database. -->
+    <Reference Include="Rock">
+      <HintPath>$(RockWebPath)\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common">
+      <HintPath>$(RockWebPath)\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Enums">
+      <HintPath>$(RockWebPath)\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
   </ItemGroup>
 
 </Project>
