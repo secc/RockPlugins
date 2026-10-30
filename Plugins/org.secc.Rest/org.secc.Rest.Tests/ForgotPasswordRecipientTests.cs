@@ -31,15 +31,15 @@ namespace org.secc.Rest.Tests
     /// <summary>
     /// Who api/account/forgotpassword sends its email to and which people each email lists, run through the
     /// action on a controller whose OAuth client check, current request, database context, person lookup,
-    /// login lookup, email message creation and email send are replaced. The message's recipients are recorded
-    /// instead of sent. Every test uses email
-    /// addresses that no other test uses, so the action's per-address limit never applies, and a request
-    /// from a connecting address that no other request uses.
+    /// login lookup, password-change check, application root, email message creation, email send and exception
+    /// log are replaced. The message's recipients are recorded instead of sent. Every test uses email addresses
+    /// that no other test uses, so the action's per-address limits apply only where a test spends them, and
+    /// each request comes from a connecting address that no other request uses.
     /// </summary>
     public class ForgotPasswordRecipientTests
     {
-        private const string SentMessage = "Forgot password email has been sent successfully.";
-        private const string NoAccountsMessage = "No accounts associated with this email address are able to be reset via email.";
+        private const string NeutralMessage = "If an account with that email address can be reset by email, we've sent instructions to it.";
+        private const string ApplicationRoot = "https://www.example.test/";
 
         private static int _lastAddress;
 
@@ -62,6 +62,16 @@ namespace org.secc.Rest.Tests
             /// The resettable logins of each person, by person Id. A person not listed has none.
             /// </summary>
             public Dictionary<int, List<UserLogin>> Logins { get; } = new Dictionary<int, List<UserLogin>>();
+
+            /// <summary>
+            /// The Ids of the logins whose authentication provider doesn't let the person change their password.
+            /// </summary>
+            public HashSet<int> NoChangePassword { get; } = new HashSet<int>();
+
+            /// <summary>
+            /// The messages of the exceptions the controller logged, in order.
+            /// </summary>
+            public List<string> Logged { get; } = new List<string>();
 
             /// <summary>
             /// The email address the person lookup was asked for.
@@ -98,6 +108,21 @@ namespace org.secc.Rest.Tests
             protected override List<UserLogin> GetResettableLogins( UserLoginService userLoginService, Person person )
             {
                 return Logins.TryGetValue( person.Id, out var logins ) ? logins : new List<UserLogin>();
+            }
+
+            protected override bool SupportsChangePassword( UserLogin user )
+            {
+                return !NoChangePassword.Contains( user.Id );
+            }
+
+            protected override string GetPublicApplicationRoot()
+            {
+                return ApplicationRoot;
+            }
+
+            protected override void LogException( System.Exception ex )
+            {
+                Logged.Add( ex.Message );
             }
 
             protected override RockEmailMessage CreateForgotPasswordEmailMessage()
@@ -144,10 +169,14 @@ namespace org.secc.Rest.Tests
             return body;
         }
 
-        private static void AssertSent( AccountController.StandardResponse body )
+        /// <summary>
+        /// Every request with a non-blank email address that passes the request limits gets this response,
+        /// whether or not an email was sent.
+        /// </summary>
+        private static void AssertNeutral( AccountController.StandardResponse body )
         {
             Assert.Equal( AccountController.StandardResponse.ResultCode.Success, body.Result );
-            Assert.Equal( SentMessage, body.Message );
+            Assert.Equal( NeutralMessage, body.Message );
         }
 
         /// <summary>
@@ -174,7 +203,7 @@ namespace org.secc.Rest.Tests
             var stored = "Pat.Sample." + n + "@Example.test";
             var person = _controller.AddPerson( 1, stored );
 
-            AssertSent( Forgot( stored.ToLowerInvariant() ) );
+            AssertNeutral( Forgot( stored.ToLowerInvariant() ) );
 
             var recipient = Assert.Single( SingleSend() );
             Assert.Equal( stored, recipient.To );
@@ -190,7 +219,7 @@ namespace org.secc.Rest.Tests
             var plain = _controller.AddPerson( 1, "jo.strasse." + n + "@encyclopaedia.test" );
             var sharpS = _controller.AddPerson( 2, "jo.straße." + n + "@encyclopædia.test" );
 
-            AssertSent( Forgot( "jo.strasse." + n + "@encyclopaedia.test" ) );
+            AssertNeutral( Forgot( "jo.strasse." + n + "@encyclopaedia.test" ) );
 
             var recipients = SingleSend();
             Assert.Equal( 2, recipients.Count );
@@ -209,7 +238,7 @@ namespace org.secc.Rest.Tests
             var later = _controller.AddPerson( 7, stored );
             var earlier = _controller.AddPerson( 3, stored );
 
-            AssertSent( Forgot( stored.ToUpperInvariant() ) );
+            AssertNeutral( Forgot( stored.ToUpperInvariant() ) );
 
             var recipient = Assert.Single( SingleSend() );
             Assert.Equal( stored, recipient.To );
@@ -223,7 +252,7 @@ namespace org.secc.Rest.Tests
             var resettable = _controller.AddPerson( 1, "Pat.Sample." + n + "@example.test" );
             _controller.AddPerson( 2, "pat.sample." + n + "@EXAMPLE.test", resettable: false );
 
-            AssertSent( Forgot( "pat.sample." + n + "@example.test" ) );
+            AssertNeutral( Forgot( "pat.sample." + n + "@example.test" ) );
 
             var recipient = Assert.Single( SingleSend() );
             Assert.Equal( resettable.Email, recipient.To );
@@ -238,7 +267,7 @@ namespace org.secc.Rest.Tests
             var resettable = _controller.AddPerson( 1, stored );
             var notResettable = _controller.AddPerson( 2, stored, resettable: false );
 
-            AssertSent( Forgot( stored ) );
+            AssertNeutral( Forgot( stored ) );
 
             var recipient = Assert.Single( SingleSend() );
             Assert.Equal( stored, recipient.To );
@@ -254,21 +283,17 @@ namespace org.secc.Rest.Tests
             var n = NewNumber();
             _controller.AddPerson( 1, "pat.sample." + n + "@example.test", resettable: false );
 
-            var body = Forgot( "pat.sample." + n + "@example.test" );
+            AssertNeutral( Forgot( "pat.sample." + n + "@example.test" ) );
 
             Assert.Empty( _controller.Sends );
-            Assert.Equal( AccountController.StandardResponse.ResultCode.Error, body.Result );
-            Assert.Equal( NoAccountsMessage, body.Message );
         }
 
         [Fact]
         public void NobodyMatched_SendsNothing()
         {
-            var body = Forgot( "nobody." + NewNumber() + "@example.test" );
+            AssertNeutral( Forgot( "nobody." + NewNumber() + "@example.test" ) );
 
             Assert.Empty( _controller.Sends );
-            Assert.Equal( AccountController.StandardResponse.ResultCode.Error, body.Result );
-            Assert.Equal( NoAccountsMessage, body.Message );
         }
 
         [Fact]
@@ -278,7 +303,7 @@ namespace org.secc.Rest.Tests
             var upper = _controller.AddPerson( 1, "Pat.Sample." + n + "@example.test" );
             var lower = _controller.AddPerson( 2, "pat.sample." + n + "@example.test" );
 
-            AssertSent( Forgot( "pat.sample." + n + "@example.test" ) );
+            AssertNeutral( Forgot( "pat.sample." + n + "@example.test" ) );
 
             var recipients = SingleSend();
             Assert.Equal( 2, recipients.Count );
@@ -296,11 +321,214 @@ namespace org.secc.Rest.Tests
             var n = NewNumber();
             var person = _controller.AddPerson( 1, "pat.sample." + n + "@example.test" );
 
-            AssertSent( Forgot( string.Format( typed, n ) ) );
+            AssertNeutral( Forgot( string.Format( typed, n ) ) );
 
             var recipient = Assert.Single( SingleSend() );
             Assert.Equal( person.Email, recipient.To );
             Assert.Equal( new[] { person }, Listed( recipient ) );
+        }
+
+        /// <summary>
+        /// The four spellings of one address that compare equal in the database (ss and ß, ae and æ) and have
+        /// four different typed-address budgets.
+        /// </summary>
+        private static string[] CollationEqualSpellings( int n )
+        {
+            return new[]
+            {
+                "pat.strasse." + n + "@encyclopaedia.test",
+                "pat.straße." + n + "@encyclopaedia.test",
+                "pat.strasse." + n + "@encyclopædia.test",
+                "pat.straße." + n + "@encyclopædia.test"
+            };
+        }
+
+        /// <summary>
+        /// How many emails were sent to this address over all the sends.
+        /// </summary>
+        private int SentTo( string address )
+        {
+            return _controller.Sends.Sum( recipients => recipients.Count( r => r.To == address ) );
+        }
+
+        /// <summary>
+        /// The SupportsChangePassword list of each result in a recipient's email, in order.
+        /// </summary>
+        private static List<List<string>> PasswordChangeLogins( RockEmailMessageRecipient recipient )
+        {
+            var results = Assert.IsType<IDictionary<string, object>[]>( recipient.MergeFields["Results"] );
+            return results.Select( r => Assert.IsType<List<string>>( r["SupportsChangePassword"] ) ).ToList();
+        }
+
+        [Fact]
+        public void CollationEqualSpellings_ShareTheStoredAddressBudget()
+        {
+            var n = NewNumber();
+            var spellings = CollationEqualSpellings( n );
+            var person = _controller.AddPerson( 1, spellings[0] );
+
+            for ( var i = 0; i < 8; i++ )
+            {
+                AssertNeutral( Forgot( spellings[i % 4] ) );
+            }
+
+            Assert.Equal( 3, SentTo( person.Email ) );
+            Assert.Equal( 3, _controller.Sends.Count );
+        }
+
+        [Fact]
+        public void SpentStoredAddress_IsLoggedWithoutTheAddress()
+        {
+            var n = NewNumber();
+            var spellings = CollationEqualSpellings( n );
+            _controller.AddPerson( 1, spellings[0] );
+
+            for ( var i = 0; i < 4; i++ )
+            {
+                AssertNeutral( Forgot( spellings[i] ) );
+            }
+
+            var line = Assert.Single( _controller.Logged );
+            Assert.StartsWith( "Forgot password stored email address budget exceeded. Request from Client: ", line );
+            Assert.DoesNotContain( "@", line );
+        }
+
+        [Fact]
+        public void TypedAsStored_ThreeRequests_AllSend()
+        {
+            var stored = "pat.sample." + NewNumber() + "@example.test";
+            _controller.AddPerson( 1, stored );
+
+            for ( var i = 0; i < 3; i++ )
+            {
+                AssertNeutral( Forgot( stored ) );
+            }
+
+            Assert.Equal( 3, SentTo( stored ) );
+        }
+
+        [Fact]
+        public void PeopleSharingOneStoredAddress_ThreeRequests_AllSend()
+        {
+            var stored = "Sample.Family." + NewNumber() + "@example.test";
+            var first = _controller.AddPerson( 1, stored );
+            var second = _controller.AddPerson( 2, stored );
+
+            for ( var i = 0; i < 3; i++ )
+            {
+                AssertNeutral( Forgot( stored ) );
+            }
+
+            Assert.Equal( 3, _controller.Sends.Count );
+            Assert.All( _controller.Sends, recipients => Assert.Equal( new[] { first, second }, Listed( Assert.Single( recipients ) ) ) );
+        }
+
+        [Fact]
+        public void StoredAddressesDifferingOnlyInCase_ShareOneBudget()
+        {
+            var n = NewNumber();
+            var upper = _controller.AddPerson( 1, "Pat.Sample." + n + "@example.test" );
+            var lower = _controller.AddPerson( 2, "pat.sample." + n + "@example.test" );
+
+            for ( var i = 0; i < 3; i++ )
+            {
+                AssertNeutral( Forgot( lower.Email ) );
+            }
+
+            Assert.Equal( 3, SentTo( upper.Email ) + SentTo( lower.Email ) );
+            Assert.Equal( new[] { 2, 1 }, _controller.Sends.Select( recipients => recipients.Count ) );
+        }
+
+        [Fact]
+        public void SpentStoredAddress_DoesNotBlockAnotherStoredAddress()
+        {
+            var n = NewNumber();
+            var spent = _controller.AddPerson( 1, "jo.strasse." + n + "@example.test" );
+            for ( var i = 0; i < 3; i++ )
+            {
+                AssertNeutral( Forgot( spent.Email ) );
+            }
+
+            var other = _controller.AddPerson( 2, "jo.straße." + n + "@example.test" );
+            AssertNeutral( Forgot( other.Email ) );
+
+            Assert.Equal( 3, SentTo( spent.Email ) );
+            Assert.Equal( 4, _controller.Sends.Count );
+            var recipient = Assert.Single( _controller.Sends.Last() );
+            Assert.Equal( other.Email, recipient.To );
+            Assert.Equal( new[] { other }, Listed( recipient ) );
+        }
+
+        [Fact]
+        public void PersonWithoutAResettableLogin_DoesNotSpendTheStoredAddressBudget()
+        {
+            var n = NewNumber();
+            var spellings = CollationEqualSpellings( n );
+            var person = _controller.AddPerson( 1, spellings[0], resettable: false );
+            for ( var i = 0; i < 3; i++ )
+            {
+                AssertNeutral( Forgot( spellings[i] ) );
+            }
+
+            _controller.Logins[person.Id] = new List<UserLogin> { new UserLogin { Id = 10, UserName = "patsample1", PersonId = 1 } };
+            AssertNeutral( Forgot( spellings[3] ) );
+
+            Assert.Equal( person.Email, Assert.Single( SingleSend() ).To );
+        }
+
+        [Theory]
+        [InlineData( "match" )]
+        [InlineData( "nobody" )]
+        [InlineData( "notResettable" )]
+        [InlineData( "spentStoredAddress" )]
+        public void EveryOutcomeAfterTheLookup_GetsTheSameResponse( string outcome )
+        {
+            var spellings = CollationEqualSpellings( NewNumber() );
+            switch ( outcome )
+            {
+                case "match":
+                    _controller.AddPerson( 1, spellings[0] );
+                    break;
+                case "notResettable":
+                    _controller.AddPerson( 1, spellings[0], resettable: false );
+                    break;
+                case "spentStoredAddress":
+                    _controller.AddPerson( 1, spellings[0] );
+                    for ( var i = 1; i < 4; i++ )
+                    {
+                        Forgot( spellings[i] );
+                    }
+
+                    _controller.Sends.Clear();
+                    break;
+            }
+
+            var response = _controller.ForgotPassword( spellings[0] );
+
+            Assert.Equal( HttpStatusCode.OK, response.StatusCode );
+            Assert.True( response.TryGetContentValue( out AccountController.StandardResponse body ) );
+            Assert.Equal( AccountController.StandardResponse.ResultCode.Success, body.Result );
+            Assert.Equal( NeutralMessage, body.Message );
+            Assert.Equal( outcome == "match" ? 1 : 0, _controller.Sends.Count );
+        }
+
+        [Fact]
+        public void EachEmail_HasTheConfirmAccountUrl_AndItsOwnPeoplesPasswordChangeLogins()
+        {
+            var n = NewNumber();
+            var first = _controller.AddPerson( 1, "pat.sample." + n + "@example.test" );
+            _controller.Logins[1].Add( new UserLogin { Id = 11, UserName = "patsample1-other", PersonId = 1 } );
+            _controller.NoChangePassword.Add( 11 );
+            _controller.AddPerson( 2, first.Email, resettable: false );
+            _controller.AddPerson( 3, "Pat.Sample." + n + "@example.test" );
+
+            AssertNeutral( Forgot( first.Email ) );
+
+            var recipients = SingleSend();
+            Assert.Equal( 2, recipients.Count );
+            Assert.All( recipients, r => Assert.Equal( "https://www.example.test/ConfirmAccount", r.MergeFields["ConfirmAccountUrl"] ) );
+            Assert.Equal( new[] { new List<string> { "patsample1" }, new List<string>() }, PasswordChangeLogins( recipients[0] ) );
+            Assert.Equal( new[] { new List<string> { "patsample3" } }, PasswordChangeLogins( recipients[1] ) );
         }
     }
 }
