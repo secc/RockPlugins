@@ -134,6 +134,7 @@
     <Compile Include="WorkflowControl\ProcessWorkflow.cs" />
     <Compile Include="WorkflowControl\DeleteVisitActivity.cs" />
     <Compile Include="WorkflowControl\ReActivateActivity.cs" />
+    <Compile Include="WorkflowControl\ReopenWorkflow.cs" />
     <Compile Include="WorkflowControl\ActivateWorkflowWithLava.cs" />
   </ItemGroup>
   <ItemGroup>
