@@ -18,6 +18,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.Security.Utility;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -138,7 +139,7 @@ namespace RockWeb.Plugins.org_secc.Security
                 }
 
                 RockLiteral rockLiteral = new RockLiteral();
-                rockLiteral.Label = pin.UserName;
+                rockLiteral.Label = pin.UserName.EncodeHtml();
                 rockLiteral.Text = string.Join( ", ", purpose );
                 secondPanel.Controls.Add( rockLiteral );
 
@@ -181,36 +182,30 @@ namespace RockWeb.Plugins.org_secc.Security
             if ( UserLoginId != 0 )
             {
                 pin = new UserLoginService( rockContext ).Get( UserLoginId );
-
-                //Check to see if non-PIN is trying to be edited
-                //This should never be hit, but let's make sure
-                if ( pin.EntityTypeId != EntityTypeCache.Get( "Rock.Security.Authentication.PINAuthentication" ).Id )
+                if ( !PinManagerRules.IsPersonPin( pin, Person.Id, EntityTypeCache.Get( "Rock.Security.Authentication.PINAuthentication" ).Id ) )
                 {
-                    LogException( new Exception( "Atempted edit on non-PIN in PIN manager" ) );
                     return;
                 }
-                if ( pin != null )
-                {
-                    hfPinID.Value = pin.Id.ToString();
-                    tbPin.Text = pin.UserName;
 
-                    pin.LoadAttributes();
-                    if ( pin.GetAttributeValue( "PINPurpose" ) != null )
+                hfPinID.Value = pin.Id.ToString();
+                tbPin.Text = pin.UserName;
+
+                pin.LoadAttributes();
+                if ( pin.GetAttributeValue( "PINPurpose" ) != null )
+                {
+                    var purposeIds = pin.GetAttributeValue( "PINPurpose" )
+                        .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
+                        .ToList();
+                    foreach ( var checkbox in cblPurpose.Items.Cast<ListItem>() )
                     {
-                        var purposeIds = pin.GetAttributeValue( "PINPurpose" )
-                            .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
-                            .ToList();
-                        foreach ( var checkbox in cblPurpose.Items.Cast<ListItem>() )
+                        checkbox.Selected = false;
+                        if ( purposeIds.Contains( checkbox.Value ) )
                         {
-                            checkbox.Selected = false;
-                            if ( purposeIds.Contains( checkbox.Value ) )
-                            {
-                                checkbox.Selected = true;
-                            }
+                            checkbox.Selected = true;
                         }
                     }
-
                 }
+
                 btnDelete.Visible = true;
                 hfConfirmDelete.Value = "";
                 btnDelete.CssClass = "btn btn-block btn-warning";
@@ -248,59 +243,32 @@ namespace RockWeb.Plugins.org_secc.Security
             int pinId = hfPinID.ValueAsInt();
             UserLoginService userLoginService = new UserLoginService( rockContext );
             UserLogin pin = userLoginService.Get( pinId );
-
-            var number = tbPin.Text.AsDouble();
-            if ( number == 0 )
+            if ( pinId != 0 && !PinManagerRules.IsPersonPin( pin, Person.Id, pinEntityId ) )
             {
-                nbError.Visible = true;
-                nbError.Text = "Error: Requested PIN could not be converted to number.";
+                mdEditPin.Hide();
                 return;
             }
 
-            var minimumPinLength = GetAttributeValue( "MinimumPINLength" ).AsInteger();
-            if ( number.ToString().Length < minimumPinLength )
+            string pinText;
+            var pinError = PinManagerRules.CheckPin( tbPin.Text, pin?.UserName, GetAttributeValue( "MinimumPINLength" ).AsInteger(), userLoginService.Exists, out pinText );
+            if ( pinError != null )
             {
                 nbError.Visible = true;
-                nbError.Text = string.Format( "Error: Requested PIN must be {0} digits or greater.", minimumPinLength );
+                nbError.Text = pinError;
                 return;
             }
 
-            //Check to see if this PIN already exists in the system
-            if ( pin == null || number.ToString() != pin.UserName )
-            {
-                if ( userLoginService.GetByUserName( number.ToString() ) != null )
-                {
-                    nbError.Visible = true;
-                    nbError.Text = "This PIN has already been taken.";
-                    return;
-                }
-            }
-
-
-            if ( pin != null )
-            {
-                //Check to see if we are accidentally overwriting someones username
-                if ( pin.EntityTypeId != pinEntityId )
-                {
-                    LogException( new Exception( "Atempted edit on non-PIN in PIN manager" ) );
-                    return;
-                }
-            }
-            else
+            if ( pin == null )
             {
                 pin = new UserLogin();
-                pin.Id = pinId;
                 pin.IsConfirmed = true;
                 pin.PersonId = Person.Id;
                 pin.EntityTypeId = pinEntityId;
                 userLoginService.Add( pin );
             }
 
-            if ( number.ToString() != pin.UserName )
-            {
-                pin.UserName = tbPin.Text;
-                rockContext.SaveChanges();
-            }
+            pin.UserName = pinText;
+            rockContext.SaveChanges();
             pin.LoadAttributes();
             pin.SetAttributeValue( "PINPurpose", string.Join( "|", cblPurpose.SelectedValues ) );
             pin.SaveAttributeValues();
@@ -334,6 +302,12 @@ namespace RockWeb.Plugins.org_secc.Security
                 int pinId = hfPinID.ValueAsInt();
                 UserLoginService userLoginService = new UserLoginService( rockContext );
                 UserLogin pin = userLoginService.Get( pinId );
+                if ( !PinManagerRules.IsPersonPin( pin, Person.Id, pinEntityId ) )
+                {
+                    mdEditPin.Hide();
+                    return;
+                }
+
                 userLoginService.Delete( pin );
                 rockContext.SaveChanges();
                 mdEditPin.Hide();

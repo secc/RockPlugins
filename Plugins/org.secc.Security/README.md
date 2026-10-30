@@ -6,22 +6,25 @@
 
 ## Overview
 
-This is Southeast's catch-all **security and identity** plugin. Most of it is RockWeb-compiled blocks (`.ascx` + code-behind) under `org_secc/Security/`, grouped loosely into three jobs: (1) **Wi-Fi captive portals** that register a guest/staff device and bounce the browser back to the FrontPorch controller; (2) **outbound SSO redirects** that log a Rock user into an external service by POSTing a signed SAML assertion (WellRight) or a signed SSO token (Church Online / Tymio-style MultiPass); and (3) **self-service account blocks** (view/edit profile, login-status menu, PIN management). The only csproj-compiled code is a tiny **SAML 2.0** helper library (`SAML2/`) consumed by the WellRight block.
+This is Southeast's catch-all **security and identity** plugin. Most of it is RockWeb-compiled blocks (`.ascx` + code-behind) under `org_secc/Security/`, grouped loosely into three jobs: (1) **Wi-Fi captive portals** that register a guest/staff device and bounce the browser back to the FrontPorch controller; (2) **outbound SSO redirects** that log a Rock user into an external service by POSTing a signed SAML assertion (WellRight) or a signed SSO token (Church Online / Tymio-style MultiPass); and (3) **self-service account blocks** (view/edit profile, login-status menu, PIN management). The csproj compiles a tiny **SAML 2.0** helper library (`SAML2/`) consumed by the WellRight block, and the PIN Manager's PIN rules (`Utility/PinManagerRules.cs`).
 
 ## Project Info
 
-- **Project file:** `org.secc.Security.csproj` — compiles **only** the `SAML2/` library (`CertificateUtility`, `SAML20Assertion`, `SAMLSchema`). The blocks under `org_secc/` are RockWeb-compiled (`.ascx`/`.ascx.cs`), not in the csproj.
+- **Project file:** `org.secc.Security.csproj` — compiles the `SAML2/` library (`CertificateUtility`, `SAML20Assertion`, `SAMLSchema`) and `Utility/PinManagerRules.cs` (the PIN Manager's PIN rules). The blocks under `org_secc/` are RockWeb-compiled (`.ascx`/`.ascx.cs`), not in the csproj.
 - **Root namespace:** `org.secc.Security` (library) / `RockWeb.Plugins.org_secc.Security` (blocks)
 - **Target framework:** .NET Framework 4.7.2
-- **Deploys to:** `RockWeb/bin/` (the `org.secc.Security.dll` SAML library), `RockWeb/Plugins/org_secc/` (block markup + code-behind), and `RockWeb/Themes/` (the `my-secc` theme) — all via the PostBuildEvent xcopy.
+- **Deploys to:** `RockWeb/bin/` (`org.secc.Security.dll`: the SAML library and the PIN rules), `RockWeb/Plugins/org_secc/` (block markup + code-behind), and `RockWeb/Themes/` (the `my-secc` theme) — all via the PostBuildEvent xcopy. Building with `-p:CopyToRockWeb=false` skips the copy; `org.secc.Security.Tests` passes that property to the plugin.
 - **Cross-plugin dependencies:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by the Captive Portal block); [org.secc.DevLib](../org.secc.DevLib/README.md) (`ReadContentBytes`, used by the WellRight Redirect and SignNow Test blocks to read binary files through their storage provider).
 
 ## Project Layout
 
 ```
-/                       org.secc.Security.csproj (compiles SAML2/ only)
+/                       org.secc.Security.csproj (compiles SAML2/ and Utility/)
 /SAML2/                 SAML 2.0 assertion library: SAML20Assertion (build+sign Response),
                         CertificateUtility (X509 XML signing), SAMLSchema (xsd-generated OASIS types)
+/Utility/               PinManagerRules: the PIN Manager's login and PIN checks (IsPersonPin, CheckPin)
+/org.secc.Security.Tests/ xUnit tests for PinManagerRules (Tools/add-plugins-to-solution.ps1 adds it to
+                        Rock.sln with the plugin projects)
 /org_secc/Security/     RockWeb blocks (.ascx + .ascx.cs) — the bulk of the plugin (see Components)
 /Themes/my-secc/        A full Rock theme (Layouts, Styles/less, Lava asset partials, logo)
 ```
@@ -125,9 +128,11 @@ On load it posts an `Attendance` record (if group+campus+active schedule resolve
 | Setting | Type | Notes |
 |---------|------|-------|
 | **PurposeDefinedType** | defined type | Source of the PIN "purpose" checkbox list (stored on the `PINPurpose` UserLogin attribute). |
-| **MinimumPINLength** | integer (default 6) | Minimum PIN digit count enforced on save. |
+| **MinimumPINLength** | integer (default 6) | Minimum number of digits for a new or changed PIN; leading zeros count. |
 
-A `PersonBlock`; add/edit/delete are gated on `PINAuthentication` entity-type `ADMINISTRATE` authorization, and the code guards against editing a non-PIN `UserLogin`.
+A `PersonBlock`; add/edit/delete are gated on `PINAuthentication` entity-type `ADMINISTRATE` authorization. Edit, save and remove act only on PIN logins of the person on the page; any other login is left unchanged.
+
+A new or changed PIN has its surrounding whitespace removed and must be digits 0-9 only, at least **MinimumPINLength** digits (leading zeros count and are kept), not all zeros, and not the user name of any existing login. Saving without changing the PIN only updates its purposes and keeps the stored value as it is.
 
 #### Account Detail / Account Edit  *(SECC > Security)*
 Both `RockBlock`s with a **Detail Page** (`LinkedPage`, Detail only), a **Show (Home) Address** toggle, a **Location Type** (`GroupLocationTypeField`, family), and (Edit) an **Address Required** toggle.
@@ -161,7 +166,7 @@ Both `RockBlock`s with a **Detail Page** (`LinkedPage`, Detail only), a **Show (
 
 - **Key storage (ROCK-9041):** `WellrightRedirect` loads the PFX with `Exportable | MachineKeySet` (no `PersistKeySet`) and disposes the `X509Certificate2` after signing, and `CertificateUtility` disposes its `RSACryptoServiceProvider` (`PersistKeyInCsp = false`).
 - **Improvement:** Several blocks `new RockContext()` repeatedly within a single request (e.g. Captive Portal creates a fresh context in `DoesPersonalDeviceExist`, `CreateDevice`, `VerifyDeviceInfo`, `Prefill`). Minor, but consolidating to one context per request would be cleaner.
-- **Improvement:** The compiled assembly contains only the SAML2 library; everything else is RockWeb-compiled. A maintainer touching a block won't see it in the csproj — note that when adding files.
+- **Improvement:** The compiled assembly contains the SAML2 library and the PIN Manager's PIN rules; the blocks are RockWeb-compiled. A maintainer touching a block won't see it in the csproj — note that when adding files. `PINManager.ascx.cs` uses `PinManagerRules` from `org.secc.Security.dll`, so the code-behind and the DLL deploy together.
 
 ## Extending
 
@@ -198,9 +203,11 @@ There is no MEF/registration step — these are Rock blocks, placed on a page vi
 ## Making Changes
 
 - Block behavior lives in `org_secc/Security/<Block>.ascx.cs` (markup in the matching `.ascx`); these are RockWeb-compiled, not in the csproj.
-- SAML payload/signing changes go in `SAML2/SAML20Assertion.cs` / `CertificateUtility.cs` (the only csproj-compiled code, shipped as `org.secc.Security.dll`).
+- The PIN Manager's checks of which login it may edit, save or remove and of a typed PIN live in `Utility/PinManagerRules.cs` (compiled into `org.secc.Security.dll`) and are tested in `org.secc.Security.Tests`.
+- SAML payload/signing changes go in `SAML2/SAML20Assertion.cs` / `CertificateUtility.cs` (compiled into `org.secc.Security.dll`).
 - Captive-portal person matching delegates to the `GetByMatch` extension method in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (invoked on `PersonService`) — change matching there, not here.
 - The bundled `Themes/my-secc` theme (Layouts/Styles/Lava partials) is deployed by the same PostBuildEvent; theme edits live under `Themes/my-secc/`.
 - `SignNowTest` is test scaffolding — don't extend it for production; build a proper block instead. It writes its temp PDF into a per-request directory and deletes it in a `finally`.
+- Building `org.secc.Security.Tests` with MSBuild from the command line builds the plugin with `CopyToRockWeb=false` and without its `PostBuildEvent`, so nothing is copied into RockWeb. In Visual Studio, a solution that also contains the plugin builds the plugin as its own project, with its copy into RockWeb, whenever Visual Studio finds the plugin out of date. The tests don't use a database.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-28

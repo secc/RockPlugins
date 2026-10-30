@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!-- Resolve RockWeb the same way LinkList.Tests does: honor an explicit
+       /p:RockWebPath, then probe the rock-dev-tool layout (Rock next to the
+       plugin folder) and the Rock solution layout (SolutionDir). -->
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('..\..\Rock\RockWeb\Bin')">..\..\Rock\RockWeb</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- org.secc.Security skips its copy into RockWeb when CopyToRockWeb is false, and an empty
+         PostBuildEvent turns off its post-build event. Both apply when MSBuild builds the plugin
+         through this reference from the command line. Visual Studio builds the plugin as its own
+         project, so building in a solution that contains it, or building the plugin on its own or
+         from Rock.sln, still copies it. -->
+    <ProjectReference Include="..\org.secc.Security.csproj" AdditionalProperties="CopyToRockWeb=false;PostBuildEvent=" />
+    <!-- PinManagerRules takes Rock's UserLogin, so the compiler needs the Rock assemblies. The tests
+         build UserLogin objects in memory and don't touch a database. -->
+    <Reference Include="Rock">
+      <HintPath>$(RockWebPath)\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common">
+      <HintPath>$(RockWebPath)\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
