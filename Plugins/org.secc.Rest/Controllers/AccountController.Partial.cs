@@ -28,6 +28,7 @@ using System.Web.Http;
 using System.Web.Routing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using org.secc.Authentication;
 using org.secc.OAuth.Data;
 using org.secc.OAuth.Model;
 using org.secc.PersonMatch;
@@ -137,6 +138,16 @@ namespace org.secc.Rest.Controllers
         #endregion
 
         /// <summary>
+        /// Forgot password requests allowed per window: per caller address, per socket peer (sized like
+        /// the create peer budget, as a ceiling on one network's requests) and per email address from any caller.
+        /// The caller-address budget leaves room for a campus's guest Wi-Fi, where everyone shares one public
+        /// address; the per-email budget is what protects each inbox.
+        /// </summary>
+        private const int FORGOT_PASSWORD_MAX_ATTEMPTS_PER_FORWARDED_IP = 25;
+        private const int FORGOT_PASSWORD_MAX_ATTEMPTS_PER_PEER = 200;
+        private const int FORGOT_PASSWORD_MAX_ATTEMPTS_PER_EMAIL = 3;
+
+        /// <summary>
         /// The caller check for the OAuth-client-only actions: the caller's identity name is not
         /// blank, and parsed as a Guid it is the ApiKey of an OAuth client that is Active.
         /// </summary>
@@ -174,23 +185,90 @@ namespace org.secc.Rest.Controllers
         /// </summary>
         protected virtual bool TryRegisterAccountCreationAttempt( string clientId )
         {
-            var createPeerKey = "create|client:" + clientId + "|peer:" + GetPeerIpAddress();
-            var createForwardedKey = "create|client:" + clientId + "|fwd:" + GetForwardedIpAddress();
+            var peerIp = GetPeerIpAddress();
+            var forwardedIp = GetForwardedIpAddress();
+            var createPeerKey = "create|" + ClientKey( clientId ) + "|peer:" + peerIp;
+            var createForwardedKey = "create|" + ClientKey( clientId ) + "|fwd:" + forwardedIp;
 
-            if ( !ConfirmationAttempts.TryRegisterAttempt( createPeerKey, CREATE_MAX_ATTEMPTS_PER_PEER )
-              || !ConfirmationAttempts.TryRegisterAttempt( createForwardedKey, CREATE_MAX_ATTEMPTS_PER_FORWARDED_IP ) )
+            if ( !ConfirmationAttempts.TryRegisterCallerAttempt( createPeerKey, CREATE_MAX_ATTEMPTS_PER_PEER, createForwardedKey, CREATE_MAX_ATTEMPTS_PER_FORWARDED_IP ) )
             {
                 if ( ConfirmationAttempts.ShouldLogRefusal( createPeerKey ) )
                 {
-                    ExceptionLogService.LogException( new Exception( string.Format(
+                    LogException( new Exception( string.Format(
                         "Account creation budget exceeded. Client: {0} PeerIP: {1} ForwardedIP: {2}",
-                        clientId, GetPeerIpAddress(), GetForwardedIpAddress() ) ) );
+                        clientId, peerIp, forwardedIp ) ) );
                 }
 
                 return false;
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// The client part of a budget key: the caller's name as the OAuth client ApiKey it was matched to.
+        /// </summary>
+        private static string ClientKey( string clientId )
+        {
+            return "client:" + clientId.AsGuid();
+        }
+
+        /// <summary>
+        /// Counts a forgot password request against the caller's budgets and then the email address's
+        /// budget. Returns false when one is already spent. A refusal by the caller's budgets and one by the
+        /// email address's budget each have their own line, logged at most once per window for the client
+        /// and socket peer; the email address is never logged.
+        /// </summary>
+        private bool TryRegisterForgotPasswordAttempt( string clientId, string email )
+        {
+            var peerIp = GetPeerIpAddress();
+            var forwardedIp = GetForwardedIpAddress();
+            var peerKey = "forgot|" + ClientKey( clientId ) + "|peer:" + peerIp;
+            var forwardedKey = "forgot|" + ClientKey( clientId ) + "|fwd:" + forwardedIp;
+
+            if ( !ConfirmationAttempts.TryRegisterCallerAttempt( peerKey, FORGOT_PASSWORD_MAX_ATTEMPTS_PER_PEER, forwardedKey, FORGOT_PASSWORD_MAX_ATTEMPTS_PER_FORWARDED_IP ) )
+            {
+                if ( ConfirmationAttempts.ShouldLogRefusal( peerKey ) )
+                {
+                    LogException( new Exception( string.Format(
+                        "Forgot password request budget exceeded. Client: {0} PeerIP: {1} ForwardedIP: {2}",
+                        clientId, peerIp, forwardedIp ) ) );
+                }
+
+                return false;
+            }
+
+            if ( !ConfirmationAttempts.TryRegisterAttempt( RecipientKey( email ), FORGOT_PASSWORD_MAX_ATTEMPTS_PER_EMAIL ) )
+            {
+                if ( ConfirmationAttempts.ShouldLogRefusal( peerKey + "|email" ) )
+                {
+                    LogException( new Exception( string.Format(
+                        "Forgot password email address budget exceeded. Request from Client: {0} PeerIP: {1} ForwardedIP: {2}",
+                        clientId, peerIp, forwardedIp ) ) );
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// The recipient budget key for an email address as typed.
+        /// </summary>
+        private static string RecipientKey( string email )
+        {
+            var value = email.Trim().Left( 254 );
+            try
+            {
+                value = value.Normalize( NormalizationForm.FormKC );
+            }
+            catch ( ArgumentException )
+            {
+                // Not valid UTF-16 (for example a lone surrogate); the filter below still applies.
+            }
+
+            return "forgot|email:" + new string( value.ToLowerInvariant().Where( c => c >= '!' && c <= '~' ).ToArray() );
         }
 
         /// <summary>
@@ -223,6 +301,14 @@ namespace org.secc.Rest.Controllers
         protected virtual Rock.Data.RockContext CreateRockContext()
         {
             return new Rock.Data.RockContext();
+        }
+
+        /// <summary>
+        /// Writes an exception to Rock's Exception Log.
+        /// </summary>
+        protected virtual void LogException( Exception ex )
+        {
+            ExceptionLogService.LogException( ex );
         }
 
         /// <summary>
@@ -600,13 +686,12 @@ namespace org.secc.Rest.Controllers
             // success -- see the note at the end of this method.
             var forwardedIp = GetForwardedIpAddress();
             var peerIp = GetPeerIpAddress();
-            string clientKey = "client:" + clientId;
+            string clientKey = ClientKey( clientId );
             string forwardedKey = clientKey + "|fwd:" + forwardedIp;
             string peerKey = clientKey + "|peer:" + peerIp;
 
-            bool withinBudget =
-                ConfirmationAttempts.TryRegisterAttempt( peerKey, CONFIRMATION_MAX_ATTEMPTS_PER_PEER )
-                && ConfirmationAttempts.TryRegisterAttempt( forwardedKey, CONFIRMATION_MAX_ATTEMPTS_PER_FORWARDED_IP );
+            bool withinBudget = ConfirmationAttempts.TryRegisterCallerAttempt(
+                peerKey, CONFIRMATION_MAX_ATTEMPTS_PER_PEER, forwardedKey, CONFIRMATION_MAX_ATTEMPTS_PER_FORWARDED_IP );
 
             if ( !withinBudget )
             {
@@ -614,7 +699,7 @@ namespace org.secc.Rest.Controllers
                 // key in that window add no ExceptionLog rows.
                 if ( ConfirmationAttempts.ShouldLogRefusal( peerKey ) )
                 {
-                    ExceptionLogService.LogException( new Exception( string.Format(
+                    LogException( new Exception( string.Format(
                         "Account confirmation attempt budget exceeded. Client: {0} PeerIP: {1} ForwardedIP: {2}",
                         clientId, peerIp, forwardedIp ) ) );
                 }
@@ -975,69 +1060,37 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
-        /// The client IP from X-Forwarded-For, falling back to the socket peer.
+        /// The current request, or null when there is none.
         /// </summary>
-        /// <remarks>
-        /// Reads the RIGHTMOST entry: proxies append, so it is the value our own edge recorded; the
-        /// leftmost entries are client-supplied. Assumes a single trusted proxy hop; with a second
-        /// reverse proxy in front, select the Nth-from-right entry instead.
-        ///
-        /// This is still only used to subdivide a budget, never to grant access, and the socket
-        /// peer is budgeted separately as the value the caller genuinely cannot control.
-        /// </remarks>
-        private static string GetForwardedIpAddress()
+        protected virtual HttpRequestBase GetCurrentRequest()
         {
-            var request = HttpContext.Current?.Request;
+            var context = HttpContext.Current;
+            return context == null ? null : new HttpRequestWrapper( context.Request );
+        }
 
-            if ( request == null )
-            {
-                return "unknown";
-            }
-
-            var forwardedFor = request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-
-            if ( !forwardedFor.IsNullOrWhiteSpace() )
-            {
-                var hops = forwardedFor.Split( ',' );
-                var candidate = hops[hops.Length - 1].Trim();
-
-                // Strip a trailing :port. Only for IPv4-looking values, so bracketed IPv6
-                // addresses keep their colons.
-                if ( candidate.Count( c => c == ':' ) == 1 )
-                {
-                    candidate = candidate.Split( ':' )[0];
-                }
-
-                if ( !candidate.IsNullOrWhiteSpace() )
-                {
-                    return candidate;
-                }
-            }
-
-            return GetPeerIpAddress();
+        /// <summary>
+        /// The caller address of the current request (<see cref="CallerAddress.ForRequest"/>). It only
+        /// subdivides a budget, never grants access; the socket peer is budgeted separately.
+        /// </summary>
+        private string GetForwardedIpAddress()
+        {
+            return CallerAddress.ForRequest( GetCurrentRequest() );
         }
 
         /// <summary>
         /// The socket-level peer address, which the caller cannot forge. Behind a reverse proxy
         /// this is the proxy, so it is shared by every user on that path.
         /// </summary>
-        private static string GetPeerIpAddress()
+        private string GetPeerIpAddress()
         {
-            var request = HttpContext.Current?.Request;
-
-            if ( request == null )
-            {
-                return "unknown";
-            }
-
-            var remoteAddress = request.ServerVariables["REMOTE_ADDR"];
+            var remoteAddress = GetCurrentRequest()?.ServerVariables["REMOTE_ADDR"];
 
             return remoteAddress.IsNullOrWhiteSpace() ? "unknown" : remoteAddress;
         }
 
         /// <summary>
-        /// In-process rolling-window record of confirmation attempts, following the pattern already
-        /// used by SMSAuthentication's SMSRecords.
+        /// In-process rolling-window record of account creation, confirmation and forgot password
+        /// requests, following the pattern already used by SMSAuthentication's SMSRecords.
         /// </summary>
         /// <remarks>
         /// Attempts are registered before the code is checked, so the check and the increment are
@@ -1050,11 +1103,11 @@ namespace org.secc.Rest.Controllers
         private static class ConfirmationAttempts
         {
             /// <summary>
-            /// Ceiling on tracked keys. Each distinct X-Forwarded-For value gets its own key, so the
-            /// table has a hard bound. When it is reached the oldest windows are evicted; eviction
-            /// only discards counts, so it never refuses a request. The peer key is registered
-            /// first, so once a peer's budget is spent no further forwarded keys are added for it
-            /// in that window.
+            /// Ceiling on tracked keys. Each distinct caller address (the last X-Forwarded-For entry,
+            /// falling back to REMOTE_ADDR) or email address gets its own key, so the table has a hard
+            /// bound. When it is reached the oldest windows are evicted; eviction only discards counts,
+            /// so it never refuses a request. The peer budget is checked first, so once a peer's budget
+            /// is spent no further caller-address keys are added for it in that window.
             /// </summary>
             private const int MAX_TRACKED_KEYS = 20000;
 
@@ -1087,6 +1140,33 @@ namespace org.secc.Rest.Controllers
                     }
 
                     window.Count++;
+                    return true;
+                }
+            }
+
+            /// <summary>
+            /// Counts a request against a caller's peer and caller-address budgets in one locked step.
+            /// Returns false, and counts nothing, when either is spent; the peer budget is checked
+            /// first, so no caller-address key is added for a spent peer.
+            /// </summary>
+            public static bool TryRegisterCallerAttempt( string peerKey, int maxPerPeer, string forwardedKey, int maxPerForwarded )
+            {
+                lock ( _lock )
+                {
+                    var peer = GetOrStartWindow( peerKey );
+                    if ( peer.Count >= maxPerPeer )
+                    {
+                        return false;
+                    }
+
+                    var forwarded = GetOrStartWindow( forwardedKey );
+                    if ( forwarded.Count >= maxPerForwarded )
+                    {
+                        return false;
+                    }
+
+                    peer.Count++;
+                    forwarded.Count++;
                     return true;
                 }
             }
@@ -1286,7 +1366,17 @@ namespace org.secc.Rest.Controllers
                     return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, response );
                 }
 
-                var rockContext = new Rock.Data.RockContext();
+                // Counted after the blank check and before the lookup.
+                if ( !TryRegisterForgotPasswordAttempt( clientId, email ) )
+                {
+                    return ControllerContext.Request.CreateResponse( ( HttpStatusCode ) 429, new StandardResponse()
+                    {
+                        Message = "Too many password reset requests. Please try again later.",
+                        Result = StandardResponse.ResultCode.Error
+                    } );
+                }
+
+                var rockContext = CreateRockContext();
                 PersonService personService = new PersonService( rockContext );
                 UserLoginService userLoginService = new UserLoginService( rockContext );
                 bool hasAccountWithPasswordResetAbility = false;

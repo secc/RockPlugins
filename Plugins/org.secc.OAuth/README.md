@@ -23,8 +23,9 @@ OAuth turns Rock into its own OAuth 2.0 provider. It wires an OWIN authorization
 /Model/                 Client, Scope, ClientScope, Authorization entities + services; AuthToken + AuthTokenService (sproc-backed code storage)
 /Rest/Controllers/      OAuthController — api/oauth/* profile + family endpoints (bearer-gated)
 /Utilities/             TokenResponse — DTO for deserializing a token endpoint response
-/Migrations/            Rock plugin migrations (tables, OAuth site/pages, admin page, seed client/scopes, token storage)
+/Migrations/            Rock plugin migrations (tables, OAuth site/pages, admin page, Family/Profile scopes, token storage, sample-client deactivation)
 /org_secc/OAuth/        UI blocks (.ascx + .ascx.cs): Authorize, Login, Logout, Configuration, OAuthServiceProvider, OAuthRestorer, AuthLogout
+/org.secc.OAuth.Tests/  xunit tests that run migrations 4-6 against a temporary SQL Server database
 ```
 
 ## How the OAuth Server Works
@@ -141,8 +142,9 @@ Ships Rock plugin migrations under `/Migrations/`:
 - `201605171249414_InitialCreate` — the four OAuth tables (Client, Scope, ClientScope, Authorization).
 - `201605201037000_CreatePlugin` — `OAuthSettings` global attribute, the OAuth **site**, portal/login/authorize/logout pages + routes, and the portal blocks.
 - `201605271634000_CreateAdminPage` — the **OAuth Configuration** admin page/block under Rock RMS.
-- `201605311211000_CreateClientScopes` — seeds an initial client and its client-scope rows.
+- `201605311211000_CreateClientScopes` — the `Family` and `Profile` scopes.
 - `202507111500_CreateTokenStorage` — `_org_secc_OAuth_Token` table + `spAddToken`/`spGetTicket`/`spDeleteToken` stored procedures for authorization-code storage.
+- `202610281539_DeactivateLocalhostTestClient` — deactivates active clients named *Localhost Test* with callback `https://localhost:44300/`, the sample client that earlier versions of `CreateClientScopes` created, and active clients with that sample client's ApiKey and ApiSecret, whatever their name or callback. Clients are created on the **OAuth Configuration** page.
 
 ## Edge Cases & Constraints
 
@@ -185,4 +187,9 @@ Then create a matching **Scope** (Identifier `giving`) in the OAuth Configuratio
 - Server behavior (token lifespans, grant logic, scope claim handling) lives in `Startup.cs`; endpoint paths and SSL are data in the `OAuthSettings` global attribute, edited via the **OAuth Configuration** block (`org_secc/OAuth/Configuration.ascx.cs`).
 - Consent UI and scope-grant persistence are in `org_secc/OAuth/Authorize.ascx.cs`; the login screen is `Login.ascx.cs`.
 - New tables, pages, or seed clients/scopes belong in a new numbered migration under `/Migrations/` — don't hand-edit migrations that have already run.
+- Each `org.secc.OAuth.Tests` test that runs a migration creates a temporary database on `(localdb)\MSSQLLocalDB`, or on the SQL Server named by `ORG_SECC_TEST_SQLSERVER`, and drops it when the test finishes. Building the tests with MSBuild from the command line builds the plugin with `CopyToRockWeb=false`, so nothing is copied into RockWeb.
 - For Rock-acting-as-client (SSO between sites), configure the **OAuth Service Provider** block and `OAuthClient.cs`; pair with **OAuth Session Restorer** / **Auth Logout** for chained login/logout.
+
+---
+
+**Last updated:** 2026-10-29

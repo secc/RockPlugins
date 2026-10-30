@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.Communication;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -115,10 +116,8 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
-            int communicationListGroupTypeId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_COMMUNICATIONLIST.AsGuid() ).Id;
-
             var groups = groupService.Queryable()
-                .Where( g => g.GroupTypeId == communicationListGroupTypeId && g.IsPublic && g.IsActive && !g.IsArchived )
+                .WhereVisible()
                 .ToList()
                 .Select( g => new GroupPoco
                 {

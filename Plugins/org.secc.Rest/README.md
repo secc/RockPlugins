@@ -63,11 +63,13 @@ flowchart TD
 | `api/account/create` | POST | `[Authorize]` + active OAuth client | Match-or-create a person; any `UserLogin` it creates (Internal or SMS) is **unconfirmed** and triggers a confirmation email — a matched existing person is **never** auto-confirmed (the login is unusable until the emailed code is redeemed). A match with **no** username creates no login and returns an "account already exists" message. Email match is case-insensitive. A failed confirmation-email send returns a retryable `503` rather than a success response; on the username path the just-created login is also deleted so the username isn't trapped. The minimum-age (13) check applies when a `Username` is supplied, i.e. when a login is being created. |
 | `api/account/confirmaccount` | POST | `[Authorize]` + active OAuth client | Confirm an account by Rock confirmation code, or by the 6-digit mobile code from the confirmation email. The mobile code is random, single use, and expires 60 minutes after it is issued. |
 | `api/account/family` | GET | `[Authorize]` | Family members of the current user (`UserLoginService.GetCurrentUser`). |
-| `api/account/forgotpassword` | POST | `[Authorize]` + active OAuth client | Send a forgot-username/password email for resettable logins matching an address. |
+| `api/account/forgotpassword` | POST | `[Authorize]` + active OAuth client | Send a forgot-username/password email for resettable logins matching an address. A non-blank request is counted before the lookup: at most 25 per caller address and 200 per connecting address for the client, then 3 per email address from any caller (compared on its first 254 characters after trimming, NFKC-normalized when they are valid Unicode, in lower case, keeping only visible ASCII characters, `!` through `~`, so no spaces), per 15 minutes on each server. Past a limit it gets `429` "Too many password reset requests. Please try again later." |
 | `api/account/profile` | GET | `[Authorize]` | Current user's `Profile`. |
 | `api/account/smslogin` | POST | `[Authorize]` + active OAuth client | Start SMS auth: match a single living person of min age by phone, send code via Rock's `SMSAuthentication`. |
 | `api/org.secc/People/CurrentUser` | GET | session route; current **session user only** | Returns a small person report (name, campus, gender) for the current session user. Registered via `IHasCustomHttpRoutes`. |
 | `api/org.secc/People/Post` | POST | session route | Echoes the posted `phone` string. |
+
+The caller-address and connecting-address limits on `create`, `confirmaccount` and `forgotpassword` are kept per OAuth client (every form of its ApiKey that the client check accepts is the same client). The caller address is `CallerAddress.ForRequest` (described in the org.secc.Authentication README) and the connecting address is `REMOTE_ADDR`. A request counts toward the connecting address's limit only when its caller address is within its own limit.
 
 ### GroupApp (Groups mobile app)
 
@@ -203,4 +205,4 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 
 ---
 
-**Last updated:** 2026-10-21
+**Last updated:** 2026-10-27
