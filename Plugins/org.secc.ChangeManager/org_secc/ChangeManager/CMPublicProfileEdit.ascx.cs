@@ -236,6 +236,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
+            var applyErrors = new List<string>();
 
             var person = GetPerson( personService );
 
@@ -524,6 +525,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     rockContext.SaveChanges();
 
                     changeRequest.CompleteChanges( rockContext, out errors );
+                    applyErrors.AddRange( errors );
                 }
 
                 if ( familyChangeRequest.ChangeRecords.Any() )
@@ -533,6 +535,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     changeRequestService.Add( familyChangeRequest );
                     rockContext.SaveChanges();
                     familyChangeRequest.CompleteChanges( rockContext, out errors );
+                    applyErrors.AddRange( errors );
                 }
             }
             else
@@ -647,6 +650,15 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
                 List<string> errors;
                 changeRequest.CompleteChanges( rockContext, out errors );
+                applyErrors.AddRange( errors );
+            }
+
+            //The errors are in the Exception Log and the request stays open for staff, so show a general message
+            if ( applyErrors.Any() )
+            {
+                pnlEdit.Visible = false;
+                pnlApplyError.Visible = true;
+                return;
             }
 
             NavigateToParentPage();
