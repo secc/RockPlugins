@@ -163,7 +163,11 @@ namespace org.secc.Workflow.WorkflowControl
                     action.AddLogEntry( string.Format( "Activated '{0}' on workflow {1}", activityType.Name, workflow.Id ) );
                 }
 
-                newRockContext.SaveChanges();
+                // SaveChanges returns 0 without throwing when a workflow trigger cancels the save.
+                if ( newRockContext.SaveChanges() == 0 && ( reopened || activated ) )
+                {
+                    return Fail( action, errorMessages, string.Format( "Changes to workflow {0} were not saved (cancelled by a workflow trigger)", workflow.Id ) );
+                }
 
                 if ( GetAttributeValue( action, "ProcessWorkflow" ).AsBoolean() )
                 {
@@ -176,8 +180,19 @@ namespace org.secc.Workflow.WorkflowControl
                     {
                         // Logged only: returning error messages would stop the calling workflow's
                         // processing, and the reopen/activate above is already saved.
-                        List<string> processErrors;
-                        workflowService.Process( workflow, out processErrors );
+                        // Exceptions are caught here too, so they don't reach Execute's catch and
+                        // report the already-saved reopen as a failure.
+                        var processErrors = new List<string>();
+                        try
+                        {
+                            workflowService.Process( workflow, out processErrors );
+                        }
+                        catch ( Exception ex )
+                        {
+                            ExceptionLogService.LogException( ex );
+                            processErrors.Add( ex.Message );
+                        }
+
                         foreach ( var processError in processErrors )
                         {
                             action.AddLogEntry( string.Format( "Error processing workflow {0}: {1}", workflow.Id, processError ), true );
