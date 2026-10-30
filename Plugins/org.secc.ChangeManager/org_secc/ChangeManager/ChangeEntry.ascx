@@ -171,8 +171,11 @@
             </asp:Panel>
 
             <asp:Panel runat="server" ID="pnlDone" CssClass="text-center" Visible="false">
-                <h3>Success!</h3>
-                Your changes have been submitted. Pending review, they will be applied.
+                <Rock:NotificationBox runat="server" ID="nbApplyError" NotificationBoxType="Warning" CssClass="text-left" Visible="false" EnableViewState="false" />
+                <asp:Panel runat="server" ID="pnlDoneSuccess">
+                    <h3>Success!</h3>
+                    Your changes have been submitted. Pending review, they will be applied.
+                </asp:Panel>
                 <br />
                 <br />
                 <Rock:BootstrapButton runat="server" Text="Done" ID="btnDone" OnClick="btnDone_Click" CssClass="btn btn-primary" />

@@ -15,6 +15,7 @@
         </div>
         <div class="panel-body">
             <Rock:HiddenFieldWithClass ID="hfAttributeOrder" runat="server" CssClass="js-attribute-values-order" />
+            <Rock:NotificationBox ID="nbApplyError" runat="server" NotificationBoxType="Warning" Visible="false" EnableViewState="false" />
             <asp:ValidationSummary ID="valSummaryTop" runat="server"  HeaderText="Please correct the following:" CssClass="alert alert-validation" />
             <fieldset id="fsAttributes" runat="server" class="attribute-values"></fieldset>
             <asp:Panel ID="pnlActions" runat="server" CssClass="actions" Visible="false">
