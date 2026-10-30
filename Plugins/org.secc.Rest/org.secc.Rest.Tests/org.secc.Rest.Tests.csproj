@@ -40,7 +40,9 @@
          context, the person match and the save. The account limit tests replace the current
          request, the attribute cache lookup (GetAttributeCache), the database context
          (CreateRockContext) and the refusal log write (LogException) instead of the create
-         budget. None of this touches the database (Rock writes
+         budget. The forgot password recipient tests replace the OAuth client check, the current
+         request, the database context, the person and login lookups, the email message
+         creation and the email send. None of this touches the database (Rock writes
          the Exception Log lines to App_Data\Logs in the test output folder instead), and only
          the account limit tests set HttpContext.Current, to requests they build. -->
     <Reference Include="Rock">

@@ -320,6 +320,69 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
+        /// The people with this email address who have at least one login.
+        /// </summary>
+        protected virtual IEnumerable<Person> GetPeopleByEmail( PersonService personService, string email )
+        {
+            return personService.GetByEmail( email ).Where( p => p.Users.Any() );
+        }
+
+        /// <summary>
+        /// The person's logins whose authentication provider does not require remote authentication,
+        /// so their password can be reset by email.
+        /// </summary>
+        protected virtual List<UserLogin> GetResettableLogins( UserLoginService userLoginService, Person person )
+        {
+            var users = new List<UserLogin>();
+            foreach ( UserLogin user in userLoginService.GetByPersonId( person.Id ) )
+            {
+                if ( user.EntityType != null )
+                {
+                    var component = Rock.Security.AuthenticationContainer.GetComponent( user.EntityType.Name );
+                    if ( component != null && !component.RequiresRemoteAuthentication )
+                    {
+                        users.Add( user );
+                    }
+                }
+            }
+
+            return users;
+        }
+
+        /// <summary>
+        /// Sends the forgot username/password system communication to these recipients.
+        /// </summary>
+        private void SendForgotPasswordEmail( List<RockEmailMessageRecipient> recipients )
+        {
+            var emailMessage = CreateForgotPasswordEmailMessage();
+            foreach ( var recipient in recipients )
+            {
+                emailMessage.AddRecipient( recipient );
+            }
+
+            SendEmailMessage( emailMessage );
+        }
+
+        /// <summary>
+        /// A new forgot username/password email message, with no recipients and no communication record.
+        /// </summary>
+        protected virtual RockEmailMessage CreateForgotPasswordEmailMessage()
+        {
+            var emailMessage = new RockEmailMessage( Rock.SystemGuid.SystemCommunication.SECURITY_FORGOT_USERNAME.AsGuid() );
+            emailMessage.AppRoot = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash();
+            emailMessage.CreateCommunicationRecord = false;
+            return emailMessage;
+        }
+
+        /// <summary>
+        /// Sends the email message.
+        /// </summary>
+        protected virtual void SendEmailMessage( RockEmailMessage emailMessage )
+        {
+            emailMessage.Send();
+        }
+
+        /// <summary>
         /// Saves a person that CreateAccount created, with Rock's PersonService.SaveNewPerson.
         /// </summary>
         protected virtual void SaveNewPerson( Person person, Rock.Data.RockContext rockContext )
@@ -1379,44 +1442,41 @@ namespace org.secc.Rest.Controllers
                 var rockContext = CreateRockContext();
                 PersonService personService = new PersonService( rockContext );
                 UserLoginService userLoginService = new UserLoginService( rockContext );
-                bool hasAccountWithPasswordResetAbility = false;
-                var results = new List<IDictionary<string, object>>();
+                var recipients = new List<RockEmailMessageRecipient>();
 
-                // Check to make sure we have accounts matching the email address given
-                foreach ( Person person in personService.GetByEmail( email )
-                    .Where( p => p.Users.Any() ) )
+                // Each email goes to the stored address of the people it lists, one email per stored address.
+                var people = GetPeopleByEmail( personService, email ).OrderBy( p => p.Id ).ToList();
+                foreach ( var addressGroup in people.GroupBy( p => p.Email, StringComparer.Ordinal ) )
                 {
-                    var users = new List<UserLogin>();
-                    foreach ( UserLogin user in userLoginService.GetByPersonId( person.Id ) )
+                    bool hasAccountWithPasswordResetAbility = false;
+                    var results = new List<IDictionary<string, object>>();
+
+                    foreach ( Person person in addressGroup )
                     {
-                        if ( user.EntityType != null )
+                        var users = GetResettableLogins( userLoginService, person );
+                        if ( users.Any() )
                         {
-                            var component = Rock.Security.AuthenticationContainer.GetComponent( user.EntityType.Name );
-                            if ( component != null && !component.RequiresRemoteAuthentication )
-                            {
-                                users.Add( user );
-                                hasAccountWithPasswordResetAbility = true;
-                            }
+                            hasAccountWithPasswordResetAbility = true;
                         }
+
+                        var resultsDictionary = new Dictionary<string, object>();
+                        resultsDictionary.Add( "Person", person );
+                        resultsDictionary.Add( "Users", users );
+                        results.Add( resultsDictionary );
                     }
 
-                    var resultsDictionary = new Dictionary<string, object>();
-                    resultsDictionary.Add( "Person", person );
-                    resultsDictionary.Add( "Users", users );
-                    results.Add( resultsDictionary );
+                    if ( hasAccountWithPasswordResetAbility )
+                    {
+                        var mergeFields = new Dictionary<string, object>();
+                        mergeFields.Add( "Results", results.ToArray() );
+                        recipients.Add( RockEmailMessageRecipient.CreateAnonymous( addressGroup.Key, mergeFields ) );
+                    }
                 }
-                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null );
 
                 // If we found matching accounts that have the ability to be reset, go ahead and send the email
-                if ( results.Count > 0 && hasAccountWithPasswordResetAbility )
+                if ( recipients.Any() )
                 {
-                    mergeFields.Add( "Results", results.ToArray() );
-
-                    var emailMessage = new RockEmailMessage( Rock.SystemGuid.SystemCommunication.SECURITY_FORGOT_USERNAME.AsGuid() );
-                    emailMessage.AddRecipient( RockEmailMessageRecipient.CreateAnonymous( email, mergeFields ) );
-                    emailMessage.AppRoot = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash();
-                    emailMessage.CreateCommunicationRecord = false;
-                    emailMessage.Send();
+                    SendForgotPasswordEmail( recipients );
                     response.Result = StandardResponse.ResultCode.Success;
                     response.Message = "Forgot password email has been sent successfully.";
                 }
