@@ -1,7 +1,7 @@
-# Builds the LinkList plugin. Unlike our legacy plugins, this one uses the new
-# Rock plugin format (rock-dev-tool style): an SDK-style C# project that restores
-# via NuGet PackageReference, plus an Obsidian (Vue/TypeScript) frontend project
-# compiled by @sparkdevnetwork/obsidian-build-tools.
+# Builds the LinkList plugin: an SDK-style C# project (Rock assemblies come
+# from RockWeb\Bin via the repo-root Directory.Build.props/.targets, not NuGet),
+# plus an Obsidian (Vue/TypeScript) frontend project compiled by
+# @sparkdevnetwork/obsidian-build-tools.
 #
 # The pipeline invokes this via the existing BuildPlugin.ps1 hook, so no pipeline
 # changes are required — but the build agent must have Node.js/npm available.
@@ -46,9 +46,8 @@ Write-Host "LinkList: using MSBuild at $msbuild"
 
 # --- 1. C# project ---
 # -restore handles NuGet (PackageReference; there is no packages.config).
-# RockWebPath feeds the DotLiquid/HtmlAgilityPack HintPaths and the
-# CopyToRockWeb step (SparkDevNetwork.Rock.Build.Tasks copies the compiled
-# DLL into RockWeb\Bin).
+# RockWebPath feeds the Rock assembly HintPaths (RockWeb\Bin) and the shared
+# CopyRockPluginToRockWeb target, which copies the compiled DLL into RockWeb\Bin.
 & $msbuild -m -restore "org.secc.LinkList\org.secc.LinkList.csproj" /p:Configuration=Release /p:RockWebPath="$rockWeb"
 if ($LASTEXITCODE -ne 0) {
     Pop-Location

@@ -50,10 +50,10 @@ Two subsystems deserve special mention:
 - **Projects:** `org.secc.LinkList` (C# plugin), `org.secc.LinkList.Obsidian` (Vue/TypeScript
   frontend), `org.secc.LinkList.Tests` (xunit)
 - **Root namespace:** `org.secc.LinkList`
-- **Target framework:** .NET Framework 4.7.2 (SDK-style csproj; `RockRMS.Rock` /
-  `Rock.Blocks` / `Rock.Rest` NuGet packages, `1.16.9-rc.1`)
-- **Deploys to:** `RockWeb/Bin/` (assembly — a custom `CopyPluginToRockWebBin` MSBuild target,
-  since the Spark build task no-ops without a rock-dev-tool layout) and
+- **Target framework:** .NET Framework 4.7.2 (SDK-style csproj, `IsRockPlugin`; Rock assemblies
+  referenced from `RockWeb\Bin`, not NuGet — see [README-SdkStyle](../README-SdkStyle.md))
+- **Deploys to:** `RockWeb/Bin/` (assembly — the shared `CopyRockPluginToRockWeb` target in the
+  repo-root `Directory.Build.targets`) and
   `RockWeb/Plugins/org_secc/LinkList/` (built Obsidian JS — `npm run deploy` in the
   `.Obsidian` project; a solution rebuild does **not** copy the JS)
 - **Packaging:** `plugin.json` + `BuildPlugin.ps1` bundle the Release DLL and the Obsidian
@@ -136,9 +136,15 @@ Interaction medium/channel for analytics.
   Matrix, `Authorization`/`AuthService` (per-list `Auth` rules), Group/GroupMember services
   (security role groups), Interactions (`InteractionTransaction`, channel/component caches),
   Defined Types/Values, `Rock.Plugin` migrations, BinaryFile (header images).
-- **NuGet:** `RockRMS.Rock` / `Rock.Blocks` / `Rock.Rest` `1.16.9-rc.1`,
-  `Microsoft.AspNet.WebApi.Core`; `DotLiquid` and `HtmlAgilityPack` referenced from
-  `RockWeb\Bin` with `Private=false` (compile against Rock's copy, never ship it).
+- **Rock assemblies:** the shared defaults (`Rock`, `Rock.Common`, `Rock.Enums`,
+  `Rock.Lava.Shared`, `Rock.ViewModels`, `DotLiquid`, `EntityFramework`, `Newtonsoft.Json`) plus
+  `Rock.Blocks`, `Rock.Rest`, `HtmlAgilityPack`, `System.Web.Http` and
+  `System.Net.Http.Formatting`, all from `RockWeb\Bin` with `Private=false` (compile against the
+  Rock we deploy, never ship it). No `RockRMS.*` packages: Spark doesn't publish one for every
+  hotfix (there is none for 16.12).
+- **NuGet:** `SparkDevNetwork.Rock.Analyzers` only. (`SparkDevNetwork.Rock.Build.Tasks` was
+  removed: its copy step no-ops outside a rock-dev-tool layout, and its props blank out
+  `RockWebPath`.)
 - **Frontend:** `@rockrms/obsidian-framework`, Vue 3, chart.js (analytics panel), rollup (web
   component bundle), jest (frontend tests). External fonts: Google Fonts always; the Adobe
   IvyJournal kit only when the org-wide toggle is on (licensed domains).
@@ -182,8 +188,8 @@ Interaction medium/channel for analytics.
 
 ## Making Changes
 
-- **Backend:** edit the C# project and rebuild — the `CopyPluginToRockWebBin` target drops the
-  DLL into `RockWeb\Bin`. New schema/attributes belong in a **new numbered migration**; never
+- **Backend:** edit the C# project and rebuild — the shared `CopyRockPluginToRockWeb` target drops
+  the DLL into `RockWeb\Bin`. New schema/attributes belong in a **new numbered migration**; never
   change the GUIDs in `LinkListGuids` (many match production data that predates the plugin).
 - **Frontend:** edit `src/**` in `org.secc.LinkList.Obsidian`, then `npm run deploy` (builds
   via `obsidian-build` + rollup and copies `dist` into RockWeb; hard-refresh the browser).
@@ -205,4 +211,4 @@ Interaction medium/channel for analytics.
 - Related: [org.secc.Cms](../org.secc.Cms/README.md) (legacy `LinkListEditUsers` block over the
   same security groups).
 
-Last updated: 2026-10-27
+Last updated: 2026-10-31

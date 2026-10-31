@@ -13,12 +13,16 @@ during data work and to issue event passes.
 
 ## Project Info
 
-- **Project file:** `org.secc.Search.csproj`
+- **Project file:** `org.secc.Search.csproj` (SDK-style, `IsRockPlugin`; Rock assemblies from
+  `RockWeb\Bin` — see [README-SdkStyle](../README-SdkStyle.md))
 - **Root namespace:** `org.secc.Search`
 - **Target framework:** .NET Framework 4.7.2
-- **Deploys to:** `RockWeb/bin/` (assembly) and `RockWeb/Plugins/org_secc/` (block `.ascx` markup, via the PostBuildEvent `xcopy`)
-- **Note:** Only the three `Person/*.cs` search components are in the `.csproj` `<Compile>` list. The
-  `org_secc/Crm/*.ascx.cs` blocks are **RockWeb-compiled** (compiled in place by RockWeb, not into this assembly).
+- **Deploys to:** `RockWeb/bin/` (assembly) and `RockWeb/Plugins/org_secc/` (block `.ascx` + `.ascx.cs`), via
+  the shared `CopyRockPluginToRockWeb` target in the repo-root `Directory.Build.targets`
+- **Note:** Every `.cs` outside `org_secc/` (the three `Person/*.cs` search components plus
+  `AssemblyInfo.cs`) compiles into the assembly. The `org_secc/Crm/*.ascx.cs` blocks are
+  **RockWeb-compiled** (compiled in place by RockWeb, not into this assembly); the shared targets
+  exclude `org_secc/**` from compilation.
 
 ## Project Layout
 
@@ -81,7 +85,7 @@ RockWeb blocks under `org_secc/Crm/`. Categories below are taken from each block
 
 - To add a new search type, drop a `SearchComponent` subclass in `Person/`, decorate it with
   `[Export(typeof(SearchComponent))]` + `[ExportMetadata("ComponentName", "…")]` and a `SearchLabel`
-  default, implement `Search(string)`, and add it to the `.csproj` `<Compile>` list. MEF discovers it
+  default, implement `Search(string)` (SDK-style project: any new `.cs` file is compiled automatically). MEF discovers it
   at startup — no further registration needed. Follow `Person/Envelope.cs` as the simplest template.
 - The results grid and its per-type query logic live in `org_secc/Crm/PersonSearch.ascx.cs`
   (`BindGrid` switch). Keep its branches in sync with the standalone search components if behavior
