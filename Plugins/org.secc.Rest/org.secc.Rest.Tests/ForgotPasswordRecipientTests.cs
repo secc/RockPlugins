@@ -31,7 +31,7 @@ namespace org.secc.Rest.Tests
     /// <summary>
     /// Who api/account/forgotpassword sends its email to and which people each email lists, run through the
     /// action on a controller whose OAuth client check, current request, database context, person lookup,
-    /// login lookup, password-change check, application root, email message creation, email send and exception
+    /// login lookup, authentication provider lookup, application root setting, email message creation, email send and exception
     /// log are replaced. The message's recipients are recorded instead of sent. Every test uses email addresses
     /// that no other test uses, so the action's per-address limits apply only where a test spends them, and
     /// each request comes from a connecting address that no other request uses unless the test sets one.
@@ -64,9 +64,14 @@ namespace org.secc.Rest.Tests
             public Dictionary<int, List<UserLogin>> Logins { get; } = new Dictionary<int, List<UserLogin>>();
 
             /// <summary>
-            /// The Ids of the logins whose authentication provider doesn't let the person change their password.
+            /// The authentication provider of each login, by login Id. A login not listed has none.
             /// </summary>
-            public HashSet<int> NoChangePassword { get; } = new HashSet<int>();
+            public Dictionary<int, Rock.Security.AuthenticationComponent> Providers { get; } = new Dictionary<int, Rock.Security.AuthenticationComponent>();
+
+            /// <summary>
+            /// The PublicApplicationRoot global attribute's value.
+            /// </summary>
+            public string PublicApplicationRootSetting { get; set; } = ApplicationRoot;
 
             /// <summary>
             /// The messages of the exceptions the controller logged, in order.
@@ -87,6 +92,11 @@ namespace org.secc.Rest.Tests
             /// The recipients of each message sent, in order.
             /// </summary>
             public List<List<RockEmailMessageRecipient>> Sends { get; } = new List<List<RockEmailMessageRecipient>>();
+
+            /// <summary>
+            /// The application root of each message sent, in order.
+            /// </summary>
+            public List<string> AppRoots { get; } = new List<string>();
 
             protected override bool IsCallerActiveOAuthClient( string clientId )
             {
@@ -115,14 +125,14 @@ namespace org.secc.Rest.Tests
                 return Logins.TryGetValue( person.Id, out var logins ) ? logins : new List<UserLogin>();
             }
 
-            protected override bool SupportsChangePassword( UserLogin user )
+            protected override Rock.Security.AuthenticationComponent GetAuthenticationComponent( UserLogin user )
             {
-                return !NoChangePassword.Contains( user.Id );
+                return Providers.TryGetValue( user.Id, out var provider ) ? provider : null;
             }
 
-            protected override string GetPublicApplicationRoot()
+            protected override string GetPublicApplicationRootSetting()
             {
-                return ApplicationRoot;
+                return PublicApplicationRootSetting;
             }
 
             protected override void LogException( System.Exception ex )
@@ -139,10 +149,12 @@ namespace org.secc.Rest.Tests
             protected override void SendEmailMessage( RockEmailMessage emailMessage )
             {
                 Sends.Add( emailMessage.GetRecipients().Cast<RockEmailMessageRecipient>().ToList() );
+                AppRoots.Add( emailMessage.AppRoot );
             }
 
             /// <summary>
-            /// Adds a person with this stored email address and, unless resettable is false, one resettable login.
+            /// Adds a person with this stored email address and, unless resettable is false, one resettable login
+            /// whose provider lets the person change their password.
             /// </summary>
             public Person AddPerson( int id, string storedEmail, bool resettable = true )
             {
@@ -151,6 +163,7 @@ namespace org.secc.Rest.Tests
                 if ( resettable )
                 {
                     Logins[id] = new List<UserLogin> { new UserLogin { Id = id * 10, UserName = "patsample" + id, PersonId = id } };
+                    Providers[id * 10] = Provider<ChangePasswordProvider>();
                 }
 
                 return person;
@@ -418,6 +431,41 @@ namespace org.secc.Rest.Tests
         }
 
         [Fact]
+        public void StoredAddressTypedAddressAndRequestRefusals_EachHaveTheirOwnLogLine()
+        {
+            var spellings = CollationEqualSpellings( NewNumber() );
+            _controller.AddPerson( 1, spellings[0] );
+            _controller.PeerAddress = FakeRequest.NewAddress();
+
+            // Three emails, then the stored address's budget refuses the fourth.
+            for ( var i = 0; i < 4; i++ )
+            {
+                AssertNeutral( Forgot( spellings[i] ) );
+            }
+
+            AssertNeutral( Forgot( spellings[0] ) );
+            AssertNeutral( Forgot( spellings[0] ) );
+
+            // The fourth request for one typed address is refused by that address's budget.
+            Assert.Equal( ( HttpStatusCode ) 429, _controller.ForgotPassword( spellings[0] ).StatusCode );
+
+            // 25 requests from one caller address, then its budget refuses the next.
+            for ( var i = 8; i <= 25; i++ )
+            {
+                AssertNeutral( Forgot( "pat.other." + NewNumber() + "@example.test" ) );
+            }
+
+            Assert.Equal( ( HttpStatusCode ) 429, _controller.ForgotPassword( "pat.other." + NewNumber() + "@example.test" ).StatusCode );
+
+            Assert.Equal( 3, _controller.Sends.Count );
+            Assert.Collection(
+                _controller.Logged,
+                line => Assert.StartsWith( "Forgot password stored email address budget exceeded.", line ),
+                line => Assert.StartsWith( "Forgot password email address budget exceeded.", line ),
+                line => Assert.StartsWith( "Forgot password request budget exceeded.", line ) );
+        }
+
+        [Fact]
         public void TypedAsStored_ThreeRequests_AllSend()
         {
             var stored = "pat.sample." + NewNumber() + "@example.test";
@@ -542,7 +590,8 @@ namespace org.secc.Rest.Tests
             var n = NewNumber();
             var first = _controller.AddPerson( 1, "pat.sample." + n + "@example.test" );
             _controller.Logins[1].Add( new UserLogin { Id = 11, UserName = "patsample1-other", PersonId = 1 } );
-            _controller.NoChangePassword.Add( 11 );
+            _controller.Providers[11] = Provider<NoChangePasswordProvider>();
+            _controller.Logins[1].Add( new UserLogin { Id = 12, UserName = "patsample1-noprovider", PersonId = 1 } );
             _controller.AddPerson( 2, first.Email, resettable: false );
             _controller.AddPerson( 3, "Pat.Sample." + n + "@example.test" );
 
@@ -553,6 +602,18 @@ namespace org.secc.Rest.Tests
             Assert.All( recipients, r => Assert.Equal( "https://www.example.test/ConfirmAccount", r.MergeFields["ConfirmAccountUrl"] ) );
             Assert.Equal( new[] { new List<string> { "patsample1" }, new List<string>() }, PasswordChangeLogins( recipients[0] ) );
             Assert.Equal( new[] { new List<string> { "patsample3" } }, PasswordChangeLogins( recipients[1] ) );
+        }
+
+        [Fact]
+        public void ApplicationRootWithoutATrailingSlash_GetsOneInTheEmail()
+        {
+            _controller.PublicApplicationRootSetting = "https://www.example.test";
+            var person = _controller.AddPerson( 1, "pat.sample." + NewNumber() + "@example.test" );
+
+            AssertNeutral( Forgot( person.Email ) );
+
+            Assert.Equal( "https://www.example.test/ConfirmAccount", Assert.Single( SingleSend() ).MergeFields["ConfirmAccountUrl"] );
+            Assert.Equal( "https://www.example.test/", Assert.Single( _controller.AppRoots ) );
         }
 
         /// <summary>

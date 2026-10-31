@@ -389,12 +389,11 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
-        /// Whether the login's authentication provider lets the person change their password.
+        /// The login's authentication provider, or null when it has none.
         /// </summary>
-        protected virtual bool SupportsChangePassword( UserLogin user )
+        protected virtual Rock.Security.AuthenticationComponent GetAuthenticationComponent( UserLogin user )
         {
-            var component = user.EntityType != null ? Rock.Security.AuthenticationContainer.GetComponent( user.EntityType.Name ) : null;
-            return ProviderSupportsChangePassword( component );
+            return user.EntityType != null ? Rock.Security.AuthenticationContainer.GetComponent( user.EntityType.Name ) : null;
         }
 
         /// <summary>
@@ -406,11 +405,11 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
-        /// The PublicApplicationRoot global attribute, ending in a forward slash.
+        /// The PublicApplicationRoot global attribute, as configured.
         /// </summary>
-        protected virtual string GetPublicApplicationRoot()
+        protected virtual string GetPublicApplicationRootSetting()
         {
-            return ApplicationRootFrom( GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ) );
+            return GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" );
         }
 
         /// <summary>
@@ -435,6 +434,7 @@ namespace org.secc.Rest.Controllers
         private void SendForgotPasswordEmail( List<RockEmailMessageRecipient> recipients )
         {
             var emailMessage = CreateForgotPasswordEmailMessage();
+            emailMessage.AppRoot = ApplicationRootFrom( GetPublicApplicationRootSetting() );
             foreach ( var recipient in recipients )
             {
                 emailMessage.AddRecipient( recipient );
@@ -449,7 +449,6 @@ namespace org.secc.Rest.Controllers
         protected virtual RockEmailMessage CreateForgotPasswordEmailMessage()
         {
             var emailMessage = new RockEmailMessage( Rock.SystemGuid.SystemCommunication.SECURITY_FORGOT_USERNAME.AsGuid() );
-            emailMessage.AppRoot = GetPublicApplicationRoot();
             emailMessage.CreateCommunicationRecord = false;
             return emailMessage;
         }
@@ -1523,7 +1522,7 @@ namespace org.secc.Rest.Controllers
                 PersonService personService = new PersonService( rockContext );
                 UserLoginService userLoginService = new UserLoginService( rockContext );
                 var recipients = new List<RockEmailMessageRecipient>();
-                var confirmAccountUrl = ConfirmAccountUrlFrom( GetPublicApplicationRoot() );
+                var confirmAccountUrl = ConfirmAccountUrlFrom( ApplicationRootFrom( GetPublicApplicationRootSetting() ) );
 
                 // Each email goes to the stored address of the people it lists, one email per stored address.
                 var people = GetPeopleByEmail( personService, email ).OrderBy( p => p.Id ).ToList();
@@ -1543,7 +1542,7 @@ namespace org.secc.Rest.Controllers
                         var resultsDictionary = new Dictionary<string, object>();
                         resultsDictionary.Add( "Person", person );
                         resultsDictionary.Add( "Users", users );
-                        resultsDictionary.Add( "SupportsChangePassword", users.Where( SupportsChangePassword ).Select( u => u.UserName ).ToList() );
+                        resultsDictionary.Add( "SupportsChangePassword", users.Where( u => ProviderSupportsChangePassword( GetAuthenticationComponent( u ) ) ).Select( u => u.UserName ).ToList() );
                         results.Add( resultsDictionary );
                     }
 
