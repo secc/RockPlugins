@@ -1,53 +1,34 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- SDK-style Rock plugin. Rock assemblies are referenced from RockWeb\Bin
+       (the Rock we actually build and deploy) rather than the RockRMS.* NuGet
+       packages, which aren't published for every Rock hotfix. RockWeb lookup,
+       the shared Rock references and the copy into RockWeb\Bin come from
+       Directory.Build.props/.targets at the repo root
+       (see Plugins/README-SdkStyle.md). -->
+
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
-    <AdditionalAssembliesToCopy></AdditionalAssembliesToCopy>
-    <CopyToRockWeb>true</CopyToRockWeb>
+    <IsRockPlugin>true</IsRockPlugin>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SparkDevNetwork.Rock.Build.Tasks" Version="1.0.10" />
+    <!-- Analyzers only (no build-time dependency on a Rock version). -->
     <PackageReference Include="SparkDevNetwork.Rock.Analyzers" Version="1.0.10" />
-    <PackageReference Include="RockRMS.Rock" Version="1.16.9-rc.1" />
-    <PackageReference Include="RockRMS.Rock.Blocks" Version="1.16.9-rc.1" />
-    <PackageReference Include="RockRMS.Rock.Rest" Version="1.16.9-rc.1" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- From RockWeb\Bin, in addition to the shared default Rock references. -->
+    <RockReference Include="Rock.Blocks;Rock.Rest;HtmlAgilityPack" />
+    <!-- Web API comes from Rock's Bin too. (The Microsoft.AspNet.WebApi.Core
+         package would drag in Newtonsoft.Json 6.0.4 and win over Rock's 13.0.) -->
+    <RockReference Include="System.Web.Http;System.Net.Http.Formatting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
-    <!-- Provided by Rock at runtime. Private=false so we compile against
-         Rock's copy and never ship/overwrite it. -->
-    <Reference Include="DotLiquid">
-      <HintPath>$(RockWebPath)\Bin\DotLiquid.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="HtmlAgilityPack">
-      <HintPath>$(RockWebPath)\Bin\HtmlAgilityPack.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
   </ItemGroup>
-
-  <!-- SparkDevNetwork.Rock.Build.Tasks' CopyAssemblyToRockWeb silently no-ops
-       unless it finds a rock-dev-tool environment.json above plugin.json
-       ("Plugin environment not detected"). This repo doesn't use that layout,
-       so copy the plugin assembly (+ pdb) into RockWeb\Bin ourselves - Rock
-       only registers block types from assemblies in Bin. Runs wherever
-       RockWebPath resolves (VS via SolutionDir, CLI/pipeline via
-       /p:RockWebPath). -->
-  <Target Name="CopyPluginToRockWebBin" AfterTargets="Build" Condition="'$(RockWebPath)' != ''">
-    <ItemGroup>
-      <PluginOutput Include="$(TargetPath)" />
-      <PluginOutput Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
-    </ItemGroup>
-    <Copy SourceFiles="@(PluginOutput)" DestinationFolder="$(RockWebPath)\Bin" SkipUnchangedFiles="true" />
-    <Message Importance="high" Text="LinkList: copied $(TargetFileName) to $(RockWebPath)\Bin" />
-  </Target>
 
 </Project>

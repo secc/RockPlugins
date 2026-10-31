@@ -78,7 +78,10 @@ This repository contains custom plugins and themes for Rock RMS (Rock Management
 ### Building Projects
 
 - Projects use MSBuild and can be built with Visual Studio 2017+
-- Each project has a PostBuildEvent that copies built assemblies to the RockWeb directory
+- Projects are being converted to SDK-style one at a time (see `Plugins/README-SdkStyle.md`).
+  SDK-style plugins set `<IsRockPlugin>true</IsRockPlugin>` and get Rock references and the copy
+  into RockWeb from the repo-root `Directory.Build.props`/`.targets`
+- Legacy (non-SDK) projects have a PostBuildEvent that copies built assemblies to the RockWeb directory
 - Build outputs go to `bin/Debug/` or `bin/Release/` (these are git-ignored)
 
 ### Dependencies
@@ -143,8 +146,10 @@ When reviewing a pull request, verify that the affected plugin's README is kept 
 1. Create a new C# Class Library project in `/Plugins/`
 2. Use naming convention: `org.secc.[PluginName]`
 3. Target .NET Framework 4.7.2
-4. Reference Rock RMS core libraries from the parent solution
-5. Add appropriate PostBuildEvent for deployment
+4. Use an SDK-style project with `<IsRockPlugin>true</IsRockPlugin>` (copy
+   `Plugins/org.secc.Search/org.secc.Search.csproj`). Rock assemblies come from `RockWeb\Bin`
+   via `RockReference` items, not the `RockRMS.*` NuGet packages
+5. Deployment to RockWeb is automatic (no PostBuildEvent needed)
 6. Include copyright header in source files
 
 ### Data Access
