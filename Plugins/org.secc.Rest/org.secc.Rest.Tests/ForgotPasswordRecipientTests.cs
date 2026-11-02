@@ -12,10 +12,13 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Principal;
 using System.Threading;
 using System.Web;
 using System.Web.Http;
@@ -204,6 +207,28 @@ namespace org.secc.Rest.Tests
         {
             var results = Assert.IsType<IDictionary<string, object>[]>( recipient.MergeFields["Results"] );
             return results.Select( r => Assert.IsType<Person>( r["Person"] ) ).ToList();
+        }
+
+        /// <summary>
+        /// Runs the call with HttpContext.Current signed in under this name, the name the action reads as the
+        /// OAuth client's. Without it the name is null.
+        /// </summary>
+        private static T AsClient<T>( string name, Func<T> call )
+        {
+            var previous = HttpContext.Current;
+            HttpContext.Current = new HttpContext( new HttpRequest( string.Empty, "http://localhost/", string.Empty ), new HttpResponse( TextWriter.Null ) )
+            {
+                User = new GenericPrincipal( new GenericIdentity( name ), new string[0] )
+            };
+
+            try
+            {
+                return call();
+            }
+            finally
+            {
+                HttpContext.Current = previous;
+            }
         }
 
         /// <summary>
@@ -498,17 +523,100 @@ namespace org.secc.Rest.Tests
         [Fact]
         public void StoredAddressesDifferingOnlyInCase_ShareOneBudget()
         {
-            var n = NewNumber();
-            var upper = _controller.AddPerson( 1, "Pat.Sample." + n + "@example.test" );
-            var lower = _controller.AddPerson( 2, "pat.sample." + n + "@example.test" );
+            var spellings = CollationEqualSpellings( NewNumber() );
+            var upper = _controller.AddPerson( 1, "Pat.Strasse." + spellings[0].Substring( "pat.strasse.".Length ) );
+            var lower = _controller.AddPerson( 2, spellings[0] );
 
             for ( var i = 0; i < 3; i++ )
             {
-                AssertNeutral( Forgot( lower.Email ) );
+                AssertNeutral( Forgot( spellings[i] ) );
             }
 
-            Assert.Equal( 3, SentTo( upper.Email ) + SentTo( lower.Email ) );
-            Assert.Equal( new[] { 2, 1 }, _controller.Sends.Select( recipients => recipients.Count ) );
+            Assert.Equal( 3, SentTo( upper.Email ) );
+            Assert.Equal( 3, SentTo( lower.Email ) );
+            Assert.Equal( new[] { 2, 2, 2 }, _controller.Sends.Select( recipients => recipients.Count ) );
+
+            // The shared budget is spent: a fourth request sends nothing more.
+            AssertNeutral( Forgot( spellings[3] ) );
+
+            Assert.Equal( 3, _controller.Sends.Count );
+        }
+
+        [Fact]
+        public void FourStoredAddressesSharingOneBudget_EachGetsItsEmailEveryRequest()
+        {
+            var spellings = CollationEqualSpellings( NewNumber() );
+            var rest = spellings[0].Substring( "pat.strasse.".Length );
+            var people = new[]
+            {
+                _controller.AddPerson( 1, spellings[0] ),
+                _controller.AddPerson( 2, spellings[0].Replace( "@encyclopaedia", "@Encyclopaedia" ) ),
+                _controller.AddPerson( 3, "Pat.Strasse." + rest ),
+                _controller.AddPerson( 4, spellings[0] + " " )
+            };
+
+            for ( var i = 0; i < 3; i++ )
+            {
+                AssertNeutral( Forgot( spellings[i] ) );
+            }
+
+            Assert.Equal( 4, people.Select( p => p.Email ).Distinct().Count() );
+            Assert.Equal( 3, _controller.Sends.Count );
+            foreach ( var person in people )
+            {
+                Assert.Equal( 3, SentTo( person.Email ) );
+            }
+
+            Assert.All( _controller.Sends.SelectMany( recipients => recipients ), r => Assert.Equal( people.Where( p => p.Email == r.To ), Listed( r ) ) );
+
+            // The shared budget is spent: a fourth request sends nothing more.
+            AssertNeutral( Forgot( spellings[3] ) );
+
+            Assert.Equal( 3, _controller.Sends.Count );
+        }
+
+        [Fact]
+        public void StoredAddressesDifferingOnlyInTrailingWhitespace_ShareOneBudget()
+        {
+            var spellings = CollationEqualSpellings( NewNumber() );
+            var trimmed = _controller.AddPerson( 1, spellings[0] );
+
+            // One request before the second stored address exists.
+            AssertNeutral( Forgot( spellings[0] ) );
+
+            var padded = _controller.AddPerson( 2, spellings[0] + " " );
+            for ( var i = 1; i < 4; i++ )
+            {
+                AssertNeutral( Forgot( spellings[i] ) );
+            }
+
+            // Three requests spend the budget the two stored addresses share; the fourth sends nothing.
+            Assert.Equal( new[] { 1, 2, 2 }, _controller.Sends.Select( recipients => recipients.Count ) );
+            Assert.Equal( 3, SentTo( trimmed.Email ) );
+            Assert.Equal( 2, SentTo( padded.Email ) );
+        }
+
+        [Fact]
+        public void SpentStoredAddress_RefusalsFromTwoClients_EachHaveTheirOwnLogLine()
+        {
+            var spellings = CollationEqualSpellings( NewNumber() );
+            _controller.AddPerson( 1, spellings[0] );
+            _controller.PeerAddress = FakeRequest.NewAddress();
+            var a = Guid.NewGuid().ToString();
+            var b = Guid.NewGuid().ToString();
+
+            // Three emails, then the stored address's budget refuses a fourth request from each client.
+            for ( var i = 0; i < 4; i++ )
+            {
+                AssertNeutral( AsClient( a, () => Forgot( spellings[i] ) ) );
+            }
+
+            AssertNeutral( AsClient( b, () => Forgot( spellings[0] ) ) );
+
+            Assert.Equal( 3, _controller.Sends.Count );
+            Assert.Equal( 2, _controller.Logged.Count );
+            Assert.Single( _controller.Logged, line => line.StartsWith( "Forgot password stored email address budget exceeded." ) && line.Contains( "Client: " + a + " " ) );
+            Assert.Single( _controller.Logged, line => line.StartsWith( "Forgot password stored email address budget exceeded." ) && line.Contains( "Client: " + b + " " ) );
         }
 
         [Fact]

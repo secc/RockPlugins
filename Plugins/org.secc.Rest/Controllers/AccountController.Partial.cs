@@ -1526,6 +1526,9 @@ namespace org.secc.Rest.Controllers
 
                 // Each email goes to the stored address of the people it lists, one email per stored address.
                 var people = GetPeopleByEmail( personService, email ).OrderBy( p => p.Id ).ToList();
+
+                // Stored addresses that share a budget key are counted once per request and share the outcome.
+                var storedAddressAllowed = new Dictionary<string, bool>();
                 foreach ( var addressGroup in people.GroupBy( p => p.Email, StringComparer.Ordinal ) )
                 {
                     bool hasAccountWithPasswordResetAbility = false;
@@ -1546,8 +1549,21 @@ namespace org.secc.Rest.Controllers
                         results.Add( resultsDictionary );
                     }
 
+                    if ( !hasAccountWithPasswordResetAbility )
+                    {
+                        continue;
+                    }
+
+                    var storedKey = StoredRecipientKey( addressGroup.Key );
+                    bool allowed;
+                    if ( !storedAddressAllowed.TryGetValue( storedKey, out allowed ) )
+                    {
+                        allowed = TryRegisterForgotPasswordStoredAddress( clientId, addressGroup.Key );
+                        storedAddressAllowed[storedKey] = allowed;
+                    }
+
                     // A stored address whose budget is spent gets no email; the response stays the same.
-                    if ( hasAccountWithPasswordResetAbility && TryRegisterForgotPasswordStoredAddress( clientId, addressGroup.Key ) )
+                    if ( allowed )
                     {
                         var mergeFields = new Dictionary<string, object>();
                         mergeFields.Add( "Results", results.ToArray() );
