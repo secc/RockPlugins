@@ -1,0 +1,6 @@
+# MSBuild reads this file automatically for any project or solution under this
+# folder (msbuild.exe only; Visual Studio and dotnet build already restore).
+# SDK-style projects need a NuGet restore before they build, or they fail with
+# NETSDK1004. The pipeline builds each plugin with plain "msbuild <csproj>",
+# so restore here. Legacy packages.config projects are unaffected.
+-restore

@@ -7,7 +7,7 @@ still builds exactly as before.
 
 ## How it works
 
-Two files at the repo root do the shared work:
+Three files at the repo root do the shared work:
 
 - **`Directory.Build.props`** finds RockWeb and sets `RockWebPath` / `RockBin`.
   First match wins:
@@ -19,8 +19,13 @@ Two files at the repo root do the shared work:
   It also re-imports the parent `Directory.Build.props` (Rock's, which sets `PathMap`).
 - **`Directory.Build.targets`** adds the Rock references, keeps `org_secc\**` out of
   compilation, and copies the plugin into RockWeb after each build.
+- **`Directory.Build.rsp`** adds `-restore` to every `msbuild.exe` command run on a
+  project under the repo. SDK projects fail with `NETSDK1004` if they aren't restored,
+  and the pipeline builds each plugin with a plain `msbuild <csproj>`. Visual Studio and
+  `dotnet build` restore on their own and don't read this file. Restore does nothing for
+  legacy `packages.config` projects.
 
-Both files apply to every project under the repo, legacy ones included. So everything
+The props and targets files apply to every project under the repo, legacy ones included. So everything
 that changes a build is gated on an SDK-style project opting in. Legacy projects
 evaluate identically with or without these files.
 
@@ -90,12 +95,10 @@ Start from `org.secc.Search/org.secc.Search.csproj`. Then:
 
 ## Known gaps
 
-- **Restore.** SDK projects must be restored before building (`msbuild -restore`,
-  `dotnet build`, or `nuget restore`). Anything that builds plugin projects without a
-  restore step fails with `NETSDK1004`. LinkList's `BuildPlugin.ps1` already passes
-  `-restore`.
 - **Mixed project references.** Not yet exercised: a legacy project referencing an
   SDK-style one, or the reverse (e.g. once `org.secc.DevLib` is converted).
 - **Mac/Linux** can compile SDK-style plugins (the .NET SDK supplies the net472 reference
   assemblies), as long as a built RockWeb\Bin is available. Running the tests there needs
   Mono, and running Rock still needs Windows.
+
+Last updated: 2026-11-02
