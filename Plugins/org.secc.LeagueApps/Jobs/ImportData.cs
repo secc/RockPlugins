@@ -52,6 +52,7 @@ namespace org.secc.LeagueApps
             var warnings = new List<string>();
             var processed = 0;
             var skipped = 0;
+            var deceasedSkipped = 0;
             var totalPrograms = 0;
 
             try
@@ -230,7 +231,7 @@ namespace org.secc.LeagueApps
                     {
                         try
                         {
-                            if ( !ImportApplicant( apiClient, applicant, league3, leagueGroupType, groupMemberAttribute, personattribute, connectionStatus, attributeValueService, program, warnings, ref consecutiveMemberFailures ) )
+                            if ( !ImportApplicant( apiClient, applicant, league3, leagueGroupType, groupMemberAttribute, personattribute, connectionStatus, attributeValueService, program, warnings, ref consecutiveMemberFailures, ref deceasedSkipped ) )
                             {
                                 abandoned = true;
                                 break;
@@ -281,6 +282,11 @@ namespace org.secc.LeagueApps
                 throw new Exception( BuildSummary( processed, skipped, totalPrograms, warnings ) );
             }
             Result = "Successfully imported " + processed + " leagues.";
+            if ( deceasedSkipped > 0 )
+            {
+                // Not a warning (that would fail the job), but visible in case a living person's LeagueApps id sits on a deceased record.
+                Result += " Skipped " + deceasedSkipped + " deceased applicant(s).";
+            }
         }
 
         /// <summary>
@@ -326,7 +332,7 @@ namespace org.secc.LeagueApps
         /// Returns false when the rest of the program should be skipped because member lookups keep failing.
         /// </summary>
         private static bool ImportApplicant( APIClient apiClient, Registrations applicant, Group league, GroupTypeCache leagueGroupType, AttributeCache groupMemberAttribute,
-            AttributeCache personattribute, DefinedValueCache connectionStatus, AttributeValueService attributeValueService, Programs program, List<string> warnings, ref int consecutiveMemberFailures )
+            AttributeCache personattribute, DefinedValueCache connectionStatus, AttributeValueService attributeValueService, Programs program, List<string> warnings, ref int consecutiveMemberFailures, ref int deceasedSkipped )
         {
             // Use a fresh RockContext on every person/groupmember to keep things moving quickly
             using ( var rockContext = new RockContext() )
@@ -399,6 +405,7 @@ namespace org.secc.LeagueApps
                 // membership and a new one was added on every run. Skip them; a warning would fail the job nightly.
                 if ( person.IsDeceased )
                 {
+                    deceasedSkipped++;
                     return true;
                 }
 
