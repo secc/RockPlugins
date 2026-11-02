@@ -395,6 +395,13 @@ namespace org.secc.LeagueApps
                     }
                 }
 
+                // Rock's group member queries hide deceased people, so the existence check below never finds their
+                // membership and a new one was added on every run. Skip them; a warning would fail the job nightly.
+                if ( person.IsDeceased )
+                {
+                    return true;
+                }
+
                 // Check to see if the group member already exists
                 var groupmember = groupMemberService.GetByGroupIdAndPersonId( league.Id, person.Id ).FirstOrDefault();
 
