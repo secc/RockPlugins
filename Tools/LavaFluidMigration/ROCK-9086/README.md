@@ -384,6 +384,43 @@ the One Point `portalsearch` preview and the `/Registration` debug `console.log`
 after a comment, an unterminated `<span`, an entity `ToString`). `MyDashboardWorkflow` incident reports print a
 `List`1` type name for *Witnesses* on both engines.
 
+## Pass 15 — three weeks of the log (`020_apply_prodpass9.sql` + 5 theme files)
+
+Production 2026-10-12 15:30 through 2026-11-03: about 4,900 Fluid rows (220 a day) in 328 signatures. 49 are not
+per-render tokens, whitespace or DotLiquid-only `Liquid error:` text, and most of those are the benign classes above.
+These are fixed here:
+
+| Where | Problem on Fluid | Change |
+|---|---|---|
+| `SermonSeriesDetail.lava` (SECC2019, SECC2024) YouTube iframe and `EmbedCode` output | The page body sits in `{% cache … twopass:'true' %}`, so the first pass's output is parsed again. Rock's Fluid parser treats `/-` as the start of a shorthand block comment (`LavaFluidParser.cs` `LavaBlockCommentParser`), so a video id that starts with `-` (`embed/-8XRRuMc2xU`, `youtu.be/-IJwx1mLe_o`) swallows the id, or the rest of the page. DotLiquid has no shorthand comments | iframe: `embed{% raw %}{{ '/' }}{% endraw %}{{youtubeMessageVideoId}}`; `EmbedCode`: `Replace:'youtu.be/','www.youtube.com/watch?v='` (the youtube shortcode still takes the id after `=`). LavaProbe 2P1 reproduces the prod truncation, 2P2/2P3/S3 render the same on both engines |
+| `CommunityPastors.lava` (LWYA, page 935) | `communityPastor \| 'Object'` is a parse error ("An identifier was expected after the '\|' sign") | `{% assign PastorObject = communityPastor %}` (DotLiquid ignored the bare string, so same output) |
+| `SEKidsRedirect.lava` (SECC2019, SECC2024) | `PageRedirect` inside `{% contentchannelitem %}` is logged as a block error (the pass-11 class) | keep the URL, redirect after the block, as in `LiveStreamRedirect.lava` |
+| HtmlContent 443 / 445 (Camp App pages 1078 / 1079) | `contentchannelitem id:'{{PageParameter['parameter']}}'` nests single quotes in the parameter: "No parameters were found in your command" | `{%- assign itemId = 'Global' \| PageParameter:'parameter' -%}` then `id:'{{ itemId }}'` |
+| AttributeValue 257771129 (Block 8594 `FormattedOutput`, Camp FA totals page 4429) | `isPublic == true` where `isPublic` is a RawValue string: `'False' == true` is TRUE on Fluid (LavaProbe B1), so a non-public campus panel appears | `isPublic == 'True'` (B2, same on both) |
+
+The three DB rows are byte-identical on RockDev and production. The five theme files were identical in the repo and on both shares (`IIS_Rock16`, `IIS_IIS`) before the edit.
+
+**New divergence class:** `/-` and `//-` anywhere in Lava text are Rock shorthand comments on Fluid. That includes text a
+first pass produced (`twopass`, `RunLava`, values printed into a template that is rendered again). URLs are the usual
+source: YouTube ids can start with `-`.
+
+**Not fixed, needs a live test:**
+
+- **Sermon podcast RSS** (`GetChannelFeed.ashx?ChannelId=23&TemplateId=17326` → `SermonPodcast.lava`). 13 of the 15
+  Fluid renders logged had **zero `<item>`s**, while DotLiquid had 45. Two renders (2026-10-25 20:40/20:50) had all of
+  them, and one ran under a non-English culture (`??, 23 10? 2026`). In verification mode Fluid only renders when the template
+  is not already in its template cache (`LavaExtensions.cs`), and the file's `{% cache key:'secc-sermon-podcast' %}`
+  key is per engine, so the Fluid copy lives an hour. The include, the cache block and the
+  `Property:'ParentItems' | First | Property:'ContentChannelItem'` chain all pass `Items` through correctly in
+  LavaProbe with in-memory entities, so the cause is in the request or the data. sedev cannot reproduce it, because the
+  async handler there cannot read the theme file (both engines render 47 bytes). **This feed must be checked before the
+  engine switches to Fluid.**
+- **`Workflow | Attribute:'ConnectionRequest','Object' | Property:… | Property:…` / `| Attribute:'Role'`** came out
+  empty on Fluid twice (action 8447, *Send HelpDesk Ticket for Volunteer* → Set Requestor; a deacon *Application
+  Assignment* subject). About 90 prod action values use the same `'Object' |` chain, and none of the others were logged.
+  A space before the colon (`Property : 'Guid'`) is not the cause (LavaProbe D2). Needs a run on sedev.
+- One Point `/news/16597`: `contentchannelitem id:'{{itemId}}'` is given a slug. Low.
+
 ## Behaviour changes to test before applying
 
 Rock's vendored DotLiquid evaluates only the **first clause** of `{% if a && b %}` (`If.cs` splits
@@ -482,4 +519,4 @@ GROUP BY LEFT(REPLACE(REPLACE(Description, CHAR(13), ' '), CHAR(10), ' '), 260)
 ORDER BY Cnt DESC;
 ```
 
-Last updated: 2026-10-12
+Last updated: 2026-11-03
