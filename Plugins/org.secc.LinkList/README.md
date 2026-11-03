@@ -57,7 +57,10 @@ Two subsystems deserve special mention:
   `RockWeb/Plugins/org_secc/LinkList/` (built Obsidian JS — `npm run deploy` in the
   `.Obsidian` project; a solution rebuild does **not** copy the JS)
 - **Packaging:** `plugin.json` + `BuildPlugin.ps1` bundle the Release DLL and the Obsidian
-  `dist/**` output into a Rock plugin package.
+  `dist/**` output into a Rock plugin package. Locally, run
+  `BuildPlugin.ps1 -RockWebPath <path to RockWeb>` to target a specific RockWeb (for example
+  a private copy, so a running site isn't recycled); with no argument it finds the pipeline's
+  RockWeb as before.
 
 ## Project Layout
 
@@ -211,4 +214,4 @@ Interaction medium/channel for analytics.
 - Related: [org.secc.Cms](../org.secc.Cms/README.md) (legacy `LinkListEditUsers` block over the
   same security groups).
 
-Last updated: 2026-11-02
+Last updated: 2026-11-03

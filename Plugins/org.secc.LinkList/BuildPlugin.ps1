@@ -5,19 +5,36 @@
 #
 # The pipeline invokes this via the existing BuildPlugin.ps1 hook, so no pipeline
 # changes are required — but the build agent must have Node.js/npm available.
+#
+# Locally, pass -RockWebPath to build into a specific RockWeb (for example a
+# private copy, so a running site's Bin isn't touched).
+
+param(
+    [string]$RockWebPath
+)
 
 $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
 Push-Location $dir
 
-# Locate RockWeb. First candidate matches the Azure DevOps pipeline layout
-# (RockWeb at the root of Build.SourcesDirectory, plugins repo as a sibling).
-# Second candidate matches a local rock-dev-tool environment layout.
+# Locate RockWeb. An explicit -RockWebPath wins. Otherwise the first candidate
+# matches the Azure DevOps pipeline layout (RockWeb at the root of
+# Build.SourcesDirectory, plugins repo as a sibling) and the second matches a
+# local rock-dev-tool environment layout.
 $rockWeb = $null
-ForEach ($candidate in @("..\..\..\RockWeb", "..\Rock\RockWeb")) {
-    if (Test-Path $candidate) {
-        $rockWeb = (Resolve-Path $candidate).Path
-        break
+if ($RockWebPath) {
+    if (-not (Test-Path $RockWebPath)) {
+        Pop-Location
+        throw "LinkList: RockWebPath '$RockWebPath' does not exist!"
+    }
+    $rockWeb = (Resolve-Path $RockWebPath).Path
+}
+else {
+    ForEach ($candidate in @("..\..\..\RockWeb", "..\Rock\RockWeb")) {
+        if (Test-Path $candidate) {
+            $rockWeb = (Resolve-Path $candidate).Path
+            break
+        }
     }
 }
 if ($null -eq $rockWeb) {
