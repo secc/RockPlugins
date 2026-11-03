@@ -268,7 +268,7 @@ namespace org.secc.LeagueApps
                 var message = "LeagueApps Job Failed: " + ex.Message;
                 if ( warnings.Any() )
                 {
-                    message += Environment.NewLine + BuildSummary( processed, skipped, totalPrograms, warnings );
+                    message += Environment.NewLine + BuildSummary( processed, skipped, totalPrograms, deceasedSkipped, warnings );
                 }
                 throw new Exception( message, ex );
             }
@@ -279,7 +279,7 @@ namespace org.secc.LeagueApps
 
             if ( warnings.Any() )
             {
-                throw new Exception( BuildSummary( processed, skipped, totalPrograms, warnings ) );
+                throw new Exception( BuildSummary( processed, skipped, totalPrograms, deceasedSkipped, warnings ) );
             }
             Result = "Successfully imported " + processed + " leagues.";
             if ( deceasedSkipped > 0 )
@@ -471,13 +471,18 @@ namespace org.secc.LeagueApps
             return role?.Id ?? leagueGroupType.DefaultGroupRoleId;
         }
 
-        private static string BuildSummary( int processed, int skipped, int totalPrograms, List<string> warnings )
+        private static string BuildSummary( int processed, int skipped, int totalPrograms, int deceasedSkipped, List<string> warnings )
         {
             // Every warning is already in the exception log; keep the job status message to a sane size.
             var message = "Imported " + processed + " of " + totalPrograms + " leagues";
             if ( skipped > 0 )
             {
                 message += " (" + skipped + " skipped)";
+            }
+            if ( deceasedSkipped > 0 )
+            {
+                // Not a warning, but still worth seeing when the job fails for another reason.
+                message += ", skipped " + deceasedSkipped + " deceased applicant(s),";
             }
             message += " with " + warnings.Count + " warning(s):" + Environment.NewLine
                 + string.Join( Environment.NewLine, warnings.Take( MaxWarningsInStatus ) );
