@@ -60,7 +60,7 @@ RockWeb blocks under `org_secc/Crm/`. Categories below are taken from each block
 - **Rock:** universal search (`SearchComponent`), `RockContext` and Rock services (`PersonService`,
   `GroupMemberService`, `PhoneNumberService`, `AttributeService`/`AttributeValueService`,
   `PersonAliasService`, `WorkflowService`), the Rock block/UI framework, workflow engine (Apple Pass),
-  defined-value/cache helpers, EntityFramework 6.1.3.
+  defined-value/cache helpers, EntityFramework (Rock's copy in `RockWeb\Bin`, currently 6.4.4).
 - **Third-party:** none.
 - The Apple-Pass blocks delegate file generation to a configured Rock **workflow type** (the block
   reads the resulting `PassFile` attribute), so the actual pass-building logic lives in that workflow,
@@ -93,4 +93,4 @@ RockWeb blocks under `org_secc/Crm/`. Categories below are taken from each block
 - Apple-Pass generation is driven by the workflow configured on the `GenerateApplePass` block, not by
   code here — change the pass output by editing that workflow type.
 
-Last updated: 2026-11-02
+Last updated: 2026-11-03

@@ -19,11 +19,13 @@ Three files at the repo root do the shared work:
   It also re-imports the parent `Directory.Build.props` (Rock's, which sets `PathMap`).
 - **`Directory.Build.targets`** adds the Rock references, keeps `org_secc\**` out of
   compilation, and copies the plugin into RockWeb after each build.
-- **`Directory.Build.rsp`** adds `-restore` to every `msbuild.exe` command run on a
-  project under the repo. SDK projects fail with `NETSDK1004` if they aren't restored,
-  and the pipeline builds each plugin with a plain `msbuild <csproj>`. Visual Studio and
-  `dotnet build` restore on their own and don't read this file. Restore does nothing for
-  legacy `packages.config` projects.
+- **`Directory.Build.rsp`** adds `-restore` to every `msbuild.exe`, `dotnet build` and
+  `dotnet msbuild` command run on a project under the repo. SDK projects fail with
+  `NETSDK1004` if they aren't restored, and the pipeline builds each plugin with a plain
+  `msbuild <csproj>`. Visual Studio restores on its own and doesn't read this file.
+  Restore doesn't restore `packages.config` packages (`RestorePackagesConfig` is off), so
+  legacy projects still take theirs from the `packages` folder. Every command now restores,
+  including `-t:Clean`; pass `-restore:false` to skip it (for example, with no NuGet feed access).
 
 The props and targets files apply to every project under the repo, legacy ones included. So everything
 that changes a build is gated on an SDK-style project opting in. Legacy projects
@@ -101,4 +103,4 @@ Start from `org.secc.Search/org.secc.Search.csproj`. Then:
   assemblies), as long as a built RockWeb\Bin is available. Running the tests there needs
   Mono, and running Rock still needs Windows.
 
-Last updated: 2026-11-02
+Last updated: 2026-11-03
