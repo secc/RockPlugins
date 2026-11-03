@@ -78,17 +78,17 @@ All require a logged-in user (`GetCurrentUser`, else `401`) and apply per-group 
 | Route | Method | Authorization | Purpose |
 |-------|--------|---------------|---------|
 | `api/GroupApp/GroupList/` | GET | current user | Groups the user is an active member of, within configured GroupApp group types. |
-| `api/GroupApp/GetGroup/{groupId}` | GET | member or VIEW | Group summary; optional `getContent` / `getAllowEmailParents`. |
-| `api/GroupApp/GetGroupMembers/{groupId}` | GET | member or VIEW | Members; leaders also see address/email/phone/parent contact and an `IsMinor` flag (leader-gated). Table-based groups show only the caller's own table (`TableNumber` match is case-sensitive, surrounding whitespace ignored); a caller with no table gets `200 { "NotAssignedToTable": true, "Message": "You are not assigned to a table" }` (older builds sent the bare string). |
+| `api/GroupApp/GetGroup/{groupId}` | GET | active member, or EDIT **and** MANAGE_MEMBERS permission on the group (not through a group role) | Group summary; optional `getContent` / `getAllowEmailParents`. |
+| `api/GroupApp/GetGroupMembers/{groupId}` | GET | active member, or EDIT **and** MANAGE_MEMBERS permission on the group (not through a group role) | Members; leaders also see address/email/phone/parent contact and an `IsMinor` flag (leader-gated). Table-based groups show only the caller's own table (`TableNumber` match is case-sensitive, surrounding whitespace ignored); a caller with no table gets `200 { "NotAssignedToTable": true, "Message": "You are not assigned to a table" }` (older builds sent the bare string). |
 | `api/GroupApp/GroupMembers/{groupId}/Communicate` | POST | EDIT **and** MANAGE_MEMBERS | Send an email to all/one member (optionally parents). Recipients are the caller's scope from `GetGroupMembers` (own table for table-based groups; `400` if the caller has no table) and only **Active** members. The target `GroupMemberId` must be in that scope (else `404`) and Active (else `400`). Individual sends to a minor auto-CC the minor's parents/guardians, or return `400` if no parent email is on record (see minor-communication policy below). `SendToParents` follows the Group Manager website: family adults receive the email themselves, minors' parents receive it for them. |
 | `api/GroupApp/GroupMembers/{groupId}/Add` | POST | EDIT **and** MANAGE_MEMBERS | Match-or-create a person and add as a member. Table-based groups: the new member gets the caller's `TableNumber`; a caller with no table gets `400 "You are not assigned to a table"` (no staff exception, so no member is created that no table can see); a person already in the group at another table stays there and the call returns `400`. |
 | `api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}` | DELETE | EDIT **and** MANAGE_MEMBERS | Hard-delete a group member. The target must be in the caller's scope from `GetGroupMembers` (own table for table-based groups) and not archived, else `404`. A caller with no table in a table-based group gets `400`, unless they hold EDIT + MANAGE_MEMBERS through Rock security (not a group role), in which case the whole group is in scope. Refuses the last active member of the scope whose role has `CanEdit` (`400`), since that role flag is what grants these permissions to group members. Registrant links are cleared first, so a member placed by an event registration deletes cleanly. |
-| `api/GroupApp/Attendance/{groupId}/{occurrenceDate}` | GET | VIEW or leader | Attendance for an occurrence. |
+| `api/GroupApp/Attendance/{groupId}/{occurrenceDate}` | GET | leader, or EDIT **and** MANAGE_MEMBERS permission on the group (not through a group role) | Attendance for an occurrence. |
 | `api/GroupApp/Attendance/` | POST | leader | Mark a member (of this group) present. Reconciles with the member's existing attendance for the group+date: with `locationId`, matches within that room (+`scheduleId`); without it, matches by group+person+date, preferring a kiosk-origin row, so a kiosk check-in is flipped rather than duplicated. Creates a row if none exists, at the group's attendance location. |
 | `api/GroupApp/Attendances/{attendanceId}` | DELETE | leader | Delete an attendance record. |
 | `api/GroupApp/Attendance/SelfReport` | GET / POST | member (POST: adult only) | Read/set the current user's own attendance, gated to a window around the occurrence start. POST records against the group's attendance location. |
 | `api/GroupApp/Attendance/DidNotMeet` | POST | leader | Mark an occurrence as "Did Not Meet" and clear its attendance. Without a `locationId`, records against the group's attendance location (see *Attendance location* below). |
-| `api/GroupApp/AttendanceSchedules/{groupId}` | GET | VIEW or leader | Past-12-months occurrence list (scheduled + recorded). |
+| `api/GroupApp/AttendanceSchedules/{groupId}` | GET | leader, or EDIT **and** MANAGE_MEMBERS permission on the group (not through a group role) | Past-12-months occurrence list (scheduled + recorded). |
 | `api/GroupApp/Groups/{groupId}/Schedule` | GET / PUT | leader | Read/update the group's weekly schedule as iCal (forks a shared schedule on edit). |
 | `api/GroupApp/Groups/{groupId}/Location` | GET / PUT | GET: member, PUT: leader | Read/replace the group's single location; PUT runs Rock address `Verify` (geocode). |
 
@@ -185,8 +185,8 @@ public partial class GroupAppExampleController : Rock.Rest.ApiControllerBase
         if ( group == null )
             return NotFound();
 
-        // per-group check — leader or member, per your needs
-        // if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+        // per-group check — member or leader per your needs, or EDIT + MANAGE_MEMBERS permission on the group
+        // if ( !isGroupMember && !GroupMemberServiceHelper.HasSecurityGrant( group, currentUser.Person ) )
         //     return StatusCode( HttpStatusCode.Forbidden );
 
         return Ok( /* dto */ );
@@ -205,4 +205,4 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 
 ---
 
-**Last updated:** 2026-10-30
+**Last updated:** 2026-11-03

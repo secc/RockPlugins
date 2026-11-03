@@ -36,9 +36,14 @@ namespace org.secc.Rest.Controllers
         private readonly PersonService _personService;
         private readonly RockContext _context;
 
-        public GroupAppGroupMembersController()
+        public GroupAppGroupMembersController() : this( new RockContext() )
         {
-            _context = new RockContext();
+        }
+
+        // The tests pass a context that never connects.
+        protected GroupAppGroupMembersController( RockContext context )
+        {
+            _context = context;
             _definedValueService = new DefinedValueService( _context );
             _groupService = new GroupService( _context );
             _groupMemberService = new GroupMemberService( _context );
@@ -54,32 +59,29 @@ namespace org.secc.Rest.Controllers
         [System.Web.Http.Route( "api/GroupApp/GetGroupMembers/{groupId}" )]
         public IHttpActionResult GetGroupMembers( int groupId )
         {
-            var currentUser = UserLoginService.GetCurrentUser();
+            var currentUser = GetCurrentUserLogin();
 
             if ( currentUser == null )
             {
                 return StatusCode( HttpStatusCode.Unauthorized );
             }
 
-            var group = _groupService.Get( groupId );
+            var group = FindGroup( groupId );
             if ( group == null )
             {
                 return NotFound();
             }
 
-            bool isGroupMember = _groupMemberService.Queryable()
-                .Any( gm => gm.GroupId == group.Id
-                    && gm.PersonId == currentUser.Person.Id
-                    && gm.IsArchived == false
-                    && gm.GroupMemberStatus == GroupMemberStatus.Active );
+            bool isGroupMember = IsActiveGroupMember( group.Id, currentUser.Person.Id );
 
-            if ( isGroupMember || group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            // Active members, and people with Edit and Manage Members permission on the group (not through a group role).
+            if ( isGroupMember || HasSecurityGrant( group, currentUser.Person ) )
             {
                 var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
 
                 // For table-based groups this is the caller's own table; a caller with no
                 // table (not a member, or TableNumber blank) sees nothing.
-                var scope = groupMemberServiceHelper.GetScopedGroupMembers( group, currentUser.Person );
+                var scope = GetScopedGroupMembers( groupMemberServiceHelper, group, currentUser.Person );
                 if ( !scope.SenderHasScope )
                 {
                     // A flag the app can test, rather than a bare message string.
@@ -584,6 +586,21 @@ namespace org.secc.Rest.Controllers
             }
 
         }
+
+        protected virtual UserLogin GetCurrentUserLogin() => UserLoginService.GetCurrentUser();
+
+        protected virtual Group FindGroup( int groupId ) => _groupService.Get( groupId );
+
+        protected virtual bool IsActiveGroupMember( int groupId, int personId ) => _groupMemberService.Queryable()
+            .Any( gm => gm.GroupId == groupId
+                && gm.PersonId == personId
+                && gm.IsArchived == false
+                && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+        protected virtual bool HasSecurityGrant( Group group, Person person ) => GroupMemberServiceHelper.HasSecurityGrant( group, person );
+
+        protected virtual ScopedGroupMembers GetScopedGroupMembers( GroupMemberServiceHelper helper, Group group, Person person )
+            => helper.GetScopedGroupMembers( group, person );
     }
 
     public class GroupAppAddGroupMember

@@ -28,9 +28,14 @@ namespace org.secc.Rest.Controllers
     {
         private readonly RockContext _context;
 
-        public GroupAppAttendanceController()
+        public GroupAppAttendanceController() : this( new RockContext() )
         {
-            _context = new RockContext();
+        }
+
+        // The tests pass a context that never connects.
+        protected GroupAppAttendanceController( RockContext context )
+        {
+            _context = context;
         }
 
         /// <summary>
@@ -43,25 +48,26 @@ namespace org.secc.Rest.Controllers
         [System.Web.Http.Route( "api/GroupApp/Attendance/{groupId}/{occurrenceDate}" )]
         public IHttpActionResult GetGroupAttendance( int groupId, DateTime occurrenceDate )
         {
-            var currentUser = UserLoginService.GetCurrentUser();
+            var currentUser = GetCurrentUserLogin();
             if ( currentUser == null )
                 return StatusCode( HttpStatusCode.Unauthorized );
 
-            var group = new GroupService( _context ).Get( groupId );
+            var group = FindGroup( groupId );
             if ( group == null )
                 return NotFound();
 
-            // Check if the current user is a leader in this group
-            var isGroupLeader = new GroupMemberService( _context )
-                .Queryable()
-                .Any( gm => gm.GroupId == groupId
-                       && gm.PersonId == currentUser.Person.Id
-                       && gm.GroupRole.IsLeader == true
-                       && gm.GroupMemberStatus == GroupMemberStatus.Active );
+            var isGroupLeader = IsActiveGroupLeader( groupId, currentUser.Person.Id );
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) && !isGroupLeader )
+            // Active leaders, and people with Edit and Manage Members permission on the group (not through a group role).
+            if ( !isGroupLeader && !HasSecurityGrant( group, currentUser.Person ) )
                 return StatusCode( HttpStatusCode.Forbidden );
 
+            return GroupAttendanceResult( group, occurrenceDate );
+        }
+
+        // Runs once GetGroupAttendance allows the caller.
+        protected virtual IHttpActionResult GroupAttendanceResult( Group group, DateTime occurrenceDate )
+        {
             var attendees = new AttendanceService( _context )
                 .Queryable()
                 .Where(
@@ -537,25 +543,26 @@ namespace org.secc.Rest.Controllers
         [System.Web.Http.Route( "api/GroupApp/AttendanceSchedules/{groupId}" )]
         public IHttpActionResult GetAttendanceSchedules( int groupId )
         {
-            var currentUser = UserLoginService.GetCurrentUser();
+            var currentUser = GetCurrentUserLogin();
             if ( currentUser == null )
                 return StatusCode( HttpStatusCode.Unauthorized );
 
-            var group = new GroupService( _context ).Get( groupId );
+            var group = FindGroup( groupId );
             if ( group == null )
                 return NotFound();
 
-            // Check if the current user is a leader in this group
-            var isGroupLeader = new GroupMemberService( _context )
-                .Queryable()
-                .Any( gm => gm.GroupId == groupId
-                       && gm.PersonId == currentUser.Person.Id
-                       && gm.GroupRole.IsLeader == true
-                       && gm.GroupMemberStatus == GroupMemberStatus.Active );
+            var isGroupLeader = IsActiveGroupLeader( groupId, currentUser.Person.Id );
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) && !isGroupLeader )
+            // Active leaders, and people with Edit and Manage Members permission on the group (not through a group role).
+            if ( !isGroupLeader && !HasSecurityGrant( group, currentUser.Person ) )
                 return StatusCode( HttpStatusCode.Forbidden );
 
+            return AttendanceSchedulesResult( group );
+        }
+
+        // Runs once GetAttendanceSchedules allows the caller.
+        protected virtual IHttpActionResult AttendanceSchedulesResult( Group group )
+        {
             if ( group.Schedule == null )
                 return NotFound();
 
@@ -615,6 +622,18 @@ namespace org.secc.Rest.Controllers
 
             return Ok( sortedOccurrences );
         }
+
+        protected virtual UserLogin GetCurrentUserLogin() => UserLoginService.GetCurrentUser();
+
+        protected virtual Group FindGroup( int groupId ) => new GroupService( _context ).Get( groupId );
+
+        protected virtual bool IsActiveGroupLeader( int groupId, int personId ) => new GroupMemberService( _context ).Queryable()
+            .Any( gm => gm.GroupId == groupId
+                && gm.PersonId == personId
+                && gm.GroupRole.IsLeader == true
+                && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+        protected virtual bool HasSecurityGrant( Group group, Person person ) => GroupMemberServiceHelper.HasSecurityGrant( group, person );
 
         /// <summary>
         /// The location the Group App records a group's attendance against, chosen the same way the Group App's

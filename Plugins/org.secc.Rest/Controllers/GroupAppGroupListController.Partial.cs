@@ -29,9 +29,13 @@ namespace org.secc.Rest.Controllers
     {
         private readonly GroupMemberService _groupMemberService;
 
-        public GroupAppGroupListController()
+        public GroupAppGroupListController() : this( new RockContext() )
         {
-            var rockContext = new RockContext();
+        }
+
+        // The tests pass a context that never connects.
+        protected GroupAppGroupListController( RockContext rockContext )
+        {
             _groupMemberService = new GroupMemberService( rockContext );
         }
 
@@ -106,24 +110,21 @@ namespace org.secc.Rest.Controllers
         [System.Web.Http.Route( "api/GroupApp/GetGroup/{groupId}" )]
         public IHttpActionResult GetGroup( int groupId, bool getContent = false, bool getAllowEmailParents = false )
         {
-            var currentUser = UserLoginService.GetCurrentUser();
+            var currentUser = GetCurrentUserLogin();
             if ( currentUser == null )
             {
                 return StatusCode( HttpStatusCode.Unauthorized );
             }
-            var group = new GroupService( new RockContext() ).Get( groupId );
+            var group = FindGroup( groupId );
             if ( group == null )
             {
                 return NotFound();
             }
 
-            bool isGroupMember = _groupMemberService.Queryable()
-                .Any( gm => gm.GroupId == group.Id
-                    && gm.PersonId == currentUser.Person.Id
-                    && gm.IsArchived == false
-                    && gm.GroupMemberStatus == GroupMemberStatus.Active );
+            bool isGroupMember = IsActiveGroupMember( group.Id, currentUser.Person.Id );
 
-            if ( isGroupMember || group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            // Active members, and people with Edit and Manage Members permission on the group (not through a group role).
+            if ( isGroupMember || HasSecurityGrant( group, currentUser.Person ) )
             {
 
 
@@ -185,6 +186,18 @@ namespace org.secc.Rest.Controllers
                 return StatusCode( HttpStatusCode.Forbidden );
             }
         }
+
+        protected virtual UserLogin GetCurrentUserLogin() => UserLoginService.GetCurrentUser();
+
+        protected virtual Group FindGroup( int groupId ) => new GroupService( new RockContext() ).Get( groupId );
+
+        protected virtual bool IsActiveGroupMember( int groupId, int personId ) => _groupMemberService.Queryable()
+            .Any( gm => gm.GroupId == groupId
+                && gm.PersonId == personId
+                && gm.IsArchived == false
+                && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+        protected virtual bool HasSecurityGrant( Group group, Person person ) => GroupMemberServiceHelper.HasSecurityGrant( group, person );
     }
 
     public class GroupServiceHelper
