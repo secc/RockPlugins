@@ -185,8 +185,10 @@ public partial class GroupAppExampleController : Rock.Rest.ApiControllerBase
         if ( group == null )
             return NotFound();
 
-        // per-group check — member or leader per your needs, or EDIT + MANAGE_MEMBERS permission on the group
-        // if ( !isGroupMember && !GroupMemberServiceHelper.HasSecurityGrant( group, currentUser.Person ) )
+        // per-group check — an active member (ActiveLeaderOf for leaders), or EDIT + MANAGE_MEMBERS permission on the group
+        // var isGroupMember = new GroupMemberService( new RockContext() ).Queryable()
+        //     .Any( GroupMemberServiceHelper.ActiveMemberOf( groupId, currentUser.Person.Id ) );
+        // if ( !isGroupMember && !GroupMemberServiceHelper.HasSecurityGrant( action => Rock.Security.Authorization.Authorized( group, action, currentUser.Person ) ) )
         //     return StatusCode( HttpStatusCode.Forbidden );
 
         return Ok( /* dto */ );

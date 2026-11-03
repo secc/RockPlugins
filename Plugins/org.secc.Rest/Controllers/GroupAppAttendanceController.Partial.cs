@@ -628,12 +628,11 @@ namespace org.secc.Rest.Controllers
         protected virtual Group FindGroup( int groupId ) => new GroupService( _context ).Get( groupId );
 
         protected virtual bool IsActiveGroupLeader( int groupId, int personId ) => new GroupMemberService( _context ).Queryable()
-            .Any( gm => gm.GroupId == groupId
-                && gm.PersonId == personId
-                && gm.GroupRole.IsLeader == true
-                && gm.GroupMemberStatus == GroupMemberStatus.Active );
+            .Any( GroupMemberServiceHelper.ActiveLeaderOf( groupId, personId ) );
 
-        protected virtual bool HasSecurityGrant( Group group, Person person ) => GroupMemberServiceHelper.HasSecurityGrant( group, person );
+        protected virtual bool Authorized( Rock.Security.ISecured entity, string action, Person person ) => Rock.Security.Authorization.Authorized( entity, action, person );
+
+        private bool HasSecurityGrant( Group group, Person person ) => GroupMemberServiceHelper.HasSecurityGrant( action => Authorized( group, action, person ) );
 
         /// <summary>
         /// The location the Group App records a group's attendance against, chosen the same way the Group App's

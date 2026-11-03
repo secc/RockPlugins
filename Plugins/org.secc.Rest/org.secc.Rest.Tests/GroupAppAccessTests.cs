@@ -13,6 +13,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -20,18 +21,18 @@ using System.Web.Http;
 using org.secc.Rest.Controllers;
 using Rock.Data;
 using Rock.Model;
+using Rock.Security;
 using Xunit;
+using Authorization = Rock.Security.Authorization;
 
 namespace org.secc.Rest.Tests
 {
     /// <summary>
     /// ROCK-9351: who may read a group through the GroupApp group, roster and attendance GETs. Each
     /// action runs on a controller built with a database context that never connects, whose current
-    /// login, group lookup, member or leader check and Edit and Manage Members permission check
-    /// are replaced; the work after the check is
-    /// replaced too, or (GetGroup's summary) needs no database. Anything that reaches the database
-    /// throws, which fails the test. GroupMemberServiceHelper.HasSecurityGrant itself reads Rock's
-    /// authorization cache and is not covered here.
+    /// login, group lookup, member or leader check and per-action permission lookup are replaced;
+    /// the work after the check is replaced too, or (GetGroup's summary) needs no database. Anything
+    /// that reaches the database or Rock's caches throws, which fails the test.
     /// </summary>
     public class GroupAppAccessTests
     {
@@ -50,7 +51,14 @@ namespace org.secc.Rest.Tests
         {
             public bool IsMemberOrLeader { get; set; }
 
-            public bool HasGrant { get; set; }
+            /// <summary>The actions the caller is authorized for on the group.</summary>
+            public HashSet<string> Allowed { get; set; } = new HashSet<string>();
+
+            /// <summary>Edit and Manage Members on the group.</summary>
+            public bool HasGrant
+            {
+                set { Allowed = value ? new HashSet<string> { Authorization.EDIT, Authorization.MANAGE_MEMBERS } : new HashSet<string>(); }
+            }
 
             public readonly Group Group = new TestGroup { Id = GroupId, Name = "Sample Group", IsActive = true };
 
@@ -60,7 +68,7 @@ namespace org.secc.Rest.Tests
 
             public int? CheckedPersonId { get; private set; }
 
-            public Group GrantGroup { get; private set; }
+            public ISecured GrantGroup { get; private set; }
 
             public Person GrantPerson { get; private set; }
 
@@ -76,11 +84,11 @@ namespace org.secc.Rest.Tests
                 return IsMemberOrLeader;
             }
 
-            public bool Grant( Group group, Person person )
+            public bool Authorized( ISecured entity, string action, Person person )
             {
-                GrantGroup = group;
+                GrantGroup = entity;
                 GrantPerson = person;
-                return HasGrant;
+                return Allowed.Contains( action );
             }
         }
 
@@ -103,7 +111,7 @@ namespace org.secc.Rest.Tests
 
             protected override bool IsActiveGroupMember( int groupId, int personId ) => _caller.Check( groupId, personId );
 
-            protected override bool HasSecurityGrant( Group group, Person person ) => _caller.Grant( group, person );
+            protected override bool Authorized( ISecured entity, string action, Person person ) => _caller.Authorized( entity, action, person );
 
             // A table-based scope with no table: the action answers NotAssignedToTable without
             // building the roster, which needs the database.
@@ -133,7 +141,7 @@ namespace org.secc.Rest.Tests
 
             protected override bool IsActiveGroupMember( int groupId, int personId ) => _caller.Check( groupId, personId );
 
-            protected override bool HasSecurityGrant( Group group, Person person ) => _caller.Grant( group, person );
+            protected override bool Authorized( ISecured entity, string action, Person person ) => _caller.Authorized( entity, action, person );
         }
 
         private class TestAttendanceController : GroupAppAttendanceController
@@ -159,7 +167,7 @@ namespace org.secc.Rest.Tests
 
             protected override bool IsActiveGroupLeader( int groupId, int personId ) => _caller.Check( groupId, personId );
 
-            protected override bool HasSecurityGrant( Group group, Person person ) => _caller.Grant( group, person );
+            protected override bool Authorized( ISecured entity, string action, Person person ) => _caller.Authorized( entity, action, person );
 
             protected override IHttpActionResult GroupAttendanceResult( Group group, DateTime occurrenceDate )
             {
@@ -215,7 +223,7 @@ namespace org.secc.Rest.Tests
         }
 
         [Fact]
-        public void GetGroupMembers_NotMemberWithGrant_LoadsMembers()
+        public void GetGroupMembers_NotMemberWithGrant_PassesCheck()
         {
             var caller = new Caller { HasGrant = true };
             var controller = new TestMembersController( caller );
@@ -226,7 +234,7 @@ namespace org.secc.Rest.Tests
         }
 
         [Fact]
-        public void GetGroupMembers_MemberWithoutGrant_LoadsMembers()
+        public void GetGroupMembers_MemberWithoutGrant_PassesCheck()
         {
             var caller = new Caller { IsMemberOrLeader = true };
             var controller = new TestMembersController( caller );
@@ -349,6 +357,64 @@ namespace org.secc.Rest.Tests
             Assert.Equal( HttpStatusCode.OK, Run( () => controller.GetAttendanceSchedules( GroupId ) ) );
             Assert.Equal( 1, controller.ScheduleCalls );
             AssertChecksAskedAboutTheCaller( caller );
+        }
+
+        // Only Edit and Manage Members together count. View alone, or either of the two alone, does not.
+
+        public static IEnumerable<object[]> PartialPermissions()
+        {
+            yield return new object[] { new[] { Authorization.VIEW } };
+            yield return new object[] { new[] { Authorization.EDIT } };
+            yield return new object[] { new[] { Authorization.MANAGE_MEMBERS } };
+            yield return new object[] { new[] { Authorization.VIEW, Authorization.EDIT } };
+            yield return new object[] { new[] { Authorization.VIEW, Authorization.MANAGE_MEMBERS } };
+        }
+
+        [Theory]
+        [MemberData( nameof( PartialPermissions ) )]
+        public void GetGroupMembers_NotMemberWithPartialPermission_Returns403( string[] allowed )
+        {
+            var caller = new Caller { Allowed = new HashSet<string>( allowed ) };
+            var controller = new TestMembersController( caller );
+
+            Assert.Equal( HttpStatusCode.Forbidden, Run( () => controller.GetGroupMembers( GroupId ) ) );
+            Assert.Equal( 0, controller.ScopeCalls );
+            AssertGrantAskedAboutTheCaller( caller );
+        }
+
+        [Theory]
+        [MemberData( nameof( PartialPermissions ) )]
+        public void GetGroup_NotMemberWithPartialPermission_Returns403( string[] allowed )
+        {
+            var caller = new Caller { Allowed = new HashSet<string>( allowed ) };
+            var controller = new TestGroupListController( caller );
+
+            Assert.Equal( HttpStatusCode.Forbidden, Run( () => controller.GetGroup( GroupId ) ) );
+            AssertGrantAskedAboutTheCaller( caller );
+        }
+
+        [Theory]
+        [MemberData( nameof( PartialPermissions ) )]
+        public void GetGroupAttendance_NotLeaderWithPartialPermission_Returns403( string[] allowed )
+        {
+            var caller = new Caller { Allowed = new HashSet<string>( allowed ) };
+            var controller = new TestAttendanceController( caller );
+
+            Assert.Equal( HttpStatusCode.Forbidden, Run( () => controller.GetGroupAttendance( GroupId, OccurrenceDate ) ) );
+            Assert.Equal( 0, controller.AttendanceCalls );
+            AssertGrantAskedAboutTheCaller( caller );
+        }
+
+        [Theory]
+        [MemberData( nameof( PartialPermissions ) )]
+        public void GetAttendanceSchedules_NotLeaderWithPartialPermission_Returns403( string[] allowed )
+        {
+            var caller = new Caller { Allowed = new HashSet<string>( allowed ) };
+            var controller = new TestAttendanceController( caller );
+
+            Assert.Equal( HttpStatusCode.Forbidden, Run( () => controller.GetAttendanceSchedules( GroupId ) ) );
+            Assert.Equal( 0, controller.ScheduleCalls );
+            AssertGrantAskedAboutTheCaller( caller );
         }
     }
 }

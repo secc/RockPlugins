@@ -192,12 +192,11 @@ namespace org.secc.Rest.Controllers
         protected virtual Group FindGroup( int groupId ) => new GroupService( new RockContext() ).Get( groupId );
 
         protected virtual bool IsActiveGroupMember( int groupId, int personId ) => _groupMemberService.Queryable()
-            .Any( gm => gm.GroupId == groupId
-                && gm.PersonId == personId
-                && gm.IsArchived == false
-                && gm.GroupMemberStatus == GroupMemberStatus.Active );
+            .Any( GroupMemberServiceHelper.ActiveMemberOf( groupId, personId ) );
 
-        protected virtual bool HasSecurityGrant( Group group, Person person ) => GroupMemberServiceHelper.HasSecurityGrant( group, person );
+        protected virtual bool Authorized( Rock.Security.ISecured entity, string action, Person person ) => Rock.Security.Authorization.Authorized( entity, action, person );
+
+        private bool HasSecurityGrant( Group group, Person person ) => GroupMemberServiceHelper.HasSecurityGrant( action => Authorized( group, action, person ) );
     }
 
     public class GroupServiceHelper
