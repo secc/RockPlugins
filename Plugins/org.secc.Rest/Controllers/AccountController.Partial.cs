@@ -254,9 +254,48 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
+        /// Counts a forgot password email to a stored email address against that address's budget. Returns
+        /// false when it is already spent; that refusal is logged at most once per window for the client and
+        /// socket peer, and the email address is never logged.
+        /// </summary>
+        private bool TryRegisterForgotPasswordStoredAddress( string clientId, string storedEmail )
+        {
+            if ( ConfirmationAttempts.TryRegisterAttempt( StoredRecipientKey( storedEmail ), FORGOT_PASSWORD_MAX_ATTEMPTS_PER_EMAIL ) )
+            {
+                return true;
+            }
+
+            var peerIp = GetPeerIpAddress();
+            if ( ConfirmationAttempts.ShouldLogRefusal( "forgot|" + ClientKey( clientId ) + "|peer:" + peerIp + "|stored" ) )
+            {
+                LogException( new Exception( string.Format(
+                    "Forgot password stored email address budget exceeded. Request from Client: {0} PeerIP: {1} ForwardedIP: {2}",
+                    clientId, peerIp, GetForwardedIpAddress() ) ) );
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// The recipient budget key for an email address as typed.
         /// </summary>
         private static string RecipientKey( string email )
+        {
+            return "forgot|email:" + NormalizeAddress( email );
+        }
+
+        /// <summary>
+        /// The recipient budget key for a stored email address that a forgot password email goes to.
+        /// </summary>
+        private static string StoredRecipientKey( string storedEmail )
+        {
+            return "forgot|stored:" + NormalizeAddress( storedEmail );
+        }
+
+        /// <summary>
+        /// An email address as the recipient budgets compare it.
+        /// </summary>
+        private static string NormalizeAddress( string email )
         {
             var value = email.Trim().Left( 254 );
             try
@@ -268,7 +307,7 @@ namespace org.secc.Rest.Controllers
                 // Not valid UTF-16 (for example a lone surrogate); the filter below still applies.
             }
 
-            return "forgot|email:" + new string( value.ToLowerInvariant().Where( c => c >= '!' && c <= '~' ).ToArray() );
+            return new string( value.ToLowerInvariant().Where( c => c >= '!' && c <= '~' ).ToArray() );
         }
 
         /// <summary>
@@ -350,11 +389,52 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
+        /// The login's authentication provider, or null when it has none.
+        /// </summary>
+        protected virtual Rock.Security.AuthenticationComponent GetAuthenticationComponent( UserLogin user )
+        {
+            return user.EntityType != null ? Rock.Security.AuthenticationContainer.GetComponent( user.EntityType.Name ) : null;
+        }
+
+        /// <summary>
+        /// Whether this authentication provider lets the person change their password; false when there is none.
+        /// </summary>
+        internal static bool ProviderSupportsChangePassword( Rock.Security.AuthenticationComponent component )
+        {
+            return component != null && component.SupportsChangePassword;
+        }
+
+        /// <summary>
+        /// The PublicApplicationRoot global attribute, as configured.
+        /// </summary>
+        protected virtual string GetPublicApplicationRootSetting()
+        {
+            return GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" );
+        }
+
+        /// <summary>
+        /// A PublicApplicationRoot value, ending in a forward slash.
+        /// </summary>
+        internal static string ApplicationRootFrom( string publicApplicationRoot )
+        {
+            return publicApplicationRoot.EnsureTrailingForwardslash();
+        }
+
+        /// <summary>
+        /// The ConfirmAccount page address under an application root that ends in a forward slash.
+        /// </summary>
+        internal static string ConfirmAccountUrlFrom( string applicationRoot )
+        {
+            return applicationRoot + "ConfirmAccount";
+        }
+
+        /// <summary>
         /// Sends the forgot username/password system communication to these recipients.
         /// </summary>
         private void SendForgotPasswordEmail( List<RockEmailMessageRecipient> recipients )
         {
             var emailMessage = CreateForgotPasswordEmailMessage();
+            emailMessage.AppRoot = ApplicationRootFrom( GetPublicApplicationRootSetting() );
             foreach ( var recipient in recipients )
             {
                 emailMessage.AddRecipient( recipient );
@@ -369,7 +449,6 @@ namespace org.secc.Rest.Controllers
         protected virtual RockEmailMessage CreateForgotPasswordEmailMessage()
         {
             var emailMessage = new RockEmailMessage( Rock.SystemGuid.SystemCommunication.SECURITY_FORGOT_USERNAME.AsGuid() );
-            emailMessage.AppRoot = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash();
             emailMessage.CreateCommunicationRecord = false;
             return emailMessage;
         }
@@ -1443,9 +1522,13 @@ namespace org.secc.Rest.Controllers
                 PersonService personService = new PersonService( rockContext );
                 UserLoginService userLoginService = new UserLoginService( rockContext );
                 var recipients = new List<RockEmailMessageRecipient>();
+                var confirmAccountUrl = ConfirmAccountUrlFrom( ApplicationRootFrom( GetPublicApplicationRootSetting() ) );
 
                 // Each email goes to the stored address of the people it lists, one email per stored address.
                 var people = GetPeopleByEmail( personService, email ).OrderBy( p => p.Id ).ToList();
+
+                // Stored addresses that share a budget key are counted once per request and share the outcome.
+                var storedAddressAllowed = new Dictionary<string, bool>();
                 foreach ( var addressGroup in people.GroupBy( p => p.Email, StringComparer.Ordinal ) )
                 {
                     bool hasAccountWithPasswordResetAbility = false;
@@ -1462,30 +1545,41 @@ namespace org.secc.Rest.Controllers
                         var resultsDictionary = new Dictionary<string, object>();
                         resultsDictionary.Add( "Person", person );
                         resultsDictionary.Add( "Users", users );
+                        resultsDictionary.Add( "SupportsChangePassword", users.Where( u => ProviderSupportsChangePassword( GetAuthenticationComponent( u ) ) ).Select( u => u.UserName ).ToList() );
                         results.Add( resultsDictionary );
                     }
 
-                    if ( hasAccountWithPasswordResetAbility )
+                    if ( !hasAccountWithPasswordResetAbility )
+                    {
+                        continue;
+                    }
+
+                    var storedKey = StoredRecipientKey( addressGroup.Key );
+                    bool allowed;
+                    if ( !storedAddressAllowed.TryGetValue( storedKey, out allowed ) )
+                    {
+                        allowed = TryRegisterForgotPasswordStoredAddress( clientId, addressGroup.Key );
+                        storedAddressAllowed[storedKey] = allowed;
+                    }
+
+                    // A stored address whose budget is spent gets no email; the response stays the same.
+                    if ( allowed )
                     {
                         var mergeFields = new Dictionary<string, object>();
                         mergeFields.Add( "Results", results.ToArray() );
+                        mergeFields.Add( "ConfirmAccountUrl", confirmAccountUrl );
                         recipients.Add( RockEmailMessageRecipient.CreateAnonymous( addressGroup.Key, mergeFields ) );
                     }
                 }
 
-                // If we found matching accounts that have the ability to be reset, go ahead and send the email
                 if ( recipients.Any() )
                 {
                     SendForgotPasswordEmail( recipients );
-                    response.Result = StandardResponse.ResultCode.Success;
-                    response.Message = "Forgot password email has been sent successfully.";
                 }
-                else
-                {
-                    // the person either has no user accounts or none of them are allowed to have their passwords reset (Facebook/Google/SMS/etc)
-                    response.Result = StandardResponse.ResultCode.Error;
-                    response.Message = "No accounts associated with this email address are able to be reset via email.";
-                }
+
+                // The same response whether or not an email was sent.
+                response.Result = StandardResponse.ResultCode.Success;
+                response.Message = "If an account with that email address can be reset by email, we've sent instructions to it.";
                 return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, response );
             }
 

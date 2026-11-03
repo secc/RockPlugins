@@ -51,6 +51,10 @@
     <Reference Include="Rock.Common">
       <HintPath>$(RockWebPath)\Bin\Rock.Common.dll</HintPath>
     </Reference>
+    <!-- The forgot password tests build an authentication provider, whose service type is in Rock.Enums. -->
+    <Reference Include="Rock.Enums">
+      <HintPath>$(RockWebPath)\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Http">
       <HintPath>$(RockWebPath)\Bin\System.Web.Http.dll</HintPath>
     </Reference>
