@@ -29,6 +29,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
@@ -181,17 +182,25 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } )
                     .ToList();
 
+                // Resolve the homebound person once per workflow. A workflow whose person attribute is
+                // blank or points at a missing alias keeps its row (with blank person columns) so staff
+                // can still open it and fix it, instead of the whole list failing.
                 var qry = workflows.AsQueryable().GroupJoin( visits.AsQueryable(), wf => wf.Workflow.Id, wa => wa.WorkflowActivity.WorkflowId, ( wf, wa ) => new { WorkflowObjects = wf, VisitationActivities = wa } )
-                    .Select( obj => new { Workflow = obj.WorkflowObjects.Workflow, AttributeValues = obj.WorkflowObjects.AttributeValues, VisitationActivities = obj.VisitationActivities } ).ToList();
+                    .ToList()
+                    .Select( obj => new
+                    {
+                        Workflow = obj.WorkflowObjects.Workflow,
+                        AttributeValues = obj.WorkflowObjects.AttributeValues,
+                        VisitationActivities = obj.VisitationActivities,
+                        Person = GetHomeboundPerson( personAliasService, obj.WorkflowObjects.AttributeValues )
+                    } )
+                    .ToList();
 
 
                 if ( contextEntity == null )
                 {
                     // Make sure they aren't deceased
-                    qry = qry.AsQueryable().Where( w => !
-                        ( personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ) != null ?
-                        personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.IsDeceased :
-                        false ) ).ToList();
+                    qry = qry.Where( w => w.Person == null || !w.Person.IsDeceased ).ToList();
                 }
 
                 var newQry = qry.Select( w => new
@@ -201,8 +210,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     Name = w.Workflow.Name,
                     Address = new Func<string>( () =>
                     {
-                        PersonAlias p = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
-                        Location homeLocation = p.Person.GetHomeLocation();
+                        Location homeLocation = w.Person != null ? w.Person.GetHomeLocation() : null;
                         if ( homeLocation == null )
                         {
                             return "";
@@ -212,23 +220,20 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                             homeLocation.State + ", " +
                             homeLocation.PostalCode;
                     } )(),
-                    HomeboundPerson = new Func<Person>( () =>
-                    {
-                        return personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person;
-                    } )(),
-                    Age = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.Age,
+                    HomeboundPerson = w.Person,
+                    PersonLastName = w.Person != null ? w.Person.LastName : string.Empty,
+                    Age = w.Person != null ? w.Person.Age : null,
                     Birthday = new Func<string>( () =>
                     {
-                        PersonAlias p = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
-                        var personBirthMonth = p.Person.BirthMonth;
-                        var personBirthDay = p.Person.BirthDay;
-                        if ( (personBirthMonth != null) && (personBirthDay != null) )
+                        if ( w.Person != null && w.Person.BirthMonth != null && w.Person.BirthDay != null )
                         {
-                            return personBirthMonth + "/" + personBirthDay;
+                            return w.Person.BirthMonth + "/" + w.Person.BirthDay;
                         }
                         return "";
                     } )(),
-                    PhoneNumber = string.Join("<br><br>", personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.PhoneNumbers.Select(ph => ph.NumberTypeValue.Value + ": " + ph.NumberFormatted).ToList()),
+                    PhoneNumber = w.Person != null
+                        ? string.Join( "<br><br>", w.Person.PhoneNumbers.Select( ph => ( ph.NumberTypeValue != null ? ph.NumberTypeValue.Value + ": " : string.Empty ) + ph.NumberFormatted ).ToList() )
+                        : string.Empty,
                     StartDate = w.AttributeValues.Where( av => av.AttributeKey == "StartDate" ).Select( av => av.ValueAsDateTime ).FirstOrDefault(),
                     Description = w.AttributeValues.Where( av => av.AttributeKey == "HomeboundResidentDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Visits = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Count(),
@@ -264,6 +269,23 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
             }
         }
+
+        /// <summary>
+        /// Gets the person in the workflow's HomeboundPerson attribute, or null when it is blank or
+        /// the alias no longer exists.
+        /// </summary>
+        private static Person GetHomeboundPerson( PersonAliasService personAliasService, IEnumerable<AttributeValue> attributeValues )
+        {
+            var personAliasGuid = attributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuidOrNull();
+            if ( !personAliasGuid.HasValue )
+            {
+                return null;
+            }
+
+            var personAlias = personAliasService.Get( personAliasGuid.Value );
+            return personAlias != null ? personAlias.Person : null;
+        }
+
         protected void addHomeboundResident_Click( object sender, EventArgs e )
         {
             string url = "/Pastoral/Homebound/";
