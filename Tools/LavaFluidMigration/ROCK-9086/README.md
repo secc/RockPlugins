@@ -400,6 +400,8 @@ These are fixed here:
 
 The three DB rows are byte-identical on RockDev and production. The five theme files were identical in the repo and on both shares (`IIS_Rock16`, `IIS_IIS`) before the edit.
 
+**Applied 2026-11-03** on RockDev and rockprod (3 rows each), dry run then live; backups in `dbo._ROCK9086_LavaBackup`. The five theme files were copied to both shares and byte-compared after the copy. Rock cache not yet cleared (needs an admin login); clear it on both environments, and note the sermon pages hold their `{% cache %}` output for up to an hour after that.
+
 **New divergence class:** `/-` and `//-` anywhere in Lava text are Rock shorthand comments on Fluid. That includes text a
 first pass produced (`twopass`, `RunLava`, values printed into a template that is rendered again). URLs are the usual
 source: YouTube ids can start with `-`.
