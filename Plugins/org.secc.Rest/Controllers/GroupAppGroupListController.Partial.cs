@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Web.Http;
 using org.secc.Rest.Models;
@@ -191,8 +192,9 @@ namespace org.secc.Rest.Controllers
 
         protected virtual Group FindGroup( int groupId ) => new GroupService( new RockContext() ).Get( groupId );
 
-        protected virtual bool IsActiveGroupMember( int groupId, int personId ) => _groupMemberService.Queryable()
-            .Any( GroupMemberServiceHelper.ActiveMemberOf( groupId, personId ) );
+        private bool IsActiveGroupMember( int groupId, int personId ) => AnyGroupMember( GroupMemberServiceHelper.ActiveMemberOf( groupId, personId ) );
+
+        protected virtual bool AnyGroupMember( Expression<Func<GroupMember, bool>> predicate ) => _groupMemberService.Queryable().Any( predicate );
 
         protected virtual bool Authorized( Rock.Security.ISecured entity, string action, Person person ) => Rock.Security.Authorization.Authorized( entity, action, person );
 

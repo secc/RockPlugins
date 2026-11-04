@@ -592,8 +592,9 @@ namespace org.secc.Rest.Controllers
 
         protected virtual Group FindGroup( int groupId ) => _groupService.Get( groupId );
 
-        protected virtual bool IsActiveGroupMember( int groupId, int personId ) => _groupMemberService.Queryable()
-            .Any( GroupMemberServiceHelper.ActiveMemberOf( groupId, personId ) );
+        private bool IsActiveGroupMember( int groupId, int personId ) => AnyGroupMember( GroupMemberServiceHelper.ActiveMemberOf( groupId, personId ) );
+
+        protected virtual bool AnyGroupMember( Expression<Func<GroupMember, bool>> predicate ) => _groupMemberService.Queryable().Any( predicate );
 
         protected virtual bool Authorized( Rock.Security.ISecured entity, string action, Person person ) => Rock.Security.Authorization.Authorized( entity, action, person );
 
