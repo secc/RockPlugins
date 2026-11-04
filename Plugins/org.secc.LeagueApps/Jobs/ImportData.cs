@@ -52,6 +52,7 @@ namespace org.secc.LeagueApps
             var warnings = new List<string>();
             var processed = 0;
             var skipped = 0;
+            var deceasedSkipped = 0;
             var totalPrograms = 0;
 
             try
@@ -230,7 +231,7 @@ namespace org.secc.LeagueApps
                     {
                         try
                         {
-                            if ( !ImportApplicant( apiClient, applicant, league3, leagueGroupType, groupMemberAttribute, personattribute, connectionStatus, attributeValueService, program, warnings, ref consecutiveMemberFailures ) )
+                            if ( !ImportApplicant( apiClient, applicant, league3, leagueGroupType, groupMemberAttribute, personattribute, connectionStatus, attributeValueService, program, warnings, ref consecutiveMemberFailures, ref deceasedSkipped ) )
                             {
                                 abandoned = true;
                                 break;
@@ -267,7 +268,7 @@ namespace org.secc.LeagueApps
                 var message = "LeagueApps Job Failed: " + ex.Message;
                 if ( warnings.Any() )
                 {
-                    message += Environment.NewLine + BuildSummary( processed, skipped, totalPrograms, warnings );
+                    message += Environment.NewLine + BuildSummary( processed, skipped, totalPrograms, deceasedSkipped, warnings );
                 }
                 throw new Exception( message, ex );
             }
@@ -278,9 +279,14 @@ namespace org.secc.LeagueApps
 
             if ( warnings.Any() )
             {
-                throw new Exception( BuildSummary( processed, skipped, totalPrograms, warnings ) );
+                throw new Exception( BuildSummary( processed, skipped, totalPrograms, deceasedSkipped, warnings ) );
             }
             Result = "Successfully imported " + processed + " leagues.";
+            if ( deceasedSkipped > 0 )
+            {
+                // Not a warning (that would fail the job), but visible in case a living person's LeagueApps id sits on a deceased record.
+                Result += " Skipped " + deceasedSkipped + " deceased applicant(s).";
+            }
         }
 
         /// <summary>
@@ -326,7 +332,7 @@ namespace org.secc.LeagueApps
         /// Returns false when the rest of the program should be skipped because member lookups keep failing.
         /// </summary>
         private static bool ImportApplicant( APIClient apiClient, Registrations applicant, Group league, GroupTypeCache leagueGroupType, AttributeCache groupMemberAttribute,
-            AttributeCache personattribute, DefinedValueCache connectionStatus, AttributeValueService attributeValueService, Programs program, List<string> warnings, ref int consecutiveMemberFailures )
+            AttributeCache personattribute, DefinedValueCache connectionStatus, AttributeValueService attributeValueService, Programs program, List<string> warnings, ref int consecutiveMemberFailures, ref int deceasedSkipped )
         {
             // Use a fresh RockContext on every person/groupmember to keep things moving quickly
             using ( var rockContext = new RockContext() )
@@ -395,6 +401,14 @@ namespace org.secc.LeagueApps
                     }
                 }
 
+                // Rock's group member queries hide deceased people, so the existence check below never finds their
+                // membership and a new one was added on every run. Skip them; a warning would fail the job nightly.
+                if ( person.IsDeceased )
+                {
+                    deceasedSkipped++;
+                    return true;
+                }
+
                 // Check to see if the group member already exists
                 var groupmember = groupMemberService.GetByGroupIdAndPersonId( league.Id, person.Id ).FirstOrDefault();
 
@@ -457,13 +471,18 @@ namespace org.secc.LeagueApps
             return role?.Id ?? leagueGroupType.DefaultGroupRoleId;
         }
 
-        private static string BuildSummary( int processed, int skipped, int totalPrograms, List<string> warnings )
+        private static string BuildSummary( int processed, int skipped, int totalPrograms, int deceasedSkipped, List<string> warnings )
         {
             // Every warning is already in the exception log; keep the job status message to a sane size.
             var message = "Imported " + processed + " of " + totalPrograms + " leagues";
             if ( skipped > 0 )
             {
                 message += " (" + skipped + " skipped)";
+            }
+            if ( deceasedSkipped > 0 )
+            {
+                // Not a warning, but still worth seeing when the job fails for another reason.
+                message += ", skipped " + deceasedSkipped + " deceased applicant(s),";
             }
             message += " with " + warnings.Count + " warning(s):" + Environment.NewLine
                 + string.Join( Environment.NewLine, warnings.Take( MaxWarningsInStatus ) );

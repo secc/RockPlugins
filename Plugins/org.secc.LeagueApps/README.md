@@ -40,7 +40,7 @@ Most configuration lives on the shared `LeagueAppsSettings` component (see below
 
 | Job (class) | Purpose | Key settings |
 |-------------|---------|--------------|
-| `ImportData` | Pull current programs, build/refresh the `Year > Category > League` group tree (league keyed by `ForeignId = programId`), set league group attributes, then enroll each registrant (paging the `registrations-2` export) as a `GroupMember` with a mapped role, falling back to the group type's default role when the mapped role is missing; deactivates leagues no longer returned. | All `LeagueAppsSettings` attributes; no per-job attributes |
+| `ImportData` | Pull current programs, build/refresh the `Year > Category > League` group tree (league keyed by `ForeignId = programId`), set league group attributes, then enroll each registrant (paging the `registrations-2` export) as a `GroupMember` with a mapped role, falling back to the group type's default role when the mapped role is missing; skips registrants whose Rock person is deceased; deactivates leagues no longer returned. | All `LeagueAppsSettings` attributes; no per-job attributes |
 | `Jobs.ImportMembers` | Page through all members and backfill the `LeagueAppsUserId` person attribute and `LeagueAppsFamilyId` family attribute. | **CreateNew** (`BooleanField`) — create a new person if no Rock match |
 
 #### Error handling
@@ -65,6 +65,13 @@ Most configuration lives on the shared `LeagueAppsSettings` component (see below
   program fails. `LeagueAppsAuthException` ends the run immediately. The job fails if any warnings
   were recorded. Its status reads "Imported X of N leagues (Y skipped)" and lists the first 50
   warnings, even when the run aborted part-way.
+- **Deceased registrants:** Rock's group member queries hide deceased people, so their existing
+  membership was never found and a duplicate was added every run. `ImportData` now skips any
+  registrant whose matched Rock person is deceased. Skips are not warnings (they would fail the job
+  every night); the count is added to the job result ("Skipped N deceased applicant(s)") and to the
+  failure summary. Known catch: a living person whose `LeagueAppsUserId` sits on a deceased record
+  (e.g. after a bad merge) is matched to that record and is not enrolled; fix the attribute on the
+  person to resolve it.
 - **`ImportMembers`** stops paging on a fetch error and fails the job. The message includes the
   partial count and the last `userId` reached. Errors for individual members are collected in the job
   result.
@@ -175,4 +182,4 @@ Ships Rock plugin migrations under `/Migrations/`:
 - Related: people created here flow through the same matching concerns as
   [org.secc.PersonMatch](../org.secc.PersonMatch/README.md).
 
-Last updated: 2026-10-02
+Last updated: 2026-11-03
