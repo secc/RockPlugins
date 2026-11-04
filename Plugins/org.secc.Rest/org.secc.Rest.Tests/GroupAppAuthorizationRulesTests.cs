@@ -42,9 +42,10 @@ namespace org.secc.Rest.Tests
     /// ROCK-9351: the GroupApp group, roster and attendance GETs with Rock's own permission check.
     /// Unlike GroupAppAccessTests, the controllers keep their permission lookup; each test puts the
     /// caller's permission rules for the group into Rock's authorization cache, so the lookup reads
-    /// them from there, and leaves an empty rule set there afterwards. The caller is not a member of the group, and
-    /// the current login, group lookup, group member query and the work after the check are
-    /// replaced. Anything that reaches the database throws, which fails the test.
+    /// them from there, and leaves an empty rule set there afterwards. The caller is not a member of
+    /// the group, and the current login, group lookup, group member query and the work after the
+    /// check are replaced. Anything that reaches the database throws, which fails the test; that
+    /// includes loading the group's type to look for a group role that grants the permission.
     /// </summary>
     [Collection( RockAuthorizationCacheCollection.Name )]
     public class GroupAppAuthorizationRulesTests : IDisposable
@@ -52,6 +53,7 @@ namespace org.secc.Rest.Tests
         private const int GroupId = 4242;
         private const int PersonId = 7171;
         private const int GroupEntityTypeId = 16;
+        private const int GroupTypeId = 4343;
         private const string AuthorizationCacheKey = "Rock.Security.Authorization";
         private const string UnusedConnection = "name=UnusedByTheseTests";
 
@@ -63,7 +65,7 @@ namespace org.secc.Rest.Tests
             public override int TypeId => GroupEntityTypeId;
         }
 
-        private static readonly Group TheGroup = new TestGroup { Id = GroupId, Name = "Sample Group", IsActive = true };
+        private static readonly Group TheGroup = new TestGroup { Id = GroupId, GroupTypeId = GroupTypeId, Name = "Sample Group", IsActive = true };
 
         private static readonly UserLogin TheLogin = new UserLogin { Person = new Person { Id = PersonId } };
 
