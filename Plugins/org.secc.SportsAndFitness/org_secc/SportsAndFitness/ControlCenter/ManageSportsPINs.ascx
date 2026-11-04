@@ -34,7 +34,7 @@
                                     <%#: Eval("UserName") %>
                                 </div>
                                 <div class="col-xs-6 actions">
-                                    <asp:LinkButton ID="lbRemove" runat="server" CommandName="RemovePIN" CommandArgument='<%# Eval("Id") %>' CssClass="btn btn-xs btn-danger"><i class="fa fa-times"></i></asp:LinkButton>
+                                    <asp:LinkButton ID="lbRemove" runat="server" CommandName="RemovePIN" CommandArgument='<%# Eval("Id") %>' Visible='<%# CanManagePins %>' CssClass="btn btn-xs btn-danger"><i class="fa fa-times"></i></asp:LinkButton>
                                 </div>
                             </li>
                         </div>

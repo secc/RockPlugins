@@ -17,7 +17,7 @@ workflows, group membership, and person/group-member attributes the blocks read 
 - **Root namespace:** `org.secc.SportsAndFitness` (blocks live under `RockWeb.Plugins.org_secc.SportsAndFitness`)
 - **Target framework:** .NET Framework 4.7.2
 - **Deploys to:** `RockWeb/Plugins/org_secc/` (block `.ascx`/`.cs`/`.lava`) and `RockWeb/Themes/` (the theme), via the **PreBuildEvent** `xcopy` of `org_secc` and `Themes\*`.
-- **Cross-plugin dependency:** [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md) — `GroupFitness` uses `org.secc.FamilyCheckin.Utilities.LabelPrinter`.
+- **Cross-plugin dependency:** [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md) — `GroupFitness` uses `org.secc.FamilyCheckin.Utilities.LabelPrinter`; [org.secc.Security](../org.secc.Security/README.md) — `PersonActions` and `ManageSportsPINs` use `org.secc.Security.Utility.PinManagerRules`.
 
 ## Project Layout
 
@@ -44,8 +44,8 @@ All blocks are RockWeb-compiled `.ascx` controls. Categories vary (`SECC > Check
 | `ControlCenter/GuestCheckin` | SECC > Sports and Fitness | Staff tool to check in guests against the guest-registration workflow. | Guest Registration Workflow, Workflow Status, Cancel/Checkin Activity Type Name, Checkin Group Type, Maximum Guests |
 | `ControlCenter/Search` | Sports and Fitness > Control Center | Search participants by PIN and/or phone number. | Search By PIN, Search By Phone Number, Search Result Page |
 | `ControlCenter/SearchResults` | Sports and Fitness > Control Center | Renders the participant result list via Lava. | Person Detail (linked page), Sports and Fitness PIN Purpose (defined value), Results Lava, Lava Commands, Show Debug Panel |
-| `ControlCenter/PersonActions` | Sports and Fitness > Control Center | Per-person action panel with links to Sports/Group-Fitness/Childcare history. | Sports & Fitness / Group Fitness / Childcare History pages, Group Fitness Group |
-| `ControlCenter/ManageSportsPINs` | Sports and Fitness > Control Center | Manage a person's sign-in PINs (used alongside Person Actions). A new PIN must contain only the numbers 0-9, be at least 4 digits long (leading zeros count), not be all zeros, and not match the user name of any existing login; the Person Actions Manage PINs dialog applies the same rules. | (none) |
+| `ControlCenter/PersonActions` | Sports and Fitness > Control Center | Per-person action panel with links to Sports/Group-Fitness/Childcare history. In the Manage PIN dialog, people who can administrate PIN Authentication and edit the person can add and remove the person's Sports and Fitness PINs; PIN values are shown only to people who can administrate PIN Authentication (others see ••••). | Sports & Fitness / Group Fitness / Childcare History pages, Group Fitness Group |
+| `ControlCenter/ManageSportsPINs` | Sports and Fitness > Control Center | Manage a person's sign-in PINs (used alongside Person Actions). A new PIN must contain only the numbers 0-9, be at least 4 digits long (leading zeros count), not be all zeros, and not match the user name of any existing login; the Person Actions Manage PINs dialog applies the same rules. Adding and removing PINs requires Administrate on PIN Authentication and Edit on the person, and Remove deletes only the person's PIN logins. PIN values are shown only to people who can administrate PIN Authentication (others see ••••). | (none) |
 
 #### GuestRegistration attribute keys
 
@@ -71,7 +71,7 @@ not C# components.
 ## Dependencies & Integrations
 
 - **Rock:** `RockContext` and Rock services (`PersonService`, `GroupService`, `GroupMemberService`, `PhoneNumberService`, `AttributeMatrix*Service`), the check-in framework (`CheckInBlock`, `CheckInState`, `ProcessActivity`), Rock workflow engine, attribute framework / attribute matrices, `RockBlock`, Lava (`ResolveMergeFields`).
-- **Cross-plugin:** [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md) — `LabelPrinter` for kiosk label printing in `GroupFitness`.
+- **Cross-plugin:** [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md) — `LabelPrinter` for kiosk label printing in `GroupFitness`; [org.secc.Security](../org.secc.Security/README.md) — `PinManagerRules` for PIN display and PIN login checks in `PersonActions` and `ManageSportsPINs`.
 - **Third-party:** none beyond Rock/.NET. Kiosk label printing pulls in `cordova-2.4.0.js` / `ZebraPrint.js` from RockWeb.
 
 ## Migrations
@@ -102,4 +102,4 @@ and is not wired into any build or `Rock.Plugin.Migration`.
 
 ---
 
-**Last updated:** 2026-10-28
+**Last updated:** 2026-11-04
