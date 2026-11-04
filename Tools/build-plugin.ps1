@@ -8,16 +8,31 @@
     Rock to have been built once. This script:
       1. Warns when a Rock assembly in RockWeb\Bin is older than its source (stale Rock build).
       2. Builds the requested plugin csproj files with MSBuild, SolutionDir pointed at ..\Rock.
-      3. Copies the plugin DLL/PDB (and any org.secc.* project references) into RockWeb\Bin.
+      3. Unless -NoCopy: copies the plugin's org.secc.* DLL/PDB into RockWeb\Bin and runs the
+         plugin's own pre/post-build copy steps, and those of the org.secc projects it
+         references, the same as a Visual Studio build.
 
-    The csproj PostBuildEvent is suppressed. It xcopies org_secc\ into RockWeb\Plugins, which
-    is unnecessary here: those folders are symlinked back into this repo.
+    The csproj PreBuildEvent and PostBuildEvent are turned off during the MSBuild call and
+    run afterwards by this script, minus two kinds of line:
+      - copies into RockWeb\Plugins\org_secc. Those folders are symlinks into the main
+        checkout, so from a worktree the copy would write the worktree's block files into
+        the main checkout.
+      - copies into RockWeb\Themes. Themes are managed by hand.
+    Everything else runs as written: third-party DLLs into Bin, and files outside Bin such as
+    RockWeb\Scripts\CheckinClient (FamilyCheckin), RockWeb\GetStatement.ashx (Finance),
+    RockWeb\Assets and RockWeb\Styles (PayPalExpress, CustomIcons) and RockWeb\LibSass (Sass).
+    Like a Visual Studio build, that can leave changes in the ..\Rock working copy.
+
+    Plugins with no csproj (Event, Connection, ...) are compiled at runtime by RockWeb; naming
+    one prints a skip message. Test projects (*.Tests) are not built.
+
+    Copy mode needs MSBuild 17.8 or later (for -getProperty). -NoCopy works with older MSBuild.
 
 .PARAMETER Plugin
     Plugin names or csproj paths. Names may omit the "org.secc." prefix and match
-    case-insensitively (e.g. Workflow, org.secc.Workflow, RegistrationCart).
-    When omitted, builds every plugin with changes vs origin/master (falls back to master; committed, staged, unstaged,
-    or untracked).
+    case-insensitively (e.g. Workflow, org.secc.Workflow, FamilyCheckin).
+    When omitted, builds every plugin with changes vs origin/master (falls back to master;
+    committed, staged, unstaged, or untracked).
 
 .PARAMETER All
     Build every plugin csproj under Plugins\.
@@ -28,11 +43,14 @@
 .PARAMETER RockPath
     Rock checkout. Defaults to the Rock folder next to this repo.
 
+.PARAMETER MSBuildPath
+    MSBuild.exe to use. Defaults to the newest Visual Studio or Build Tools install.
+
 .PARAMETER SkipStaleCheck
     Skip the Rock-source-vs-Bin timestamp check.
 
 .PARAMETER NoCopy
-    Build only; do not copy outputs into RockWeb\Bin (compile check).
+    Build only (compile check): copy nothing into RockWeb and run no pre/post-build steps.
 
 .EXAMPLE
     .\Tools\build-plugin.ps1 Workflow
@@ -49,6 +67,7 @@ param(
     [ValidateSet('Debug', 'Release')]
     [string] $Configuration = 'Debug',
     [string] $RockPath,
+    [string] $MSBuildPath,
     [switch] $SkipStaleCheck,
     [switch] $NoCopy
 )
@@ -74,14 +93,33 @@ if (-not (Test-Path (Join-Path $rockBin 'Rock.dll'))) {
 }
 
 # --- MSBuild ---------------------------------------------------------------
+# Copy mode reads project properties with -getProperty, which MSBuild added in 17.8.
+$minMSBuild = [version]'17.8'
 $msbuild = $null
-$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
-if (Test-Path $vswhere) {
-    $msbuild = & $vswhere -latest -prerelease -requires Microsoft.Component.MSBuild `
-        -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+if ($MSBuildPath) {
+    if (-not (Test-Path $MSBuildPath -PathType Leaf)) { throw "MSBuild not found at $MSBuildPath." }
+    $msbuild = (Resolve-Path $MSBuildPath).Path
+} else {
+    $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+    if (Test-Path $vswhere) {
+        # -products * includes Build Tools installs. Prefer a new enough instance.
+        $msbuild = & $vswhere -latest -prerelease -products * -version "[$minMSBuild," `
+            -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' |
+            Select-Object -First 1
+        if (-not $msbuild) {
+            $msbuild = & $vswhere -latest -prerelease -products * `
+                -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' |
+                Select-Object -First 1
+        }
+    }
+    if (-not $msbuild) { $msbuild = (Get-Command msbuild.exe -ErrorAction SilentlyContinue).Source }
+    if (-not $msbuild) { throw 'MSBuild.exe not found (install Visual Studio or Build Tools).' }
 }
-if (-not $msbuild) { $msbuild = (Get-Command msbuild.exe -ErrorAction SilentlyContinue).Source }
-if (-not $msbuild) { throw 'MSBuild.exe not found (install Visual Studio or Build Tools).' }
+$msbuildVersion = [version]((& $msbuild -version -nologo | Select-Object -Last 1).Trim())
+if (-not $NoCopy -and $msbuildVersion -lt $minMSBuild) {
+    throw "MSBuild $minMSBuild or later is required to copy outputs (found $msbuildVersion at $msbuild). " +
+        'Install Visual Studio 2022 17.8+ or Build Tools, pass -MSBuildPath, or use -NoCopy for a compile check.'
+}
 
 # --- Stale Rock check ------------------------------------------------------
 if (-not $SkipStaleCheck) {
@@ -128,15 +166,25 @@ $allProjects = Get-ChildItem $pluginsDir -Directory | ForEach-Object {
     }
 } | Where-Object { $_ -and $_.BaseName -notlike '*.Tests' }
 
+# Returns the csproj to build, or nothing for a runtime-compiled plugin. Throws for unknown
+# names, ambiguous names and test projects.
 function Resolve-Plugin([string] $name) {
-    if (Test-Path $name -PathType Leaf) { return Get-Item $name }
     $n = $name.Trim()
-    $hit = $allProjects | Where-Object {
-        $_.BaseName -ieq $n -or $_.BaseName -ieq "org.secc.$n"
+    if (Test-Path $n -PathType Leaf) { return Get-Item $n }
+    $short = $n -replace '^org\.secc\.', ''
+    if ($short -like '*.Tests') { throw "'$n' is a test project. This script does not build tests." }
+    $hit = $allProjects | Where-Object { $_.BaseName -ieq "org.secc.$short" }
+    if ($hit) { return $hit }
+    # A plugin folder with no csproj at all holds runtime-compiled blocks. Checked before the
+    # substring match so 'Connection' doesn't resolve to ConnectionCards/ConnectionsDigest.
+    $dir = Join-Path $pluginsDir "org.secc.$short"
+    if (Test-Path $dir -PathType Container) {
+        if (-not (Get-ChildItem $dir -Filter *.csproj -File -Recurse -Depth 1)) {
+            Write-Host "Skipping $((Get-Item $dir).Name): no csproj (compiled at runtime by RockWeb)."
+            return
+        }
     }
-    if (-not $hit) {
-        $hit = $allProjects | Where-Object { $_.BaseName -ilike "*$n*" }
-    }
+    $hit = $allProjects | Where-Object { $_.BaseName -ilike "*$short*" }
     if (@($hit).Count -ne 1) {
         $list = if ($hit) { ($hit.BaseName -join ', ') } else { 'none' }
         throw "Plugin '$name' matched $(@($hit).Count) projects ($list). Be more specific."
@@ -147,7 +195,7 @@ function Resolve-Plugin([string] $name) {
 if ($All) {
     $targets = $allProjects
 } elseif ($Plugin) {
-    $targets = $Plugin | ForEach-Object { $_ -split ',' } | Where-Object { $_ } |
+    $targets = $Plugin | ForEach-Object { $_ -split ',' } | Where-Object { $_.Trim() } |
         ForEach-Object { Resolve-Plugin $_ }
 } else {
     $baseRef = 'origin/master'
@@ -170,10 +218,77 @@ if ($All) {
         return
     }
 }
-$targets = @($targets | Sort-Object FullName -Unique)
+$targets = @($targets | Where-Object { $_ } | Sort-Object FullName -Unique)
+if (-not $targets) {
+    Write-Host 'Nothing to build.'
+    return
+}
+
+# --- Build events ----------------------------------------------------------
+$solutionDir = "$RockPath\"
+$skipEventLine = '\\RockWeb\\(Plugins\\org_secc|Themes)(\\|"|\s|$)'
+$eventsRun = @{}   # csproj full path (lower case) -> $true, so each project's events run once
+
+# org.secc csproj files referenced by a project, transitively, dependencies first.
+function Get-ProjectClosure([string] $csprojPath, [hashtable] $seen = @{}) {
+    $key = $csprojPath.ToLowerInvariant()
+    if ($seen.ContainsKey($key)) { return }
+    $seen[$key] = $true
+    $dir = Split-Path -Parent $csprojPath
+    $refs = ([xml](Get-Content $csprojPath -Raw)).SelectNodes("//*[local-name()='ProjectReference']")
+    foreach ($ref in $refs) {
+        $path = [IO.Path]::GetFullPath((Join-Path $dir $ref.GetAttribute('Include')))
+        if ((Test-Path $path) -and [IO.Path]::GetFileNameWithoutExtension($path) -notlike '*.Tests') {
+            Get-ProjectClosure $path $seen
+        }
+    }
+    $csprojPath
+}
+
+# Evaluated (macro-expanded) properties of a project, as MSBuild sees them for this build.
+function Get-ProjectProperties([string] $csprojPath) {
+    $json = & $msbuild $csprojPath "/p:Configuration=$Configuration" "/p:SolutionDir=$solutionDir" `
+        -getProperty:TargetDir -getProperty:PreBuildEvent -getProperty:PostBuildEvent -nologo |
+        Out-String
+    if ($LASTEXITCODE -ne 0) { throw "Could not read properties of ${csprojPath}:`n$json" }
+    ($json | ConvertFrom-Json).Properties
+}
+
+# Runs the project's pre- and post-build events minus the org_secc and Themes copies.
+# Like MSBuild's Exec, all lines go in one .cmd file and the exit code is the last line's.
+# Returns $true on success.
+function Invoke-BuildEvents([string] $csprojPath, $props) {
+    $name = [IO.Path]::GetFileNameWithoutExtension($csprojPath)
+    foreach ($event in 'PreBuildEvent', 'PostBuildEvent') {
+        $lines = @("$($props.$event)" -split '\r?\n' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        if (-not $lines) { continue }
+        $keep = @($lines | Where-Object { $_ -notmatch $skipEventLine })
+        $skipped = $lines.Count - $keep.Count
+        $note = if ($skipped) { ", skipped $skipped org_secc/Themes line(s)" } else { '' }
+        if (-not $keep) {
+            Write-Host "  $name ${event}: nothing to run$note"
+            continue
+        }
+        $cmdFile = Join-Path ([IO.Path]::GetTempPath()) "build-plugin-$([guid]::NewGuid().ToString('N')).cmd"
+        Set-Content -Path $cmdFile -Value $keep -Encoding Ascii
+        try {
+            $out = & cmd.exe /Q /D /C $cmdFile 2>&1 | Out-String
+            $code = $LASTEXITCODE
+        } finally {
+            Remove-Item $cmdFile -ErrorAction SilentlyContinue
+        }
+        if ($code -ne 0) {
+            Write-Host "  $name $event FAILED (exit $code):" -ForegroundColor Red
+            $keep | ForEach-Object { Write-Host "    $_" }
+            Write-Host $out.TrimEnd()
+            return $false
+        }
+        Write-Host "  $name ${event}: ran $($keep.Count) line(s)$note"
+    }
+    return $true
+}
 
 # --- Build -----------------------------------------------------------------
-$solutionDir = "$RockPath\"
 $failed = @()
 $sw = [Diagnostics.Stopwatch]::StartNew()
 
@@ -183,7 +298,8 @@ foreach ($csproj in $targets) {
         $csproj.FullName
         '-restore'   # SDK-style projects (LinkList) need project.assets.json in a fresh worktree
         "/p:Configuration=$Configuration"
-        "/p:SolutionDir=$solutionDir\"
+        "/p:SolutionDir=$solutionDir"
+        '/p:PreBuildEvent='    # both events run below, filtered (see .DESCRIPTION)
         '/p:PostBuildEvent='
         '/v:m', '/nologo', '/clp:ErrorsOnly;Summary'
     )
@@ -196,16 +312,28 @@ foreach ($csproj in $targets) {
     }
     if ($NoCopy) { continue }
 
-    $targetPath = (& $msbuild $csproj.FullName "/p:Configuration=$Configuration" `
-            "/p:SolutionDir=$solutionDir\" -getProperty:TargetPath -nologo).Trim()
-    $outDir = Split-Path -Parent $targetPath
-    # Plugin DLL plus any org.secc.* project references that were copied local.
-    Get-ChildItem $outDir -File |
-        Where-Object { $_.Name -like 'org.secc.*' -and $_.Extension -in '.dll', '.pdb' } |
-        ForEach-Object {
-            Copy-Item $_.FullName $rockBin -Force
-            Write-Host "  -> RockWeb\Bin\$($_.Name)"
+    $ok = $true
+    foreach ($proj in Get-ProjectClosure $csproj.FullName) {
+        $key = $proj.ToLowerInvariant()
+        $isTarget = $proj -ieq $csproj.FullName
+        if ($eventsRun.ContainsKey($key) -and -not $isTarget) { continue }
+        $props = Get-ProjectProperties $proj
+        if ($isTarget) {
+            # Plugin DLL plus any org.secc.* project references that were copied local. Covers
+            # projects whose events don't copy their own DLL (AI, CustomIcons, SportsAndFitness).
+            Get-ChildItem $props.TargetDir -File |
+                Where-Object { $_.Name -like 'org.secc.*' -and $_.Extension -in '.dll', '.pdb' } |
+                ForEach-Object {
+                    Copy-Item $_.FullName $rockBin -Force
+                    Write-Host "  -> RockWeb\Bin\$($_.Name)"
+                }
         }
+        if (-not $eventsRun.ContainsKey($key)) {
+            $eventsRun[$key] = $true
+            if (-not (Invoke-BuildEvents $proj $props)) { $ok = $false }
+        }
+    }
+    if (-not $ok) { $failed += "$($csproj.BaseName) (build events)" }
 }
 
 $sw.Stop()

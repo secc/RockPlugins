@@ -26,8 +26,10 @@ no need to rebuild Rock to build a plugin.
 
 - Build with `Tools/build-plugin.ps1` (PowerShell). No arguments builds the plugins changed vs
   `origin/master`; or pass names (`Workflow`, `LinkList,Event`). It warns when `../Rock`
-  source is newer than its DLLs in `RockWeb\Bin`, and copies the plugin DLL/PDB into
-  `RockWeb\Bin`. Use `-NoCopy` for a compile check that doesn't recycle a running site.
+  source is newer than its DLLs in `RockWeb\Bin`, copies the plugin DLL/PDB into
+  `RockWeb\Bin`, and runs the plugin's pre/post-build copy steps (third-party DLLs, scripts,
+  assets) except the `org_secc` and `Themes` copies. Use `-NoCopy` for a compile check that
+  copies nothing and doesn't recycle a running site.
 - If the stale-Rock warning appears and the change matters, rebuild Rock once in Visual Studio.
 - Plugins with no csproj (Administration, CheckinMonitor, Connection, Equip, Event,
   FamilyOnMission, GroupTrackerDemo, RegistrationCart, Themes) are `.ascx`/`.ascx.cs` blocks
