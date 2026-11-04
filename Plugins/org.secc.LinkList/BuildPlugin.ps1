@@ -1,23 +1,40 @@
-# Builds the LinkList plugin. Unlike our legacy plugins, this one uses the new
-# Rock plugin format (rock-dev-tool style): an SDK-style C# project that restores
-# via NuGet PackageReference, plus an Obsidian (Vue/TypeScript) frontend project
-# compiled by @sparkdevnetwork/obsidian-build-tools.
+# Builds the LinkList plugin: an SDK-style C# project (Rock assemblies come
+# from RockWeb\Bin via the repo-root Directory.Build.props/.targets, not NuGet),
+# plus an Obsidian (Vue/TypeScript) frontend project compiled by
+# @sparkdevnetwork/obsidian-build-tools.
 #
 # The pipeline invokes this via the existing BuildPlugin.ps1 hook, so no pipeline
 # changes are required — but the build agent must have Node.js/npm available.
+#
+# Locally, pass -RockWebPath to build into a specific RockWeb (for example a
+# private copy, so a running site's Bin isn't touched).
+
+param(
+    [string]$RockWebPath
+)
 
 $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
 Push-Location $dir
 
-# Locate RockWeb. First candidate matches the Azure DevOps pipeline layout
-# (RockWeb at the root of Build.SourcesDirectory, plugins repo as a sibling).
-# Second candidate matches a local rock-dev-tool environment layout.
+# Locate RockWeb. An explicit -RockWebPath wins. Otherwise the first candidate
+# matches the Azure DevOps pipeline layout (RockWeb at the root of
+# Build.SourcesDirectory, plugins repo as a sibling) and the second matches a
+# local rock-dev-tool environment layout.
 $rockWeb = $null
-ForEach ($candidate in @("..\..\..\RockWeb", "..\Rock\RockWeb")) {
-    if (Test-Path $candidate) {
-        $rockWeb = (Resolve-Path $candidate).Path
-        break
+if ($RockWebPath) {
+    if (-not (Test-Path $RockWebPath)) {
+        Pop-Location
+        throw "LinkList: RockWebPath '$RockWebPath' does not exist!"
+    }
+    $rockWeb = (Resolve-Path $RockWebPath).Path
+}
+else {
+    ForEach ($candidate in @("..\..\..\RockWeb", "..\Rock\RockWeb")) {
+        if (Test-Path $candidate) {
+            $rockWeb = (Resolve-Path $candidate).Path
+            break
+        }
     }
 }
 if ($null -eq $rockWeb) {
@@ -46,9 +63,8 @@ Write-Host "LinkList: using MSBuild at $msbuild"
 
 # --- 1. C# project ---
 # -restore handles NuGet (PackageReference; there is no packages.config).
-# RockWebPath feeds the DotLiquid/HtmlAgilityPack HintPaths and the
-# CopyToRockWeb step (SparkDevNetwork.Rock.Build.Tasks copies the compiled
-# DLL into RockWeb\Bin).
+# RockWebPath feeds the Rock assembly HintPaths (RockWeb\Bin) and the shared
+# CopyRockPluginToRockWeb target, which copies the compiled DLL into RockWeb\Bin.
 & $msbuild -m -restore "org.secc.LinkList\org.secc.LinkList.csproj" /p:Configuration=Release /p:RockWebPath="$rockWeb"
 if ($LASTEXITCODE -ne 0) {
     Pop-Location
