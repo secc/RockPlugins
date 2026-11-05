@@ -87,6 +87,7 @@
         <asp:Panel ID="pnlConfirmation" runat="server" CssClass="panel panel-default" Visible="false">
             <div class="panel-heading">Please Confirm</div>
             <div class="panel-body">
+                <Rock:NotificationBox ID="nbConfirmationError" runat="server" NotificationBoxType="Danger" Visible="false" />
                 <div class="row">
                     <div class="col-xs-12">
                         <asp:Literal ID="lConfirmationText" runat="server" />
