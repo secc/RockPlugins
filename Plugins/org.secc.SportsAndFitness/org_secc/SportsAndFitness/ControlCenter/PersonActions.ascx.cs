@@ -139,7 +139,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         private void lbSavePIN_Click( object sender, EventArgs e )
         {
-            if ( !CanManagePins() )
+            if ( !CanManagePins( CanAdministratePins() ) )
             {
                 ShowPinNotAuthorized();
                 return;
@@ -274,7 +274,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 return;
             }
 
-            if ( !CanManagePins() )
+            if ( !CanManagePins( CanAdministratePins() ) )
             {
                 ShowPinNotAuthorized();
                 return;
@@ -340,12 +340,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         /// <summary>
         /// Returns true when the current person can add and remove the selected person's PINs: they can administrate
-        /// PIN Authentication and edit the selected person.
+        /// PIN Authentication (<paramref name="canAdministratePins"/>, from CanAdministratePins) and edit the selected person.
         /// </summary>
-        private bool CanManagePins()
+        private bool CanManagePins( bool canAdministratePins )
         {
             return SelectedPerson != null
-                && CanAdministratePins()
+                && canAdministratePins
                 && SelectedPerson.IsAuthorized( Authorization.EDIT, CurrentPerson );
         }
 
@@ -628,7 +628,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             tbPIN.Text = string.Empty;
 
             var canAdministratePins = CanAdministratePins();
-            _canManagePins = CanManagePins();
+            _canManagePins = CanManagePins( canAdministratePins );
             tbPIN.Visible = _canManagePins;
             lbSavePIN.Visible = _canManagePins;
 

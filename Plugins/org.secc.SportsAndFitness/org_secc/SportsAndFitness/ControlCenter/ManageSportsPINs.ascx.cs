@@ -83,7 +83,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 var canAdministratePins = CanAdministratePins( rockContext );
                 var person = new PersonService( rockContext ).Get( personId.Value );
-                CanManagePins = CanManagePinsFor( person, rockContext );
+                CanManagePins = CanManagePinsFor( person, canAdministratePins );
                 tbPIN.Visible = CanManagePins;
                 lbAdd.Visible = CanManagePins;
 
@@ -216,7 +216,25 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     return;
                 }
 
-                userLoginService.Delete( login );
+                // Same as Person Actions: remove only the Sports and Fitness purpose from a PIN with other
+                // purposes, delete a PIN whose only purpose is Sports and Fitness, and leave other PINs alone.
+                var sportsPINDV = DefinedValueCache.Get( SFPurposeGuid );
+                login.LoadAttributes( rockContext );
+                var pinTypesIds = login.GetAttributeValue( "PINPurpose" ).SplitDelimitedValues()
+                    .Select( v => v.AsInteger() )
+                    .ToList();
+
+                if ( pinTypesIds.Count() > 1 && pinTypesIds.Contains( sportsPINDV.Id ) )
+                {
+                    pinTypesIds.Remove( sportsPINDV.Id );
+                    login.SetAttributeValue( "PINPurpose", string.Join( "|", pinTypesIds ) );
+                    login.SaveAttributeValue( "PINPurpose" );
+                }
+                else if ( pinTypesIds.Contains( sportsPINDV.Id ) )
+                {
+                    userLoginService.Delete( login );
+                }
+
                 rockContext.SaveChanges();
 
             }
@@ -247,7 +265,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     return null;
                 }
 
-                if ( !CanManagePinsFor( person, rockContext ) )
+                if ( !CanManagePinsFor( person, CanAdministratePins( rockContext ) ) )
                 {
                     ShowAlert( "Not Authorized", "You are not authorized to manage PINs for this person." );
                     return null;
@@ -259,12 +277,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         /// <summary>
         /// Returns true when the current person can add and remove the person's PINs: they can administrate
-        /// PIN Authentication and edit the person.
+        /// PIN Authentication (<paramref name="canAdministratePins"/>, from CanAdministratePins) and edit the person.
         /// </summary>
-        private bool CanManagePinsFor( Person person, RockContext rockContext )
+        private bool CanManagePinsFor( Person person, bool canAdministratePins )
         {
             return person != null
-                && CanAdministratePins( rockContext )
+                && canAdministratePins
                 && person.IsAuthorized( Authorization.EDIT, CurrentPerson );
         }
 

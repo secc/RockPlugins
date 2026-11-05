@@ -45,7 +45,7 @@ All blocks are RockWeb-compiled `.ascx` controls. Categories vary (`SECC > Check
 | `ControlCenter/Search` | Sports and Fitness > Control Center | Search participants by PIN and/or phone number. | Search By PIN, Search By Phone Number, Search Result Page |
 | `ControlCenter/SearchResults` | Sports and Fitness > Control Center | Renders the participant result list via Lava. | Person Detail (linked page), Sports and Fitness PIN Purpose (defined value), Results Lava, Lava Commands, Show Debug Panel |
 | `ControlCenter/PersonActions` | Sports and Fitness > Control Center | Per-person action panel with links to Sports/Group-Fitness/Childcare history. In the Manage PIN dialog, people who can administrate PIN Authentication and edit the person can add and remove the person's Sports and Fitness PINs; PIN values are shown only to people who can administrate PIN Authentication (others see ••••). | Sports & Fitness / Group Fitness / Childcare History pages, Group Fitness Group |
-| `ControlCenter/ManageSportsPINs` | Sports and Fitness > Control Center | Manage a person's sign-in PINs (used alongside Person Actions). A new PIN must contain only the numbers 0-9, be at least 4 digits long (leading zeros count), not be all zeros, and not match the user name of any existing login; the Person Actions Manage PINs dialog applies the same rules. Adding and removing PINs requires Administrate on PIN Authentication and Edit on the person, and Remove deletes only the person's PIN logins. PIN values are shown only to people who can administrate PIN Authentication (others see ••••). | (none) |
+| `ControlCenter/ManageSportsPINs` | Sports and Fitness > Control Center | Manage a person's sign-in PINs (used alongside Person Actions). A new PIN must contain only the numbers 0-9, be at least 4 digits long (leading zeros count), not be all zeros, and not match the user name of any existing login; the Person Actions Manage PINs dialog applies the same rules. Adding and removing PINs requires Administrate on PIN Authentication and Edit on the person, and Remove, like the Person Actions dialog, takes the Sports and Fitness purpose off a PIN that has other purposes and deletes a PIN whose only purpose is Sports and Fitness. PIN values are shown only to people who can administrate PIN Authentication (others see ••••). | (none) |
 
 #### GuestRegistration attribute keys
 
@@ -102,4 +102,4 @@ and is not wired into any build or `Rock.Plugin.Migration`.
 
 ---
 
-**Last updated:** 2026-11-04
+**Last updated:** 2026-11-05
