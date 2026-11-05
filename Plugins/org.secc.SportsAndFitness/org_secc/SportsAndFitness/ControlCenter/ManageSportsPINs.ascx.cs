@@ -114,7 +114,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         private void AddPIN()
         {
             // Derive the target person from the server-side page parameter and
-            // verify the current user is authorized to edit them. The client-posted
+            // verify the current user can administrate PIN Authentication and edit
+            // them (GetAuthorizedPerson). The client-posted
             // hidden field must never be trusted for this (ROCK-8766).
             var person = GetAuthorizedPerson();
 
@@ -195,8 +196,9 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         private void RemovePIN(int loginId)
         {
             // Same access-control requirement as AddPIN: resolve the person from the
-            // server-side page parameter and confirm the current user can edit them,
-            // rather than trusting the client-posted hidden field (ROCK-8766).
+            // server-side page parameter and confirm the current user can administrate
+            // PIN Authentication and edit them (GetAuthorizedPerson), rather than
+            // trusting the client-posted hidden field (ROCK-8766).
             var person = GetAuthorizedPerson();
 
             if(person == null)
@@ -219,16 +221,18 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 // Same as Person Actions: remove only the Sports and Fitness purpose from a PIN with other
                 // purposes, delete a PIN whose only purpose is Sports and Fitness, and leave other PINs alone.
                 var sportsPINDV = DefinedValueCache.Get( SFPurposeGuid );
+                var purposeKey = AttributeCache.Get( PinPurposeAttributeGuid ).Key;
                 login.LoadAttributes( rockContext );
-                var pinTypesIds = login.GetAttributeValue( "PINPurpose" ).SplitDelimitedValues()
+                var pinTypesIds = login.GetAttributeValue( purposeKey ).SplitDelimitedValues()
                     .Select( v => v.AsInteger() )
+                    .Distinct()
                     .ToList();
 
                 if ( pinTypesIds.Count() > 1 && pinTypesIds.Contains( sportsPINDV.Id ) )
                 {
                     pinTypesIds.Remove( sportsPINDV.Id );
-                    login.SetAttributeValue( "PINPurpose", string.Join( "|", pinTypesIds ) );
-                    login.SaveAttributeValue( "PINPurpose" );
+                    login.SetAttributeValue( purposeKey, string.Join( "|", pinTypesIds ) );
+                    login.SaveAttributeValue( purposeKey );
                 }
                 else if ( pinTypesIds.Contains( sportsPINDV.Id ) )
                 {

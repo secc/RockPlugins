@@ -292,6 +292,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 login.LoadAttributes( rockContext );
                 var pinTypesIds = login.GetAttributeValue( "PINPurpose" ).SplitDelimitedValues()
                     .Select( v => v.AsInteger() )
+                    .Distinct()
                     .ToList();
 
                 if(pinTypesIds.Count() > 1 && pinTypesIds.Contains(sportsPINDV.Id))
