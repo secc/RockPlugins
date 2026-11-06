@@ -87,38 +87,4 @@ namespace org.secc.RegistrationCart.ViewModels
     }
 
     #endregion
-
-    #region Discount codes
-
-    public class DiscountCodeListInitializationBox
-    {
-        public List<DiscountCodeBag> Codes { get; set; } = new List<DiscountCodeBag>();
-        /// <summary>Rock registration templates, for offering-scoped codes.</summary>
-        public List<ListItemBag> Offerings { get; set; } = new List<ListItemBag>();
-        public bool CanEdit { get; set; }
-    }
-
-    public class DiscountCodeBag
-    {
-        public int Id { get; set; }
-        public string Code { get; set; }
-        public int DiscountType { get; set; }
-        public decimal Value { get; set; }
-        public int Scope { get; set; }
-        /// <summary>RegistrationTemplate id as string (drop-down value); empty = none.</summary>
-        public string OfferingId { get; set; }
-        public string OfferingTitle { get; set; }
-        public string ValidFrom { get; set; }
-        public string ValidTo { get; set; }
-        public bool IsActive { get; set; }
-        public int TimesUsed { get; set; }
-    }
-
-    public class SaveDiscountCodeResultBag
-    {
-        public string ErrorMessage { get; set; }
-        public List<DiscountCodeBag> Codes { get; set; } = new List<DiscountCodeBag>();
-    }
-
-    #endregion
 }

@@ -65,9 +65,10 @@ namespace org.secc.RegistrationCart.Model
         public string SignatureData { get; set; }
 
         /// <summary>
-        /// A code from the registration template's own discounts that the discount code workflow
-        /// applied at add-to-cart (the financial-assistance code). It takes this line alone and no
-        /// cart code stacks on it; checkout records it as the registration's discount code.
+        /// The line's discount code, one of its registration template's discounts: typed by the
+        /// family, the template's automatic discount, or made by the discount code workflow at
+        /// add-to-cart (financial assistance). One per line; checkout records it as the
+        /// registration's discount code. Amount and percentage are snapshotted when applied.
         /// </summary>
         [DataMember]
         [MaxLength( 100 )]
@@ -81,6 +82,13 @@ namespace org.secc.RegistrationCart.Model
         [DataMember]
         [DecimalPrecision( 18, 2 )]
         public decimal TemplateDiscountPercentage { get; set; }
+
+        /// <summary>
+        /// <see cref="TemplateDiscountCode"/> came from the discount code workflow: the family can't
+        /// swap it, and it stays while the line's option and answers are the ones it was made for.
+        /// </summary>
+        [DataMember]
+        public bool IsTemplateDiscountLocked { get; set; }
 
         /// <summary>The Rock Registration created for this line at checkout.</summary>
         [DataMember]

@@ -26,17 +26,6 @@ export const SelectionMode = {
     Multi: 1
 } as const;
 
-export const DiscountType = {
-    Amount: 0,
-    Percent: 1
-} as const;
-
-export const DiscountScope = {
-    Order: 0,
-    LineItem: 1,
-    Offering: 2
-} as const;
-
 /** A registrant with band `band` may pick something whose eligibility flags overlap it. */
 export function isEligible(eligibleFlags: number, band: number): boolean {
     return band !== 0 && (eligibleFlags & band) !== 0;

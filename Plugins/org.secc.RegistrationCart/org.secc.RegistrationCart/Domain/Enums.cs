@@ -60,25 +60,6 @@ public enum SelectionMode
     Multi = 1
 }
 
-public enum DiscountType
-{
-    /// <summary>Fixed currency amount off.</summary>
-    Amount = 0,
-    /// <summary>Percentage off the scoped total.</summary>
-    Percent = 1
-}
-
-/// <summary>What a discount code applies to.</summary>
-public enum DiscountScope
-{
-    /// <summary>Applies to the whole order subtotal.</summary>
-    Order = 0,
-    /// <summary>Applies per eligible line item.</summary>
-    LineItem = 1,
-    /// <summary>Applies only to line items of a specific offering.</summary>
-    Offering = 2
-}
-
 public enum CartStatus
 {
     Open = 0,

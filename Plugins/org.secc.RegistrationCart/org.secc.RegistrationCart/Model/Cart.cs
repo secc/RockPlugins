@@ -65,9 +65,6 @@ namespace org.secc.RegistrationCart.Model
 
         [LavaVisible]
         public virtual ICollection<CartLineItem> LineItems { get; set; } = new List<CartLineItem>();
-
-        [LavaVisible]
-        public virtual ICollection<CartDiscount> Discounts { get; set; } = new List<CartDiscount>();
     }
 
     public partial class CartConfiguration : EntityTypeConfiguration<Cart>

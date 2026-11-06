@@ -126,14 +126,16 @@ namespace org.secc.RegistrationCart.Blocks
                     IsWaitList = line.IsWaitList,
                     EditUrl = lineById.TryGetValue( line.LineItemId, out var cartLine ) ? LineEditUrl( cartLine ) : null,
                     Problem = problemsByLine.GetValueOrNull( line.LineItemId ),
+                    DiscountCode = line.DiscountCode,
+                    DiscountAmount = priced.DiscountFor( line.LineItemId ),
                     AddOns = line.AddOns.Select( a => new PricedAddOnBag { Name = a.Name, Price = a.Price } ).ToList()
                 } );
             }
 
-            foreach ( var d in priced.Discounts )
+            // A shared code (e.g. a staff code) may be on several lines: one summary row per code.
+            foreach ( var byCode in priced.Discounts.GroupBy( d => d.Code, StringComparer.OrdinalIgnoreCase ) )
             {
-                var cartDiscount = cart?.Discounts.FirstOrDefault( cd => cd.DiscountCode?.Code == d.Code );
-                bag.Discounts.Add( new AppliedDiscountBag { CartDiscountId = cartDiscount?.Id ?? 0, Code = d.Code, Amount = d.Amount } );
+                bag.Discounts.Add( new AppliedDiscountBag { Code = byCode.First().Code, Amount = byCode.Sum( d => d.Amount ) } );
             }
 
             return bag;

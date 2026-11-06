@@ -82,7 +82,8 @@ namespace org.secc.RegistrationCart.Services
         /// when each line was added: the instance and its template are active and shown in the
         /// cart, registration is open, the instance has an account, each line's extras are still
         /// offered, and its answers are complete for where it is placed (a camper who came off the
-        /// wait list owes the answers wait-listed registrants skip) and are ones Rock will save.
+        /// wait list owes the answers wait-listed registrants skip) and are ones Rock will save, and
+        /// each line's discount code can still be used.
         /// Place the cart's seats (<see cref="SeatPlanner"/>) first.
         /// </summary>
         public List<CheckoutProblem> Validate( Cart cart )
@@ -181,6 +182,25 @@ namespace org.secc.RegistrationCart.Services
                         : $"Only {item.Value} \"{name}\" left, but your cart has {holding.Count}. Please edit a registration.",
                         holding.Select( l => l.Id ) ) );
                 }
+            }
+
+            // Each line's discount code, checked again as when it was applied: the template still
+            // has it, it's within its dates, and its Maximum Usage holds with what has registered
+            // since and the cart's earlier lines that use it.
+            var templateDiscounts = new TemplateDiscounts( _rockContext );
+            var checkedLines = new List<CartLineItem>();
+            foreach ( var line in cart.LineItems.OrderBy( l => l.Id ) )
+            {
+                if ( line.TemplateDiscountCode.IsNotNullOrWhiteSpace() && instances.TryGetValue( line.RegistrationInstanceId, out var instance ) )
+                {
+                    var problem = templateDiscounts.Check( instance.RegistrationTemplate, instance.Id, line.TemplateDiscountCode, checkedLines, out _ );
+                    if ( problem != null )
+                    {
+                        problems.Add( new CheckoutProblem( $"{Possessive( line.CartRegistrant?.FirstName )} registration for \"{instance.Name}\": {problem} Please edit the registration.", new[] { line.Id } ) );
+                    }
+                }
+
+                checkedLines.Add( line );
             }
 
             // Each camper's answers, for where they are placed now, and the document they signed
@@ -629,7 +649,7 @@ namespace org.secc.RegistrationCart.Services
             }
         }
 
-        private static string Possessive( string name ) =>
+        internal static string Possessive( string name ) =>
             name.IsNullOrWhiteSpace() ? "the camper's" : name.EndsWith( "s" ) ? name + "'" : name + "'s";
 
         private const string PaidButNotRegisteredMessage = "Your payment was received but we could not finish creating the registrations. Please contact the office — do not pay again.";
@@ -813,17 +833,18 @@ namespace org.secc.RegistrationCart.Services
                     FirstName = payer.NickName.IsNotNullOrWhiteSpace() ? payer.NickName : payer.FirstName,
                     LastName = payer.LastName,
                     ConfirmationEmail = payer.Email,
-                    // Only the codes that took something off this line, and only their share of it
-                    // (Rock subtracts DiscountAmount from the registrant's cost + fees).
-                    DiscountCode = string.Join( ",", priced.CodesFor( line.Id ) ).Truncate( 100 ),
+                    // The line's one code, and what it took off (Rock subtracts DiscountAmount from
+                    // the registrant's cost + fees, so the balance matches the charge). The code is
+                    // recorded even when it took nothing off, so it counts toward its Maximum Usage.
+                    DiscountCode = line.TemplateDiscountCode.IsNotNullOrWhiteSpace() ? line.TemplateDiscountCode.Trim() : null,
                     DiscountAmount = priced.DiscountFor( line.Id ),
                     DiscountPercentage = 0m,
                     GroupId = new CatalogService( _rockContext ).GetLinkedGroupId( instance.Id ),
                     IsTemporary = false
                 };
 
-                // A wait-listed line owes nothing now, but its own template code (financial
-                // assistance) stays on the registration for Rock to apply once a seat opens.
+                // A wait-listed line owes nothing now, but its code stays on the registration, with
+                // the template's terms, for Rock to apply once a seat opens.
                 if ( line.IsWaitList && line.TemplateDiscountCode.IsNotNullOrWhiteSpace() )
                 {
                     registration.DiscountCode = line.TemplateDiscountCode;

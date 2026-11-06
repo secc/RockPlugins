@@ -158,8 +158,7 @@ namespace org.secc.RegistrationCart.Services
                 .Include( c => c.LineItems.Select( l => l.RegistrationInstance ) )
                 // Not the add-ons' fee items: one staff deleted would drop its add-on from the
                 // join. Add-ons carry their snapshot name and price.
-                .Include( c => c.LineItems.Select( l => l.AddOns ) )
-                .Include( c => c.Discounts.Select( d => d.DiscountCode ) );
+                .Include( c => c.LineItems.Select( l => l.AddOns ) );
 
         public PricedCart Price( Cart cart ) => CartPricing.Price( cart );
 
@@ -272,15 +271,23 @@ namespace org.secc.RegistrationCart.Services
             /// wait-listed registrants skip.
             /// </summary>
             public bool? IsWaitList { get; set; }
+
+            /// <summary>
+            /// Set when the family typed a code but the discount code workflow applied the line's
+            /// code instead (financial assistance), as RegistrationEntry did: the line keeps the
+            /// workflow's code.
+            /// </summary>
+            public string DiscountNotice { get; set; }
         }
 
         /// <summary>
         /// Adds a registrant-for-instance line with the chosen fee items, enforcing ownership,
         /// grade-band eligibility, uniqueness, capacity, Rock's fee rules and the template's form
-        /// questions. Prices are snapshotted.
+        /// questions. Prices are snapshotted. The line takes at most one discount code (see
+        /// <see cref="SaveLineItem"/>).
         /// </summary>
-        public SaveLineResult AddLineItem( int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, Guid? discountCodeWorkflowGuid ) =>
-            SaveLineItem( null, personAliasId, registrationInstanceId, feeItemIds, fieldValues, signatureData, discountCodeWorkflowGuid, save: true );
+        public SaveLineResult AddLineItem( int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string discountCode, string signatureData, Guid? discountCodeWorkflowGuid ) =>
+            SaveLineItem( null, personAliasId, registrationInstanceId, feeItemIds, fieldValues, discountCode, signatureData, discountCodeWorkflowGuid, save: true );
 
         /// <summary>
         /// Changes a line in the open cart before checkout: its option (within the same template),
@@ -289,22 +296,31 @@ namespace org.secc.RegistrationCart.Services
         /// option and answers are the ones it was signed for; the discount code workflow runs again
         /// only when they changed.
         /// </summary>
-        public SaveLineResult UpdateLineItem( int lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, Guid? discountCodeWorkflowGuid ) =>
-            SaveLineItem( lineItemId, personAliasId, registrationInstanceId, feeItemIds, fieldValues, signatureData, discountCodeWorkflowGuid, save: true );
+        public SaveLineResult UpdateLineItem( int lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string discountCode, string signatureData, Guid? discountCodeWorkflowGuid ) =>
+            SaveLineItem( lineItemId, personAliasId, registrationInstanceId, feeItemIds, fieldValues, discountCode, signatureData, discountCodeWorkflowGuid, save: true );
 
         /// <summary>
         /// Everything adding or changing the line would check except the signature, without saving:
         /// the page asks before the family signs, so a signature isn't spent on answers the cart
         /// would refuse.
         /// </summary>
-        public SaveLineResult CheckLineItem( int? lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues ) =>
-            SaveLineItem( lineItemId, personAliasId, registrationInstanceId, feeItemIds, fieldValues, null, null, save: false );
+        public SaveLineResult CheckLineItem( int? lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string discountCode ) =>
+            SaveLineItem( lineItemId, personAliasId, registrationInstanceId, feeItemIds, fieldValues, discountCode, null, null, save: false );
 
         /// <summary>A line in the person's open cart, or null.</summary>
         public CartLineItem GetOpenLine( int lineItemId ) =>
             GetOpenCart()?.LineItems.FirstOrDefault( l => l.Id == lineItemId );
 
-        private SaveLineResult SaveLineItem( int? lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, Guid? discountCodeWorkflowGuid, bool save )
+        /// <summary>
+        /// Adds, changes or (without <paramref name="save"/>) checks a line. Its discount code is
+        /// one of its registration template's discounts, chosen the way SECC's RegistrationEntry
+        /// chose a registration's code: the template's first automatic discount that can be used,
+        /// else the discount code workflow's code (financial assistance), which locks the line's
+        /// code; a code the family types replaces an automatic one. Each line has its own code;
+        /// a shared code may be typed on several lines, and each use counts toward its
+        /// Maximum Usage.
+        /// </summary>
+        private SaveLineResult SaveLineItem( int? lineItemId, int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string discountCode, string signatureData, Guid? discountCodeWorkflowGuid, bool save )
         {
             var result = new SaveLineResult();
             Cart cart;
@@ -452,6 +468,32 @@ namespace org.secc.RegistrationCart.Services
                 return Refuse( result, string.Join( " ", answerProblems ) );
             }
 
+            var answersChanged = existing == null || !sameOption
+                || RegistrationForms.AnswersKey( template.Template, answers ) != RegistrationForms.AnswersKey( template.Template, RegistrationForms.FromJson( existing.FieldValuesJson ) );
+
+            // The line's discount code. A code the discount code workflow applied stays, and can't
+            // be swapped, while the option and answers it was made for stay the same.
+            var discounts = new TemplateDiscounts( _rockContext );
+            var otherCartLines = cart?.LineItems.Where( l => l.Id != otherLineId ).ToList() ?? new List<CartLineItem>();
+            var keepsLockedCode = existing != null && existing.IsTemplateDiscountLocked && !answersChanged;
+            var typedCode = ( discountCode ?? "" ).Trim();
+            TemplateDiscounts.UsableCode typed = null;
+            if ( keepsLockedCode )
+            {
+                if ( typedCode.IsNotNullOrWhiteSpace() && !DiscountRules.SameCode( typedCode, existing.TemplateDiscountCode ) )
+                {
+                    return Refuse( result, $"The '{existing.TemplateDiscountCode}' {TemplateDiscounts.Term( template.Template )} on this registration can't be changed." );
+                }
+            }
+            else if ( typedCode.IsNotNullOrWhiteSpace() )
+            {
+                var problem = discounts.Check( template.Template, option.Instance.Id, typedCode, otherCartLines, out typed );
+                if ( problem != null )
+                {
+                    return Refuse( result, problem );
+                }
+            }
+
             if ( !save )
             {
                 return result;
@@ -471,9 +513,6 @@ namespace org.secc.RegistrationCart.Services
                     return Refuse( result, "Please sign the document before adding to the cart." );
                 }
             }
-
-            var answersChanged = existing == null || !sameOption
-                || RegistrationForms.AnswersKey( template.Template, answers ) != RegistrationForms.AnswersKey( template.Template, RegistrationForms.FromJson( existing.FieldValuesJson ) );
 
             if ( registrant == null )
             {
@@ -519,15 +558,41 @@ namespace org.secc.RegistrationCart.Services
                 line.AddOns.Add( addOn );
             }
 
-            // The discount code workflow (financial assistance) runs once the line is otherwise
-            // valid, and again only when the option or answers changed. Its code is this line's
-            // alone; cart codes never stack on it.
-            if ( answersChanged )
+            if ( !keepsLockedCode )
             {
-                var applied = DiscountCodeWorkflow.Run( discountCodeWorkflowGuid, option.Instance.Id, _person, registrantPerson, answers, line.SnapshotBasePrice + addOns.Sum( a => a.SnapshotPrice ) );
+                // As RegistrationEntry: the template's automatic discount first; only without one,
+                // the discount code workflow (financial assistance), once the line is otherwise
+                // valid and again only when the option or answers changed. Its code locks the
+                // line's code; otherwise a typed code replaces an automatic one.
+                TemplateDiscounts.UsableCode applied = null;
+                var locked = false;
+                var auto = discounts.FirstAutoApply( template.Template, option.Instance.Id, otherCartLines );
+                if ( auto == null && answersChanged )
+                {
+                    var made = DiscountCodeWorkflow.Run( discountCodeWorkflowGuid, option.Instance.Id, _person, registrantPerson, answers, line.SnapshotBasePrice + addOns.Sum( a => a.SnapshotPrice ) );
+                    if ( made != null )
+                    {
+                        applied = new TemplateDiscounts.UsableCode { Code = made.Code, Amount = made.Amount, Percentage = made.Percentage };
+                        locked = true;
+                    }
+                }
+
+                if ( locked )
+                {
+                    if ( typed != null && !DiscountRules.SameCode( typed.Code, applied.Code ) )
+                    {
+                        result.DiscountNotice = $"The '{applied.Code}' {TemplateDiscounts.Term( template.Template )} was applied to {CheckoutProcessor.Possessive( camperName )} registration, so '{typed.Code}' can't be used with it.";
+                    }
+                }
+                else
+                {
+                    applied = typed ?? auto;
+                }
+
                 line.TemplateDiscountCode = applied?.Code;
                 line.TemplateDiscountAmount = applied?.Amount ?? 0m;
                 line.TemplateDiscountPercentage = applied?.Percentage ?? 0m;
+                line.IsTemplateDiscountLocked = locked;
             }
 
             if ( existing == null )
@@ -601,65 +666,5 @@ namespace org.secc.RegistrationCart.Services
         }
 
         #endregion
-
-        #region Discounts
-
-        /// <summary>Returns null on success, otherwise a message for the shopper.</summary>
-        public string ApplyDiscount( string code )
-        {
-            var cart = GetOrCreateOpenCart();
-            var normalized = ( code ?? "" ).Trim().ToUpperInvariant();
-            if ( normalized.IsNullOrWhiteSpace() )
-            {
-                return "Please enter a code.";
-            }
-
-            var discount = new DiscountCodeService( _rockContext ).Queryable()
-                .FirstOrDefault( d => d.Code.ToUpper() == normalized );
-            if ( discount == null )
-            {
-                return "That code isn't recognised.";
-            }
-
-            // An offering code whose registration template was deleted applies to nothing.
-            if ( !discount.IsValidOn( RockDateTime.Today ) || ( discount.Scope == DiscountScope.Offering && !discount.RegistrationTemplateId.HasValue ) )
-            {
-                return "That code isn't valid right now.";
-            }
-
-            if ( cart.Discounts.Any( d => d.DiscountCodeId == discount.Id ) )
-            {
-                return "That code is already applied.";
-            }
-
-            new CartDiscountService( _rockContext ).Add( new CartDiscount
-            {
-                CartId = cart.Id,
-                DiscountCodeId = discount.Id,
-                SnapshotValue = discount.Value,
-                SnapshotType = discount.DiscountType,
-                SnapshotScope = discount.Scope,
-                SnapshotRegistrationTemplateId = discount.RegistrationTemplateId
-            } );
-            _rockContext.SaveChanges();
-            return null;
-        }
-
-        public bool RemoveDiscount( int cartDiscountId )
-        {
-            var cart = GetOpenCart();
-            var cd = cart?.Discounts.FirstOrDefault( d => d.Id == cartDiscountId );
-            if ( cd == null )
-            {
-                return false;
-            }
-
-            new CartDiscountService( _rockContext ).Delete( cd );
-            _rockContext.SaveChanges();
-            return true;
-        }
-
-        #endregion
-
     }
 }

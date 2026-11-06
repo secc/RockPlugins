@@ -24,7 +24,7 @@ namespace org.secc.RegistrationCart.Blocks
 {
     [DisplayName( "Registration Cart" )]
     [Category( "Registration Cart" )]
-    [Description( "Shows the current person's cart with pricing and discount codes." )]
+    [Description( "Shows the current person's cart with pricing and each registration's discount code." )]
     [IconCssClass( "fa fa-shopping-cart" )]
     [SupportedSiteTypes( Rock.Model.SiteType.Web )]
 
@@ -69,36 +69,10 @@ namespace org.secc.RegistrationCart.Blocks
             return CartResult( manager, null );
         }
 
-        [BlockAction]
-        public BlockActionResult ApplyDiscount( string code )
-        {
-            var manager = GetCartManager();
-            if ( manager == null )
-            {
-                return ActionUnauthorized( "Please sign in." );
-            }
-
-            var error = manager.ApplyDiscount( code );
-            return CartResult( manager, error );
-        }
-
-        [BlockAction]
-        public BlockActionResult RemoveDiscount( int cartDiscountId )
-        {
-            var manager = GetCartManager();
-            if ( manager == null )
-            {
-                return ActionUnauthorized( "Please sign in." );
-            }
-
-            manager.RemoveDiscount( cartDiscountId );
-            return CartResult( manager, null );
-        }
-
         private BlockActionResult CartResult( Services.CartManager manager, string error )
         {
             var cart = manager.GetOpenCart();
-            return ActionOk( new DiscountResultBag
+            return ActionOk( new CartResultBag
             {
                 ErrorMessage = error,
                 Cart = ToBag( manager.Price( cart ), cart, Problems( cart ) )

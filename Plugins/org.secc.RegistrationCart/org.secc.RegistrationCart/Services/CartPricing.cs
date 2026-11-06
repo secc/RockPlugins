@@ -77,29 +77,7 @@ namespace org.secc.RegistrationCart.Services
                 domainCart.LineItems.Add( dl );
             }
 
-            foreach ( var d in cart.Discounts )
-            {
-                var code = d.DiscountCode;
-                domainCart.Discounts.Add( new DomainEntities.CartDiscount
-                {
-                    Id = d.Id,
-                    DiscountCodeId = d.DiscountCodeId,
-                    DiscountCode = code == null ? null : new DomainEntities.DiscountCode
-                    {
-                        Id = code.Id,
-                        Code = code.Code,
-                        IsActive = code.IsActive,
-                        ValidFrom = code.ValidFrom,
-                        ValidTo = code.ValidTo
-                    },
-                    SnapshotValue = d.SnapshotValue,
-                    SnapshotType = d.SnapshotType,
-                    SnapshotScope = d.SnapshotScope,
-                    SnapshotOfferingId = d.SnapshotRegistrationTemplateId
-                } );
-            }
-
-            return Engine.Price( domainCart, Rock.RockDateTime.Today );
+            return Engine.Price( domainCart );
         }
     }
 }

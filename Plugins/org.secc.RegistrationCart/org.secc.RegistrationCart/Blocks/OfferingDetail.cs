@@ -36,7 +36,7 @@ namespace org.secc.RegistrationCart.Blocks
     [BooleanField( "Allow Adding Family Members", Key = AttributeKey.AllowAddFamilyMember, DefaultBooleanValue = true,
         Description = "Let the signed-in person add a new child to their family from this page.", Order = 2 )]
     [WorkflowTypeField( "Discount Code Workflow", Key = AttributeKey.DiscountCodeWorkflow, AllowMultiple = false, IsRequired = false,
-        Description = "Runs when a camper is added to the cart to apply a registration template discount code, e.g. financial assistance. Passes an entity which is a Dictionary containing \"RegistrationInstance\" and \"RegistrationInfo\" keys, as SECC's RegistrationEntry did. The code applies to that camper alone.", Order = 3 )]
+        Description = "Runs when a camper is added to the cart, when the template has no automatic discount that applies, to apply a registration template discount code, e.g. financial assistance. Passes an entity which is a Dictionary containing \"RegistrationInstance\" and \"RegistrationInfo\" keys, as SECC's RegistrationEntry did. The code is that camper's registration's code and the family can't change it.", Order = 3 )]
 
     [Rock.SystemGuid.EntityTypeGuid( SystemGuid.EntityType.BLOCK_OFFERING_DETAIL )]
     [Rock.SystemGuid.BlockTypeGuid( SystemGuid.BlockType.OFFERING_DETAIL )]
@@ -76,6 +76,8 @@ namespace org.secc.RegistrationCart.Blocks
             box.Offering.RequiresSignature = signatureDocument != null;
             box.Offering.IsSignatureDrawn = signatureDocument?.SignatureType == Rock.Model.SignatureType.Drawn;
             box.Offering.SignatureDocumentTerm = signatureDocument?.DocumentTerm.IfEmpty( "Release" ) ?? "Release";
+            box.Offering.HasDiscountCodes = new RegistrationTemplateDiscountService( RockContext ).Queryable().Any( d => d.RegistrationTemplateId == template.Template.Id );
+            box.Offering.DiscountCodeTerm = TemplateDiscounts.Term( template.Template );
             if ( manager != null )
             {
                 box.People = BuildPeople( manager, cart );
@@ -111,7 +113,9 @@ namespace org.secc.RegistrationCart.Blocks
                     IsWaitList = line.IsWaitList,
                     FeeItemIds = line.AddOns.Select( a => a.RegistrationTemplateFeeItemId ).ToList(),
                     FieldValues = fieldValues,
-                    LockedFieldGuids = forms.LockedFieldGuids( template.Template, person, groupId )
+                    LockedFieldGuids = forms.LockedFieldGuids( template.Template, person, groupId ),
+                    DiscountCode = line.TemplateDiscountCode,
+                    IsDiscountCodeLocked = line.IsTemplateDiscountLocked
                 };
             }
 
@@ -135,12 +139,13 @@ namespace org.secc.RegistrationCart.Blocks
             var signatureData = request.ExistingSignatureDocumentGuid.HasValue
                 ? RegistrationSignatures.ForExistingDocument( request.ExistingSignatureDocumentGuid.Value )
                 : request.SignatureData;
-            var saved = manager.AddLineItem( request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, signatureData, GetAttributeValue( AttributeKey.DiscountCodeWorkflow ).AsGuidOrNull() );
+            var saved = manager.AddLineItem( request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, request.DiscountCode, signatureData, GetAttributeValue( AttributeKey.DiscountCodeWorkflow ).AsGuidOrNull() );
             return ActionOk( new AddToCartResultBag
             {
                 Navigation = saved.Line != null ? BuildNavigation( manager.GetOpenCart() ) : null,
                 ErrorMessage = saved.Line != null ? null : saved.ErrorMessage ?? "That item could not be added.",
-                IsWaitList = saved.IsWaitList
+                IsWaitList = saved.IsWaitList,
+                DiscountNotice = saved.DiscountNotice
             } );
         }
 
@@ -163,7 +168,7 @@ namespace org.secc.RegistrationCart.Blocks
                 return ActionBadRequest( "Nothing to check." );
             }
 
-            var checkedLine = manager.CheckLineItem( request.LineItemId, request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues );
+            var checkedLine = manager.CheckLineItem( request.LineItemId, request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, request.DiscountCode );
             return ActionOk( new AddToCartResultBag { ErrorMessage = checkedLine.ErrorMessage, IsWaitList = checkedLine.IsWaitList } );
         }
 
@@ -189,7 +194,7 @@ namespace org.secc.RegistrationCart.Blocks
             var signatureData = request.ExistingSignatureDocumentGuid.HasValue
                 ? RegistrationSignatures.ForExistingDocument( request.ExistingSignatureDocumentGuid.Value )
                 : request.SignatureData;
-            var saved = manager.UpdateLineItem( request.LineItemId.Value, request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, signatureData,
+            var saved = manager.UpdateLineItem( request.LineItemId.Value, request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, request.DiscountCode, signatureData,
                 GetAttributeValue( AttributeKey.DiscountCodeWorkflow ).AsGuidOrNull() );
             if ( saved.NeedsSignature )
             {
@@ -201,7 +206,7 @@ namespace org.secc.RegistrationCart.Blocks
                 return ActionOk( new UpdateCartLineResultBag { ErrorMessage = saved.ErrorMessage ?? "Your changes could not be saved.", IsWaitList = saved.IsWaitList } );
             }
 
-            return ActionOk( new UpdateCartLineResultBag { Navigation = BuildNavigation( manager.GetOpenCart() ), IsWaitList = saved.IsWaitList } );
+            return ActionOk( new UpdateCartLineResultBag { Navigation = BuildNavigation( manager.GetOpenCart() ), IsWaitList = saved.IsWaitList, DiscountNotice = saved.DiscountNotice } );
         }
 
         /// <summary>

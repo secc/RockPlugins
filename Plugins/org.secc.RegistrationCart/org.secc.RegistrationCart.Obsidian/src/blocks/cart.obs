@@ -37,11 +37,12 @@
                                 <template v-else>
                                     <li><span>Registration</span><span>{{ money(line.basePrice) }}</span></li>
                                     <li v-for="a in (line.addOns ?? [])" :key="a.name ?? ''"><span>{{ a.name }}</span><span>{{ a.price > 0 ? "+ " + money(a.price) : "Included" }}</span></li>
+                                    <li v-if="line.discountCode"><span>{{ line.discountCode }}</span><span>{{ line.discountAmount > 0 ? "−" + money(line.discountAmount) : "Applied" }}</span></li>
                                 </template>
                             </ul>
                         </div>
                         <div class="rc-line-side">
-                            <span class="rc-line-total">{{ line.isWaitList ? "Wait list" : money(line.lineTotal) }}</span>
+                            <span class="rc-line-total">{{ line.isWaitList ? "Wait list" : money(line.lineTotal - line.discountAmount) }}</span>
                             <span style="display: inline-flex; gap: 12px;">
                                 <a v-if="line.editUrl" class="rc-link-btn rc-small" :href="line.editUrl" :aria-label="`Edit ${line.registrantName}'s ${line.offeringTitle} registration`">Edit</a>
                                 <button type="button" class="rc-link-btn rc-link-danger rc-small" :disabled="isBusy" @click="removeLine(line.lineItemId)">Remove</button>
@@ -57,15 +58,9 @@
 
             <aside class="rc-rail" aria-label="Order summary">
                 <span class="rc-eyebrow">Summary</span>
-                <div>
-                    <label for="regcart-discount" class="rc-small" style="display: block; margin-bottom: 6px; font-weight: 600;">Discount code</label>
-                    <div class="rc-input-row">
-                        <input id="regcart-discount" class="rc-input" v-model="discountInput" placeholder="e.g. EARLYBIRD" autocomplete="off" @keyup.enter="applyDiscount" />
-                        <button type="button" class="rc-btn" :disabled="!discountInput.trim() || isBusy" @click="applyDiscount">Apply</button>
-                    </div>
-                    <p v-if="discountError" class="rc-error" role="alert" style="margin-top: 8px; color: #ffb4a8;">{{ discountError }}</p>
-                </div>
-                <OrderSummary :cart="cart" canRemoveDiscounts @removeDiscount="removeDiscount" />
+                <p v-if="cartError" class="rc-error" role="alert" style="color: #ffb4a8;">{{ cartError }}</p>
+                <OrderSummary :cart="cart" />
+                <p class="rc-small" style="margin: 0;">Discount codes go on each registration: use Edit to add or change one.</p>
                 <a v-if="navigation.checkoutUrl" class="rc-btn rc-btn-primary rc-btn-block" :href="navigation.checkoutUrl">
                     Continue to payment
                     <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -84,15 +79,14 @@
     import OrderSummary from "../shared/orderSummary.partial.obs";
     import SignInNotice from "../shared/signInNotice.partial.obs";
     import { initials, money } from "../shared/registrationCart.partial";
-    import { CartInitializationBox, DiscountResultBag, NavigationBag, PricedCartBag, PricedLineBag } from "../viewModels";
+    import { CartInitializationBox, CartResultBag, NavigationBag, PricedCartBag, PricedLineBag } from "../viewModels";
 
     const config = useConfigurationValues<CartInitializationBox>();
     const invokeBlockAction = useInvokeBlockAction();
 
     const navigation = ref<NavigationBag>(config.navigation ?? { isSignedIn: false, cartItemCount: 0 });
     const cart = ref<PricedCartBag>(config.cart ?? { subtotal: 0, discountTotal: 0, total: 0, itemCount: 0 });
-    const discountInput = ref("");
-    const discountError = ref("");
+    const cartError = ref("");
     const isBusy = ref(false);
 
     type RegistrantGroup = { registrantId: number; name: string; lines: PricedLineBag[] };
@@ -108,18 +102,18 @@
 
     async function callCart(action: string, params: Record<string, unknown>): Promise<void> {
         isBusy.value = true;
-        discountError.value = "";
+        cartError.value = "";
         try {
-            const result = await invokeBlockAction<DiscountResultBag>(action, params);
+            const result = await invokeBlockAction<CartResultBag>(action, params);
             if (result.isSuccess && result.data) {
                 if (result.data.cart) {
                     cart.value = result.data.cart;
                     navigation.value = { ...navigation.value, cartItemCount: result.data.cart.itemCount };
                 }
-                discountError.value = result.data.errorMessage ?? "";
+                cartError.value = result.data.errorMessage ?? "";
             }
             else {
-                discountError.value = result.errorMessage || "Something went wrong. Please try again.";
+                cartError.value = result.errorMessage || "Something went wrong. Please try again.";
             }
         }
         finally {
@@ -128,11 +122,4 @@
     }
 
     function removeLine(lineItemId: number): Promise<void> { return callCart("RemoveLineItem", { lineItemId }); }
-    async function applyDiscount(): Promise<void> {
-        const code = discountInput.value.trim();
-        if (!code) return;
-        await callCart("ApplyDiscount", { code });
-        if (!discountError.value) discountInput.value = "";
-    }
-    function removeDiscount(cartDiscountId: number): Promise<void> { return callCart("RemoveDiscount", { cartDiscountId }); }
 </script>

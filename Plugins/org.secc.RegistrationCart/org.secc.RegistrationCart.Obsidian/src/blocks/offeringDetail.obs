@@ -138,9 +138,22 @@
                             <div v-for="item in chosenItems" :key="item.id"><dt class="rc-muted">{{ item.name }}</dt><dd>{{ item.price > 0 ? money(item.price) : "Included" }}</dd></div>
                             <div class="rc-grand"><dt>{{ joiningWaitList ? "Due now" : "Line total" }}</dt><dd>{{ money(joiningWaitList ? 0 : lineTotal) }}</dd></div>
                         </dl>
+                        <div v-if="offering.hasDiscountCodes">
+                            <label for="regcart-discount" class="rc-small" style="display: block; margin-bottom: 6px; font-weight: 600;">{{ discountCodeTerm }}</label>
+                            <p v-if="isDiscountCodeLocked" class="rc-small" style="margin: 0;">
+                                <b>{{ editLine?.discountCode }}</b> is applied to this registration.
+                            </p>
+                            <template v-else>
+                                <input id="regcart-discount" class="rc-input" v-model="discountCode" autocomplete="off" :disabled="isAdding" />
+                                <p class="rc-small rc-muted" style="margin: 6px 0 0;">One {{ discountCodeTerm.toLowerCase() }} per registration. Any discount shows in your cart.</p>
+                            </template>
+                        </div>
                         <p v-if="joiningWaitList" class="rc-small">This option is full, so {{ firstName(selectedPerson.fullName) }} will go on the wait list. Nothing is due now; you'll be contacted if a spot opens.</p>
                         <p v-if="cartError" class="rc-error" role="alert">{{ cartError }}</p>
-                        <button type="button" class="rc-btn rc-btn-primary rc-btn-block" :disabled="!canAddToCart" @click="onAddClicked">
+                        <div v-if="savedNotice" class="rc-notice" role="status">
+                            <span>{{ savedNotice }} <a v-if="navigation.cartUrl" :href="navigation.cartUrl">Go to your cart</a></span>
+                        </div>
+                        <button v-else type="button" class="rc-btn rc-btn-primary rc-btn-block" :disabled="!canAddToCart" @click="onAddClicked">
                             {{ addButtonText }}
                         </button>
                     </template>
@@ -198,6 +211,15 @@
     const selections = ref<Record<number, number[]>>(editLine ? selectionsFor(editLine.feeItemIds ?? []) : {});
     const cartError = ref("");
     const isAdding = ref(false);
+
+    // The registration's one discount code. A code the discount code workflow applied (financial
+    // assistance) is shown, not editable; the server keeps it while the answers stay the same.
+    const discountCodeTerm = computed<string>(() => offering.value?.discountCodeTerm || "Discount Code");
+    const isDiscountCodeLocked = !!editLine?.isDiscountCodeLocked;
+    const discountCode = ref<string>(editLine && !editLine.isDiscountCodeLocked ? (editLine.discountCode ?? "") : "");
+    const typedDiscountCode = computed<string>(() => isDiscountCodeLocked ? "" : discountCode.value.trim());
+    // Saved, but the server applied a different code than the one typed: say so before leaving.
+    const savedNotice = ref("");
 
     // Answers to the template's forms, keyed by form field guid; reloaded per person and option.
     const fieldValues = ref<Record<Guid, unknown>>(editLine ? { ...(editLine.fieldValues ?? {}) } : {});
@@ -423,7 +445,8 @@
                 personAliasId: selectedPerson.value.personAliasId,
                 registrationInstanceId: selectedVariant.value.id,
                 feeItemIds: Object.values(selections.value).flat(),
-                fieldValues: fieldValues.value
+                fieldValues: fieldValues.value,
+                discountCode: typedDiscountCode.value
             }
         });
         if (!result.isSuccess || !result.data) {
@@ -536,6 +559,7 @@
                     registrationInstanceId: selectedVariant.value.id,
                     feeItemIds: Object.values(selections.value).flat(),
                     fieldValues: fieldValues.value,
+                    discountCode: typedDiscountCode.value,
                     signatureData: signedData.value || null,
                     existingSignatureDocumentGuid: existingSignatureGuid.value
                 }
@@ -558,6 +582,7 @@
 
             if (result.data.navigation) {
                 navigation.value = result.data.navigation;
+                if (result.data.discountNotice) { savedNotice.value = result.data.discountNotice; return; }
                 if (result.data.navigation.cartUrl) { goTo(result.data.navigation.cartUrl); }
             }
         }
@@ -577,6 +602,7 @@
                     registrationInstanceId: selectedVariant.value.id,
                     feeItemIds: Object.values(selections.value).flat(),
                     fieldValues: fieldValues.value,
+                    discountCode: typedDiscountCode.value,
                     signatureData: signedData.value || null,
                     existingSignatureDocumentGuid: existingSignatureGuid.value
                 }
@@ -589,6 +615,7 @@
             }
             else {
                 navigation.value = result.data.navigation;
+                if (result.data.discountNotice) { savedNotice.value = result.data.discountNotice; return; }
                 if (result.data.navigation.cartUrl) { goTo(result.data.navigation.cartUrl); return; }
             }
         }

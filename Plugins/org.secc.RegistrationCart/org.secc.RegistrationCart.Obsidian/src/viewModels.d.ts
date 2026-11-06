@@ -97,44 +97,6 @@ export type SaveTemplateResultBag = {
     template?: AdminTemplateBag | null;
 };
 
-export type DiscountCodeListInitializationBox = {
-    canEdit: boolean;
-
-    codes?: DiscountCodeBag[] | null;
-
-    offerings?: ListItemBag[] | null;
-};
-
-export type DiscountCodeBag = {
-    code?: string | null;
-
-    discountType: number;
-
-    id: number;
-
-    isActive: boolean;
-
-    offeringId?: string | null;
-
-    offeringTitle?: string | null;
-
-    scope: number;
-
-    timesUsed: number;
-
-    validFrom?: string | null;
-
-    validTo?: string | null;
-
-    value: number;
-};
-
-export type SaveDiscountCodeResultBag = {
-    codes?: DiscountCodeBag[] | null;
-
-    errorMessage?: string | null;
-};
-
 export type NavigationBag = {
     cartItemCount: number;
 
@@ -172,6 +134,10 @@ export type PricedLineBag = {
 
     dateText?: string | null;
 
+    discountAmount: number;
+
+    discountCode?: string | null;
+
     editUrl?: string | null;
 
     isWaitList: boolean;
@@ -199,8 +165,6 @@ export type PricedAddOnBag = {
 
 export type AppliedDiscountBag = {
     amount: number;
-
-    cartDiscountId: number;
 
     code?: string | null;
 };
@@ -252,9 +216,13 @@ export type OfferingDetailInitializationBox = {
 };
 
 export type EditLineBag = {
+    discountCode?: string | null;
+
     feeItemIds?: number[] | null;
 
     fieldValues?: Record<Guid, unknown> | null;
+
+    isDiscountCodeLocked: boolean;
 
     isWaitList: boolean;
 
@@ -280,11 +248,15 @@ export type OfferingBag = {
 
     description?: string | null;
 
+    discountCodeTerm?: string | null;
+
     feeTerm?: string | null;
 
     formLists?: FormListsBag | null;
 
     forms?: RegistrationEntryFormBag[] | null;
+
+    hasDiscountCodes: boolean;
 
     idKey?: string | null;
 
@@ -382,6 +354,8 @@ export type RegistrantOptionBag = {
 };
 
 export type AddToCartRequestBag = {
+    discountCode?: string | null;
+
     existingSignatureDocumentGuid?: Guid | null;
 
     feeItemIds?: number[] | null;
@@ -398,6 +372,8 @@ export type AddToCartRequestBag = {
 };
 
 export type AddToCartResultBag = {
+    discountNotice?: string | null;
+
     errorMessage?: string | null;
 
     isWaitList?: boolean | null;
@@ -406,6 +382,8 @@ export type AddToCartResultBag = {
 };
 
 export type UpdateCartLineResultBag = {
+    discountNotice?: string | null;
+
     errorMessage?: string | null;
 
     isWaitList?: boolean | null;
@@ -443,7 +421,7 @@ export type CartInitializationBox = {
     navigation?: NavigationBag | null;
 };
 
-export type DiscountResultBag = {
+export type CartResultBag = {
     cart?: PricedCartBag | null;
 
     errorMessage?: string | null;

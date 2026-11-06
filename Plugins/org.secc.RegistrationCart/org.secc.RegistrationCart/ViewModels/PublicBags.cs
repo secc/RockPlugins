@@ -67,6 +67,10 @@ namespace org.secc.RegistrationCart.ViewModels
         public string EditUrl { get; set; }
         /// <summary>What stops this line checking out (e.g. answers it still owes), or empty.</summary>
         public string Problem { get; set; }
+        /// <summary>The line's discount code (its registration's one code), or empty. None on a wait-listed line.</summary>
+        public string DiscountCode { get; set; }
+        /// <summary>What the line's code takes off.</summary>
+        public decimal DiscountAmount { get; set; }
     }
 
     public class PricedAddOnBag
@@ -75,9 +79,9 @@ namespace org.secc.RegistrationCart.ViewModels
         public decimal Price { get; set; }
     }
 
+    /// <summary>A discount code in the order summary, summed over the lines that use it.</summary>
     public class AppliedDiscountBag
     {
-        public int CartDiscountId { get; set; }
         public string Code { get; set; }
         public decimal Amount { get; set; }
     }
@@ -138,6 +142,10 @@ namespace org.secc.RegistrationCart.ViewModels
         public Dictionary<Guid, object> FieldValues { get; set; } = new Dictionary<Guid, object>();
         /// <summary>Fields locked because the person already has a value ("lock if values exist"): shown, not editable.</summary>
         public List<Guid> LockedFieldGuids { get; set; } = new List<Guid>();
+        /// <summary>The line's discount code, or empty.</summary>
+        public string DiscountCode { get; set; }
+        /// <summary>The code came from the discount code workflow (financial assistance): shown, not editable, while the option and answers stay the same.</summary>
+        public bool IsDiscountCodeLocked { get; set; }
     }
 
     /// <summary>What GetStartingValues returns for a family member and an option.</summary>
@@ -173,6 +181,10 @@ namespace org.secc.RegistrationCart.ViewModels
         public bool IsSignatureDrawn { get; set; }
         /// <summary>What Rock calls the document, e.g. "Release" or "Waiver".</summary>
         public string SignatureDocumentTerm { get; set; }
+        /// <summary>The template has discount codes, so the page asks for one (as Rock's RegistrationEntry does).</summary>
+        public bool HasDiscountCodes { get; set; }
+        /// <summary>What the template calls a discount code (Rock's Discount Code Term).</summary>
+        public string DiscountCodeTerm { get; set; }
     }
 
     /// <summary>Drop-down choices for person fields, as Rock's RegistrationEntry provides them.</summary>
@@ -253,6 +265,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public Guid? ExistingSignatureDocumentGuid { get; set; }
         /// <summary>UpdateCartLine only: the line being changed.</summary>
         public int? LineItemId { get; set; }
+        /// <summary>The discount code the family typed for this registration, or empty.</summary>
+        public string DiscountCode { get; set; }
     }
 
     /// <summary>What AddToCart and CheckCartLine return: the navigation once added, or why not.</summary>
@@ -266,6 +280,8 @@ namespace org.secc.RegistrationCart.ViewModels
         /// wait-listed registrants skip.
         /// </summary>
         public bool? IsWaitList { get; set; }
+        /// <summary>The typed code wasn't used because the discount code workflow applied the registration's code.</summary>
+        public string DiscountNotice { get; set; }
     }
 
     /// <summary>What UpdateCartLine returns: the navigation once saved, why not, or that a new signature is needed first.</summary>
@@ -277,6 +293,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public string ErrorMessage { get; set; }
         /// <summary>Where the server places the camper; see <see cref="AddToCartResultBag.IsWaitList"/>.</summary>
         public bool? IsWaitList { get; set; }
+        /// <summary>See <see cref="AddToCartResultBag.DiscountNotice"/>.</summary>
+        public string DiscountNotice { get; set; }
     }
 
     /// <summary>Arguments for the signature document actions.</summary>
@@ -308,7 +326,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public PricedCartBag Cart { get; set; }
     }
 
-    public class DiscountResultBag
+    /// <summary>What a cart page action returns: the cart as it is now, or why the action failed.</summary>
+    public class CartResultBag
     {
         public string ErrorMessage { get; set; }
         public PricedCartBag Cart { get; set; }

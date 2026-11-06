@@ -13,9 +13,7 @@ active instances (inside their registration window) are the *options*, and the t
 are the *add-ons*. Staff set up a camp the normal Rock way and turn its template on in the
 cart's settings; nothing is configured twice. The plugin stores only what Rock lacks:
 
-- cart contents (cart, registrants, line items, add-ons, applied discounts),
-- cross-registration **discount codes** (separate from Rock's per-template discounts; the one
-  exception is the financial-assistance code, below),
+- cart contents (cart, registrants, line items with their discount code, add-ons),
 - a small **overlay** per template / instance / fee item: show in cart, grade-band or adult
   eligibility, catalog image and description, sort order.
 
@@ -49,8 +47,8 @@ gateways) → in **one DB transaction**: one `Registration` + `RegistrationRegis
 line, one `FinancialTransaction` in a batch named by the block's *Batch Name Prefix* with a
 detail line per paid registration posting to the instance's account, and the cart marked
 **CheckedOut**. Only what must stand with the payment is in that transaction. Each detail line
-(and the registration's `DiscountAmount` / `DiscountCode`) is net of only the discounts that
-applied to that line, in whole cents, so the details add up exactly to the charge. The cart
+(and the registration's `DiscountAmount`) is net of only that line's code, in whole cents, so
+the details add up exactly to the charge; the registration's `DiscountCode` is the line's code. The cart
 row is the idempotency record: a second request for the same cart is told the checkout is in
 progress or already done. The cart goes back to **Open** only when nothing was charged
 (declined, or stopped before the gateway call). If registration creation fails *after* a
@@ -69,17 +67,41 @@ the template's role and status, then the group member answers); Rock's confirmat
 staff notification; the template's registrant workflow; and each of the template and instance
 registration workflows.
 
+**Discount codes (ROCK-9394).** Codes work as they did with SECC's RegistrationEntry fork: they
+are the registration template's own discounts (Rock › registration template › Discounts), and a
+registration has **one** code. Each cart line is its own registration, so each camper has their
+own code; a code never comes off another camper's line. A shared code (e.g. `26CAMPSTAFF50`) can
+be typed on several campers, and each use counts toward its *Maximum Usage*. The family types the
+code on the Offering page, per camper, under the template's *Discount Code Term* (the box shows
+only when the template has discounts). The line's code is chosen as RegistrationEntry chose it
+(`Services/TemplateDiscounts`, rules in `Domain/DiscountRules`):
+
+1. the template's first *auto-apply* discount (by order) that can be used;
+2. only without one, the Offering block's *Discount Code Workflow* (below), whose code **locks**
+   the line's code (as the fork locked the box): the family can't swap it, and a code they typed
+   is ignored with a notice;
+3. otherwise the typed code, which replaces an auto-applied one.
+
+A code is checked as Rock checks it, with Rock's messages: it must exist on the template (case
+doesn't matter), be within its start/end dates, need no more than one registrant (*Minimum
+Registrants*), and be under its *Maximum Usage*, counted per instance over Rock's registrations
+plus the cart's other lines with the code. *Maximum Registrants* 0 leaves the code on the
+registration but takes nothing off. Amount and percentage are snapshotted when the code is
+applied. Checkout checks each line's code again (registrations since, and the cart's earlier
+lines) and asks the family to edit a line whose code can no longer be used. As in
+RegistrationEntry, a percentage comes off the base price and the fees whose *Discount Applies*
+is set, and a flat amount off the base price then those fees, so a fee that doesn't allow
+discounts stays due. Wait-listed lines pay nothing now; their code stays on the registration,
+with the template's terms, for Rock to apply when a seat opens.
+
 **Financial assistance.** When the Offering block's *Discount Code Workflow* is set (prod: WF 725
 "Automatic Financial Assistance"), it runs as each camper is added to the cart, the way SECC's
 RegistrationEntry fork ran it: the entity is a dictionary with `RegistrationInstance` and
 `RegistrationInfo` (the camper's form answers as registrant field values), and a code the
 workflow applies (725 makes a single-use `FA-` template discount: the $50/$100 tier, or the
-template cost less $20 for "More") is stored on that line. As in Rock, a template discount
-applies to the base price and the fees whose *Discount Applies* is set (a percentage of them, a
-flat amount capped at them), so a fee that doesn't allow discounts stays due. It comes off that
-line only and no cart code stacks on it. Checkout records it as the registration's discount
-code, so the template's registration workflow (728) then launches the FA evaluation as before.
-A wait-listed line keeps its code on the registration for when a seat opens.
+template cost less $20 for "More") becomes that line's locked code. It runs again only when the
+option or answers change. Checkout records it as the registration's discount code, so the
+template's registration workflow (728) then launches the FA evaluation as before.
 
 Originally built (and verified end to end against Rock 16.9 with the Test Gateway) as a
 standalone `com.secc.ShoppingCart` project; ported into this repo on 2026-10-13 with the
@@ -103,21 +125,22 @@ assembly. It has **not** been installed on rockalpha or production yet.
 
 ```
 org.secc.RegistrationCart/              C# plugin assembly
-  Blocks/                               4 public + 2 admin RockBlockType classes (+ base classes)
+  Blocks/                               4 public + 1 admin RockBlockType classes (+ base classes)
   Domain/                               Pure pricing/eligibility engine (no Rock types): Enums,
                                         CheckoutRules (seats, fee limits, checkout outcomes),
-                                        AnswerRules, Entities (pricing model),
-                                        Pricing/PricingEngine, Pricing/DiscountAllocator,
+                                        AnswerRules, DiscountRules (template discount codes),
+                                        Entities (pricing model), Pricing/PricingEngine,
                                         Pricing/EligibilityService, Pricing/PricedCart
   Jobs/CartMaintenance                  Abandons idle carts, retries signed-document PDFs,
                                         reports unconfirmed checkouts
-  Migrations/001–011                    Tables, entity/block types, pages, routes, blocks,
+  Migrations/001–012                    Tables, entity/block types, pages, routes, blocks,
                                         settings, the job (see Migrations)
-  Model/                                9 entities: 3 overlays, DiscountCode, 5 cart tables
+  Model/                                7 entities: 3 overlays, 4 cart tables
   Services/                             CatalogService, CartManager, CartPricing, CartSettings,
                                         CheckoutProcessor, CheckoutProblem, DiscountCodeWorkflow,
                                         FeeItemUsage, GradeBands, RegistrationForms,
-                                        RegistrationSignatures, SeatCounter, SeatLock, SeatPlanner
+                                        RegistrationSignatures, SeatCounter, SeatLock, SeatPlanner,
+                                        TemplateDiscounts
   ViewModels/                           Bags/boxes shared with the Obsidian blocks
   SystemGuid.cs                         Every GUID the plugin owns — never change
 org.secc.RegistrationCart.Obsidian/     Vue 3 / Obsidian frontend
@@ -137,11 +160,10 @@ plugin.json / BuildPlugin.ps1           Rock plugin packaging
 | Block | Page (created by migration) | What it does | Settings |
 |-------|-----------------------------|--------------|----------|
 | Registration Cart Catalog (`Catalog`) | External › Registration (`/registrations`), hidden from navigation | Lists templates turned on in the cart's settings that have an open instance. | Heading, Intro, Offering Detail Page, Cart Page |
-| Registration Cart Offering (`OfferingDetail`) | `/registrations/offering/{OfferingKey}` | Pick a family member (or add a child), an instance and fees, and fill in the template's registration forms; add to cart. With `?LineId=` it edits that cart line instead (see *Editing a line*). | Allow Adding Family Members, Discount Code Workflow, Cart Page, Catalog Page |
-| Registration Cart (`Cart`) | `/registrations/cart` | Cart with pricing; apply/remove discount codes; edit or remove lines; shows what would stop a line checking out. | Checkout Page, Catalog Page, Offering Detail Page |
+| Registration Cart Offering (`OfferingDetail`) | `/registrations/offering/{OfferingKey}` | Pick a family member (or add a child), an instance and fees, fill in the template's registration forms, and enter the camper's discount code; add to cart. With `?LineId=` it edits that cart line instead (see *Editing a line*). | Allow Adding Family Members, Discount Code Workflow, Cart Page, Catalog Page |
+| Registration Cart (`Cart`) | `/registrations/cart` | Cart with pricing (each line's discount code); edit or remove lines; shows what would stop a line checking out. | Checkout Page, Catalog Page, Offering Detail Page |
 | Registration Cart Checkout (`Checkout`) | `/registrations/checkout` | Payment + checkout. Uses the gateway's Obsidian hosted control when it has one, else a My Well tokenizer iframe. Lines that need fixing show with an Edit link. | Financial Gateway, Batch Name Prefix, Tokenizer Script URL / Gateway URL / Public Key, Cart Page, Catalog Page, Offering Detail Page |
 | Registration Cart Settings (`AdminCatalogSettings`) | Admin Tools › Installed Plugins › Registration Cart (`/admin/registration-cart`) | Per template/instance/fee item visibility, eligibility, image, order. Saves require block EDIT. | Catalog Page |
-| Registration Cart Discount Codes (`AdminDiscountCodes`) | child of the above (`/admin/registration-cart/discounts`) | CRUD for discount codes (order / per-line / per-offering scope, amount or percent, date window). Saves require block EDIT. | — |
 
 Every public page shows a warning while the signed-in person has an unconfirmed checkout (see
 *Carts stuck in Processing*).
@@ -168,13 +190,13 @@ minutes; Admin Tools › System Settings › Jobs Administration):
 ### Data model (`_org_secc_RegistrationCart_*`)
 
 `TemplateSetting`, `InstanceSetting`, `FeeItemSetting` (overlays, cascade-deleted with the Rock
-row), `DiscountCode`, and the cart graph `Cart` → `CartRegistrant` / `CartLineItem` →
-`CartLineItemAddOn`, plus `CartDiscount`. Line items and discounts **snapshot** prices/values at
-add time (an add-on also snapshots its fee's *Discount Applies*).
+row), and the cart graph `Cart` → `CartRegistrant` / `CartLineItem` → `CartLineItemAddOn`. Line
+items **snapshot** prices and their discount code's amount/percentage at add time (an add-on also
+snapshots its fee's *Discount Applies*). The cart-wide `DiscountCode` / `CartDiscount` tables are
+gone (migration 012).
 
 Rock can delete what carts point at (migration 006): deleting an instance deletes its cart
-lines; deleting a registration or a transaction clears the cart's link to it; deleting a
-template clears an offering-scoped discount code's template; an add-on doesn't reference its
+lines; deleting a registration or a transaction clears the cart's link to it; an add-on doesn't reference its
 fee item in the database (it keeps its snapshot name and price, and checkout asks the family to
 edit a line whose extra was deleted or turned off).
 
@@ -193,6 +215,7 @@ edit a line whose extra was deleted or turned off).
 | 009 | Adds the *Registration Cart: Prevent Duplicate Registrations* global attribute. |
 | 010 | Adds `CartLineItemAddOn.DiscountApplies`, filled from each add-on's fee. |
 | 011 | Adds the *Show New Templates* and *Default Grade Bands* global attributes and hides the catalog page from navigation. |
+| 012 | One template code per registration (ROCK-9394): adds `CartLineItem.IsTemplateDiscountLocked` (set on existing lines with a code, which all came from the workflow); removes the Discount Codes admin page, block type and entity types and drops the `DiscountCode` / `CartDiscount` tables. Down only drops the new column. |
 
 ## Configuration
 
@@ -206,10 +229,11 @@ edit a line whose extra was deleted or turned off).
    (free events can do without). Price is the instance cost when the template sets cost on
    instance, else the template cost. Campus and event dates come from the instance's event
    linkage when present.
-4. **Catalog settings / discount codes:** Admin Tools › Installed Plugins › Registration Cart.
+4. **Catalog settings:** Admin Tools › Installed Plugins › Registration Cart.
    Turn on each template that should be sold through the cart, and set who each instance and
    extra is for. Link the catalog page from the site's navigation when it's ready.
-5. **Financial assistance:** set the Offering block's *Discount Code Workflow* to WF 725
+5. **Discount codes:** set them up on each Rock registration template's Discounts, as before.
+   **Financial assistance:** set the Offering block's *Discount Code Workflow* to WF 725
    (`fd55a10c-e44a-4a02-b347-37cb9f67be66`), as block 4171 had it for the fork. Leave the
    templates' registration workflow (728) as it is.
 6. **Maintenance job:** set its notification emails (see *Job*).
@@ -234,9 +258,12 @@ edit a line whose extra was deleted or turned off).
   `EligibilityServiceTests`, `GradeBandsTests`, `CheckoutRulesTests` (where a stopped
   checkout leaves the cart; unconfirmed checkouts; the shown-total check; registration window;
   seats counted as Rock counts them; fee item limits), `AnswerRulesTests` (when a stored answer
-  is blank), `DiscountAllocationTests` (which lines and accounts each discount comes off; codes
-  capped at their own lines; *Discount Applies*; postings add up to the charge, including 500
-  random carts, and carts with financial-assistance codes). No RockContext.
+  is blank), `DiscountRulesTests` (template codes checked as Rock checks them: dates, Maximum
+  Usage, Minimum/Maximum Registrants, matching, messages). `PricingEngineTests` covers one code
+  per line: it never reaches another line, a shared code applies to each line on its own,
+  *Discount Applies*, caps, wait list, and postings adding up to the charge over 500 random
+  carts. No RockContext. The test project targets net472; on a Mac without Mono, compile the
+  `Domain/` sources and these tests into a throwaway net8 xunit project to run them.
 
 ## Observations
 
@@ -313,17 +340,20 @@ edit a line whose extra was deleted or turned off).
 - **Financial assistance:** 725 runs on every add (it's a persisted workflow type, so each add
   leaves a Workflow row), and a code is generated even if the line is later removed; unused
   `FA-` codes stay on the template unused. Removing and re-adding a camper makes a new code. A
-  line with an FA code takes no cart code (one code per camper). 725 has no branch for the
+  line with an FA code takes no other code (one code per registration). 725 has no branch for the
   1st–2nd "$25" tier, so it gets the cost-less-$20 amount, as it does on prod today.
 - **Add child:** creates a Pending person with no birthdate/gender and a representative grade
   (`GradeBands.GradeOffsetFor` — e.g. Elementary → 3rd grade); duplicate-prone.
 - **Migration placement:** pages hang off Rock's *stock* External site/home page (the catalog
   page hidden from navigation), and all routes (including `/admin/registration-cart`) are made
   global.
-- **Business rules to confirm:** cart discount codes stack with each other (by design, see
-  `PricingEngineTests`) but never with a financial-assistance code; whether cart codes should
-  honour a fee's *Discount Applies* the way template codes do; separate code system from Rock
-  template discounts; sign-in required (no guest checkout).
+- **Discount code rules (decided for ROCK-9394):** codes stay on the registration templates; one
+  code per registration (per camper line), never shared across lines; a shared code may be typed
+  on several campers; an FA code can't be swapped. Rock counts *Maximum Usage* per instance, so a
+  code meant to be used once across a camp's campuses has to be set up that way per template, as
+  before. Codes held in open carts aren't reserved: whoever checks out first uses a single-use
+  code, and the other cart is asked to edit the line.
+- **Business rules to confirm:** sign-in required (no guest checkout).
 
 ## Making Changes
 

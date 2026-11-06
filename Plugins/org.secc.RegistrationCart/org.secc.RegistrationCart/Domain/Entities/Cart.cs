@@ -63,7 +63,6 @@ public class Cart
 
     public ICollection<Registrant> Registrants { get; set; } = new List<Registrant>();
     public ICollection<CartLineItem> LineItems { get; set; } = new List<CartLineItem>();
-    public ICollection<CartDiscount> Discounts { get; set; } = new List<CartDiscount>();
 }
 
 /// <summary>
@@ -93,9 +92,9 @@ public class CartLineItem
     public bool IsWaitList { get; set; }
 
     /// <summary>
-    /// The line's own code from its registration template (e.g. a financial-assistance code the
-    /// discount code workflow made at add-to-cart). It takes this line alone and stops the
-    /// cart's codes from stacking on it.
+    /// The line's discount code, from its registration template's discounts: typed by the family,
+    /// auto-applied by the template, or made by the discount code workflow (financial
+    /// assistance). One code per line (one registration), and it takes this line alone.
     /// </summary>
     public string? TemplateDiscountCode { get; set; }
 
@@ -126,24 +125,4 @@ public class CartLineItemAddOn
     /// a template discount (the line's own code) applies to it as well as the base price.
     /// </summary>
     public bool DiscountApplies { get; set; }
-}
-
-/// <summary>A discount code applied to a cart.</summary>
-public class CartDiscount
-{
-    public int Id { get; set; }
-    public int CartId { get; set; }
-    public Cart Cart { get; set; } = null!;
-
-    public int DiscountCodeId { get; set; }
-    public DiscountCode DiscountCode { get; set; } = null!;
-
-    /// <summary>
-    /// Discount values snapshotted at apply-time so later admin changes don't affect
-    /// carts already in progress.
-    /// </summary>
-    public decimal SnapshotValue { get; set; }
-    public DiscountType SnapshotType { get; set; }
-    public DiscountScope SnapshotScope { get; set; }
-    public int? SnapshotOfferingId { get; set; }
 }

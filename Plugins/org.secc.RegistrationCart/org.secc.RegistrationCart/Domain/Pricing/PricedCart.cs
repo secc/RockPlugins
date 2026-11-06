@@ -22,8 +22,9 @@ namespace org.secc.RegistrationCart.Domain.Pricing;
 public record PricedAddOn(int AddOnItemId, string Name, decimal Price);
 
 /// <summary>
-/// A fully priced cart line: a registrant + variant + chosen add-ons. A wait-listed line is
-/// priced at zero (nothing is due until a spot opens).
+/// A fully priced cart line: a registrant + variant + chosen add-ons, and the line's discount code
+/// (its registration's code; none on a wait-listed line). A wait-listed line is priced at zero
+/// (nothing is due until a spot opens).
 /// </summary>
 public record PricedLineItem(
     int LineItemId,
@@ -34,16 +35,17 @@ public record PricedLineItem(
     string VariantName,
     decimal BasePrice,
     IReadOnlyList<PricedAddOn> AddOns,
-    bool IsWaitList = false)
+    bool IsWaitList = false,
+    string? DiscountCode = null)
 {
     public decimal AddOnTotal => AddOns.Sum(a => a.Price);
     public decimal LineTotal => BasePrice + AddOnTotal;
 }
 
 /// <summary>
-/// A discount that was successfully applied, with the amount it took off and how that amount
-/// is split across lines. The allocations add up to <see cref="Amount"/>, except when rounding
-/// takes the cart's discounts a cent past its subtotal; that cent is not allocated.
+/// A discount that was applied, with the amount it took off and the line it came off. Each code
+/// belongs to one line (one registration), so there is a single allocation that equals
+/// <see cref="Amount"/>.
 /// </summary>
 public record AppliedDiscount(string Code, decimal Amount, IReadOnlyList<DiscountAllocation> Allocations);
 
@@ -62,15 +64,12 @@ public record PricedCart(
     public decimal Total => Math.Max(0m, Subtotal - DiscountTotal);
 
     /// <summary>
-    /// Discount taken off one line, across every applied code. Never more than the line total,
+    /// Discount taken off one line by its code. Never more than the line total,
     /// and the lines' <c>LineTotal - DiscountFor</c> add up exactly to <see cref="Total"/>.
     /// </summary>
     public decimal DiscountFor(int lineItemId) =>
         Discounts.SelectMany(d => d.Allocations).Where(a => a.LineItemId == lineItemId).Sum(a => a.Amount);
 
-    /// <summary>The codes that took something off one line, in the order they were applied.</summary>
-    public IEnumerable<string> CodesFor(int lineItemId) =>
-        Discounts.Where(d => d.Allocations.Any(a => a.LineItemId == lineItemId && a.Amount > 0m)).Select(d => d.Code);
 
     public static readonly PricedCart Empty =
         new(Array.Empty<PricedLineItem>(), Array.Empty<AppliedDiscount>());

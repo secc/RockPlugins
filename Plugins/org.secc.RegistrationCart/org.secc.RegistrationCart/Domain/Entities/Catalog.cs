@@ -141,33 +141,3 @@ public class AddOnItem
     public int? RockFeeId { get; set; }
     public int? RockFeeItemId { get; set; }
 }
-
-public class DiscountCode
-{
-    public int Id { get; set; }
-
-    [Required, MaxLength(50)]
-    public string Code { get; set; } = "";
-
-    public DiscountType Type { get; set; }
-
-    [Range(0.0, 100000.0, ErrorMessage = "Value must be a positive number.")]
-    public decimal Value { get; set; }
-
-    public DiscountScope Scope { get; set; }
-
-    public int? OfferingId { get; set; }
-
-    public DateTime? ValidFrom { get; set; }
-    public DateTime? ValidTo { get; set; }
-    public bool IsActive { get; set; } = true;
-
-    /// <summary>Date-only comparison: the time component of <paramref name="date"/> is ignored.</summary>
-    public bool IsValidOn(DateTime date)
-    {
-        var day = date.Date;
-        return IsActive
-            && (ValidFrom is null || day >= ValidFrom.Value.Date)
-            && (ValidTo is null || day <= ValidTo.Value.Date);
-    }
-}
