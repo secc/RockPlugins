@@ -132,8 +132,8 @@ namespace org.secc.Attributes.Controls
         }
 
         /// <summary>
-        /// The persisted AttributeMatrix Guid. Set by the field type before render;
-        /// returned (potentially updated) after postback by the field type's GetEditValue.
+        /// The persisted attribute value (comma-separated BinaryFile Guids, or a legacy
+        /// AttributeMatrix Guid). Set by the field type's SetEditValue before render.
         /// </summary>
         public string Value
         {
@@ -303,8 +303,11 @@ namespace org.secc.Attributes.Controls
 
             var allowedExtsJs = ( AllowedExtensions ?? string.Empty ).Replace( "\\", "\\\\" ).Replace( "'", "\\'" );
 
+            // Leading ";" because ASP.NET emits the previous startup script (e.g. a validator
+            // declaration) without a trailing semicolon; without it "(function" parses as a call
+            // on that expression and throws, so the uploader never attaches.
             var script = @"
-(function() {
+;(function() {
     var clientId = '" + ClientID + @"';
     var hf = document.getElementById('" + _hfFileIds.ClientID + @"');
     var list = document.getElementById(clientId + '_list');
