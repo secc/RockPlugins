@@ -30,13 +30,10 @@ Grow Family Resources Resources Page
 		}]
 	},
 	"displayOptions": {
-		"style":"stacked",
-		"contentWidthRatio": 1.0,
+		"style": "rows",
+		"contentWidthRatio": 0.9,
 		"itemDisplayOptions": {
-			"indicatorAspectRatio":3.66,
-			"indicatorShadowEnabled":true,
-        	"maxWidth":1400,
-	        "textPosition": "none"
+			"textPosition": "below"
 		}
     },
     "items": [
@@ -49,25 +46,19 @@ Grow Family Resources Resources Page
 						{%- if resourcesIncluded == false -%}
 						{{ comma }}
 						{
-							"images":[
-								{%- assign Title = "Downloadables" | Escape | EscapeDataString -%}
-								{%- assign Body = "Checkout the files below" | Escape | EscapeDataString -%}
-								{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
-							]
+							"title": "Downloadables",
+							"subtitle": "Check out the files below"
 						}{%- assign comma = "," -%}
 						{%- endif -%}
 						{% comment %}
 						Grab all downloadable resources
 						{% endcomment %}
-						{{ comma }}
 						{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
 						{%- if resourceMediaFile.Guid != null -%}
+							{{ comma }}
 							{
-								"title": "{{ resource.Title }}",
+								"title": "{{ resource.Title | Replace:'"',bsq }}",
 								"subtitle": "Download PDF",
-								"images":[
-									{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
-								],
 								"actions": [{
 									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
 									"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
@@ -84,19 +75,10 @@ Grow Family Resources Resources Page
 			{%- if resourcesIncluded == false -%}
 			{{ comma }}
 			{
-				"images":[
-					{%- assign Title = "Resources Coming" | Escape | EscapeDataString -%}
-					{%- assign Body = "Please come back soon" | Escape | EscapeDataString -%}
-					{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
-				]
+				"title": "Resources Coming",
+				"subtitle": "Please come back soon"
 			}{%- assign comma = "," -%}
 			{%- endif -%}
-			{{ comma }}
-			{
-				"images":[
-					{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Content/SubSplash/SermonBlank121212.jpg"  }
-				]
-			}
     ]
 }
 {%- endif -%}
