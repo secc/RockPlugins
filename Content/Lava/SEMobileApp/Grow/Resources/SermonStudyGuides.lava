@@ -7,11 +7,13 @@ Grow Sermon Study Guides Page
 		"title": "Sermon Study Guides"
 	},
 	"displayOptions":{
-		"style":"stacked",
-		"contentWidthRatio":1,
+		"style":"rows",
+		"contentWidthRatio":0.9,
 	    "itemDisplayOptions":{
-	        "indicatorAspectRatio":2.5265,
-	        "textPosition": "none"
+	        "indicatorAspectRatio":1,
+	        "indicatorShadowEnabled":true,
+	        "maxWidth":640,
+	        "textPosition":"below"
 	    },
 		"colors":{
 	        "brand":{
@@ -55,10 +57,14 @@ Grow Sermon Study Guides Page
 					{
 						"title": "{{-series.Title | Replace:'"',bsq -}}",
 						"subtitle": "{{- series.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  -}}",
-			            "images":[{
-							"width": 667,
-							"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{- series.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=121212"
+						{%- assign imgGuid = series | Attribute:'SquarePodcastImage','RawValue' -%}
+						{%- if imgGuid == '' -%}{%- assign imgGuid = series | Attribute:'Image','RawValue' -%}{%- endif -%}
+						{%- if imgGuid != '' -%}
+						"images":[{
+							"width": 640,
+							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{ imgGuid }}.jpg?guid={{ imgGuid }}&width=640&height=640&mode=crop"
 						}],
+						{%- endif -%}
 						"actions": [{
 							"handler": "{{- itemActionHandler -}}",
 		            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}

@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Podcasts' componententityid:'31005' operation:'View' summary:'Grow Podcasts Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
 Grow Podcasts Page
 {% endinteractionwrite %}
@@ -6,11 +7,13 @@ Grow Podcasts Page
 		"title": "Podcasts"
 	},
 	"displayOptions":{
-		"style":"stacked",
-		"contentWidthRatio":1,
+		"style":"rows",
+		"contentWidthRatio":0.9,
 	    "itemDisplayOptions":{
-	        "indicatorAspectRatio":2.5265,
-	        "textPosition": "none"
+	        "indicatorAspectRatio":1,
+	        "indicatorShadowEnabled":true,
+	        "maxWidth":640,
+	        "textPosition":"below"
 	    },
 		"colors":{
 	        "brand":{
@@ -40,12 +43,18 @@ Grow Podcasts Page
                 {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
                 {%- assign url = item | Attribute:'PodcastURL','RawValue' -%}
                 {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
-                    {%- assign title = item.Title -%}
+                    {%- assign title = item.Title | Replace:'"',bsq -%}
+                    {%- assign imgGuid = item | Attribute:'SquarePodcastImage','RawValue' -%}
+                    {%- if imgGuid == '' -%}{%- assign imgGuid = item | Attribute:'Image','RawValue' -%}{%- endif -%}
+                    {%- assign daysInPlan = item | Attribute:'DaysinPlan','RawValue' -%}
                     {
+                        {%- if imgGuid != '' -%}
                         "images":[
-                            {"width": 667,
-                            "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+                            {"width": 640,
+                            "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{ imgGuid }}.jpg?guid={{ imgGuid }}&width=640&height=640&mode=crop"}
                         ],
+                        {%- endif -%}
+                        {%- if daysInPlan != '' -%}"subtitle": "{{ daysInPlan }} Days",{%- endif -%}
                         "title": "{{ title }}",
                         "actions":[{
                             "handler":"browser",

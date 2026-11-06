@@ -8,11 +8,13 @@ Grow Family Resources Page
 		"title": "Family Resources"
 	},
 	"displayOptions":{
-		"style":"stacked",
-		"contentWidthRatio":1,
+		"style":"rows",
+		"contentWidthRatio":0.9,
 	    "itemDisplayOptions":{
-	        "indicatorAspectRatio":2.5265,
-	        "textPosition": "none"
+	        "indicatorAspectRatio":1,
+	        "indicatorShadowEnabled":true,
+	        "maxWidth":640,
+	        "textPosition":"below"
 	    },
 		"colors":{
 	        "brand":{
@@ -67,10 +69,14 @@ Grow Family Resources Page
 				{{ comma }}
                 {
                     "title": "{{-item.Title | Replace:'"',bsq -}}",
+                    {%- assign imgGuid = item | Attribute:'SquarePodcastImage','RawValue' -%}
+                    {%- if imgGuid == '' -%}{%- assign imgGuid = item | Attribute:'Image','RawValue' -%}{%- endif -%}
+                    {%- if imgGuid != '' -%}
                     "images":[{
-                        "width": 667,
-                        "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{- item.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=121212"
+                        "width": 640,
+                        "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{ imgGuid }}.jpg?guid={{ imgGuid }}&width=640&height=640&mode=crop"
                     }],
+                    {%- endif -%}
 					"actions": [{
                         "handler": "{{- itemActionHandler -}}",
                         {%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}

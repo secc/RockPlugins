@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Resources' componententityid:'30999' operation:'View' summary:'Grow Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'2389' %}
 Grow Resources Page
 {% endinteractionwrite %}
@@ -11,7 +12,7 @@ Grow Resources Page
 	    "itemDisplayOptions":{
 	        "indicatorAspectRatio":1,
 	        "indicatorShadowEnabled":false,
-	        "textPosition":"none"
+	        "textPosition":"below"
 	    },
 		"colors":{
 	        "brand":{
@@ -48,17 +49,19 @@ Grow Resources Page
 				  {%- if Headers.sap-device-os == 'Android' -%}
         			    {%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
         			{%- endif -%}
+				  {%- assign imgGuid = imageGuid -%}
 				  {
-					  "images":[
-						  {"width": 668,
-						  "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/{{ item.ChildContentChannelItem.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=10"}
+					  "title": "{{ title | Replace:'"',bsq }}"
+					  {%- if imgGuid != '' -%}
+					  ,"images":[
+						  {"width": 640,
+						  "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{ imgGuid }}.jpg?guid={{ imgGuid }}&width=640&height=640&mode=crop"}
 						  ]
+					  {%- endif -%}
 					  {%- if actionJson != "" -%}
 						,"actions":[{
 							{{-actionJson-}}
-						}],
-						"title": "{{ title }}",
-						"subtitle": "{{ subtitle }}"
+						}]
 					  {%- endif -%}
 				  }{%- if forloop.last -%}{%- else -%},{%- endif -%}
 			  {%- endif -%}
