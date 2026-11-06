@@ -234,6 +234,13 @@ namespace org.secc.Connection
             if ( Settings.Entity() == null )
             {
                 nbConfigurationWarning.Visible = true;
+                if ( Settings.EntityGuid != Guid.Empty )
+                {
+                    // The configured opportunity (or group) was deleted. Rendering would dereference it, so stop here.
+                    var entityName = Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.GROUP.AsGuid() ? "group" : "connection opportunity";
+                    nbConfigurationWarning.Text = string.Format( "This signup isn't configured: its {0} no longer exists.", entityName );
+                    return;
+                }
                 nbConfigurationWarning.Text = "The connection opportunities, partitions, and display settings need to be configured in block settings.";
             }
 
@@ -357,7 +364,8 @@ namespace org.secc.Connection
             rddlConnection.DataValueField = "Value";
             rddlConnection.DataBind();
 
-            if ( Settings.EntityGuid != Guid.Empty )
+            // A deleted opportunity is not in the list; selecting it would throw on postback.
+            if ( Settings.EntityGuid != Guid.Empty && rddlConnection.Items.FindByValue( Settings.EntityGuid.ToString() ) != null )
             {
                 rddlConnection.SelectedValue = Settings.EntityGuid.ToString();
             }
@@ -731,7 +739,11 @@ namespace org.secc.Connection
                 return _groups;
             }
 
-            ConnectionOpportunity opportunity = ( ( ConnectionOpportunity ) Settings.Entity() );
+            ConnectionOpportunity opportunity = Settings.Entity() as ConnectionOpportunity;
+            if ( opportunity == null )
+            {
+                return new List<Group>();
+            }
             int[] campusIds = opportunity.ConnectionOpportunityCampuses.Select( o => o.CampusId ).ToArray();
             // Build list of groups
             var groups = new List<Group>();
@@ -848,6 +860,10 @@ namespace org.secc.Connection
                         if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
                         {
                             ConnectionOpportunity connection = ( ConnectionOpportunity ) Settings.Entity();
+                            if ( connection == null )
+                            {
+                                break;
+                            }
                             var roles = connection.ConnectionOpportunityGroupConfigs.Where( cogc => cogc.GroupMemberRole != null ).OrderBy( r => r.GroupTypeId ).ThenBy( r => r.GroupMemberRole.Order ).Select( r => new { Name = r.GroupType.Name + ": " + r.GroupMemberRole.Name, Guid = r.GroupMemberRole.Guid } ).ToList();
 
 
