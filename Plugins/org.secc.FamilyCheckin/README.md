@@ -229,6 +229,18 @@ attributes (don't hand-edit ones that have already run):
   returns a list sized to the key count, which stays off the Large Object Heap up to ~10,600 keys.
   A local integration harness (fixture SQL + a localhost-only `.ashx`) lives in
   `../org.secc.FamilyCheckin.Tests/Harness/`; see its README. Never deploy it to a shared server.
+- **What AttendanceCache holds (ROCK-9442):** attendance created today **and** dated today
+  (`AttendanceCache.TodayFilter`). Attendance entered today for another date, such as a group leader
+  recording last Sunday's small group, is left out. The key list, the bulk load, `Verify` and
+  `OccurrenceCache.IsFull`'s database recount all use that one filter; `IsToday` is the same rule
+  in memory, and unit tests check that the two agree. Change the rule there, not in a copy.
+- **Labels come from check-ins only (ROCK-9442):** `CheckinLabelGen` builds a person's labels, security
+  code and merge fields (including the QR `AttendanceGuid`) from their cached attendance that has a
+  security code. Every check-in path sets one (kiosk, mobile, OZ and RoomScanner moves); attendance a
+  leader records in Group App or a group attendance block does not. Before this, a student who
+  checked in to serve on a day their MSM/HSM group attendance was recorded got an extra MSM/HSM
+  Groups label. That attendance still shows in the cache (and so in CheckinMonitor) when it is
+  dated today.
 - **Attendance with no person:** an attendance with no `PersonAlias` is cached as `PersonId` 0 /
   "Unnamed Person". It counts toward `OccurrenceCache.IsFull`, matching the DB row count. It is
   excluded from RoomScanner's volunteer count, because it can't count as a known adult in the room.
@@ -237,4 +249,4 @@ attributes (don't hand-edit ones that have already run):
 - Related: scannable codes come from [org.secc.QRManager](../org.secc.QRManager/README.md);
   shared helpers from [org.secc.DevLib](../org.secc.DevLib/README.md).
 
-**Last updated:** 2026-10-28
+**Last updated:** 2026-11-06
