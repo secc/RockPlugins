@@ -12,6 +12,10 @@
     other registration keep the existing look. Do not add a selector here
     that does not start with `.camp-registration`.
 
+    The camp page must use the Full Width layout. The block paints a
+    page-background band across the whole viewport width (section 2), which
+    would cover any sidebar column beside it.
+
     Rock renders the block as:
       div.block-instance.registration-entry.camp-registration
         > div.block-content > div > div.obsidian-block
@@ -69,8 +73,8 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
   --disabled: var(--light-gray);
 
   // Not in the guide, which has no error colour. Validation and danger
-  // alerts keep a minimal red (left rule and field border only) so errors
-  // stay legible.
+  // alerts keep a minimal red (left rule, field border and the label of a
+  // field in error) so errors stay legible.
   --danger: #{$ErrorColor};
 
   // tokens/spacing.css: warm, not a strict 8pt grid.
@@ -271,8 +275,9 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
     color: var(--mid-gray);
   }
 
-  // Uppercase label role: 500, +0.24em.
-  .progress-tracker-title {
+  // Uppercase label role: 500, +0.24em. Also the session countdown title.
+  .progress-tracker-title,
+  .remaining-time-title {
     font-size: var(--size-label);
     font-weight: 500;
     color: var(--mid-gray);
@@ -320,18 +325,18 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
     }
   }
 
-  // Session countdown shown beside the tracker.
+  // Session countdown shown beside the tracker. Rock places the
+  // session-renewal "Success" alert absolutely inside it; without a
+  // positioned box here that alert would cover the whole block. Its m-0
+  // class is a Rock utility this theme does not have.
   .remaining-time {
+    position: relative;
     padding: var(--s3) var(--s4);
     border-left: 1px solid var(--hairline);
-  }
 
-  .remaining-time-title {
-    font-size: var(--size-label);
-    font-weight: 500;
-    color: var(--mid-gray);
-    text-transform: uppercase;
-    letter-spacing: var(--track-label);
+    > .alert {
+      margin: 0;
+    }
   }
 
   .remaining-time-countdown {
@@ -349,11 +354,14 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
     margin-bottom: var(--s5);
   }
 
+  // _lib/_type.scss sets `label { font-weight: 500 !important }`, so the
+  // field-label weight needs !important too. Checkbox and radio text sits in
+  // .label-text, which that file already sets to 400.
   .control-label {
     margin-bottom: 5px;
     font-family: var(--font-sans);
     font-size: var(--size-field-label);
-    font-weight: 600;
+    font-weight: 600 !important;
     line-height: 1.4;
     color: var(--mid-gray);
     text-transform: uppercase;
@@ -415,11 +423,6 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
     }
   }
 
-  // The theme bolds selects; fields are 400.
-  select.form-control {
-    font-weight: 400;
-  }
-
   // Obsidian drop-downs are ant-design selects that carry .form-control.
   // Rock's overrides for them (Styles/rock-components/obsidian-dropdownlist
   // .less) ship only in Rock's theme.css, which this theme does not load, so
@@ -440,15 +443,19 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
       box-shadow: none !important;
     }
 
-    .ant-select-selection-search {
-      right: 36px;
-      left: 12px;
-    }
+    // Single selects only. Multi-select tags and their inline search box
+    // keep ant's own sizing so the control can grow.
+    &.ant-select-single {
+      .ant-select-selection-search {
+        right: 36px;
+        left: 12px;
+      }
 
-    .ant-select-selection-item,
-    .ant-select-selection-placeholder {
-      padding-right: 0;
-      line-height: 42px;
+      .ant-select-selection-item,
+      .ant-select-selection-placeholder {
+        padding-right: 0;
+        line-height: 42px;
+      }
     }
 
     .ant-select-selection-placeholder {
@@ -456,15 +463,28 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
     }
 
     // Mid gray at rest (3:1 against white for a control cue), dark gray
-    // when open.
-    .ant-select-arrow {
+    // when open. The clear icon of an optional drop-down sits exactly over
+    // the caret and replaces it on hover, as in ant's default.
+    .ant-select-arrow,
+    .ant-select-clear {
       right: 14px;
       width: 16px;
       height: 16px;
       margin-top: -8px;
       font-size: 16px;
       color: var(--mid-gray);
+    }
+
+    .ant-select-arrow {
       transition: color 0.18s;
+    }
+
+    .ant-select-clear {
+      line-height: 16px;
+
+      &:hover {
+        color: var(--dark-gray);
+      }
     }
 
     &.ant-select-focused:not(.ant-select-disabled) {
@@ -535,12 +555,17 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
     accent-color: var(--charcoal);
   }
 
+  // Radio lists, checkboxes and steppers have no field border, so the label
+  // carries the error for every field type.
   .has-error {
     .form-control {
       border-color: var(--danger);
     }
 
-    .control-label,
+    .control-label {
+      color: var(--danger);
+    }
+
     .help-block {
       color: var(--mid-gray);
     }
@@ -693,6 +718,23 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
     }
   }
 
+  // The e-signature "Clear Signature" undo icon beside the canvas stays a
+  // bare icon, not a pill. .btn.btn-link ties the hover rule above on
+  // specificity and wins on source order.
+  .signature-entry-clear-col .btn.btn-link#{$camp-btn-boost} {
+    &,
+    &:hover,
+    &:focus,
+    &:active {
+      padding: var(--s2);
+      color: var(--dark-gray);
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+      transform: none;
+    }
+  }
+
   .actions {
     margin-top: var(--s5);
   }
@@ -743,11 +785,7 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
         }
       }
 
-      > .fee-row-cost {
-        font-weight: 400;
-        color: var(--text-body);
-      }
-
+      > .fee-row-cost,
       > .fee-row-fee {
         font-weight: 400;
         color: var(--text-body);
@@ -848,8 +886,7 @@ $camp-registration-stack: 859px; // two columns collapse and buttons stack below
   a:focus-visible,
   .btn:focus-visible,
   input[type="checkbox"]:focus-visible,
-  input[type="radio"]:focus-visible,
-  .numberincrement a:focus-visible {
+  input[type="radio"]:focus-visible {
     outline: 2px solid var(--charcoal);
     outline-offset: 2px;
   }

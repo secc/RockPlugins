@@ -2,8 +2,6 @@
 
 > Southeast's Rock site themes — the master pages, page layouts, and styling that skin Rock's external and check-in sites.
 
-Last updated: 2026-11-06
-
 ## Overview
 
 This "plugin" is not compiled code; it is the collection of Rock **themes** Southeast maintains.
@@ -80,6 +78,8 @@ neutrals with no accent colour, Ivy Journal for headings, Inter for everything e
 buttons and 10px hairline cards. It applies only to a block whose **CSS Class** is
 `camp-registration`. That block sits on the dedicated camp page (`/camp/registration/{Slug}`).
 Every other registration, including page 413 (`/Registration/{Slug}`), keeps the existing look.
+The camp page must use the **Full Width** layout: the block paints its page-background band
+across the whole viewport width, so it would cover a sidebar column beside it.
 
 - Design tokens are CSS custom properties declared on `.camp-registration`, not `:root`.
   Colours, spacing, radii and shadows are copied verbatim from the guide's `tokens/*.css`.
@@ -92,7 +92,9 @@ Every other registration, including page 413 (`/Registration/{Slug}`), keeps the
   theme's `(0,9,3)` form-button rule in `_lib/_forms.scss`. Rock's ant-design drop-down
   overrides only ship in Rock's `theme.css`, which this theme does not load, so the
   camp scope repeats the essentials.
-- Validation and danger alerts keep a red left border. The design system has no error colour.
+- Validation and danger alerts keep a red left border, and a field in error gets a red border
+  (text inputs and drop-downs) and a red label (every field type). The design system has no
+  error colour.
 
 ### Other assets (no layouts)
 
@@ -142,3 +144,5 @@ Every other registration, including page 413 (`/Registration/{Slug}`), keeps the
 - New page layouts must be added both as a `.aspx` file here and registered as a Layout on the Site in
   the Rock admin UI.
 - Church Online skins live under `SECC2019/ChurchOnline/Themes/`; mobile-app Lava under `SEMobileApp/`.
+
+Last updated: 2026-11-06
