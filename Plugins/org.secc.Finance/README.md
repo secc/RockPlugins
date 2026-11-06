@@ -93,7 +93,7 @@ Category in Rock: **SECC > Finance**.
 
 | Handler | Purpose |
 |---------|---------|
-| `GetStatement.ashx` (`?id=` or `?guid=`) | Streams a binary file (resumable/range support). When the file type requires view security, authorizes the caller via Rock authorization *or* by matching the file's `GivingId` / `PersonIds` attributes against the current person. |
+| `GetStatement.ashx` (`?id=` or `?guid=`) | Streams a Contribution Statement binary file (resumable/range support); a file of any other type gets 404 "File could not be found.". The caller must be signed in and is authorized via Rock authorization *or* by matching the file's `GivingId` / `PersonIds` attributes against the current person; otherwise 403 "Not authorized to view file.". |
 
 ## Dependencies & Integrations
 
@@ -158,4 +158,4 @@ Ships Rock plugin migrations (SQL only — `Down()` is intentionally empty):
 - File access/serving rules live in `Handlers/GetStatement.ashx.cs`; deletion in
   `Rest/Controllers/FinancialStatementsController.cs`.
 
-**Last updated:** 2026-10-07
+**Last updated:** 2026-11-05

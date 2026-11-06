@@ -16,7 +16,7 @@ namespace org.secc.Finance.Rest.Controllers
     public partial class FinancialStatementsController : ApiControllerBase
     {
 
-        private const string CONTRIBUTION_STATEMENT_FILETYPE_GUID = "01630dc6-66dd-4e26-b51e-6f70216847ae";
+        internal const string CONTRIBUTION_STATEMENT_FILETYPE_GUID = "01630dc6-66dd-4e26-b51e-6f70216847ae";
 
         [Authenticate, Secured]
         [HttpDelete]
