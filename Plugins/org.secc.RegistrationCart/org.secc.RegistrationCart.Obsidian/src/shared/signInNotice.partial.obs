@@ -1,0 +1,13 @@
+<template>
+    <div class="rc-notice">
+        <svg class="rc-ico" style="margin-top: 3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
+            <div><strong>Please sign in</strong> to register your family.</div>
+            <a v-if="loginUrl" :href="loginUrl" class="rc-btn rc-btn-primary">Sign in</a>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+    defineProps<{ loginUrl?: string | null }>();
+</script>
