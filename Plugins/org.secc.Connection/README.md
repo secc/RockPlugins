@@ -75,6 +75,20 @@ Category in Rock: **SECC > Connection**.
 | Display Add Another | bool (default false) | Show "Connect and Add Another". |
 | Comment label text / Comments Required | text / bool | Comment box label and requirement. |
 
+#### How a signup is placed
+
+- Signups are taken only when the opportunity and its connection type are both active. Otherwise
+  the form shows "The requested opportunity does not exist." and Connect creates nothing.
+- Each request's group and role come from the link: `GroupId` with `GroupTypeRoleId` or
+  `GroupTypeRole` (the group type's default role when neither is given), or the `RoleRequests` JSON.
+- A request is placed (`AssignedGroup`, role and member status set) only when the group is active,
+  not archived, not a role group, and its group type plus the requested role match one of the
+  opportunity's group configs. The member status comes from that config. The group does not have to
+  be on the opportunity's group list.
+- Otherwise the request is still created, with no group, role or member status.
+- **Signup-Blocking Requirement Types** and group member attribute values apply only to placed
+  requests.
+
 #### How `UrlKeys` values reach a connection request
 
 Every key listed in **UrlKeys** is read off the query string / route and merged into each entry of
@@ -166,9 +180,11 @@ Content share and are copied there by hand, so a change to the partials here has
   file and never replaces one (only the signed-in person may change their own) — SECC keeps the
   account-protection duplicate-ignore list empty on purpose, so this is the guard against an
   anonymous post redirecting someone's mobile.
+- Placement rules live in `ResolvePlacement`; the per-request build (placement, then the
+  signup-blocking requirement check, then member attribute values) is `BuildConnectionRequest`.
 - Re-package with `BuildPlugin.ps1` (Windows + 7-Zip) — note it intentionally excludes
   `ConnectionOpportunitySearch.ascx*` from the `.plugin`.
 - If a URL-supplied attribute value isn't landing on the connection request, check the merge in the
   `RoleRequests` getter and the apply step in `AddGroupMemberAttributes` — a key has to survive both.
 
-Last updated: 2026-10-30
+Last updated: 2026-11-06
