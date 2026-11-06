@@ -5,6 +5,7 @@
         <LinkListEditor
             v-if="detail"
             :detail="detail"
+            :canUploadFiles="!!config.canUploadFiles"
             @back="goBack"
             @saved="onSaved"
             @deleted="goBack" />

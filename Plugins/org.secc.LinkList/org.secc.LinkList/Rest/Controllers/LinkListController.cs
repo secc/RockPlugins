@@ -235,7 +235,9 @@ namespace org.secc.LinkList.Rest.Controllers
         /// Link List File type grants no EDIT to regular users, so FileUploader.ashx
         /// refuses them for this type - this endpoint is the only way in.
         ///
-        /// Rules (all server-side): signed in; Content-Length within the cap; one file;
+        /// Rules (all server-side): signed in; EDIT on the Link List File type (admins,
+        /// Rock Edit Access, Staff Like Workers by default - checked before the body is
+        /// read); Content-Length within the cap; one file;
         /// allowed extension, consistent reported MIME type, size cap, matching magic
         /// bytes. The file is stored TEMPORARY with the uploader stamped; SaveList makes
         /// it permanent once a saved link references it, and Rock Cleanup removes it
@@ -252,6 +254,25 @@ namespace org.secc.LinkList.Rest.Controllers
             if ( person == null || !person.PrimaryAliasId.HasValue )
             {
                 return UploadError( HttpStatusCode.Unauthorized, "Sign in to upload files." );
+            }
+
+            // Who may upload is the file type's EDIT permission, so it is managed on the
+            // type's security in Rock rather than in code. Checked before the body is
+            // parsed, so a refused caller costs no upload processing.
+            using ( var authContext = new RockContext() )
+            {
+                var type = new BinaryFileTypeService( authContext )
+                    .Get( SystemGuids.LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+                if ( type == null )
+                {
+                    return UploadError( HttpStatusCode.InternalServerError,
+                        "File uploads are not set up on this server (the Link List File type is missing)." );
+                }
+                if ( !type.IsAuthorized( Rock.Security.Authorization.EDIT, person ) )
+                {
+                    return UploadError( HttpStatusCode.Forbidden,
+                        "You don't have permission to upload files. Link to the file's URL instead." );
+                }
             }
 
             var httpRequest = System.Web.HttpContext.Current?.Request;
@@ -353,10 +374,13 @@ namespace org.secc.LinkList.Rest.Controllers
         ///
         /// The Content-Type comes from the extension allow-list (never the stored,
         /// client-reported MIME type) and is pinned with nosniff, so a file can only
-        /// ever render as a PDF or an image. The content is copied into memory (capped
-        /// at <see cref="LinkListFiles.MaxFileSizeBytes"/> on upload) so the response
-        /// never outlives the provider stream or RockContext (the 2026-08 storage-provider
-        /// landmine audit covers why provider streams must not leak).
+        /// ever render as a PDF or an image. The provider stream is STREAMED, not
+        /// buffered (files run to <see cref="LinkListFiles.MaxFileSizeBytes"/>): both the
+        /// Database provider (a MemoryStream over bytes already loaded) and Azure (a blob
+        /// read stream) hand back a stream that doesn't depend on the RockContext, and
+        /// StreamContent disposes it when the response completes, so it can't leak (the
+        /// 2026-08 storage-provider landmine audit). It is read from a fresh entity
+        /// that is never saved, so its cached stream is never reused.
         /// </summary>
         [HttpGet]
         [System.Web.Http.Route( "{listGuid:guid}/file/{fileGuid:guid}" )]
@@ -375,24 +399,17 @@ namespace org.secc.LinkList.Rest.Controllers
                     return new HttpResponseMessage( HttpStatusCode.NotFound );
                 }
 
-                byte[] content;
-                using ( var stream = binaryFile.ContentStream )
+                var stream = binaryFile.ContentStream;
+                if ( stream == null )
                 {
-                    if ( stream == null )
-                    {
-                        // Azure returns no stream when the blob is missing.
-                        return new HttpResponseMessage( HttpStatusCode.NotFound );
-                    }
-                    using ( var buffer = new System.IO.MemoryStream() )
-                    {
-                        stream.CopyTo( buffer );
-                        content = buffer.ToArray();
-                    }
+                    // Azure returns no stream when the blob is missing.
+                    return new HttpResponseMessage( HttpStatusCode.NotFound );
                 }
 
                 var response = new HttpResponseMessage( HttpStatusCode.OK )
                 {
-                    Content = new ByteArrayContent( content )
+                    // Owns and disposes the stream once the body is sent.
+                    Content = new StreamContent( stream )
                 };
                 response.Content.Headers.ContentType =
                     new MediaTypeHeaderValue( LinkListFiles.GetContentType( binaryFile.FileName ) );

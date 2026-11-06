@@ -18,7 +18,7 @@ const fileUrl = `/api/secc/linklist/${listGuid}/file/${fileGuid}`;
 describe("linkListFiles constants (parity with LinkListFiles.cs / LinkListGuids.cs)", () => {
     it("pins the allow-list, size cap and file type", () => {
         expect(ALLOWED_EXTENSIONS).toEqual(["pdf", "jpg", "jpeg", "png"]);
-        expect(MAX_FILE_SIZE_BYTES).toBe(10 * 1024 * 1024);
+        expect(MAX_FILE_SIZE_BYTES).toBe(50 * 1024 * 1024);
         expect(LINK_LIST_FILE_TYPE_GUID).toBe("d3c59ea0-0cd7-42cd-817f-2937c31f5a86");
         // LinkListController.PostUpload's route.
         expect(LINK_FILE_UPLOAD_URL).toBe("/api/secc/linklist/upload");
@@ -51,7 +51,7 @@ describe("validateLinkFile", () => {
     });
 
     it("rejects oversize and empty files", () => {
-        expect(validateLinkFile({ name: "big.pdf", size: MAX_FILE_SIZE_BYTES + 1 })).toMatch(/10 MB limit/);
+        expect(validateLinkFile({ name: "big.pdf", size: MAX_FILE_SIZE_BYTES + 1 })).toMatch(/50 MB limit/);
         expect(validateLinkFile({ name: "empty.pdf", size: 0 })).toMatch(/empty/);
     });
 });

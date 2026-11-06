@@ -14,7 +14,7 @@
                         <div v-if="hasFile" class="li-file" :title="fileLabel">
                             <i :class="fileIconClass" aria-hidden="true"></i>
                             <span class="li-file-name">{{ fileLabel }}</span>
-                            <button type="button" class="btn btn-link btn-xs" :disabled="isUploading" @click="pickFile" aria-label="Replace the uploaded file">Replace</button>
+                            <button v-if="canUpload" type="button" class="btn btn-link btn-xs" :disabled="isUploading" @click="pickFile" aria-label="Replace the uploaded file">Replace</button>
                             <button type="button" class="btn btn-link btn-xs" :disabled="isUploading" @click="removeFile" aria-label="Remove the uploaded file and enter a URL instead">Use a URL</button>
                         </div>
                         <TextBox v-else :modelValue="modelValue.url" @update:modelValue="update('url', $event)" label="" placeholder="https://..." />
@@ -28,7 +28,7 @@
                 <input ref="fileInput" type="file" class="li-file-input" :accept="fileAccept" @change="onFilePicked" tabindex="-1" aria-hidden="true" />
             </div>
             <div class="li-actions">
-                <button v-if="!hasFile" type="button" class="btn btn-default btn-xs" :disabled="isUploading" @click="pickFile" title="Upload a PDF, JPG, or PNG instead of a URL" aria-label="Upload a file instead of a URL"><i :class="isUploading ? 'fa fa-spinner fa-spin' : 'fa fa-paperclip'"></i></button>
+                <button v-if="canUpload && !hasFile" type="button" class="btn btn-default btn-xs" :disabled="isUploading" @click="pickFile" title="Upload a PDF, JPG, or PNG instead of a URL" aria-label="Upload a file instead of a URL"><i :class="isUploading ? 'fa fa-spinner fa-spin' : 'fa fa-paperclip'"></i></button>
                 <button type="button" class="btn btn-default btn-xs li-feature" :class="{ 'is-featured': modelValue.isFeatured }" :aria-pressed="!!modelValue.isFeatured" @click="toggleFeatured" title="Featured button (one per list)" aria-label="Featured button"><i class="fa fa-star"></i></button>
                 <button v-if="canNest || isNested" type="button" class="btn btn-default btn-xs" :class="{ 'is-nested': isNested }" @click="toggleNest" :title="isNested ? 'Move out of the section' : 'Nest under the section above'" :aria-label="isNested ? 'Un-nest link' : 'Nest link'"><i :class="isNested ? 'fa fa-outdent' : 'fa fa-indent'"></i></button>
                 <button type="button" class="btn btn-default btn-xs" @click="$emit('moveUp')" title="Move up" aria-label="Move up"><i class="fa fa-chevron-up"></i></button>
@@ -94,6 +94,8 @@ const props = defineProps<{
     isChild?: boolean;
     /** True when a section group is open at this row, so a link can be nested into it. */
     canNest?: boolean;
+    /** ROCK-9362: the person may upload link files (hides the upload controls only). */
+    canUpload?: boolean;
 }>();
 const emit = defineEmits<{
     (e: "update:modelValue", value: LinkItemBag): void;

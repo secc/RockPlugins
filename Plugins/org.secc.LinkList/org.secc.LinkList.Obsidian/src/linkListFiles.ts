@@ -12,13 +12,13 @@ export const LINK_LIST_FILE_TYPE_GUID = "d3c59ea0-0cd7-42cd-817f-2937c31f5a86";
 
 /**
  * The plugin's upload endpoint (LinkListController.PostUpload). Used as the
- * baseUrl of Rock's uploadBinaryFile helper; FileUploader.ashx refuses regular
- * users for this file type.
+ * baseUrl of Rock's uploadBinaryFile helper. Requires EDIT on the Link List
+ * File type (admins, Rock Edit Access, Staff Like Workers by default).
  */
 export const LINK_FILE_UPLOAD_URL = "/api/secc/linklist/upload";
 
-/** 10 MB - LinkListFiles.MaxFileSizeBytes. */
-export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+/** 50 MB - LinkListFiles.MaxFileSizeBytes (sized from production; see there). */
+export const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
 /** Allowed extensions (lowercase, no dot). */
 export const ALLOWED_EXTENSIONS = ["pdf", "jpg", "jpeg", "png"];

@@ -92,11 +92,26 @@ namespace org.secc.LinkList.Blocks
                 ItemKey = isAdd ? null : key,
                 IsAddMode = isAdd,
                 DefaultDesignGuid = defaultDesign.ToString(),
+                CanUploadFiles = CanUploadFiles(),
                 NavigationUrls = new Dictionary<string, string>
                 {
                     [NavigationUrlKey.ListPage] = this.GetLinkedPageUrl( AttributeKey.ListPage, new Dictionary<string, string>() )
                 }
             };
+        }
+
+        /// <summary>ROCK-9362: EDIT on the Link List File type = may upload (see PostUpload).</summary>
+        private bool CanUploadFiles()
+        {
+            if ( RequestContext.CurrentPerson == null )
+            {
+                return false;
+            }
+            using ( var rockContext = new RockContext() )
+            {
+                var type = new BinaryFileTypeService( rockContext ).Get( LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+                return type != null && type.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson );
+            }
         }
 
         [BlockAction]

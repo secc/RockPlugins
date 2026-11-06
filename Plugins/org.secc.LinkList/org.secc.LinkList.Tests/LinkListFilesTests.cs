@@ -42,7 +42,7 @@ namespace org.secc.LinkList.Tests
         [Fact]
         public void Constants_Match_Frontend_Mirror()
         {
-            Assert.Equal( 10 * 1024 * 1024, LinkListFiles.MaxFileSizeBytes );
+            Assert.Equal( 50 * 1024 * 1024, LinkListFiles.MaxFileSizeBytes );
             Assert.Equal( "D3C59EA0-0CD7-42CD-817F-2937C31F5A86", LinkListGuids.BinaryFileTypeLinkListFile );
         }
 
@@ -173,7 +173,7 @@ namespace org.secc.LinkList.Tests
         public void ValidateMetadata_Enforces_Size_Cap()
         {
             Assert.Null( LinkListFiles.ValidateMetadata( "max.pdf", "application/pdf", LinkListFiles.MaxFileSizeBytes ) );
-            Assert.Contains( "10 MB limit", LinkListFiles.ValidateMetadata( "big.pdf", "application/pdf", LinkListFiles.MaxFileSizeBytes + 1L ) );
+            Assert.Contains( "50 MB limit", LinkListFiles.ValidateMetadata( "big.pdf", "application/pdf", LinkListFiles.MaxFileSizeBytes + 1L ) );
             Assert.Contains( "empty", LinkListFiles.ValidateMetadata( "empty.pdf", "application/pdf", 0 ) );
         }
 

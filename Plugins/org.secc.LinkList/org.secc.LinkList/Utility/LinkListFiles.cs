@@ -34,8 +34,13 @@ namespace org.secc.LinkList.Utility
     /// </summary>
     public static class LinkListFiles
     {
-        /// <summary>10 MB. Also written to the BinaryFileType (migration 013) so FileUploader.ashx rejects oversize uploads.</summary>
-        public const int MaxFileSizeBytes = 10 * 1024 * 1024;
+        /// <summary>
+        /// 50 MB. Sized from production (2026-11): the PDFs already linked from Link Lists
+        /// via GetFile.ashx top out at 40.7 MB (full study guides; next 29.3, 19.9, 15.2),
+        /// while the PDF p99 across content file types is ~12 MB. Under IIS's 100 MB
+        /// request cap. Also written to the BinaryFileType (migration 013).
+        /// </summary>
+        public const int MaxFileSizeBytes = 50 * 1024 * 1024;
 
         /// <summary>Extension (lowercase, no dot) -> the only Content-Type the file is ever served as.</summary>
         private static readonly Dictionary<string, string> ContentTypeByExtension =

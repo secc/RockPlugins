@@ -149,6 +149,7 @@ export interface LinkListDetailConfigBox {
     itemKey?: string | null;
     isAddMode?: boolean;
     defaultDesignGuid?: string | null;
+    canUploadFiles?: boolean; // ROCK-9362: EDIT on the Link List File type (hides the upload button only)
     navigationUrls?: Record<string, string> | null;
 }
 

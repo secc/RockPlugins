@@ -49,27 +49,33 @@ Three subsystems deserve special mention:
 
 ## Uploaded link files (ROCK-9362)
 
-Editors click the paperclip on a link row to upload a file; the row then shows the file name
+Editors who may upload (see *Upload permission*) click the paperclip on a link row to upload
+a file; the row then shows the file name
 (with **Replace** / **Use a URL**) in place of the URL box. The upload defaults the link text
 to the file name and the target to a new window.
 
 - **Upload.** The row uses Rock's Obsidian `uploadBinaryFile` helper pointed at the plugin's
-  own `POST api/secc/linklist/upload`, not `FileUploader.ashx`. That endpoint requires a
-  signed-in person, pre-checks Content-Length, and rejects anything that isn't an allowed
+  own `POST api/secc/linklist/upload`, not `FileUploader.ashx`. That endpoint requires
+  upload permission, pre-checks Content-Length, and rejects anything that isn't an allowed
   extension (`pdf`, `jpg`, `jpeg`, `png`) with a consistent reported MIME type, at most
-  10 MB (`LinkListFiles.MaxFileSizeBytes`), and with a matching magic-byte signature. It
+  50 MB (`LinkListFiles.MaxFileSizeBytes`), and with a matching magic-byte signature. It
   cleans the file name, stores the allow-listed MIME type (not the client's), copies the
   content to a MemoryStream before handing it to the provider (never the request stream; the
   2026-08 storage-provider landmine audit), and **stamps the uploader** — `FileUploader.ashx`
   uploads have a NULL `CreatedByPersonAliasId` in production, which is why it isn't used.
+  The 50 MB cap was sized from production (2026-11): the PDFs already linked from Link
+  Lists via `GetFile.ashx` are full study guides topping out at 40.7 MB (then 29.3, 19.9,
+  15.2, and the rest ≤ 6.4 MB); the PDF p99 across content file types is about 12 MB. IIS
+  allows 100 MB requests.
 - **Storage.** A *temporary* Rock `BinaryFile` of the dedicated **Link List File**
   BinaryFileType (`LinkListGuids.BinaryFileTypeLinkListFile`, migration 013), typed at
-  creation (never re-typed later; audit finding M14). The type uses the **Database** storage
-  provider by default so it works in every environment; an admin can switch it to Azure Blob
-  Storage under *Admin Tools > General Settings > File Types* (existing files keep the
-  provider they were written with). The type has **no EDIT grant**, so `FileUploader.ashx`
-  (which needs EDIT on the type and checks none of the rules above) refuses everyone but Rock
-  admins for it.
+  creation (never re-typed later; audit finding M14). The type uses Rock core **Azure Blob
+  Storage** like the org's other content types: the provider's default container and the
+  folder `LinkListFile` (the type name in PascalCase), set in both `AzureBlobContainerFolderPath`
+  and the legacy `ContainerFolderPath` key. It falls back to the Database provider only where
+  the Azure provider isn't registered. A local dev box without Azure credentials has to switch
+  the type to Database under *Admin Tools > General Settings > File Types* to upload. The row
+  is insert-only, so an admin's later change survives.
 - **Stored URL.** The matrix row's existing `URL` attribute holds the **relative** path
   `/api/secc/linklist/{listGuid}/file/{fileGuid}` (`LinkListFiles.BuildFileUrl`), so no new
   matrix attribute or migration was needed and a database copied between environments keeps
@@ -94,13 +100,18 @@ to the file name and the target to a new window.
 - **Visibility.** The type requires view security with VIEW allowed only to Rock admins, so
   `GetFile.ashx` refuses these files. They are served only by
   `GET api/secc/linklist/{listGuid}/file/{fileGuid}`, which applies the owning list's gate: a
-  public list's files are public (5-minute shared cache); a private list's files go only to
+  public list's files are public (5-minute shared cache; streamed, not buffered); a private list's files go only to
   people who can edit it (in-Rock preview, `no-store`); a file no longer linked from the list
   is not served; every refusal is a 404. The response Content-Type comes from the extension
   allow-list, never the stored MIME type, with `X-Content-Type-Options: nosniff`.
-- **Upload permission.** Any signed-in person may call the upload endpoint, matching
-  ROCK-9100's "any signed-in person can create a list". An abandoned upload stays temporary
-  and is cleaned up; there is no per-person upload rate limit.
+- **Upload permission.** EDIT on the Link List File type. Migration 013 grants it to *RSR -
+  Rock Administration*, *RSR - Rock Edit Access* (the renamed core staff group) and *RSR -
+  Staff Like Workers*, and denies everyone else; change it on the type's security in Rock.
+  The upload endpoint checks it before reading the body, and the editor hides the paperclip
+  (`LinkListDetailConfigBox.CanUploadFiles`) for everyone else. Those editors still see
+  existing files and can switch a row back to a URL. `FileUploader.ashx` also honors EDIT,
+  but a file uploaded there carries no uploader, so `SaveList` refuses to attach it. An
+  abandoned upload stays temporary and is cleaned up.
 
 ## Project Info
 
@@ -151,7 +162,7 @@ Category in Rock: **SECC > Link Lists**.
 ### REST endpoints
 
 `LinkListController`, route prefix `api/secc/linklist` — **anonymous by design** (except the
-signed-in-only upload), gated by the per-list `IsPublic` attribute (non-public lists return 404, not 403, to avoid enumeration).
+permission-checked upload), gated by the per-list `IsPublic` attribute (non-public lists return 404, not 403, to avoid enumeration).
 CORS is origin-reflection against an admin-managed Defined Type unioned with a hardcoded
 fallback list; JSON is forced camelCase to match the Obsidian bag contract.
 
@@ -159,7 +170,7 @@ fallback list; JSON is forced camelCase to match the Obsidian bag contract.
 |-------|------|---------|
 | `api/secc/linklist/{idOrSlug}` | GET | Returns the full list bag for the web component; records a "View" interaction (rate-limited per IP). |
 | `api/secc/linklist/{idOrSlug}/click` | POST | `navigator.sendBeacon` click target. Always answers 200 (except a 413 body-size cap); validates the matrix-row guid server-side and records a "Click" interaction, rate-limited per IP (accept-but-drop). |
-| `api/secc/linklist/upload` | POST | ROCK-9362: the editor's file upload (multipart). Signed-in only; validates type/MIME/size/magic bytes and stores a temporary Link List File stamped with the uploader. Returns `{ Guid, FileName }` (FileUploader.ashx shape) or 4xx `{ message }`. |
+| `api/secc/linklist/upload` | POST | ROCK-9362: the editor's file upload (multipart). Requires EDIT on the Link List File type; validates type/MIME/size/magic bytes and stores a temporary Link List File stamped with the uploader. Returns `{ Guid, FileName }` (FileUploader.ashx shape) or 4xx `{ message }`. |
 | `api/secc/linklist/{listGuid}/file/{fileGuid}` | GET | ROCK-9362: serves an uploaded link file under the owning list's gate (public list, or an editor's preview of a private one); 404 otherwise. The only way these files are served. |
 
 ### Services & utilities
@@ -171,7 +182,7 @@ fallback list; JSON is forced camelCase to match the Obsidian bag contract.
 | `SlugReconciler` | Pure static slug logic: builds/validates submissions, diffs existing vs submitted rows into add/delete plans, and filters concurrent edits (`FilterConcurrentlyDeleted`, `FilterDeletableIds`). |
 | `AnalyticsSeries` / `ClickPayload` / `ClientIpResolver` / `InteractionRateLimiter` | Day-series gap filling and range clamping; bounded text/plain beacon parsing; X-Forwarded-For-aware, DNS-free IP resolution; token-bucket rate limiting. |
 | `LinkListHtmlSanitizer` | HtmlAgilityPack-based sanitizer for admin-entered header/footer HTML. |
-| `LinkListFiles` | ROCK-9362: uploaded-file rules — extension/MIME allow-list, 10 MB cap, magic-byte check, file-name cleaning, and the stored file-URL shape. Mirrored for editor feedback by `src/linkListFiles.ts`. |
+| `LinkListFiles` | ROCK-9362: uploaded-file rules — extension/MIME allow-list, 50 MB cap, magic-byte check, file-name cleaning, and the stored file-URL shape. Mirrored for editor feedback by `src/linkListFiles.ts`. |
 
 ### Web component
 
