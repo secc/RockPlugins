@@ -5,6 +5,7 @@ import {
     vimeoEmbedUrl,
     headerImageUrl,
     backgroundImageUrl,
+    cardImageUrl,
     headerBackgroundImageUrl,
     safeUrl
 } from "../src/linkListParity";
@@ -71,6 +72,12 @@ describe("image urls", () => {
     it("header background image uses w=2400 (wide banner)", () => {
         expect(headerBackgroundImageUrl("https://rock.secc.org", guid))
             .toBe(`https://rock.secc.org/getimage.ashx?guid=${guid}&w=2400`);
+    });
+
+    it("ROCK-9361 card image uses a 16:9 crop (w=960&h=540&mode=crop)", () => {
+        expect(cardImageUrl("https://rock.secc.org", guid))
+            .toBe(`https://rock.secc.org/getimage.ashx?guid=${guid}&w=960&h=540&mode=crop`);
+        expect(cardImageUrl("", "not-a-guid")).toBeNull();
     });
 
     it("returns null when the value is not a guid", () => {
