@@ -230,8 +230,15 @@ namespace org.secc.Connection
             }
             base.OnLoad( e );
 
+            // Load the editor before any early return. Settings opens on a postback, and saving writes
+            // ceLava.Text back to the Lava attribute, so an unloaded editor would wipe the template.
+            if ( !IsPostBack )
+            {
+                ceLava.Text = GetAttributeValue( "Lava" );
+            }
 
-            if ( Settings.Entity() == null )
+            var entity = Settings.Entity();
+            if ( entity == null )
             {
                 nbConfigurationWarning.Visible = true;
                 if ( Settings.EntityGuid != Guid.Empty )
@@ -244,14 +251,10 @@ namespace org.secc.Connection
                 nbConfigurationWarning.Text = "The connection opportunities, partitions, and display settings need to be configured in block settings.";
             }
 
-            if ( !IsPostBack )
-            {
-                ceLava.Text = GetAttributeValue( "Lava" );
-            }
-
             if ( Settings.Partitions.Count > 0 )
             {
-                ConnectionOpportunity connection = ( ConnectionOpportunity ) Settings.Entity();
+                // Null when no opportunity is chosen (or the signup is group-based); the tree then renders without requests.
+                ConnectionOpportunity connection = entity as ConnectionOpportunity;
                 if ( connection != null && connectionRequests == null )
                 {
                     connectionRequests = connection.ConnectionRequests;
@@ -277,9 +280,9 @@ namespace org.secc.Connection
                 if ( Settings.SignupPage() != null )
                 {
                     url = new Rock.Web.PageReference( Settings.SignupPage().Id ).BuildUrl();
-                    if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
+                    if ( connection != null )
                     {
-                        url += "?OpportunityId=" + Settings.Entity().Id;
+                        url += "?OpportunityId=" + connection.Id;
                     }
                 }
 
@@ -742,7 +745,21 @@ namespace org.secc.Connection
             ConnectionOpportunity opportunity = Settings.Entity() as ConnectionOpportunity;
             if ( opportunity == null )
             {
-                return new List<Group>();
+                // No opportunity (e.g. it was deleted). UpdateCounts rebuilds the group map from these dropdowns,
+                // so offer the groups already mapped; otherwise every row would save back as "Not Mapped".
+                var mappedGroupIds = Groups.Values
+                    .Concat( Settings.Partitions.Where( p => p.GroupMap != null ).SelectMany( p => p.GroupMap.Values ) )
+                    .Select( v => v.AsIntegerOrNull() )
+                    .Where( id => id.HasValue )
+                    .Select( id => id.Value )
+                    .Distinct()
+                    .ToList();
+                _groups = new GroupService( new RockContext() )
+                    .Queryable().AsNoTracking()
+                    .Include( g => g.Campus )
+                    .Where( g => mappedGroupIds.Contains( g.Id ) )
+                    .ToList();
+                return _groups;
             }
             int[] campusIds = opportunity.ConnectionOpportunityCampuses.Select( o => o.CampusId ).ToArray();
             // Build list of groups
@@ -859,6 +876,8 @@ namespace org.secc.Connection
                     case "Role":
                         if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
                         {
+                            // Lock the parameter name before the missing-opportunity exit; the signup form reads "GroupTypeRole".
+                            tbAttributeKey.ReadOnly = true;
                             ConnectionOpportunity connection = ( ConnectionOpportunity ) Settings.Entity();
                             if ( connection == null )
                             {
@@ -881,7 +900,6 @@ namespace org.secc.Connection
                                 roleCbl.AutoPostBack = true;
                                 phPartitionControl.Controls.Add( roleCbl );
                             }
-                            tbAttributeKey.ReadOnly = true;
                         }
 
                         break;
