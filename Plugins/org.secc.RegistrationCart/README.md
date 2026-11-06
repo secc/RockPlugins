@@ -102,10 +102,11 @@ workflow applies (725 makes a single-use `FA-` template discount: the $50/$100 t
 template cost less $20 for "More") becomes that line's locked code. It runs again only when the
 option or answers change: on the edit page, changing them frees the code box, and on save a
 workflow that applies no code (the family no longer asks for assistance) removes the FA code and
-lets a typed code stand. A workflow that applies a code again brings back the line's first FA
-code (`CartLineItem.WorkflowDiscountCode`) while it can still be used, and the unused code it
-just made is deleted from the template, so turning assistance off and on doesn't pile up `FA-`
-codes. The first code keeps its value: a new "how much" answer doesn't change it. Checkout
+lets a typed code stand. A workflow that applies a code again (still asking, or asking again
+after turning it off) brings back the line's first FA code (`CartLineItem.WorkflowDiscountCode`)
+while it can still be used, set to the value the workflow just worked out (so a new "how much"
+answer, e.g. $50 → $100, changes that code's amount on the template), and the unused code it
+just made is deleted from the template, so each camper keeps one `FA-` code. Checkout
 records the code as the registration's discount code, so the template's registration workflow
 (728) then launches the FA evaluation as before.
 
