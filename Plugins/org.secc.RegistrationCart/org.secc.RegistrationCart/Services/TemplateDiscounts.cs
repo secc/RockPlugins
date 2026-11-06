@@ -126,6 +126,25 @@ namespace org.secc.RegistrationCart.Services
         }
 
         /// <summary>
+        /// Sets the value of the template's discount with that code (a family's own FA- code, to
+        /// the amount their latest answers ask for) and returns it as usable; null when it is gone.
+        /// Saved with the context.
+        /// </summary>
+        public UsableCode SetValue( int registrationTemplateId, string code, decimal amount, decimal percentage )
+        {
+            var discount = new RegistrationTemplateDiscountService( _rockContext ).Queryable()
+                .FirstOrDefault( d => d.RegistrationTemplateId == registrationTemplateId && d.Code == code );
+            if ( discount == null )
+            {
+                return null;
+            }
+
+            discount.DiscountAmount = amount;
+            discount.DiscountPercentage = percentage;
+            return ToUsable( discount );
+        }
+
+        /// <summary>
         /// Deletes the template's discount with that code when no registration and no cart line
         /// uses it: a code the discount code workflow just made that the line won't use.
         /// </summary>

@@ -577,13 +577,19 @@ namespace org.secc.RegistrationCart.Services
                         applied = new TemplateDiscounts.UsableCode { Code = made.Code, Amount = made.Amount, Percentage = made.Percentage };
                         locked = true;
 
-                        // Asking for assistance again after turning it off: the line's first
-                        // workflow code comes back, and the one just made (unused) is removed.
+                        // Answers changed but still asking for assistance (or asking again after
+                        // turning it off): the line keeps its first workflow code, set to the value
+                        // the workflow just worked out (a new "how much" answer), and the code just
+                        // made (unused) is removed.
                         if ( line.WorkflowDiscountCode.IsNotNullOrWhiteSpace() && !DiscountRules.SameCode( line.WorkflowDiscountCode, made.Code )
                             && discounts.Check( template.Template, option.Instance.Id, line.WorkflowDiscountCode, otherCartLines, out var original ) == null )
                         {
-                            discounts.RemoveUnused( template.Template.Id, made.Code );
-                            applied = original;
+                            var revalued = discounts.SetValue( template.Template.Id, original.Code, made.Amount, made.Percentage );
+                            if ( revalued != null )
+                            {
+                                discounts.RemoveUnused( template.Template.Id, made.Code );
+                                applied = revalued;
+                            }
                         }
 
                         line.WorkflowDiscountCode = applied.Code;
