@@ -713,3 +713,7 @@ $modal-backdrop-opacity:     .7 !important;
 }
 
 @import '_lib/print';
+
+// Camp registration (ROCK-9395): scoped to .camp-registration. Keep last so
+// it follows _lib/_forms.scss and rock/_blocks-events.scss in the cascade.
+@import 'rock/camp-registration';
