@@ -19,7 +19,9 @@ using System.Reflection;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
+using Rock.Data;
 using Rock.Model;
+using Rock.Web.UI.Controls;
 using Rock.Web.Cache;
 using Xunit;
 
@@ -77,10 +79,80 @@ namespace org.secc.Connection.Tests
 
             public List<int> LoadedGroupIds { get; } = new List<int>();
 
+            public ConnectionOpportunity Opportunity { get; set; }
+
+            public List<int> LoadedOpportunityIds { get; } = new List<int>();
+
+            public List<GroupRequirementStatus> RequirementResults { get; } = new List<GroupRequirementStatus>();
+
+            public List<int> RequirementCheckGroupIds { get; } = new List<int>();
+
+            public List<int> MemberAttributeIndexes { get; } = new List<int>();
+
             public TestBlock()
             {
                 UseNoUrlKeys();
+                CreateControls();
             }
+
+            protected override RockContext CreateRockContext()
+            {
+                // Never connects: every database read the tested paths make is replaced below.
+                return new RockContext( "name=UnusedByTheseTests" );
+            }
+
+            protected override ConnectionOpportunity LoadOpportunity( RockContext rockContext, int opportunityId )
+            {
+                LoadedOpportunityIds.Add( opportunityId );
+                return Opportunity != null && Opportunity.Id == opportunityId ? Opportunity : null;
+            }
+
+            protected override Group LoadAssignedGroup( RockContext rockContext, int groupId )
+            {
+                Group group;
+                return Groups.TryGetValue( groupId, out group ) ? group : null;
+            }
+
+            protected override string GetRoleName( RockContext rockContext, int groupRoleId )
+            {
+                return groupRoleId == MemberRoleId ? "Member" : null;
+            }
+
+            protected override IEnumerable<GroupRequirementStatus> CheckGroupRequirements( RockContext rockContext, Group group, int personId, int? groupRoleId )
+            {
+                RequirementCheckGroupIds.Add( group.Id );
+                return RequirementResults;
+            }
+
+            protected override Dictionary<string, AttributeValueCache> GetGroupMemberAttributes( RockContext rockContext = null, int RepeaterIndex = 0 )
+            {
+                MemberAttributeIndexes.Add( RepeaterIndex );
+                return new Dictionary<string, AttributeValueCache> { { "Shift", new AttributeValueCache { Value = "Early" } } };
+            }
+
+            public void Connect()
+            {
+                btnConnect_Click( new LinkButton { Text = "Connect" }, EventArgs.Empty );
+            }
+
+            public void Show( int opportunityId )
+            {
+                ShowDetail( opportunityId );
+            }
+
+            public bool Build( ConnectionRequest connectionRequest, ConnectionOpportunity opportunity, int index )
+            {
+                return BuildConnectionRequest( new RockContext( "name=UnusedByTheseTests" ), connectionRequest, opportunity, index,
+                    new Person { Id = 5, FirstName = "Pat", NickName = "Pat", LastName = "Doe" }, "Pat", false, false );
+            }
+
+            public bool ErrorShown => nbErrorMessage.Visible && ( nbErrorMessage.Text ?? string.Empty ).Contains( "The requested opportunity does not exist." );
+
+            public bool SignupPanelVisible => pnlSignup.Visible;
+
+            public bool RequirementMessageShown => lRequirementBlockMessage.Visible;
+
+            public string RequirementMessage => lRequirementBlockMessage.Text;
 
             protected override Group LoadGroup( int groupId )
             {
@@ -107,10 +179,10 @@ namespace org.secc.Connection.Tests
             }
 
             /// <summary>
-            /// Binds the role repeater with one item per role request, holding the hidden fields the .ascx
-            /// declares, and sets those fields to the given values (what a posted form could carry).
+            /// Binds the role repeater with one item per role request, holding the controls the .ascx declares in
+            /// its item template, and sets the hidden group field to the given value (what a posted form could carry).
             /// </summary>
-            public void BindRepeater( int itemCount, string postedGroupId, string postedRoleId )
+            public void BindRepeater( int itemCount, string postedGroupId )
             {
                 rptGroupRoleAttributes = new Repeater { ItemTemplate = new RoleItemTemplate() };
                 rptGroupRoleAttributes.DataSource = Enumerable.Range( 0, itemCount ).ToList();
@@ -118,7 +190,6 @@ namespace org.secc.Connection.Tests
                 foreach ( RepeaterItem item in rptGroupRoleAttributes.Items )
                 {
                     ( ( HiddenField ) item.FindControl( "hdnGroupId" ) ).Value = postedGroupId;
-                    ( ( HiddenField ) item.FindControl( "hdnGroupRoleTypeId" ) ).Value = postedRoleId;
                 }
             }
         }
@@ -127,7 +198,7 @@ namespace org.secc.Connection.Tests
         {
             public void InstantiateIn( Control container )
             {
-                container.Controls.Add( new HiddenField { ID = "hdnGroupRoleTypeId" } );
+                container.Controls.Add( new RockLiteral { ID = "ltRole" } );
                 container.Controls.Add( new HiddenField { ID = "hdnGroupId" } );
                 container.Controls.Add( new PlaceHolder { ID = "phAttributes" } );
             }
@@ -267,8 +338,12 @@ namespace org.secc.Connection.Tests
             AssertNoPlacement( ApplyFromUrl( NewBlock(), OtherTypeGroupId, MemberRoleId ) );
         }
 
+        /// <summary>
+        /// A role request that reaches placement with no role. (A URL GroupId alone never does: the role requests
+        /// fill in the group type's default role first, which the local check covers.)
+        /// </summary>
         [Fact]
-        public void UrlGroupWithoutRole_IsNotPlacedAndNoGroupIsLoaded()
+        public void RoleRequestWithoutRoleId_IsNotPlacedAndNoGroupIsLoaded()
         {
             var block = NewBlock();
             var request = block.Resolve( NewOpportunity(), new VolunteerSignupFormConnections.ConnectionRoleRequest { GroupId = ServingGroupId } );
@@ -338,7 +413,7 @@ namespace org.secc.Connection.Tests
             var block = NewBlock();
             block.TestPageParameters["GroupId"] = ServingGroupId.ToString();
             block.TestPageParameters["GroupTypeRoleId"] = MemberRoleId.ToString();
-            block.BindRepeater( 1, SecurityRoleGroupId.ToString(), LeaderRoleId.ToString() );
+            block.BindRepeater( 1, SecurityRoleGroupId.ToString() );
 
             var request = block.Apply( NewOpportunity(), 0 );
 
@@ -352,7 +427,7 @@ namespace org.secc.Connection.Tests
             var block = NewBlock();
             block.TestPageParameters["GroupId"] = SecurityRoleGroupId.ToString();
             block.TestPageParameters["GroupTypeRoleId"] = MemberRoleId.ToString();
-            block.BindRepeater( 1, ServingGroupId.ToString(), MemberRoleId.ToString() );
+            block.BindRepeater( 1, ServingGroupId.ToString() );
 
             AssertNoPlacement( block.Apply( NewOpportunity(), 0 ) );
         }
@@ -389,6 +464,195 @@ namespace org.secc.Connection.Tests
 
             Assert.False( TestBlock.IsOpen( opportunity ) );
             Assert.False( TestBlock.IsOpen( null ) );
+        }
+
+        private static TestBlock BlockWithOpportunity( ConnectionOpportunity opportunity )
+        {
+            var block = NewBlock();
+            block.Opportunity = opportunity;
+            block.TestPageParameters["OpportunityId"] = "1";
+            return block;
+        }
+
+        private static GroupRequirementStatus Requirement( string typeName, MeetsGroupRequirement meets )
+        {
+            return new GroupRequirementStatus
+            {
+                GroupRequirement = new GroupRequirement
+                {
+                    GroupRequirementType = new GroupRequirementType { Name = typeName, NegativeLabel = "Not " + typeName, RequirementCheckType = RequirementCheckType.Sql }
+                },
+                MeetsGroupRequirement = meets
+            };
+        }
+
+        [Fact]
+        public void Connect_InactiveOpportunity_ShowsDoesNotExistAndStops()
+        {
+            var opportunity = NewOpportunity();
+            opportunity.IsActive = false;
+            var block = BlockWithOpportunity( opportunity );
+
+            block.Connect();
+
+            Assert.Equal( new[] { 1 }, block.LoadedOpportunityIds );
+            Assert.True( block.ErrorShown );
+            Assert.False( block.SignupPanelVisible );
+        }
+
+        [Fact]
+        public void Connect_OpportunityOfInactiveConnectionType_ShowsDoesNotExistAndStops()
+        {
+            var opportunity = NewOpportunity();
+            opportunity.ConnectionType.IsActive = false;
+            var block = BlockWithOpportunity( opportunity );
+
+            block.Connect();
+
+            Assert.True( block.ErrorShown );
+            Assert.False( block.SignupPanelVisible );
+        }
+
+        [Fact]
+        public void Connect_MissingOpportunity_ShowsDoesNotExistAndStops()
+        {
+            var block = BlockWithOpportunity( null );
+
+            block.Connect();
+
+            Assert.True( block.ErrorShown );
+        }
+
+        /// <summary>
+        /// The test opportunity's connection type has no default status, so Connect stops right after the
+        /// opportunity check without creating anyone.
+        /// </summary>
+        [Fact]
+        public void Connect_OpenOpportunity_IsNotRefused()
+        {
+            var block = BlockWithOpportunity( NewOpportunity() );
+
+            block.Connect();
+
+            Assert.Equal( new[] { 1 }, block.LoadedOpportunityIds );
+            Assert.False( block.ErrorShown );
+            Assert.True( block.SignupPanelVisible );
+        }
+
+        [Fact]
+        public void ShowDetail_InactiveOpportunity_ShowsDoesNotExist()
+        {
+            var opportunity = NewOpportunity();
+            opportunity.IsActive = false;
+            var block = BlockWithOpportunity( opportunity );
+
+            block.Show( 1 );
+
+            Assert.Equal( new[] { 1 }, block.LoadedOpportunityIds );
+            Assert.True( block.ErrorShown );
+            Assert.False( block.SignupPanelVisible );
+        }
+
+        [Fact]
+        public void ShowDetail_OpportunityOfInactiveConnectionType_ShowsDoesNotExist()
+        {
+            var opportunity = NewOpportunity();
+            opportunity.ConnectionType.IsActive = false;
+            var block = BlockWithOpportunity( opportunity );
+
+            block.Show( 1 );
+
+            Assert.True( block.ErrorShown );
+            Assert.False( block.SignupPanelVisible );
+        }
+
+        [Fact]
+        public void Build_ConfiguredRequest_IsPlacedWithMemberAttributes()
+        {
+            var block = NewBlock();
+            block.TestPageParameters["GroupId"] = ServingGroupId.ToString();
+            block.TestPageParameters["GroupTypeRoleId"] = MemberRoleId.ToString();
+            var request = new ConnectionRequest();
+
+            Assert.True( block.Build( request, NewOpportunity(), 0 ) );
+
+            Assert.Equal( ServingGroupId, request.AssignedGroupId );
+            Assert.Equal( MemberRoleId, request.AssignedGroupMemberRoleId );
+            Assert.Equal( new[] { 0 }, block.MemberAttributeIndexes );
+            Assert.Contains( "Early", request.AssignedGroupMemberAttributeValues );
+            Assert.Empty( block.RequirementCheckGroupIds );
+        }
+
+        [Fact]
+        public void Build_UsesTheRoleRequestAtTheGivenIndex()
+        {
+            var block = NewBlock();
+            block.TestPageParameters["RoleRequests"] = new[]
+            {
+                new { GroupId = SecurityRoleGroupId, GroupTypeRoleId = MemberRoleId },
+                new { GroupId = OtherServingGroupId, GroupTypeRoleId = MemberRoleId }
+            }.ToJson();
+            var request = new ConnectionRequest();
+
+            Assert.True( block.Build( request, NewOpportunity(), 1 ) );
+
+            Assert.Equal( OtherServingGroupId, request.AssignedGroupId );
+            Assert.Equal( new[] { 1 }, block.MemberAttributeIndexes );
+        }
+
+        [Fact]
+        public void Build_RequirementNotMet_BlocksThePlacedRequest()
+        {
+            var block = NewBlock();
+            block.TestBlockSettings["SignupBlockingRequirementTypes"] = "Over 18";
+            block.RequirementResults.Add( Requirement( "Over 18", MeetsGroupRequirement.NotMet ) );
+            block.TestPageParameters["GroupId"] = ServingGroupId.ToString();
+            block.TestPageParameters["GroupTypeRoleId"] = MemberRoleId.ToString();
+            var request = new ConnectionRequest();
+
+            Assert.False( block.Build( request, NewOpportunity(), 0 ) );
+
+            Assert.Equal( new[] { ServingGroupId }, block.RequirementCheckGroupIds );
+            Assert.True( block.RequirementMessageShown );
+            Assert.Contains( "Pat isn't eligible for the Member role", block.RequirementMessage );
+            Assert.Contains( "Not Over 18", block.RequirementMessage );
+            Assert.True( block.SignupPanelVisible );
+            Assert.Empty( block.MemberAttributeIndexes );
+        }
+
+        [Fact]
+        public void Build_RequirementMet_KeepsThePlacedRequest()
+        {
+            var block = NewBlock();
+            block.TestBlockSettings["SignupBlockingRequirementTypes"] = "Over 18";
+            block.RequirementResults.Add( Requirement( "Over 18", MeetsGroupRequirement.Meets ) );
+            block.TestPageParameters["GroupId"] = ServingGroupId.ToString();
+            block.TestPageParameters["GroupTypeRoleId"] = MemberRoleId.ToString();
+            var request = new ConnectionRequest();
+
+            Assert.True( block.Build( request, NewOpportunity(), 0 ) );
+
+            Assert.Equal( new[] { ServingGroupId }, block.RequirementCheckGroupIds );
+            Assert.False( block.RequirementMessageShown );
+            Assert.Equal( ServingGroupId, request.AssignedGroupId );
+        }
+
+        [Fact]
+        public void Build_RequestWithoutPlacement_SkipsRequirementsAndMemberAttributes()
+        {
+            var block = NewBlock();
+            block.TestBlockSettings["SignupBlockingRequirementTypes"] = "Over 18";
+            block.RequirementResults.Add( Requirement( "Over 18", MeetsGroupRequirement.NotMet ) );
+            block.TestPageParameters["GroupId"] = SecurityRoleGroupId.ToString();
+            block.TestPageParameters["GroupTypeRoleId"] = MemberRoleId.ToString();
+            var request = new ConnectionRequest();
+
+            Assert.True( block.Build( request, NewOpportunity(), 0 ) );
+
+            AssertNoPlacement( request );
+            Assert.Null( request.AssignedGroupMemberAttributeValues );
+            Assert.Empty( block.RequirementCheckGroupIds );
+            Assert.Empty( block.MemberAttributeIndexes );
         }
     }
 }

@@ -24,7 +24,7 @@ namespace org.secc.Connection
     /// <summary>
     /// Test build only. RockWeb generates these control fields from VolunteerSignupFormConnections.ascx;
     /// this partial declares them so the code-behind compiles in the test project. It also supplies the
-    /// page parameters (a block outside a page has none) and the URL key list (normally a block setting).
+    /// page parameters (a block outside a page has none), its settings, and the URL key list.
     /// </summary>
     public partial class VolunteerSignupFormConnections
     {
@@ -70,11 +70,37 @@ namespace org.secc.Connection
         }
 
         /// <summary>
+        /// The block settings the test gives the block (a block outside a page has no BlockCache).
+        /// </summary>
+        internal Dictionary<string, string> TestBlockSettings { get; } = new Dictionary<string, string>( StringComparer.OrdinalIgnoreCase );
+
+        /// <summary>
+        /// Stands in for RockBlock.GetAttributeValue, which reads the block's settings from BlockCache.
+        /// </summary>
+        public new string GetAttributeValue( string key )
+        {
+            string value;
+            return TestBlockSettings.TryGetValue( key, out value ) ? value : string.Empty;
+        }
+
+        /// <summary>
         /// The "Group Member Attribute Keys - URL" setting is empty in these tests.
         /// </summary>
         internal void UseNoUrlKeys()
         {
             _urlKeys = new List<string>();
+        }
+
+        /// <summary>
+        /// Creates the controls the tests read, or the block writes, outside the role repeater.
+        /// </summary>
+        internal void CreateControls()
+        {
+            nbErrorMessage = new NotificationBox();
+            pnlSignup = new Panel();
+            lRequirementBlockMessage = new Literal { Visible = false };
+            ddlPhoneType = new RockDropDownList();
+            phFormAttributes = new PlaceHolder();
         }
     }
 }
