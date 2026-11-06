@@ -300,7 +300,7 @@ namespace org.secc.FamilyCheckin.Cache
             {
                 var today = RockDateTime.Today;
                 return query
-                    .Where( a => a.CreatedDateTime != null && a.CreatedDateTime >= today )
+                    .Where( a => a.CreatedDateTime != null && a.CreatedDateTime >= today && a.StartDateTime >= today )
                     .ToList()
                     .Where( a => ids.Contains( a.Id ) )
                     .ToList();
@@ -407,8 +407,12 @@ namespace org.secc.FamilyCheckin.Cache
         // Per-item mapping shared by the single-item (Get/AddOrUpdate) and bulk (All) load paths so they cannot drift.
         private static AttendanceCache LoadByAttendance( Attendance attendance, OccurrenceCache.Lookup occurrences )
         {
-            //We don't want to cache attendances created before today.
-            if ( !attendance.CreatedDateTime.HasValue || attendance.CreatedDateTime < Rock.RockDateTime.Today )
+            // Only today's check-in activity belongs in the cache: created today AND for today. Attendance
+            // entered today for a past date (e.g. a group leader recording last Sunday's small group) is
+            // not a check-in; caching it made kiosks print that group type's label (MSM/HSM) for the person.
+            if ( !attendance.CreatedDateTime.HasValue
+                || attendance.CreatedDateTime < Rock.RockDateTime.Today
+                || attendance.StartDateTime < Rock.RockDateTime.Today )
             {
                 Remove( attendance.Id );
                 return null;
@@ -495,7 +499,7 @@ namespace org.secc.FamilyCheckin.Cache
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var keys = attendanceService.Queryable().AsNoTracking()
-                .Where( a => a.CreatedDateTime != null && a.CreatedDateTime >= RockDateTime.Today )
+                .Where( a => a.CreatedDateTime != null && a.CreatedDateTime >= RockDateTime.Today && a.StartDateTime >= RockDateTime.Today )
                 .Select( a => a.Id.ToString() )
                 .ToList();
 
@@ -552,7 +556,7 @@ namespace org.secc.FamilyCheckin.Cache
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var attendances = attendanceService.Queryable( "Occurrence" )
-                .Where( a => a.CreatedDateTime.HasValue && a.CreatedDateTime >= Rock.RockDateTime.Today )
+                .Where( a => a.CreatedDateTime.HasValue && a.CreatedDateTime >= Rock.RockDateTime.Today && a.StartDateTime >= Rock.RockDateTime.Today )
                 .ToList();
             var attendanceCaches = All();
 
