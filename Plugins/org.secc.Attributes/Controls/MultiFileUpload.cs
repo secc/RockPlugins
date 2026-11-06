@@ -303,8 +303,11 @@ namespace org.secc.Attributes.Controls
 
             var allowedExtsJs = ( AllowedExtensions ?? string.Empty ).Replace( "\\", "\\\\" ).Replace( "'", "\\'" );
 
+            // Leading ";" because ASP.NET emits the previous startup script (e.g. a validator
+            // declaration) without a trailing semicolon; without it "(function" parses as a call
+            // on that expression and throws, so the uploader never attaches.
             var script = @"
-(function() {
+;(function() {
     var clientId = '" + ClientID + @"';
     var hf = document.getElementById('" + _hfFileIds.ClientID + @"');
     var list = document.getElementById(clientId + '_list');
