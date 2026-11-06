@@ -231,7 +231,10 @@ attributes (don't hand-edit ones that have already run):
   `../org.secc.FamilyCheckin.Tests/Harness/`; see its README. Never deploy it to a shared server.
 - **What AttendanceCache holds (ROCK-9442):** attendance created today **and** dated today
   (`AttendanceCache.TodayFilter`). Attendance entered today for another date, such as a group leader
-  recording last Sunday's small group, is left out. The key list, the bulk load, `Verify` and
+  recording last Sunday's small group, is left out, so it never adds to a room's count in
+  CheckinMonitor (OZ), RoomScanner, QuickCheckin's room buttons or `IsFull`, and never prints a
+  label. Before ROCK-9442 the cache only checked the created date, so a back-dated entry showed up
+  in today's rooms. The key list, the bulk load, `Verify` and
   `OccurrenceCache.IsFull`'s database recount all use that one filter; `IsToday` is the same rule
   in memory, and unit tests check that the two agree. Change the rule there, not in a copy.
 - **Labels come from check-ins only (ROCK-9442):** `CheckinLabelGen` builds a person's labels, security
