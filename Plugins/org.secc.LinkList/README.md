@@ -66,7 +66,7 @@ org.secc.LinkList/            C# plugin assembly
   Blocks/                     Three Obsidian block types (List, Detail, Viewer)
   Services/                   LinkListService (bags, slugs, security groups), LinkListInteractionService (analytics)
   Rest/Controllers/           Public anonymous REST endpoint (GET list + click beacon) with CORS allowlist
-  Migrations/                 001-011 Rock plugin migrations (channel/type/matrix, design presets, analytics channel, ...)
+  Migrations/                 001-012 Rock plugin migrations (channel/type/matrix, design presets, analytics channel, ...)
   SystemGuids/                LinkListGuids — every well-known GUID and attribute key
   Utility/                    SlugReconciler, AnalyticsSeries, ClickPayload, ClientIpResolver, InteractionRateLimiter, LinkListHtmlSanitizer
   ViewModels/                 Bags/boxes shared with the Obsidian frontend (LinkListBag, GroupMemberBag, ...)
@@ -121,14 +121,41 @@ slug from the REST endpoint) and in-Rock (the Viewer block hands it a pre-fetche
 entire design — global header → hero → featured button → intro → accordion sections → footer —
 ships inside a shadow root with no host-CSS dependency; it also sends the click beacons.
 
+#### Link display styles (ROCK-9361)
+
+Each **link row** has a `DisplayStyle` (matrix attribute, migration 012):
+
+| Style | Renders as | Fields used |
+|-------|-----------|-------------|
+| `button` (default) | The rounded pill button. | Text, Subtitle (second line), URL, Target |
+| `card` | A card: optional image on top, then title and description. The **whole card is one `<a>`**, so clicking anywhere on it follows the link and sends the click beacon. | Text (title), Subtitle (shown as the card description), `CardImage` (optional BinaryFile guid), URL, Target |
+
+- The style is **per link**, not per list, matching how other per-link presentation (Subtitle,
+  IsFeatured) is already stored on matrix rows. A list can mix buttons and cards.
+- Blank/unknown values, including every row saved before migration 012, read as `button`
+  (`LinkListService.NormalizeDisplayStyle` server-side, `displayStyleOf` in
+  `linkListItems.ts` client-side), so existing lists render unchanged with no data backfill.
+  Sections and separators are always `button`.
+- Cards use the same theme colors as buttons: button colors at top level, the inner-pill
+  colors inside a section accordion, and the featured colors when the card is the featured
+  link. No new design-preset colors.
+- Editor: the card toggle (`fa-id-card` icon) on a link row switches it to a card. A card row shows an
+  image uploader, and its subtitle placeholder becomes "Card description". The server saves
+  `CardImage` only for card rows (switching back to a button clears it on save) and marks
+  uploaded card images permanent, as it does for the header images.
+- Shadow-DOM hooks for embed styling: `a.link-card` (with `.featured` / `.in-section`),
+  `part="card-image"`, `part="card-title"`, `part="card-description"`. The anchor keeps
+  `part="link"` + `data-link-id` for click analytics.
+
 ### Migrations
 
-Eleven Rock plugin migrations (`MigrationNumber` 1-11, `1.16.0`): 001 creates the content
+Twelve Rock plugin migrations (`MigrationNumber` 1-12, `1.16.0`): 001 creates the content
 channel type/channel/matrix template with the **production GUIDs** and legacy attributes
 (idempotent upserts); 002-010 add matrix-row attributes (item type, indent, subtitle,
 featured), design-preset Defined Type/Values, the CORS-origins Defined Type, header media, the
 global header/footer channel attributes, and the title color; 011 creates the "Link Lists"
-Interaction medium/channel for analytics.
+Interaction medium/channel for analytics; 012 adds the per-link `DisplayStyle` (SingleSelect,
+`button`/`card`, default `button`) and `CardImage` (Image) matrix attributes (ROCK-9361).
 
 ## Dependencies & Integrations
 
@@ -161,9 +188,9 @@ Interaction medium/channel for analytics.
   `SlugValidationTests`, `SlugReconciliationTests`, `SecurityGroupNameTests`,
   `ClickPayloadTests`, `ClickBodyLimitTests`, `ClientIpResolverTests`,
   `InteractionRateLimiterTests`, `OriginValidationTests`, `AnalyticsSeriesTests`,
-  `LinkListHtmlSanitizerTests`.
+  `LinkListHtmlSanitizerTests`, `DisplayStyleTests`.
 - `org.secc.LinkList.Obsidian/tests` — jest specs for the web component (rendering, clicks,
-  behavior), slug canonicalizer parity, item grouping, and theming.
+  behavior, button/card display styles), slug canonicalizer parity, item grouping, and theming.
 
 ## Observations
 

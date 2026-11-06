@@ -41,6 +41,12 @@ namespace org.secc.LinkList.ViewModels
         /// <summary>WS10: when true, this link is the list's featured button (max one; hoisted to the top at render time).</summary>
         public bool IsFeatured { get; set; }
 
+        /// <summary>ROCK-9361: "button" (default; pill) or "card" (title + Subtitle as description + optional image). Link rows only.</summary>
+        public string DisplayStyle { get; set; }
+
+        /// <summary>ROCK-9361: optional BinaryFile guid for the image at the top of a card. Card-style link rows only.</summary>
+        public string CardImage { get; set; }
+
         public int Order { get; set; }
     }
 }

@@ -111,7 +111,7 @@
                 <div v-if="!bag.items || bag.items.length === 0" class="text-muted mb-2">
                     No rows yet. Add a link, section header, or separator below.
                 </div>
-                <div class="text-muted small mb-2">Links that follow a section are nested under it — drag a link below a section to make it a child. Edit text, URL &amp; subtitle inline; use the gear for how a link opens.</div>
+                <div class="text-muted small mb-2">Links that follow a section are nested under it — drag a link below a section to make it a child. Edit text, URL &amp; subtitle inline; use the gear for how a link opens. Links show as buttons by default — use the <i class="fa fa-id-card"></i> toggle to show one as a card (title, description, optional image).</div>
                 <div v-drag-reorder="dragOptions" class="link-rows">
                     <LinkItemRow
                         v-for="(row, index) in bag.items"
