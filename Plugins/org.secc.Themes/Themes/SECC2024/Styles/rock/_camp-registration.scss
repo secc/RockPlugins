@@ -1,0 +1,859 @@
+/*
+    Camp Registration (ROCK-9395)
+
+    Restyles Rock's Obsidian Registration Entry block to the Southeast
+    Christian Church Design System v4: warm neutrals with no accent colour,
+    IvyJournal for display type only, Inter for everything else, pill
+    buttons, 10px hairline cards, no shadows on static cards.
+
+    Scope: everything below is nested under `.camp-registration`, the CSS
+    Class set on the Registration Entry block of the dedicated camp page
+    (/camp/registration/{Slug}). Page 413 (/Registration/{Slug}) and every
+    other registration keep the existing look. Do not add a selector here
+    that does not start with `.camp-registration`.
+
+    Rock renders the block as:
+      div.block-instance.registration-entry.camp-registration
+        > div.block-content > div > div.obsidian-block
+          > div (block root) > h1 + nav.progress-tracker + div (current step)
+
+    Imported last in main.scss so it follows _lib/_forms.scss and
+    rock/_blocks-events.scss in the cascade.
+
+    1. Tokens
+    2. Block surface and step card
+    3. Type
+    4. Progress tracker
+    5. Fields
+    6. Buttons
+    7. Wells and registrar
+    8. Cost summary and discount code
+    9. Alerts
+    10. Focus and motion
+    11. Small screens
+*/
+
+$camp-registration-stack: 859px; // buttons go full width below 860px
+
+.camp-registration {
+
+  // 1. Tokens
+  // -------------------------
+  // Design System v4 tokens (colours, spacing, radii, shadows, type roles).
+  // Declared on the block, not on :root, so nothing leaks to the rest of
+  // the site. Keep this block in sync with the guide's tokens/*.css.
+
+  // Colours: eight warm neutrals.
+  --black: #1D1F21;
+  --charcoal: #383735;
+  --dark-gray: #57534E;
+  --mid-gray: #6D6A66;
+  --light-gray: #C6C1BC;
+  --hairline: #E3E0DC;
+  --page: #F5F4F2;
+  --white: #FFFFFF;
+
+  // The guide has no error colour. Validation and danger alerts keep a
+  // minimal red (left border only) so errors stay legible.
+  --danger: #{$ErrorColor};
+
+  // Spacing scale.
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+  --s9: 96px;
+
+  // Radii: pill buttons, cards, fields.
+  --radius-pill: 100px;
+  --radius-card: 10px;
+  --radius-field: 8px;
+
+  // Shadows: interactive elements only. Static cards have none.
+  --shadow-card: 0 1px 2px rgba(29, 31, 33, 0.06);
+  --shadow-hover: 0 6px 16px rgba(29, 31, 33, 0.10);
+  --shadow-dark: 0 8px 20px rgba(29, 31, 33, 0.28);
+
+  // Type roles. The families reuse the theme's own font stacks (Inter and
+  // Ivy Journal are already loaded by Site.Master and _lib/_type.scss).
+  --font-display: #{$font-family-secondary};
+  --font-text: #{$font-family-primary};
+  --serif-weight: 600;
+  --tracking-display: -0.012em;
+  --tracking-display-lg: -0.022em; // display sizes of 2rem and up
+  --tracking-label: 0.09em;
+  --tracking-button: 0.15em;
+  --tracking-eyebrow: 0.24em;
+
+  // 2. Block surface and step card
+  // -------------------------
+  position: relative;
+  isolation: isolate; // keeps the ::before band behind the content
+  padding: var(--s6) 0 var(--s7);
+  font-family: var(--font-text);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--black);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  // The page background runs edge to edge behind the block. The spread
+  // shadow paints sideways only (clip-path trims it top and bottom), so it
+  // adds no width and no horizontal scroll. It sits on a pseudo-element
+  // because clip-path on the block itself would also clip drop-down lists,
+  // which Obsidian mounts inside the field.
+  &::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    pointer-events: none;
+    content: "";
+    background: var(--page);
+    box-shadow: 0 0 0 100vmax var(--page);
+    clip-path: inset(0 -100vmax);
+  }
+
+  // The current step (and the success message) sits in one white card.
+  .obsidian-block > div > div:not(.alert) {
+    padding: var(--s5);
+    background: var(--white);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-card);
+    box-shadow: none;
+
+    @media (min-width: $screen-sm-min) {
+      padding: var(--s6);
+    }
+  }
+
+  hr {
+    margin: var(--s5) 0;
+    border-top: 1px solid var(--hairline);
+  }
+
+  // Plain text links (instructions, success message). Rock's own anchors
+  // all carry a class and are styled below.
+  a:not([class]) {
+    color: var(--charcoal);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    border-bottom: 0;
+
+    &:hover {
+      color: var(--black);
+    }
+  }
+
+  // 3. Type
+  // -------------------------
+  // _lib/_accordions.scss has `.panel-title { @extend h3 / h4; }`, so Sass
+  // also adds accordion panel-title selectors to the h3/h4 rules below. They
+  // still require a .camp-registration ancestor, so they stay in scope.
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: var(--serif-weight);
+    line-height: 1.2;
+    color: var(--charcoal);
+    letter-spacing: var(--tracking-display);
+    text-transform: none;
+  }
+
+  // Step title and success title.
+  .obsidian-block > div > h1 {
+    margin: 0 0 var(--s5);
+    font-size: 1.625rem;
+
+    @media (min-width: $screen-sm-min) {
+      font-size: 2rem;
+      letter-spacing: var(--tracking-display-lg);
+    }
+  }
+
+  // "How many campers will you be registering?"
+  .registrationentry-intro h1 {
+    margin: var(--s5) 0 var(--s4);
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  // Section headings inside a step (Payment Summary, Fees, Completed By).
+  h4 {
+    margin: 0 0 var(--s4);
+    font-size: 1.25rem;
+  }
+
+  p,
+  li {
+    color: var(--black);
+  }
+
+  .text-muted {
+    color: var(--mid-gray);
+  }
+
+  // 4. Progress tracker
+  // -------------------------
+  // Overrides the colours and type of the Rock 16 tracker ported in
+  // rock/_components.scss section 41. Layout and the d-none / d-md-flex
+  // behaviour stay as they are.
+  .progress-tracker {
+    overflow: hidden;
+    background: var(--white);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-card);
+  }
+
+  .progress-tracker-arrow {
+    color: var(--hairline);
+  }
+
+  .progress-step-link {
+    padding: var(--s3) var(--s4) var(--s3) var(--s3);
+    font-family: var(--font-text);
+    color: var(--mid-gray);
+  }
+
+  .progress-tracker-title {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--mid-gray);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-eyebrow);
+  }
+
+  .progress-tracker-subtitle {
+    color: var(--mid-gray);
+  }
+
+  // Done steps: filled dark gray with a check.
+  .progress-tracker-icon {
+    color: var(--white);
+    background: var(--dark-gray);
+    border: 2px solid var(--dark-gray);
+
+    + .progress-tracker-details .progress-tracker-title {
+      color: var(--dark-gray);
+    }
+
+    // Active step: charcoal.
+    &.current {
+      background: var(--white);
+      border-color: var(--charcoal);
+      box-shadow: inset 0 0 0 4px var(--white), inset 0 0 0 10px var(--charcoal);
+    }
+
+    &.current + .progress-tracker-details {
+      .progress-tracker-title,
+      .progress-tracker-subtitle {
+        color: var(--charcoal);
+      }
+    }
+
+    // Upcoming steps: mid gray.
+    &.upcoming {
+      background: var(--white);
+      border-color: var(--mid-gray);
+    }
+
+    &.upcoming + .progress-tracker-details .progress-tracker-title {
+      color: var(--mid-gray);
+    }
+  }
+
+  // Session countdown shown beside the tracker.
+  .remaining-time {
+    padding: var(--s3) var(--s4);
+    border-left: 1px solid var(--hairline);
+  }
+
+  .remaining-time-title {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--mid-gray);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+  }
+
+  .remaining-time-countdown {
+    margin: 0;
+    font-weight: 600;
+    color: var(--charcoal);
+    font-variant-numeric: tabular-nums;
+  }
+
+  // 5. Fields
+  // -------------------------
+  .form-group {
+    margin-bottom: var(--s5);
+  }
+
+  .control-label {
+    margin-bottom: var(--s2);
+    font-family: var(--font-text);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--mid-gray);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+  }
+
+  // Rock marks required fields with a red dot; keep the marker, drop the
+  // accent colour.
+  .form-group.required .control-label:after {
+    color: var(--dark-gray);
+  }
+
+  // Field descriptions (Show Field Descriptions) render as a help icon.
+  .help {
+    color: var(--mid-gray);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--charcoal);
+    }
+  }
+
+  .help-block {
+    margin-top: var(--s2);
+    font-size: 0.875rem;
+    color: var(--mid-gray);
+  }
+
+  .form-control {
+    height: auto;
+    min-height: 44px;
+    padding: 10px 14px;
+    font-family: var(--font-text);
+    font-size: 1rem; // 16px keeps iOS from zooming on focus
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--black);
+    background-color: var(--white);
+    background-image: none;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-field);
+    box-shadow: none;
+    transition: border-color 150ms ease;
+
+    &::placeholder {
+      color: var(--mid-gray);
+      opacity: 1;
+    }
+
+    &:focus {
+      border-color: var(--charcoal);
+      outline: none;
+      box-shadow: none;
+    }
+
+    &[disabled],
+    &[readonly] {
+      color: var(--dark-gray);
+      background-color: var(--page);
+    }
+  }
+
+  // The theme bolds selects; fields are 400.
+  select.form-control {
+    font-weight: 400;
+  }
+
+  // Obsidian drop-downs are ant-design selects that carry .form-control.
+  // Rock's overrides for them (Styles/rock-components/obsidian-dropdownlist
+  // .less) ship only in Rock's theme.css, which this theme does not load, so
+  // the essentials are repeated here. The !important flags mirror Rock's file;
+  // ant's focus rule on the inner selector is (0,5,0).
+  .ant-select.form-control {
+    padding: 0;
+    cursor: pointer;
+
+    .ant-select-selector {
+      align-items: center;
+      height: auto !important;
+      min-height: 42px;
+      padding: 0 36px 0 14px !important;
+      background: transparent !important;
+      border: 0 !important;
+      border-radius: var(--radius-field) !important;
+      box-shadow: none !important;
+    }
+
+    .ant-select-selection-search {
+      right: 36px;
+      left: 14px;
+    }
+
+    .ant-select-selection-item,
+    .ant-select-selection-placeholder {
+      padding-right: 0;
+      line-height: 42px;
+    }
+
+    .ant-select-selection-placeholder {
+      color: var(--mid-gray);
+    }
+
+    .ant-select-arrow {
+      right: 14px;
+      width: 16px;
+      height: 16px;
+      margin-top: -8px;
+      font-size: 16px;
+      color: var(--mid-gray);
+    }
+
+    &.ant-select-focused:not(.ant-select-disabled) {
+      border-color: var(--charcoal);
+      box-shadow: none;
+    }
+
+    &.ant-select-disabled {
+      background-color: var(--page);
+    }
+  }
+
+  textarea.form-control {
+    min-height: 96px;
+  }
+
+  // Birthdate month / day / year stay on one line on phones.
+  .birthday-picker .form-control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+
+    .form-control {
+      flex: 0 1 auto;
+      min-width: 0;
+      padding-right: 6px;
+      padding-left: 10px;
+      margin: 0;
+    }
+  }
+
+  // Bootstrap squares the inner corners of joined input groups; only the
+  // add-on corners need the field radius here.
+  .input-group-addon {
+    color: var(--mid-gray);
+    background: var(--page);
+    border-color: var(--hairline);
+
+    &:first-child {
+      border-radius: var(--radius-field) 0 0 var(--radius-field);
+    }
+
+    &:last-child {
+      border-radius: 0 var(--radius-field) var(--radius-field) 0;
+    }
+  }
+
+  .form-control-static {
+    color: var(--black);
+  }
+
+  // Checkbox and radio rows keep sentence case; only the inputs change.
+  .checkbox label,
+  .radio label,
+  .radio-inline,
+  .checkbox-inline {
+    font-weight: 400;
+    color: var(--black);
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--charcoal);
+  }
+
+  .has-error {
+    .form-control {
+      border-color: var(--danger);
+    }
+
+    .control-label,
+    .help-block {
+      color: var(--mid-gray);
+    }
+  }
+
+  // Number of registrants and quantity fees.
+  .numberincrement {
+    display: inline-flex;
+    align-items: stretch;
+
+    .numberincrement-up,
+    .numberincrement-down,
+    .numberincrement-value {
+      display: flex;
+      align-items: center;
+      color: var(--black);
+      background: var(--white);
+      border-color: var(--hairline);
+    }
+
+    .numberincrement-down {
+      border-radius: var(--radius-field) 0 0 var(--radius-field);
+    }
+
+    .numberincrement-up {
+      border-radius: 0 var(--radius-field) var(--radius-field) 0;
+    }
+
+    .numberincrement-up,
+    .numberincrement-down {
+      text-decoration: none;
+
+      &:hover {
+        background: var(--page);
+      }
+
+      &.disabled {
+        color: var(--light-gray);
+        background: var(--white);
+      }
+    }
+
+    .numberincrement-value {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  // 6. Buttons
+  // -------------------------
+  // _lib/_forms.scss styles every button whose parent and grandparent are
+  // divs inside a form (all of Obsidian's buttons) with a (0,9,3) selector
+  // and an !important 4px radius. $camp-btn-boost matches every element and
+  // adds one ID of specificity, so these rules outrank that selector without
+  // !important; only the radius still needs it.
+  $camp-btn-boost: ':not(#camp-registration-specificity)';
+
+  .btn#{$camp-btn-boost} {
+    margin: 0;
+    padding: 14px 28px; // 44px target; the theme keeps buttons inline-block
+    font-family: var(--font-text);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-button);
+    white-space: nowrap;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill) !important;
+    box-shadow: none;
+    text-shadow: none;
+    transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+
+    &:hover,
+    &:focus,
+    &:active {
+      text-decoration: none;
+      background-image: none;
+
+      // The theme recolours spans inside a hovered button.
+      * {
+        color: inherit;
+      }
+    }
+
+    &.btn-sm,
+    &.btn-xs {
+      padding: 10px 18px; // 36px
+      font-size: 0.75rem;
+    }
+
+    &[disabled],
+    &.disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      box-shadow: none;
+      transform: none;
+    }
+  }
+
+  .btn#{$camp-btn-boost} + .btn#{$camp-btn-boost} {
+    margin-left: var(--s2);
+  }
+
+  // Featured: Next, Pay, Finish. Charcoal pill; hover goes dark gray, lifts
+  // and takes the dark shadow.
+  .btn-primary#{$camp-btn-boost} {
+    &,
+    &:hover,
+    &:focus,
+    &:active {
+      color: var(--white);
+      background: var(--charcoal);
+      border-color: var(--charcoal);
+    }
+
+    &:hover:not([disabled]):not(.disabled) {
+      background: var(--dark-gray);
+      border-color: var(--dark-gray);
+      box-shadow: var(--shadow-dark);
+      transform: translateY(-2px);
+    }
+  }
+
+  // Secondary: Previous, Apply, Set Up Payment Plan, Delete, Cancel. White
+  // pill with a hairline and the card shadow; hover lifts.
+  .btn-default#{$camp-btn-boost},
+  .btn-link#{$camp-btn-boost},
+  .btn-action#{$camp-btn-boost} {
+    &,
+    &:hover,
+    &:focus,
+    &:active {
+      color: var(--charcoal);
+      background: var(--white);
+      border-color: var(--hairline);
+      box-shadow: var(--shadow-card);
+    }
+
+    &:hover:not([disabled]):not(.disabled) {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+  }
+
+  .actions {
+    margin-top: var(--s5);
+  }
+
+  // 7. Wells and registrar
+  // -------------------------
+  // Registrar ("Completed By"), fees, family choice, payment plan and
+  // signature wells become hairline cards.
+  .well {
+    padding: var(--s5);
+    margin-bottom: var(--s5);
+    background: var(--white);
+    background-image: none;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-card);
+    box-shadow: none;
+  }
+
+  .registration-additional-options h4 {
+    margin-bottom: var(--s4);
+  }
+
+  // 8. Cost summary and discount code
+  // -------------------------
+  .registrationentry-summary {
+    .fee-table {
+      margin: 0 0 var(--s5);
+      font-variant-numeric: tabular-nums;
+
+      > .row {
+        padding: var(--s3) 0;
+        margin: 0;
+        border-bottom: 1px solid var(--hairline);
+      }
+
+      > .fee-header {
+        padding-top: 0;
+        padding-bottom: var(--s2);
+        margin-bottom: 0;
+        font-size: 0.6875rem;
+        color: var(--mid-gray);
+        text-transform: uppercase;
+        letter-spacing: var(--tracking-label);
+
+        strong {
+          font-weight: 600;
+        }
+      }
+
+      > .fee-row-cost {
+        font-weight: 400;
+      }
+
+      > .fee-row-fee {
+        font-weight: 400;
+        color: var(--dark-gray);
+      }
+
+      > .fee-row-total {
+        margin-top: 0;
+        font-weight: 600;
+        color: var(--charcoal);
+        border-top: 0;
+        border-bottom: 0;
+      }
+    }
+
+    .fee-totals {
+      margin-top: var(--s4);
+      font-variant-numeric: tabular-nums;
+
+      .form-control-static {
+        min-height: 0;
+        padding-top: 0;
+        font-weight: 600;
+      }
+
+      .form-group {
+        margin-bottom: var(--s4);
+      }
+    }
+
+    // Discount code (the only pulled-right text box): the field and its
+    // Apply button sit side by side.
+    .rock-text-box.pull-right .input-group {
+      display: flex;
+      align-items: center;
+      gap: var(--s2);
+      padding: 0;
+
+      .form-control {
+        border-radius: var(--radius-field);
+      }
+    }
+  }
+
+  .amount-to-pay .form-control {
+    font-variant-numeric: tabular-nums;
+  }
+
+  // 9. Alerts
+  // -------------------------
+  // Validation, waitlist and notices: neutral surface, hairline border,
+  // a 3px left rule. Only danger and validation use red.
+  .alert {
+    padding: var(--s4) var(--s5);
+    color: var(--black);
+    text-shadow: none;
+    background: var(--page);
+    background-image: none;
+    border: 1px solid var(--hairline);
+    border-left: 3px solid var(--charcoal);
+    border-radius: var(--radius-field);
+    box-shadow: none;
+
+    strong {
+      font-weight: 600;
+      color: var(--charcoal);
+    }
+
+    p:last-child,
+    ul:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .alert-info,
+  .alert-success {
+    border-left-color: var(--mid-gray);
+  }
+
+  .alert-danger,
+  .alert-validation {
+    border-left-color: var(--danger);
+  }
+
+  // Alerts outside the step card (registration full, not found) sit on the
+  // page background, so they take the card surface.
+  .obsidian-block > div > .alert {
+    background: var(--white);
+  }
+
+  // 10. Focus and motion
+  // -------------------------
+  .btn:focus,
+  a:focus {
+    outline: none;
+  }
+
+  a:focus-visible,
+  .btn:focus-visible,
+  input[type="checkbox"]:focus-visible,
+  input[type="radio"]:focus-visible,
+  .numberincrement a:focus-visible {
+    outline: 2px solid var(--charcoal);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn,
+    .form-control,
+    .progress-tracker-icon {
+      transition: none !important;
+    }
+
+    .btn:hover {
+      transform: none !important;
+    }
+  }
+
+  // 11. Small screens
+  // -------------------------
+  // Buttons stack full width, primary action on top. The tracker keeps its
+  // own d-none / d-md-flex behaviour.
+  @media (max-width: $camp-registration-stack) {
+    padding-top: var(--s5);
+
+    .obsidian-block > div > div:not(.alert) {
+      padding: var(--s4);
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column-reverse;
+      gap: var(--s3);
+
+      &:before,
+      &:after {
+        display: none;
+      }
+
+      &.row {
+        margin-right: 0;
+        margin-left: 0;
+      }
+
+      > [class*="col-"] {
+        float: none;
+        width: 100%;
+        padding: 0;
+        text-align: left;
+
+        &:empty {
+          display: none;
+        }
+      }
+
+      .btn {
+        float: none !important;
+        width: 100%;
+      }
+
+      .btn + .btn {
+        margin-left: 0 !important;
+      }
+    }
+
+    .registrationentry-summary .rock-text-box.pull-right {
+      float: none !important;
+    }
+  }
+}

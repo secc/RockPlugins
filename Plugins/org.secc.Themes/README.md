@@ -2,7 +2,7 @@
 
 > Southeast's Rock site themes — the master pages, page layouts, and styling that skin Rock's external and check-in sites.
 
-Last updated: 2026-09-25
+Last updated: 2026-11-06
 
 ## Overview
 
@@ -63,7 +63,7 @@ field types here.
 | `SECC2019Portal` | Site (portal) | 10 | Ships a Compass `config.rb` for SCSS compilation. |
 | `SECC2019_Child_Invert` | Check-in | 11 | Adds `Checkin.aspx` + `Checkin-Site.Master`, `Sections`/`SidebarSections`. |
 | `SECC2019_LandingPage` | Landing pages | 17 | Full*/Simple* card, centered, fifty-fifty, and overlay layouts. |
-| `SECC2024` | Public site | 11 | Newer site theme; adds a `TwoColumn` layout and Rock 16 progress-tracker compatibility styling for registration/sign-up screens, including size fixes for inline separator SVGs and a responsive hide below 768px. |
+| `SECC2024` | Public site | 11 | Newer site theme; adds a `TwoColumn` layout and Rock 16 progress-tracker compatibility styling for registration/sign-up screens, including size fixes for inline separator SVGs and a responsive hide below 768px. Also carries the camp registration styling (see below). |
 | `SECC2014` | Public site (legacy) | 9 | Older site theme; LESS styles + vendor scripts. |
 | `Easter` | Seasonal site | 8 | Includes `Assets/Lava/` page-render snippets and `Site.Master.cs`. |
 | `ChristmasTogether` | Seasonal check-in | 1 | `Checkin.aspx` + `Site.Master` only; LESS variable overrides. |
@@ -71,6 +71,25 @@ field types here.
 | `Rogers` | Site | 8 | Standard site layout set. |
 | `KyleIdlman17` | Site/event | 9 | One-off themed site. |
 | `my-secc` | Site | 8 | Ships `Site.Master.cs` setting the site-name heading. |
+
+### Camp registration styling (SECC2024)
+
+`Styles/rock/_camp-registration.scss` (imported last in `Styles/main.scss`) restyles Rock's
+Obsidian Registration Entry block to the Southeast Christian Church Design System v4: warm
+neutrals with no accent colour, Ivy Journal for headings, Inter for everything else, pill
+buttons and 10px hairline cards. It applies only to a block whose **CSS Class** is
+`camp-registration`. That block sits on the dedicated camp page (`/camp/registration/{Slug}`).
+Every other registration, including page 413 (`/Registration/{Slug}`), keeps the existing look.
+
+- Design tokens are CSS custom properties declared on `.camp-registration`, not `:root`.
+- Every compiled selector needs a `.camp-registration` ancestor. The accordion
+  `@extend h3/h4` rules in `_lib/_accordions.scss` add woven `.panel-title` selectors,
+  and those still need it.
+- Buttons use a `:not(#camp-registration-specificity)` booster so they outrank the
+  theme's `(0,9,3)` form-button rule in `_lib/_forms.scss`. Rock's ant-design drop-down
+  overrides only ship in Rock's `theme.css`, which this theme does not load, so the
+  camp scope repeats the essentials.
+- Validation and danger alerts keep a red left border. The design system has no error colour.
 
 ### Other assets (no layouts)
 
@@ -109,7 +128,12 @@ field types here.
 ## Making Changes
 
 - To restyle a page, edit the matching theme's `Styles/` source (LESS or SCSS) and recompile to CSS;
-  for `SECC2019Portal` that means running Compass against its `config.rb`.
+  for `SECC2019Portal` that means running Compass against its `config.rb`. SECC2024's SCSS is
+  compiled on the server by `org.secc.Sass` (SharpScss/LibSass) at app start or from the theme
+  list's Compile button. To check a change locally, load `SharpScss.dll` from `RockWeb\Bin` with the
+  `LibSass\win-x64\native` folder on `PATH`. That gives the same output as the server.
+- To style a single block without touching the rest of the site, set the block's **CSS Class** and
+  nest every rule under that class (see Camp registration styling above).
 - To change page structure, edit the relevant `Layouts/*.aspx` (or `Site.Master`) in that theme; keep
   Rock `<Rock:Zone>` placeholders intact so block placement still works.
 - New page layouts must be added both as a `.aspx` file here and registered as a Layout on the Site in
