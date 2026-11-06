@@ -4,10 +4,9 @@
     without rebuilding the Rock solution.
 
 .DESCRIPTION
-    Old-style plugin projects reference Rock as a DLL ($(SolutionDir)RockWeb\Bin\Rock.dll), so
-    they only need Rock to have been built once. SDK-style projects (LinkList) get Rock from
-    NuGet (RockRMS.Rock PackageReference), so the stale-Rock warning doesn't apply to them.
-    This script:
+    Plugins reference Rock as a DLL ($(SolutionDir)RockWeb\Bin\Rock.dll), so they only need
+    Rock to have been built once. LinkList still gets Rock from the RockRMS.* NuGet packages
+    until PR #348 lands, so the stale-Rock warning doesn't apply to it. This script:
       1. Warns when a Rock assembly in RockWeb\Bin is older than its source (stale Rock build).
       2. Builds the requested plugin csproj files with MSBuild, SolutionDir pointed at ..\Rock.
       3. Unless -NoCopy: copies the plugin's org.secc.* DLL/PDB into RockWeb\Bin and runs the
