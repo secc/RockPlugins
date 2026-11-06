@@ -119,6 +119,7 @@
                         :modelValue="row"
                         :isChild="nestMeta[index]?.isChild"
                         :canNest="nestMeta[index]?.canNest"
+                        :canUpload="!!canUploadFiles"
                         @update:modelValue="updateRow(index, $event)"
                         @moveUp="moveRow(index, -1)"
                         @moveDown="moveRow(index, 1)"
@@ -301,6 +302,8 @@ import type { LinkListBag, LinkListDetailInitializationBox, LinkItemBag, GroupMe
 
 const props = defineProps<{
     detail: LinkListDetailInitializationBox;
+    /** ROCK-9362: show the per-row file upload (server enforces it regardless). */
+    canUploadFiles?: boolean;
 }>();
 const emit = defineEmits<{
     (e: "back"): void;

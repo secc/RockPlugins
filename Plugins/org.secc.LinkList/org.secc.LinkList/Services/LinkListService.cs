@@ -14,6 +14,7 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 
 using org.secc.LinkList.SystemGuids;
@@ -715,6 +716,8 @@ namespace org.secc.LinkList.Services
                     Order = displayOrder++
                 } );
             }
+
+            AttachFileInfo( bags, item.Guid );
             return bags;
         }
 
@@ -957,7 +960,15 @@ namespace org.secc.LinkList.Services
                     var bagRow = incoming[i];
                     var normalizedType = NormalizeItemType( bagRow.ItemType );
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.ItemType, normalizedType );
-                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.Url, bagRow.Url ?? string.Empty );
+                    // ROCK-9362: a file link's URL is always derived server-side from its
+                    // file guid, never taken from the client.
+                    var fileGuid = normalizedType == LinkListGuids.ItemTypeValue.Link
+                        ? ResolveFileGuid( bagRow, item.Guid )
+                        : null;
+                    var url = fileGuid.HasValue
+                        ? LinkListFiles.BuildFileUrl( item.Guid, fileGuid.Value )
+                        : bagRow.Url ?? string.Empty;
+                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.Url, url );
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.LinkText, bagRow.Text ?? string.Empty );
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.Target, bagRow.Target ?? string.Empty );
                     // WS7 fix 5: IndentLevel is reused as the per-link "nested" flag
@@ -1004,6 +1015,302 @@ namespace org.secc.LinkList.Services
                 default:
                     return LinkListGuids.ItemTypeValue.Link;
             }
+        }
+
+        // ---------------------------------------------------------------------
+        // ROCK-9362: uploaded link files (PDF / JPG / PNG)
+        // ---------------------------------------------------------------------
+
+        /// <summary>
+        /// The uploaded file a link row points at, or null. Prefers the explicit
+        /// <see cref="LinkItemBag.FileGuid"/>; falls back to parsing a file URL for THIS
+        /// list out of <see cref="LinkItemBag.Url"/> (so a client that only round-trips
+        /// the URL keeps the attachment). Non-link rows never carry a file.
+        /// </summary>
+        public static Guid? ResolveFileGuid( LinkItemBag bag, Guid listGuid )
+        {
+            if ( bag == null )
+            {
+                return null;
+            }
+            // Same normalization PersistMatrixItems applies, so validation, the stored
+            // URL and the lifetime sync all agree on which rows carry a file.
+            if ( NormalizeItemType( bag.ItemType ) != LinkListGuids.ItemTypeValue.Link )
+            {
+                return null;
+            }
+            return bag.FileGuid.AsGuidOrNull() ?? LinkListFiles.TryParseFileGuid( bag.Url, listGuid );
+        }
+
+        /// <summary>Distinct file guids referenced by the given rows.</summary>
+        public static HashSet<Guid> ReferencedFileGuids( IEnumerable<LinkItemBag> rows, Guid listGuid )
+        {
+            var result = new HashSet<Guid>();
+            foreach ( var row in rows ?? Enumerable.Empty<LinkItemBag>() )
+            {
+                var fileGuid = ResolveFileGuid( row, listGuid );
+                if ( fileGuid.HasValue )
+                {
+                    result.Add( fileGuid.Value );
+                }
+            }
+            return result;
+        }
+
+        /// <summary>The file guids the item's SAVED link rows reference right now.</summary>
+        public HashSet<Guid> GetSavedFileGuids( ContentChannelItem item )
+        {
+            if ( item == null || item.Id == 0 )
+            {
+                return new HashSet<Guid>();
+            }
+            return ReferencedFileGuids( GetLinkRows( item ), item.Guid );
+        }
+
+        /// <summary>Fills FileGuid / FileName on file link rows (one query for the whole list).</summary>
+        private void AttachFileInfo( List<LinkItemBag> bags, Guid listGuid )
+        {
+            var guids = new List<Guid>();
+            foreach ( var bag in bags )
+            {
+                var fileGuid = ResolveFileGuid( bag, listGuid );
+                bag.FileGuid = fileGuid?.ToString();
+                if ( fileGuid.HasValue )
+                {
+                    guids.Add( fileGuid.Value );
+                }
+            }
+            if ( guids.Count == 0 )
+            {
+                return;
+            }
+
+            var names = new BinaryFileService( _rockContext ).Queryable().AsNoTracking()
+                .Where( f => guids.Contains( f.Guid ) )
+                .Select( f => new { f.Guid, f.FileName } )
+                .ToList()
+                .ToDictionary( f => f.Guid, f => f.FileName );
+            foreach ( var bag in bags )
+            {
+                var fileGuid = bag.FileGuid.AsGuidOrNull();
+                if ( fileGuid.HasValue && names.TryGetValue( fileGuid.Value, out var name ) )
+                {
+                    bag.FileName = name;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates every uploaded file the incoming rows reference, BEFORE SaveList
+        /// writes anything. Returns a user-facing error, or null.
+        ///
+        /// Every referenced file must still exist (a file Rock Cleanup removed would
+        /// otherwise be kept as a dead link). Files the list already references
+        /// (<paramref name="savedFileGuids"/>) passed the remaining checks when they were
+        /// attached and are not re-read. A NEWLY attached file must be:
+        /// - of the Link List File type;
+        /// - still temporary (a fresh upload) and uploaded by <paramref name="person"/>.
+        ///   Without this an editor could attach another list's file by guid and serve
+        ///   it under this list's (possibly public) visibility;
+        /// - an allowed extension with a consistent reported MIME type, within the size
+        ///   cap, and with a matching magic-byte signature.
+        /// The upload endpoint (LinkListController.PostUpload) already enforced the same
+        /// rules and stamped the uploader; they are re-checked here because SaveList is
+        /// the point where a file becomes publicly reachable.
+        /// </summary>
+        public string ValidateLinkFiles( Guid listGuid, HashSet<Guid> savedFileGuids, IEnumerable<LinkItemBag> incoming, Person person )
+        {
+            var incomingGuids = ReferencedFileGuids( incoming, listGuid ).ToList();
+            if ( incomingGuids.Count == 0 )
+            {
+                return null;
+            }
+
+            var fileTypeId = BinaryFileTypeCache.GetId( LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+            if ( !fileTypeId.HasValue )
+            {
+                return "File uploads are not set up on this server (the Link List File type is missing).";
+            }
+
+            var files = new BinaryFileService( _rockContext ).Queryable().AsNoTracking()
+                .Where( f => incomingGuids.Contains( f.Guid ) )
+                .Select( f => new
+                {
+                    f.Guid,
+                    f.FileName,
+                    f.MimeType,
+                    f.FileSize,
+                    f.IsTemporary,
+                    f.BinaryFileTypeId,
+                    CreatedByPersonId = f.CreatedByPersonAlias != null ? ( int? ) f.CreatedByPersonAlias.PersonId : null
+                } )
+                .ToList()
+                .ToDictionary( f => f.Guid );
+
+            foreach ( var guid in incomingGuids )
+            {
+                if ( !files.TryGetValue( guid, out var file ) )
+                {
+                    return "An uploaded file is no longer available. Remove it and upload it again.";
+                }
+                if ( savedFileGuids != null && savedFileGuids.Contains( guid ) )
+                {
+                    continue;
+                }
+
+                if ( file.BinaryFileTypeId != fileTypeId.Value
+                    || !file.IsTemporary
+                    || person == null
+                    || file.CreatedByPersonId != person.Id )
+                {
+                    return $"The file '{file.FileName}' can't be attached to this list. Upload it again.";
+                }
+
+                var metadataError = LinkListFiles.ValidateMetadata( file.FileName, file.MimeType, file.FileSize );
+                if ( metadataError != null )
+                {
+                    return metadataError;
+                }
+
+                if ( !LinkListFiles.MatchesSignature( file.FileName, ReadFileSignature( guid ) ) )
+                {
+                    return $"'{file.FileName}' does not look like a {LinkListFiles.AllowedTypesDescription} file.";
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// The first bytes of a stored file, or null when its content is missing (Azure
+        /// returns a null stream for a missing blob).
+        ///
+        /// Deliberately uses its OWN RockContext and entity instance: BinaryFile caches
+        /// the provider stream it hands out, and Azure's stream still reports CanSeek
+        /// after disposal, so a later save of a tracked entity whose stream we had
+        /// disposed (e.g. Rock moving content to a new provider while flipping
+        /// IsTemporary) would throw ObjectDisposedException (finding from the
+        /// 2026-08 storage-provider landmine audit).
+        /// </summary>
+        private static byte[] ReadFileSignature( Guid fileGuid )
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                var binaryFile = new BinaryFileService( rockContext ).Get( fileGuid );
+                using ( var stream = binaryFile?.ContentStream )
+                {
+                    return LinkListFiles.ReadSignature( stream );
+                }
+            }
+        }
+
+        /// <summary>
+        /// File lifetimes around SaveList, step 1 - call BEFORE the link rows are
+        /// written: makes every file the save will reference permanent, so there is no
+        /// moment (and no partial-failure outcome) where a linked file is still
+        /// temporary and could be cleaned up. Own RockContext, so a failed save's
+        /// pending changes are never re-submitted here.
+        /// </summary>
+        public static void MarkLinkFilesPermanent( IEnumerable<Guid> fileGuids )
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                new LinkListService( rockContext ).MarkLinkFilesTemporary( fileGuids, isTemporary: false );
+            }
+        }
+
+        /// <summary>
+        /// File lifetimes around SaveList, step 2 - call AFTER the rows were written, or
+        /// after the save failed part-way: re-reads the list's rows as actually STORED
+        /// and makes those files permanent and every other candidate (files the list
+        /// used to reference, or that this save meant to attach but didn't store)
+        /// temporary, so Rock's cleanup job deletes them a day later. Reading the stored
+        /// rows rather than trusting the request is what makes it correct after a
+        /// partial failure. Own RockContext (see <see cref="MarkLinkFilesPermanent"/>).
+        /// </summary>
+        public static void ReconcileLinkFiles( Guid listGuid, IEnumerable<Guid> candidateFileGuids )
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                var service = new LinkListService( rockContext );
+                var item = service.ResolveItem( listGuid.ToString() );
+                var stored = item != null ? service.GetSavedFileGuids( item ) : new HashSet<Guid>();
+                service.MarkLinkFilesTemporary( stored, isTemporary: false );
+                service.MarkLinkFilesTemporary(
+                    ( candidateFileGuids ?? Enumerable.Empty<Guid>() ).Where( g => !stored.Contains( g ) ),
+                    isTemporary: true );
+            }
+        }
+
+        /// <summary>Sets IsTemporary on the given Link List File-type files and saves.</summary>
+        public void MarkLinkFilesTemporary( IEnumerable<Guid> fileGuids, bool isTemporary )
+        {
+            var guids = fileGuids?.Distinct().ToList() ?? new List<Guid>();
+            var fileTypeId = BinaryFileTypeCache.GetId( LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+            if ( guids.Count == 0 || !fileTypeId.HasValue )
+            {
+                return;
+            }
+
+            var files = new BinaryFileService( _rockContext ).Queryable()
+                .Where( f => guids.Contains( f.Guid ) && f.BinaryFileTypeId == fileTypeId.Value && f.IsTemporary != isTemporary )
+                .ToList();
+            if ( files.Count == 0 )
+            {
+                return;
+            }
+            foreach ( var file in files )
+            {
+                file.IsTemporary = isTemporary;
+            }
+            _rockContext.SaveChanges();
+        }
+
+        /// <summary>
+        /// The file to serve for <c>GET api/secc/linklist/{listGuid}/file/{fileGuid}</c>,
+        /// or null (the caller answers 404 - never 403, so nothing is enumerable).
+        /// Served only when ALL hold:
+        /// - the list exists in the Link List channel and is public, or
+        ///   <paramref name="person"/> can edit it (in-Rock preview of a private list);
+        /// - one of the list's saved link rows points at this file - so a file stops
+        ///   being served the moment it is removed from the list;
+        /// - the file is a non-temporary Link List File with an allowed extension.
+        /// <paramref name="isPublic"/> tells the caller how to set caching.
+        /// </summary>
+        public BinaryFile GetServableLinkFile( Guid listGuid, Guid fileGuid, Person person, out bool isPublic )
+        {
+            isPublic = false;
+
+            var item = ResolveItem( listGuid.ToString() );
+            if ( item == null )
+            {
+                return null;
+            }
+
+            item.LoadAttributes( _rockContext );
+            isPublic = ReadIsPublic( item );
+            if ( !isPublic && ( person == null || !CanEditItem( item, person ) ) )
+            {
+                return null;
+            }
+
+            if ( !GetSavedFileGuids( item ).Contains( fileGuid ) )
+            {
+                return null;
+            }
+
+            var fileTypeId = BinaryFileTypeCache.GetId( LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+            var binaryFile = new BinaryFileService( _rockContext ).Get( fileGuid );
+            if ( binaryFile == null
+                || !fileTypeId.HasValue
+                || binaryFile.BinaryFileTypeId != fileTypeId.Value
+                || binaryFile.IsTemporary
+                || LinkListFiles.GetContentType( binaryFile.FileName ) == null )
+            {
+                return null;
+            }
+
+            return binaryFile;
         }
 
         // ---------------------------------------------------------------------

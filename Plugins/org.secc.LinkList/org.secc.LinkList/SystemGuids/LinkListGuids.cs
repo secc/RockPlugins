@@ -106,6 +106,23 @@ namespace org.secc.LinkList.SystemGuids
         /// <summary>The single "Link Lists" InteractionChannel (components = one per list; interactions = View/Click).</summary>
         public const string InteractionChannelLinkLists = "707B8F5C-4C72-4E07-8594-56DC330BAEB7";
 
+        // ---- ROCK-9362: uploaded files (PDF/JPG/PNG) as link targets. Migration 013. ----
+        /// <summary>
+        /// The dedicated "Link List File" BinaryFileType. RequiresViewSecurity with VIEW
+        /// denied to everyone but Rock admins, so GetFile.ashx won't serve these files:
+        /// they are served only by the REST file endpoint, which applies the owning
+        /// list's IsPublic / edit gate. EDIT on the type is "may upload" (checked by the
+        /// plugin's upload endpoint, api/secc/linklist/upload): admins, Rock Edit Access
+        /// and Staff Like Workers by default.
+        /// </summary>
+        public const string BinaryFileTypeLinkListFile = "D3C59EA0-0CD7-42CD-817F-2937C31F5A86";
+        public const string AuthLinkListFileViewAdmins = "09DB43D6-CBBA-425E-8DF1-2CDF0930F68A";
+        public const string AuthLinkListFileViewDenyAll = "D2D2EE09-C618-4AAE-B1C7-02A46B4DCB9C";
+        public const string AuthLinkListFileEditAdmins = "5F74B13C-E3A8-4B93-9F3B-6701F3C42EAE";
+        public const string AuthLinkListFileEditStaff = "2171ACB5-2CEA-4F08-A9AB-719531639166";
+        public const string AuthLinkListFileEditStaffLike = "253E7572-6CA6-44EE-9036-E4FC97AA2250";
+        public const string AuthLinkListFileEditDenyAll = "BB1606AD-2565-4A8A-B17F-49371AD8B9F3";
+
         // ---- Default Rock SecurityRole group type ----
         public const string GroupTypeSecurityRole = "AECE949F-704C-483E-A4FB-93D5E4720C4C";
 

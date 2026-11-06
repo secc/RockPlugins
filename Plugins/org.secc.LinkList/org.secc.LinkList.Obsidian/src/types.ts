@@ -12,6 +12,8 @@ export interface LinkItemBag {
     subtitle?: string; // link rows: secondary line under the text
     description?: string; // section rows: blurb under the heading
     isFeatured?: boolean; // link rows: the (single) featured button, hoisted to the top
+    fileGuid?: string | null; // ROCK-9362: link rows: uploaded file (server derives url from it)
+    fileName?: string | null; // ROCK-9362: display name of the uploaded file (read-only)
     order?: number;
 }
 
@@ -147,6 +149,7 @@ export interface LinkListDetailConfigBox {
     itemKey?: string | null;
     isAddMode?: boolean;
     defaultDesignGuid?: string | null;
+    canUploadFiles?: boolean; // ROCK-9362: EDIT on the Link List File type (hides the upload button only)
     navigationUrls?: Record<string, string> | null;
 }
 
