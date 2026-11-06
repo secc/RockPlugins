@@ -28,8 +28,8 @@ namespace org.secc.FamilyCheckin.Utilities
 
             foreach ( var person in people )
             {
-                var attendances = AttendanceCache.All()
-                    .Where( a => a.PersonId == person.Id && a.AttendanceState != AttendanceState.CheckedOut )
+                var attendances = CheckinAttendances( person.Id )
+                    .Where( a => a.AttendanceState != AttendanceState.CheckedOut )
                     .ToList();
 
                 if ( !attendances.Any() )
@@ -71,10 +71,12 @@ namespace org.secc.FamilyCheckin.Utilities
                 List<Location> mergeLocations = new List<Location>();
                 List<Schedule> mergeSchedules = new List<Schedule>();
 
+                // The same check-ins the labels come from, so a leader-entered attendance can't add its group
+                // to the merge fields or supply the QR code's AttendanceGuid.
+                var attendanceIds = attendances.Select( a => a.Id ).ToList();
                 var sets = attendanceService
                     .Queryable().AsNoTracking().Where( a =>
-                         a.PersonAlias.Person.Id == person.Id
-                         && a.StartDateTime >= Rock.RockDateTime.Today
+                         attendanceIds.Contains( a.Id )
                          && a.EndDateTime == null
                          && a.Occurrence.Group != null
                          && a.Occurrence.Schedule != null
@@ -181,13 +183,26 @@ namespace org.secc.FamilyCheckin.Utilities
             return labels;
         }
 
+        /// <summary>
+        /// The person's cached attendance from check-in. Every check-in path (kiosk, mobile, moves in the OZ
+        /// screen or RoomScanner) gives the attendance a security code. Attendance a group leader records
+        /// (Group App, group attendance blocks) has none, and is left out so it doesn't print that group
+        /// type's label (e.g. MSM/HSM Groups) for a student who checks in to serve, or blank the label's code.
+        /// </summary>
+        private static List<AttendanceCache> CheckinAttendances( int personId )
+        {
+            return AttendanceCache.All()
+                .Where( a => a.PersonId == personId && !a.Code.IsNullOrWhiteSpace() )
+                .ToList();
+        }
+
         private static List<CheckInLabel> GenerateAggregateLabel( Guid aggregateLabelGuid, Device kioskDevice, List<Person> people )
         {
             List<CheckInLabel> labels = new List<CheckInLabel>();
             List<string> labelCodes = new List<string>();
             foreach ( var person in people )
             {
-                var applicableAttendances = AttendanceCache.All().Where( a => a.PersonId == person.Id );
+                var applicableAttendances = CheckinAttendances( person.Id );
                 //only if they are checked in to somewhere that is marked as children
                 if ( applicableAttendances.Any( a => a.IsChildren ) )
                 {

@@ -244,15 +244,16 @@ namespace org.secc.FamilyCheckin.Cache
                     LogInformation( "OccurrenceCache.IsFull: Near capacity threshold ({AttendanceCount}/{Capacity}) - checking database for accurate count",
                         attendanceCount, capacity );
 
-                    var attendanceService = new AttendanceService( new RockContext() ).Queryable().AsNoTracking();
+                    // Count the same attendance the cache holds, so the recount can't disagree with it.
+                    var attendanceService = new AttendanceService( new RockContext() ).Queryable().AsNoTracking()
+                        .Where( AttendanceCache.TodayFilter( Rock.RockDateTime.Today ) );
 
                     if ( IsVolunteer )
                     {
                         attendanceCount = attendanceService.Where( a =>
                                       a.EndDateTime == null
                                       && a.Occurrence.ScheduleId == ScheduleId
-                                      && a.Occurrence.LocationId == LocationId
-                                      && a.StartDateTime >= Rock.RockDateTime.Today )
+                                      && a.Occurrence.LocationId == LocationId )
                             .Count();
                     }
                     else
@@ -267,8 +268,7 @@ namespace org.secc.FamilyCheckin.Cache
                                       a.EndDateTime == null
                                       && a.Occurrence.ScheduleId == ScheduleId
                                       && a.Occurrence.LocationId == LocationId
-                                      && childGroupIds.Contains( a.Occurrence.GroupId ?? 0 )
-                                      && a.StartDateTime >= Rock.RockDateTime.Today )
+                                      && childGroupIds.Contains( a.Occurrence.GroupId ?? 0 ) )
                             .Count();
 
                     }

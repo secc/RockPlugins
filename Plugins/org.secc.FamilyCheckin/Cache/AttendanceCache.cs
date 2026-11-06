@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.Serialization;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
@@ -115,6 +116,29 @@ namespace org.secc.FamilyCheckin.Cache
 
         // Upper bound on the number of ids per Contains() query when bulk-loading cache misses.
         private const int BulkLoadChunkSize = 500;
+
+        /// <summary>
+        /// The attendance the cache holds, as a query filter: created today and dated today. Attendance
+        /// entered today for another date (a group leader recording last Sunday's small group, or next
+        /// week's) is not today's check-in activity. The key list, the bulk load, <see cref="Verify"/> and
+        /// <see cref="OccurrenceCache.IsFull"/>'s database recount all use it; <see cref="IsToday"/> is the
+        /// same rule in memory. Pass one <paramref name="today"/> so a query can't straddle midnight.
+        /// </summary>
+        public static Expression<Func<Attendance, bool>> TodayFilter( DateTime today )
+        {
+            var tomorrow = today.AddDays( 1 );
+            return a => a.CreatedDateTime >= today && a.StartDateTime >= today && a.StartDateTime < tomorrow;
+        }
+
+        /// <summary>
+        /// <see cref="TodayFilter"/> for an attendance already in memory.
+        /// </summary>
+        internal static bool IsToday( Attendance attendance, DateTime today )
+        {
+            return attendance.CreatedDateTime >= today
+                && attendance.StartDateTime >= today
+                && attendance.StartDateTime < today.AddDays( 1 );
+        }
 
         public static List<AttendanceCache> All()
         {
@@ -259,20 +283,26 @@ namespace org.secc.FamilyCheckin.Cache
             var readStamp = BeginLoad();
             try
             {
+                var today = RockDateTime.Today;
                 var occurrences = OccurrenceCache.CreateLookup();
                 var foundIds = new HashSet<int>();
 
-                foreach ( var attendance in QueryAttendances( ids, totalKeyCount ) )
+                foreach ( var attendance in QueryAttendances( ids, totalKeyCount, today ) )
                 {
                     foundIds.Add( attendance.Id );
-                    var item = LoadByAttendance( attendance, occurrences );
+
+                    // The chunked query is by id only, so it can return a keyed row that is no longer today's
+                    // (e.g. its date was edited). LoadAll removes it once the load is released.
+                    if ( !IsToday( attendance, today ) )
+                    {
+                        result.StaleKeys.Add( QualifiedKey( attendance.Id ) );
+                        continue;
+                    }
+
+                    var item = AddLoaded( QualifiedKey( attendance.Id ), LoadByAttendance( attendance, occurrences ), readStamp, () => KeyFactory() );
                     if ( item != null )
                     {
-                        item = AddLoaded( QualifiedKey( item.Id ), item, readStamp, () => KeyFactory() );
-                        if ( item != null )
-                        {
-                            result.Items.Add( item );
-                        }
+                        result.Items.Add( item );
                     }
                 }
 
@@ -290,7 +320,7 @@ namespace org.secc.FamilyCheckin.Cache
         /// Returns the attendances with the given ids. When most keys are missing (a cold cache), one query
         /// over today's attendance is cheaper than many id lists; otherwise the ids are queried in chunks.
         /// </summary>
-        private static List<Attendance> QueryAttendances( HashSet<int> ids, int totalKeyCount )
+        private static List<Attendance> QueryAttendances( HashSet<int> ids, int totalKeyCount, DateTime today )
         {
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
@@ -298,9 +328,8 @@ namespace org.secc.FamilyCheckin.Cache
 
             if ( ids.Count * 2 >= totalKeyCount )
             {
-                var today = RockDateTime.Today;
                 return query
-                    .Where( a => a.CreatedDateTime != null && a.CreatedDateTime >= today )
+                    .Where( TodayFilter( today ) )
                     .ToList()
                     .Where( a => ids.Contains( a.Id ) )
                     .ToList();
@@ -399,21 +428,23 @@ namespace org.secc.FamilyCheckin.Cache
         }
 
 
+        // Single-item path (Get/AddOrUpdate): drops an attendance that isn't today's (see TodayFilter) before
+        // building the occurrence lookup it would not need.
         private static AttendanceCache LoadByAttendance( Attendance attendance )
         {
-            return LoadByAttendance( attendance, OccurrenceCache.CreateLookup() );
-        }
-
-        // Per-item mapping shared by the single-item (Get/AddOrUpdate) and bulk (All) load paths so they cannot drift.
-        private static AttendanceCache LoadByAttendance( Attendance attendance, OccurrenceCache.Lookup occurrences )
-        {
-            //We don't want to cache attendances created before today.
-            if ( !attendance.CreatedDateTime.HasValue || attendance.CreatedDateTime < Rock.RockDateTime.Today )
+            if ( !IsToday( attendance, RockDateTime.Today ) )
             {
                 Remove( attendance.Id );
                 return null;
             }
 
+            return LoadByAttendance( attendance, OccurrenceCache.CreateLookup() );
+        }
+
+        // Per-item mapping shared by the single-item (Get/AddOrUpdate) and bulk (All) load paths so they cannot drift.
+        // Callers check IsToday first. It has no side effects, so the bulk load can run it while holding the load.
+        private static AttendanceCache LoadByAttendance( Attendance attendance, OccurrenceCache.Lookup occurrences )
+        {
             Person person;
             if ( attendance.PersonAliasId != null && attendance.PersonAlias?.Person == null )
             {
@@ -495,7 +526,7 @@ namespace org.secc.FamilyCheckin.Cache
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var keys = attendanceService.Queryable().AsNoTracking()
-                .Where( a => a.CreatedDateTime != null && a.CreatedDateTime >= RockDateTime.Today )
+                .Where( TodayFilter( RockDateTime.Today ) )
                 .Select( a => a.Id.ToString() )
                 .ToList();
 
@@ -552,7 +583,7 @@ namespace org.secc.FamilyCheckin.Cache
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var attendances = attendanceService.Queryable( "Occurrence" )
-                .Where( a => a.CreatedDateTime.HasValue && a.CreatedDateTime >= Rock.RockDateTime.Today )
+                .Where( TodayFilter( RockDateTime.Today ) )
                 .ToList();
             var attendanceCaches = All();
 
