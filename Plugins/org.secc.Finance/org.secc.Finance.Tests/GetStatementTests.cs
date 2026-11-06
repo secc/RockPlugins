@@ -251,6 +251,24 @@ namespace org.secc.Finance.Tests
             Assert.False( handler.FileSent );
         }
 
+        [Theory]
+        [MemberData( nameof( Shapes ) )]
+        public void FileWithType_WhenStatementTypeIsMissing_IsNotFound( string shape )
+        {
+            var handler = new TestGetStatement
+            {
+                File = NewFile( StatementFileTypeId, requiresViewSecurity: true, givingId: "G100", personIds: "100" ),
+                StatementTypeId = null,
+                CurrentUser = NewLogin( "G100", 100 ),
+                AuthorizedToView = true
+            };
+
+            Run( handler, shape );
+
+            Assert.Equal( 404, handler.ErrorCode );
+            Assert.False( handler.FileSent );
+        }
+
         [Fact]
         public void StatementType_IsLookedUpByTheContributionStatementGuid()
         {
