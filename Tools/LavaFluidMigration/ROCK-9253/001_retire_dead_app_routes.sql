@@ -16,7 +16,7 @@ Evidence (prod, 2026-11-06):
   50688 /sekids/checkin/{id}              not logged; only link (/sekids/initial) is inside {% comment %}; 0 image hits
   50690 /sekids/pleaseupdate              not logged; no live route links to it; 0 image hits
   Html To Image (DefinedType 290) used only by the routes above, 0 hits in 90 days:
-  30535 31211 31214 31216 31218 (location/*), 30544 30545 32123 49813 (bulletin/*),
+  30535 31211 31214 31216 31218 (location routes), 30544 30545 32123 49813 (bulletin routes),
   31675 (checkin), 50689 (pleaseupdate)
 
 After running: Admin Tools > Settings > System Settings > Clear Cache (DefinedValueCache).
@@ -25,10 +25,9 @@ SET XACT_ABORT ON;
 BEGIN TRAN;
 
 IF OBJECT_ID('dbo._ROCK9253_DefinedValue_Backup') IS NULL
-    SELECT dv.Id, dv.DefinedTypeId, dv.Value, dv.IsActive, dv.ModifiedDateTime, SYSDATETIME() AS BackedUpAt
-    INTO dbo._ROCK9253_DefinedValue_Backup
-    FROM DefinedValue dv
-    WHERE 1 = 0;
+    CREATE TABLE dbo._ROCK9253_DefinedValue_Backup (
+        Id int NOT NULL, DefinedTypeId int NOT NULL, Value nvarchar(250) NOT NULL,
+        IsActive bit NOT NULL, ModifiedDateTime datetime NULL, BackedUpAt datetime2 NOT NULL);
 
 DECLARE @t TABLE (Id int PRIMARY KEY, DefinedTypeId int, Value nvarchar(250));
 INSERT @t VALUES
