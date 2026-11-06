@@ -10,6 +10,7 @@ import {
     vimeoEmbedUrl,
     youTubeEmbedUrl
 } from "../linkListParity";
+import { resolveLinkHref } from "../linkListFiles";
 import { groupIntoSections, hoistFeatured, isFeaturedLink, type SectionBlock } from "../linkListItems";
 
 // <secc-link-list> — the single, self-contained renderer for a Link List, used
@@ -321,9 +322,9 @@ ${this.styles()}
 
     private renderTopLink( item: LinkItemBag ): string {
         const featuredClass = isFeaturedLink( item ) ? " featured" : "";
-        const label = safeText( item.text || item.url || "Link" );
+        const label = safeText( item.text || item.fileName || item.url || "Link" );
         const sub = item.subtitle ? `<div class="btn-sub" part="link-subtitle">${safeText( item.subtitle )}</div>` : "";
-        const url = safeUrl( item.url );
+        const url = safeUrl( resolveLinkHref( this.baseUrl, item.url ) );
         const target = safeTarget( item.target );
         const rel = target === "_blank" ? ` rel="noopener noreferrer"` : "";
         const linkId = safeText( item.guid || item.matrixItemGuid || "" );
@@ -353,9 +354,9 @@ ${this.styles()}
         if ( ( item.itemType ?? "link" ) === "separator" ) {
             return `<div class="rule" part="separator"></div>`;
         }
-        const label = safeText( item.text || item.url || "Link" );
+        const label = safeText( item.text || item.fileName || item.url || "Link" );
         const sub = item.subtitle ? `<span class="accord-link-sub" part="link-subtitle">${safeText( item.subtitle )}</span>` : "";
-        const url = safeUrl( item.url );
+        const url = safeUrl( resolveLinkHref( this.baseUrl, item.url ) );
         const target = safeTarget( item.target );
         const rel = target === "_blank" ? ` rel="noopener noreferrer"` : "";
         const linkId = safeText( item.guid || item.matrixItemGuid || "" );

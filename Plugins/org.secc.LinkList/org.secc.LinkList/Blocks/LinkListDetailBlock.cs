@@ -308,6 +308,29 @@ namespace org.secc.LinkList.Blocks
                         $"The slug '{conflictingSlug}' is already used by another list. Choose a different slug." );
                 }
 
+                // ROCK-9362: validate uploaded link files (type allow-list, size, magic
+                // bytes, uploader) BEFORE any write, like the slug checks above. The set
+                // of files the list references right now is captured here too: it is
+                // what lets the lifetime sync after the rows are written orphan the
+                // files this save removes. A new item's Guid is already assigned (Rock
+                // entities mint one on construction), and it can't have saved files.
+                HashSet<Guid> savedFileGuids;
+                var incomingFileGuids = LinkListService.ReferencedFileGuids( bag.Items, item.Guid );
+                try
+                {
+                    savedFileGuids = isNew ? new HashSet<Guid>() : service.GetSavedFileGuids( item );
+                    var fileError = service.ValidateLinkFiles( item.Guid, savedFileGuids, bag.Items, RequestContext.CurrentPerson );
+                    if ( fileError != null )
+                    {
+                        return ActionBadRequest( fileError );
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+                    return ActionBadRequest( "Could not check the attached files. The error has been logged." );
+                }
+
                 item.Title = bag.Title.Trim();
                 // Intro content lives in the native Content field (legacy parity).
                 item.Content = bag.IntroContent ?? string.Empty;
@@ -574,9 +597,19 @@ namespace org.secc.LinkList.Blocks
                         }
                     }
 
+                    // ROCK-9362: every file this save links becomes permanent BEFORE the
+                    // rows that link it are written, so no outcome - including a
+                    // part-way failure below - leaves a linked file temporary (Rock
+                    // Cleanup would delete it). Unlinked leftovers are reconciled after.
+                    LinkListService.MarkLinkFilesPermanent( incomingFileGuids );
+
                     // Persist link rows: upserts by row Guid, deletes rows missing
                     // from the incoming list, and reorders by list position.
                     service.PersistMatrixItems( item, bag.Items );
+
+                    // ROCK-9362: files this save removed become temporary (cleaned up a
+                    // day later). Non-fatal: the worst case is an orphan kept forever.
+                    ReconcileLinkFilesSafely( item.Guid, savedFileGuids, incomingFileGuids );
 
                     // Slug deletions go LAST. Everything above commits as it goes, so a
                     // failure anywhere earlier used to leave a slug's URL permanently
@@ -606,6 +639,10 @@ namespace org.secc.LinkList.Blocks
                     // conflicting with the slugs the failed attempt just created.
                     if ( item.Id > 0 )
                     {
+                        // ROCK-9362: settle file lifetimes against the rows that were
+                        // actually stored before the failure.
+                        ReconcileLinkFilesSafely( item.Guid, savedFileGuids, incomingFileGuids );
+
                         var partial = BuildSavedBag( service, item );
                         var warning = "Some of your changes could not be saved. "
                             + "The error has been logged; review the list and save again.";
@@ -677,8 +714,24 @@ namespace org.secc.LinkList.Blocks
                 {
                     return ActionBadRequest( error );
                 }
+
+                // ROCK-9362: captured before the delete (the rows go with the item).
+                var fileGuids = service.GetSavedFileGuids( item );
+
                 itemService.Delete( item );
                 rockContext.SaveChanges();
+
+                // Uploaded link files now belong to nothing: let Rock's cleanup job
+                // remove them. Best-effort - the list is already gone, and an orphan
+                // left permanent is only wasted storage (nothing serves it any more).
+                try
+                {
+                    service.MarkLinkFilesTemporary( fileGuids, isTemporary: true );
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+                }
 
                 return ActionOk();
             }
@@ -941,6 +994,25 @@ namespace org.secc.LinkList.Blocks
                 } )
                 .ToList();
             return SlugReconciler.BuildSubmission( provided, bag.Slug );
+        }
+
+        /// <summary>
+        /// ROCK-9362: <see cref="LinkListService.ReconcileLinkFiles"/> over every file the
+        /// list referenced before this save or meant to reference after it. Logged, never
+        /// thrown: by now the save's outcome is decided, and a missed reconcile only
+        /// leaves an unlinked file uncollected.
+        /// </summary>
+        private static void ReconcileLinkFilesSafely( Guid listGuid, HashSet<Guid> savedFileGuids, HashSet<Guid> incomingFileGuids )
+        {
+            try
+            {
+                LinkListService.ReconcileLinkFiles( listGuid,
+                    ( savedFileGuids ?? new HashSet<Guid>() ).Union( incomingFileGuids ?? new HashSet<Guid>() ) );
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+            }
         }
 
         private static void SetIfPresent( ContentChannelItem item, string key, string value )

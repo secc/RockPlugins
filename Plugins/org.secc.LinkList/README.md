@@ -1,6 +1,6 @@
 # org.secc.LinkList
 
-> A "link-in-bio" style Link List system on Rock content channels — Obsidian management/viewer blocks, a multi-slug URL scheme, per-list security-group edit access, an embeddable `<secc-link-list>` web component, and click/view analytics via Rock Interactions.
+> A "link-in-bio" style Link List system on Rock content channels — Obsidian management/viewer blocks, a multi-slug URL scheme, per-list security-group edit access, uploaded PDF/JPG/PNG link targets, an embeddable `<secc-link-list>` web component, and click/view analytics via Rock Interactions.
 
 ## Overview
 
@@ -12,7 +12,7 @@ slug-routed viewer), an anonymous **REST endpoint + web component** so lists can
 external sites (Webflow, se.church), and an **analytics** layer that records views and link
 clicks as Rock Interactions with per-IP rate limiting.
 
-Two subsystems deserve special mention:
+Three subsystems deserve special mention:
 
 - **Slug system** — a list is addressed by one or more URL slugs (`ContentChannelItemSlug`
   rows, one flagged primary). `LinkListService` is the single source of truth for slug rules:
@@ -44,6 +44,63 @@ Two subsystems deserve special mention:
   creator fallback in `LinkListService.CanEditItem` (creator of an item that has no group EDIT
   rule yet) keeps the list saveable, openable, and visible in the grid until the next
   successful save creates the group.
+- **Uploaded files** (ROCK-9362) — a link row can point at an uploaded PDF, JPG, or PNG
+  instead of a typed URL. See [Uploaded link files](#uploaded-link-files-rock-9362).
+
+## Uploaded link files (ROCK-9362)
+
+Editors click the paperclip on a link row to upload a file; the row then shows the file name
+(with **Replace** / **Use a URL**) in place of the URL box. The upload defaults the link text
+to the file name and the target to a new window.
+
+- **Upload.** The row uses Rock's Obsidian `uploadBinaryFile` helper pointed at the plugin's
+  own `POST api/secc/linklist/upload`, not `FileUploader.ashx`. That endpoint requires a
+  signed-in person, pre-checks Content-Length, and rejects anything that isn't an allowed
+  extension (`pdf`, `jpg`, `jpeg`, `png`) with a consistent reported MIME type, at most
+  10 MB (`LinkListFiles.MaxFileSizeBytes`), and with a matching magic-byte signature. It
+  cleans the file name, stores the allow-listed MIME type (not the client's), copies the
+  content to a MemoryStream before handing it to the provider (never the request stream; the
+  2026-08 storage-provider landmine audit), and **stamps the uploader** — `FileUploader.ashx`
+  uploads have a NULL `CreatedByPersonAliasId` in production, which is why it isn't used.
+- **Storage.** A *temporary* Rock `BinaryFile` of the dedicated **Link List File**
+  BinaryFileType (`LinkListGuids.BinaryFileTypeLinkListFile`, migration 013), typed at
+  creation (never re-typed later; audit finding M14). The type uses the **Database** storage
+  provider by default so it works in every environment; an admin can switch it to Azure Blob
+  Storage under *Admin Tools > General Settings > File Types* (existing files keep the
+  provider they were written with). The type has **no EDIT grant**, so `FileUploader.ashx`
+  (which needs EDIT on the type and checks none of the rules above) refuses everyone but Rock
+  admins for it.
+- **Stored URL.** The matrix row's existing `URL` attribute holds the **relative** path
+  `/api/secc/linklist/{listGuid}/file/{fileGuid}` (`LinkListFiles.BuildFileUrl`), so no new
+  matrix attribute or migration was needed and a database copied between environments keeps
+  working. The server always derives it from `LinkItemBag.FileGuid`; on read the guid is
+  parsed back out (`LinkListFiles.TryParseFileGuid`, only for *this* list's guid, so a file
+  URL pasted into another list stays an ordinary link gated by its owner). The web component
+  prefixes its `base-url` onto file URLs (`resolveLinkHref` in `linkListFiles.ts`) so
+  external embeds point at Rock.
+- **Validation on save (in `SaveList`, before any write).** For every *newly attached* file
+  (`LinkListService.ValidateLinkFiles`): Link List File type; still temporary **and uploaded
+  by the person saving** (stops attaching another list's file by guid and serving it under
+  this list's visibility); and the upload rules above again, since saving is where a file
+  becomes publicly reachable. The editor's checks in `linkListFiles.ts` are early feedback
+  only.
+- **Lifetime.** `SaveList` marks every file the save will link permanent *before* writing the
+  rows (`MarkLinkFilesPermanent`), so no outcome — including a part-way failure — leaves a
+  linked file temporary. Afterwards (on success or failure) `ReconcileLinkFiles` re-reads the
+  rows as actually stored and marks every other candidate (files the save removed, or meant
+  to attach but didn't store) temporary; Rock Cleanup deletes temporary files after a day.
+  Both list deletes (detail block `DeleteList`, grid `Delete`) release the list's files the
+  same way. A save also refuses a link whose file no longer exists.
+- **Visibility.** The type requires view security with VIEW allowed only to Rock admins, so
+  `GetFile.ashx` refuses these files. They are served only by
+  `GET api/secc/linklist/{listGuid}/file/{fileGuid}`, which applies the owning list's gate: a
+  public list's files are public (5-minute shared cache); a private list's files go only to
+  people who can edit it (in-Rock preview, `no-store`); a file no longer linked from the list
+  is not served; every refusal is a 404. The response Content-Type comes from the extension
+  allow-list, never the stored MIME type, with `X-Content-Type-Options: nosniff`.
+- **Upload permission.** Any signed-in person may call the upload endpoint, matching
+  ROCK-9100's "any signed-in person can create a list". An abandoned upload stays temporary
+  and is cleaned up; there is no per-person upload rate limit.
 
 ## Project Info
 
@@ -66,9 +123,9 @@ org.secc.LinkList/            C# plugin assembly
   Blocks/                     Three Obsidian block types (List, Detail, Viewer)
   Services/                   LinkListService (bags, slugs, security groups), LinkListInteractionService (analytics)
   Rest/Controllers/           Public anonymous REST endpoint (GET list + click beacon) with CORS allowlist
-  Migrations/                 001-011 Rock plugin migrations (channel/type/matrix, design presets, analytics channel, ...)
+  Migrations/                 Rock plugin migrations 001-011, 013 (channel/type/matrix, design presets, analytics channel, file type, ...)
   SystemGuids/                LinkListGuids — every well-known GUID and attribute key
-  Utility/                    SlugReconciler, AnalyticsSeries, ClickPayload, ClientIpResolver, InteractionRateLimiter, LinkListHtmlSanitizer
+  Utility/                    SlugReconciler, AnalyticsSeries, ClickPayload, ClientIpResolver, InteractionRateLimiter, LinkListHtmlSanitizer, LinkListFiles
   ViewModels/                 Bags/boxes shared with the Obsidian frontend (LinkListBag, GroupMemberBag, ...)
 org.secc.LinkList.Obsidian/   Vue 3 / Obsidian frontend (npm build; jest tests in /tests)
   src/linkListDetail.obs      Editor block entry (hosts components/linkListEditor.obs)
@@ -93,8 +150,8 @@ Category in Rock: **SECC > Link Lists**.
 
 ### REST endpoints
 
-`LinkListController`, route prefix `api/secc/linklist` — **anonymous by design**, gated by the
-per-list `IsPublic` attribute (non-public lists return 404, not 403, to avoid enumeration).
+`LinkListController`, route prefix `api/secc/linklist` — **anonymous by design** (except the
+signed-in-only upload), gated by the per-list `IsPublic` attribute (non-public lists return 404, not 403, to avoid enumeration).
 CORS is origin-reflection against an admin-managed Defined Type unioned with a hardcoded
 fallback list; JSON is forced camelCase to match the Obsidian bag contract.
 
@@ -102,6 +159,8 @@ fallback list; JSON is forced camelCase to match the Obsidian bag contract.
 |-------|------|---------|
 | `api/secc/linklist/{idOrSlug}` | GET | Returns the full list bag for the web component; records a "View" interaction (rate-limited per IP). |
 | `api/secc/linklist/{idOrSlug}/click` | POST | `navigator.sendBeacon` click target. Always answers 200 (except a 413 body-size cap); validates the matrix-row guid server-side and records a "Click" interaction, rate-limited per IP (accept-but-drop). |
+| `api/secc/linklist/upload` | POST | ROCK-9362: the editor's file upload (multipart). Signed-in only; validates type/MIME/size/magic bytes and stores a temporary Link List File stamped with the uploader. Returns `{ Guid, FileName }` (FileUploader.ashx shape) or 4xx `{ message }`. |
+| `api/secc/linklist/{listGuid}/file/{fileGuid}` | GET | ROCK-9362: serves an uploaded link file under the owning list's gate (public list, or an editor's preview of a private one); 404 otherwise. The only way these files are served. |
 
 ### Services & utilities
 
@@ -112,6 +171,7 @@ fallback list; JSON is forced camelCase to match the Obsidian bag contract.
 | `SlugReconciler` | Pure static slug logic: builds/validates submissions, diffs existing vs submitted rows into add/delete plans, and filters concurrent edits (`FilterConcurrentlyDeleted`, `FilterDeletableIds`). |
 | `AnalyticsSeries` / `ClickPayload` / `ClientIpResolver` / `InteractionRateLimiter` | Day-series gap filling and range clamping; bounded text/plain beacon parsing; X-Forwarded-For-aware, DNS-free IP resolution; token-bucket rate limiting. |
 | `LinkListHtmlSanitizer` | HtmlAgilityPack-based sanitizer for admin-entered header/footer HTML. |
+| `LinkListFiles` | ROCK-9362: uploaded-file rules — extension/MIME allow-list, 10 MB cap, magic-byte check, file-name cleaning, and the stored file-URL shape. Mirrored for editor feedback by `src/linkListFiles.ts`. |
 
 ### Web component
 
@@ -123,19 +183,23 @@ ships inside a shadow root with no host-CSS dependency; it also sends the click 
 
 ### Migrations
 
-Eleven Rock plugin migrations (`MigrationNumber` 1-11, `1.16.0`): 001 creates the content
+Rock plugin migrations (`MigrationNumber` 1-11 and 13, `1.16.0`): 001 creates the content
 channel type/channel/matrix template with the **production GUIDs** and legacy attributes
 (idempotent upserts); 002-010 add matrix-row attributes (item type, indent, subtitle,
 featured), design-preset Defined Type/Values, the CORS-origins Defined Type, header media, the
 global header/footer channel attributes, and the title color; 011 creates the "Link Lists"
-Interaction medium/channel for analytics.
+Interaction medium/channel for analytics; 013 (ROCK-9362) creates the "Link List File"
+BinaryFileType and its auth rules (insert-only, so an admin's storage-provider change
+survives). 012 is claimed by ROCK-9361 on a parallel branch; Rock runs any migration number
+not yet recorded, so the gap is harmless.
 
 ## Dependencies & Integrations
 
 - **Rock:** `RockBlockType` (Obsidian blocks), ContentChannel/Item/Slug services, Attribute
   Matrix, `Authorization`/`AuthService` (per-list `Auth` rules), Group/GroupMember services
   (security role groups), Interactions (`InteractionTransaction`, channel/component caches),
-  Defined Types/Values, `Rock.Plugin` migrations, BinaryFile (header images).
+  Defined Types/Values, `Rock.Plugin` migrations, BinaryFile (header images; uploaded link
+  files via `FileUploader.ashx`).
 - **NuGet:** `RockRMS.Rock` / `Rock.Blocks` / `Rock.Rest` `1.16.9-rc.1`,
   `Microsoft.AspNet.WebApi.Core`; `DotLiquid` and `HtmlAgilityPack` referenced from
   `RockWeb\Bin` with `Private=false` (compile against Rock's copy, never ship it).
@@ -161,9 +225,10 @@ Interaction medium/channel for analytics.
   `SlugValidationTests`, `SlugReconciliationTests`, `SecurityGroupNameTests`,
   `ClickPayloadTests`, `ClickBodyLimitTests`, `ClientIpResolverTests`,
   `InteractionRateLimiterTests`, `OriginValidationTests`, `AnalyticsSeriesTests`,
-  `LinkListHtmlSanitizerTests`.
+  `LinkListHtmlSanitizerTests`, `LinkListFilesTests`.
 - `org.secc.LinkList.Obsidian/tests` — jest specs for the web component (rendering, clicks,
-  behavior), slug canonicalizer parity, item grouping, and theming.
+  behavior, file-link hrefs), slug canonicalizer parity, uploaded-file rules
+  (`linkListFiles.spec.ts`), item grouping, and theming.
 
 ## Observations
 
@@ -205,4 +270,4 @@ Interaction medium/channel for analytics.
 - Related: [org.secc.Cms](../org.secc.Cms/README.md) (legacy `LinkListEditUsers` block over the
   same security groups).
 
-Last updated: 2026-10-27
+Last updated: 2026-11-06
