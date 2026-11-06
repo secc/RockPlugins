@@ -44,7 +44,7 @@ Grow Stories Page
                     {
                         "images":[
                             {"width": 667,
-                            "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+                            "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{ item.Guid }}?mode=crop&bgcolor=121212"}
                         ],
                         "title": "{{ title }}",
                         "actions":[{

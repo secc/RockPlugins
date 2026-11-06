@@ -25,7 +25,12 @@
               width: 1334px;
               height: 528px;
               background-color: #262626;
-              border-radius: 0px 0px 0px 0px;
+              /* Rounded here instead of via the imaging function's s.roundcorners
+                 query param (ROCK-9253): the function turns that param into a dotted
+                 capture name, which Fluid rejects. 40px on this 1334px canvas = the old s.roundcorners=20
+                 after the function halves the image. */
+              border-radius: 40px;
+              overflow: hidden;
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;

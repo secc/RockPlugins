@@ -57,7 +57,7 @@ Grow Sermon Study Guides Page
 						"subtitle": "{{- series.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  -}}",
 			            "images":[{
 							"width": 667,
-							"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{- series.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=121212"
+							"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{- series.Guid -}}?mode=crop&bgcolor=121212"
 						}],
 						"actions": [{
 							"handler": "{{- itemActionHandler -}}",
