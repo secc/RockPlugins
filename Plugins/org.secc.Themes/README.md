@@ -82,6 +82,9 @@ buttons and 10px hairline cards. It applies only to a block whose **CSS Class** 
 Every other registration, including page 413 (`/Registration/{Slug}`), keeps the existing look.
 
 - Design tokens are CSS custom properties declared on `.camp-registration`, not `:root`.
+  Colours, spacing, radii and shadows are copied verbatim from the guide's `tokens/*.css`.
+  Type sizes keep the guide's proportions but scale body copy to 16px (the guide's spec
+  sheet sets it at 13px); each line notes the guide's own value.
 - Every compiled selector needs a `.camp-registration` ancestor. The accordion
   `@extend h3/h4` rules in `_lib/_accordions.scss` add woven `.panel-title` selectors,
   and those still need it.

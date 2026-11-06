@@ -2,7 +2,7 @@
     Camp Registration (ROCK-9395)
 
     Restyles Rock's Obsidian Registration Entry block to the Southeast
-    Christian Church Design System v4: warm neutrals with no accent colour,
+    Christian Church Design System v4: eight neutrals with no accent colour,
     IvyJournal for display type only, Inter for everything else, pill
     buttons, 10px hairline cards, no shadows on static cards.
 
@@ -33,71 +33,106 @@
     11. Small screens
 */
 
-$camp-registration-stack: 859px; // buttons go full width below 860px
+$camp-registration-stack: 859px; // two columns collapse and buttons stack below 860px
 
 .camp-registration {
 
   // 1. Tokens
   // -------------------------
-  // Design System v4 tokens (colours, spacing, radii, shadows, type roles).
-  // Declared on the block, not on :root, so nothing leaks to the rest of
-  // the site. Keep this block in sync with the guide's tokens/*.css.
+  // Design System v4 tokens, declared on the block rather than :root so
+  // nothing leaks to the rest of the site. Colours, spacing, radii and
+  // shadows are copied verbatim from the guide's tokens/*.css; keep them in
+  // sync with it.
 
-  // Colours: eight warm neutrals.
-  --black: #1D1F21;
-  --charcoal: #383735;
-  --dark-gray: #57534E;
-  --mid-gray: #6D6A66;
-  --light-gray: #C6C1BC;
-  --hairline: #E3E0DC;
-  --page: #F5F4F2;
+  // tokens/colors.css: eight neutrals. There is no brand accent colour.
   --white: #FFFFFF;
+  --page-bg: #F5F4F2;
+  --black: #0F0F0F;
+  --charcoal: #1C1C1C;
+  --dark-gray: #3A3A3A;
+  --mid-gray: #888888;
+  --light-gray: #D4D2CE;
+  --hairline: #E4E2DE;
 
-  // The guide has no error colour. Validation and danger alerts keep a
-  // minimal red (left border only) so errors stay legible.
+  --text-body: var(--dark-gray);
+  --text-strong: var(--black);
+  --text-heading: var(--charcoal);
+  --text-meta: var(--mid-gray);
+  --surface-page: var(--page-bg);
+  --surface-card: var(--white);
+  --surface-hover: #FBFAF8;
+  --border-default: var(--hairline);
+  --border-hover: var(--light-gray);
+  --border-focus: var(--charcoal);
+  --action-primary: var(--charcoal);
+  --action-primary-hover: var(--dark-gray);
+  --disabled: var(--light-gray);
+
+  // Not in the guide, which has no error colour. Validation and danger
+  // alerts keep a minimal red (left rule and field border only) so errors
+  // stay legible.
   --danger: #{$ErrorColor};
 
-  // Spacing scale.
+  // tokens/spacing.css: warm, not a strict 8pt grid.
   --s1: 4px;
   --s2: 8px;
   --s3: 12px;
-  --s4: 16px;
-  --s5: 24px;
-  --s6: 32px;
-  --s7: 48px;
-  --s8: 64px;
-  --s9: 96px;
+  --s4: 18px;
+  --s5: 22px;
+  --s6: 28px;
+  --s7: 32px;
+  --s8: 52px;
+  --s9: 72px;
 
-  // Radii: pill buttons, cards, fields.
-  --radius-pill: 100px;
-  --radius-card: 10px;
-  --radius-field: 8px;
+  // tokens/radius.css: pills, cards, inputs and alerts.
+  --radius-btn: 100px;
+  --radius-accord: 10px;
+  --radius-input: 8px;
+  --radius-pill: var(--radius-btn);
+  --radius-card: var(--radius-accord);
 
-  // Shadows: interactive elements only. Static cards have none.
-  --shadow-card: 0 1px 2px rgba(29, 31, 33, 0.06);
-  --shadow-hover: 0 6px 16px rgba(29, 31, 33, 0.10);
-  --shadow-dark: 0 8px 20px rgba(29, 31, 33, 0.28);
+  // tokens/elevation.css: only for things that lift. Never on a static card.
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.11), 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow-dark: 0 8px 28px rgba(0, 0, 0, 0.22);
 
-  // Type roles. The families reuse the theme's own font stacks (Inter and
-  // Ivy Journal are already loaded by Site.Master and _lib/_type.scss).
-  --font-display: #{$font-family-secondary};
-  --font-text: #{$font-family-primary};
+  // tokens/typography.css. The families reuse the theme's own stacks:
+  // Site.Master and _lib/_type.scss already load Inter and Ivy Journal
+  // (including the 600 weight), so the camp page adds no font requests.
+  --font-serif: #{$font-family-secondary};
+  --font-sans: #{$font-family-primary};
   --serif-weight: 600;
-  --tracking-display: -0.012em;
-  --tracking-display-lg: -0.022em; // display sizes of 2rem and up
-  --tracking-label: 0.09em;
-  --tracking-button: 0.15em;
-  --tracking-eyebrow: 0.24em;
+  --track-display: -0.022em; // 2rem and up
+  --track-serif: -0.012em;   // under 2rem
+  --track-label: 0.24em;
+  --track-button: 0.15em;
+  --track-field-label: 0.09em; // components.css .field label
+  --lh-body: 1.6;
+
+  // Type sizes. The guide's rem sizes come from its spec sheet, where body
+  // copy is 0.82rem (13px). A registration form needs 16px body text, so
+  // each role keeps the guide's proportion to body copy (x1.22). The guide's
+  // own value is noted on each line.
+  --size-body: 1rem;            // 0.82rem
+  --size-input: 1rem;           // 0.85rem; held at 16px so iOS does not zoom
+  --size-help: 0.875rem;        // 0.72rem  .field .help
+  --size-subtext: 0.8125rem;    // 0.67rem
+  --size-field-label: 0.75rem;  // 0.62rem  .field label
+  --size-label: 0.75rem;        // 0.60rem  label / eyebrow role
+  --size-button: 0.85rem;       // 0.70rem  .btn-label
+  --size-button-sm: 0.8rem;     // 0.66rem  .accord-link
+  --size-heading: 1.35rem;      // 1.1rem
+  --size-title: 2.3rem;         // 1.9rem   section title
 
   // 2. Block surface and step card
   // -------------------------
   position: relative;
   isolation: isolate; // keeps the ::before band behind the content
-  padding: var(--s6) 0 var(--s7);
-  font-family: var(--font-text);
-  font-size: 1rem;
-  line-height: 1.5;
-  color: var(--black);
+  padding: var(--s7) 0 var(--s8);
+  font-family: var(--font-sans);
+  font-size: var(--size-body);
+  line-height: var(--lh-body);
+  color: var(--text-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
@@ -115,22 +150,19 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
     z-index: -1;
     pointer-events: none;
     content: "";
-    background: var(--page);
-    box-shadow: 0 0 0 100vmax var(--page);
+    background: var(--surface-page);
+    box-shadow: 0 0 0 100vmax var(--surface-page);
     clip-path: inset(0 -100vmax);
   }
 
-  // The current step (and the success message) sits in one white card.
+  // Cards are white, 1px hairline, 10px radius, --s5 padding, no shadow.
+  // The current step (and the success message) sits in one.
   .obsidian-block > div > div:not(.alert) {
     padding: var(--s5);
-    background: var(--white);
-    border: 1px solid var(--hairline);
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-card);
     box-shadow: none;
-
-    @media (min-width: $screen-sm-min) {
-      padding: var(--s6);
-    }
   }
 
   hr {
@@ -141,13 +173,13 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
   // Plain text links (instructions, success message). Rock's own anchors
   // all carry a class and are styled below.
   a:not([class]) {
-    color: var(--charcoal);
+    color: inherit;
     text-decoration: underline;
     text-underline-offset: 2px;
     border-bottom: 0;
 
     &:hover {
-      color: var(--black);
+      color: var(--charcoal);
     }
   }
 
@@ -160,52 +192,61 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
   h2,
   h3,
   h4 {
-    font-family: var(--font-display);
+    font-family: var(--font-serif);
     font-weight: var(--serif-weight);
-    line-height: 1.2;
-    color: var(--charcoal);
-    letter-spacing: var(--tracking-display);
+    font-kerning: normal;
+    font-feature-settings: "kern" 1, "liga" 1;
+    font-synthesis: none; // never let the browser fake a bold
+    line-height: 1.15;
+    color: var(--text-heading);
+    letter-spacing: var(--track-serif);
     text-transform: none;
   }
 
   // Step title and success title.
   .obsidian-block > div > h1 {
     margin: 0 0 var(--s5);
-    font-size: 1.625rem;
+    font-size: 1.75rem;
 
     @media (min-width: $screen-sm-min) {
-      font-size: 2rem;
-      letter-spacing: var(--tracking-display-lg);
+      font-size: var(--size-title);
+      letter-spacing: var(--track-display);
     }
   }
 
   // "How many campers will you be registering?"
   .registrationentry-intro h1 {
     margin: var(--s5) 0 var(--s4);
-    font-size: 1.5rem;
+    font-size: var(--size-heading);
   }
 
   h2 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
 
   h3 {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
 
   // Section headings inside a step (Payment Summary, Fees, Completed By).
   h4 {
     margin: 0 0 var(--s4);
-    font-size: 1.25rem;
+    font-size: var(--size-heading);
   }
 
   p,
   li {
-    color: var(--black);
+    color: var(--text-body);
+  }
+
+  strong,
+  b {
+    font-weight: 600;
+    color: var(--text-strong);
   }
 
   .text-muted {
-    color: var(--mid-gray);
+    color: var(--text-meta);
   }
 
   // 4. Progress tracker
@@ -215,8 +256,8 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
   // behaviour stay as they are.
   .progress-tracker {
     overflow: hidden;
-    background: var(--white);
-    border: 1px solid var(--hairline);
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-card);
   }
 
@@ -226,19 +267,21 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
 
   .progress-step-link {
     padding: var(--s3) var(--s4) var(--s3) var(--s3);
-    font-family: var(--font-text);
+    font-family: var(--font-sans);
     color: var(--mid-gray);
   }
 
+  // Uppercase label role: 500, +0.24em.
   .progress-tracker-title {
-    font-size: 0.6875rem;
-    font-weight: 600;
+    font-size: var(--size-label);
+    font-weight: 500;
     color: var(--mid-gray);
     text-transform: uppercase;
-    letter-spacing: var(--tracking-eyebrow);
+    letter-spacing: var(--track-label);
   }
 
   .progress-tracker-subtitle {
+    font-size: var(--size-subtext);
     color: var(--mid-gray);
   }
 
@@ -284,11 +327,11 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
   }
 
   .remaining-time-title {
-    font-size: 0.6875rem;
-    font-weight: 600;
+    font-size: var(--size-label);
+    font-weight: 500;
     color: var(--mid-gray);
     text-transform: uppercase;
-    letter-spacing: var(--tracking-label);
+    letter-spacing: var(--track-label);
   }
 
   .remaining-time-countdown {
@@ -300,19 +343,21 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
 
   // 5. Fields
   // -------------------------
+  // components.css .field: label 600 uppercase +0.09em mid gray; input
+  // white with a hairline, 8px radius, charcoal border on focus, no glow.
   .form-group {
     margin-bottom: var(--s5);
   }
 
   .control-label {
-    margin-bottom: var(--s2);
-    font-family: var(--font-text);
-    font-size: 0.6875rem;
+    margin-bottom: 5px;
+    font-family: var(--font-sans);
+    font-size: var(--size-field-label);
     font-weight: 600;
     line-height: 1.4;
     color: var(--mid-gray);
     text-transform: uppercase;
-    letter-spacing: var(--tracking-label);
+    letter-spacing: var(--track-field-label);
   }
 
   // Rock marks required fields with a red dot; keep the marker, drop the
@@ -332,26 +377,26 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
   }
 
   .help-block {
-    margin-top: var(--s2);
-    font-size: 0.875rem;
+    margin-top: 5px;
+    font-size: var(--size-help);
     color: var(--mid-gray);
   }
 
   .form-control {
     height: auto;
     min-height: 44px;
-    padding: 10px 14px;
-    font-family: var(--font-text);
-    font-size: 1rem; // 16px keeps iOS from zooming on focus
+    padding: 10px 12px;
+    font-family: var(--font-sans);
+    font-size: var(--size-input);
     font-weight: 400;
     line-height: 1.4;
     color: var(--black);
     background-color: var(--white);
     background-image: none;
     border: 1px solid var(--hairline);
-    border-radius: var(--radius-field);
+    border-radius: var(--radius-input);
     box-shadow: none;
-    transition: border-color 150ms ease;
+    transition: border-color 0.15s;
 
     &::placeholder {
       color: var(--mid-gray);
@@ -359,15 +404,14 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
     }
 
     &:focus {
-      border-color: var(--charcoal);
+      border-color: var(--border-focus);
       outline: none;
       box-shadow: none;
     }
 
-    &[disabled],
-    &[readonly] {
-      color: var(--dark-gray);
-      background-color: var(--page);
+    &[disabled] {
+      color: var(--light-gray);
+      background-color: var(--page-bg);
     }
   }
 
@@ -389,16 +433,16 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
       align-items: center;
       height: auto !important;
       min-height: 42px;
-      padding: 0 36px 0 14px !important;
+      padding: 0 36px 0 12px !important;
       background: transparent !important;
       border: 0 !important;
-      border-radius: var(--radius-field) !important;
+      border-radius: var(--radius-input) !important;
       box-shadow: none !important;
     }
 
     .ant-select-selection-search {
       right: 36px;
-      left: 14px;
+      left: 12px;
     }
 
     .ant-select-selection-item,
@@ -411,6 +455,8 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
       color: var(--mid-gray);
     }
 
+    // Mid gray at rest (3:1 against white for a control cue), dark gray
+    // when open.
     .ant-select-arrow {
       right: 14px;
       width: 16px;
@@ -418,15 +464,21 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
       margin-top: -8px;
       font-size: 16px;
       color: var(--mid-gray);
+      transition: color 0.18s;
     }
 
     &.ant-select-focused:not(.ant-select-disabled) {
-      border-color: var(--charcoal);
+      border-color: var(--border-focus);
       box-shadow: none;
+
+      .ant-select-arrow {
+        color: var(--dark-gray);
+      }
     }
 
     &.ant-select-disabled {
-      background-color: var(--page);
+      color: var(--light-gray);
+      background-color: var(--page-bg);
     }
   }
 
@@ -450,23 +502,23 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
   }
 
   // Bootstrap squares the inner corners of joined input groups; only the
-  // add-on corners need the field radius here.
+  // add-on corners need the input radius here.
   .input-group-addon {
     color: var(--mid-gray);
-    background: var(--page);
+    background: var(--page-bg);
     border-color: var(--hairline);
 
     &:first-child {
-      border-radius: var(--radius-field) 0 0 var(--radius-field);
+      border-radius: var(--radius-input) 0 0 var(--radius-input);
     }
 
     &:last-child {
-      border-radius: 0 var(--radius-field) var(--radius-field) 0;
+      border-radius: 0 var(--radius-input) var(--radius-input) 0;
     }
   }
 
   .form-control-static {
-    color: var(--black);
+    color: var(--text-strong);
   }
 
   // Checkbox and radio rows keep sentence case; only the inputs change.
@@ -475,7 +527,7 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
   .radio-inline,
   .checkbox-inline {
     font-weight: 400;
-    color: var(--black);
+    color: var(--text-body);
   }
 
   input[type="checkbox"],
@@ -510,19 +562,20 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
     }
 
     .numberincrement-down {
-      border-radius: var(--radius-field) 0 0 var(--radius-field);
+      border-radius: var(--radius-input) 0 0 var(--radius-input);
     }
 
     .numberincrement-up {
-      border-radius: 0 var(--radius-field) var(--radius-field) 0;
+      border-radius: 0 var(--radius-input) var(--radius-input) 0;
     }
 
     .numberincrement-up,
     .numberincrement-down {
       text-decoration: none;
+      transition: background 0.14s;
 
       &:hover {
-        background: var(--page);
+        background: var(--surface-hover);
       }
 
       &.disabled {
@@ -539,35 +592,45 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
 
   // 6. Buttons
   // -------------------------
-  // _lib/_forms.scss styles every button whose parent and grandparent are
-  // divs inside a form (all of Obsidian's buttons) with a (0,9,3) selector
-  // and an !important 4px radius. $camp-btn-boost matches every element and
-  // adds one ID of specificity, so these rules outrank that selector without
-  // !important; only the radius still needs it.
+  // components.css .link-btn / .featured. _lib/_forms.scss styles every
+  // button whose parent and grandparent are divs inside a form (all of
+  // Obsidian's buttons) with a (0,9,3) selector and an !important 4px
+  // radius. $camp-btn-boost matches every element and adds one ID of
+  // specificity, so these rules outrank that selector without !important;
+  // only the radius still needs it.
   $camp-btn-boost: ':not(#camp-registration-specificity)';
 
+  // Secondary (.link-btn): Previous, Apply, Set Up Payment Plan, Delete,
+  // Cancel. White pill, hairline, card shadow. Hover lifts, steps up to the
+  // hover shadow and warms the border.
   .btn#{$camp-btn-boost} {
     margin: 0;
-    padding: 14px 28px; // 44px target; the theme keeps buttons inline-block
-    font-family: var(--font-text);
-    font-size: 0.8125rem;
+    padding: 17px 28px; // the theme keeps buttons display: inline-block
+    font-family: var(--font-sans);
+    font-size: var(--size-button);
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1;
+    color: var(--charcoal);
     text-transform: uppercase;
-    letter-spacing: var(--tracking-button);
+    letter-spacing: var(--track-button);
     white-space: nowrap;
+    background: var(--white);
     background-image: none;
-    border: 1px solid transparent;
-    border-radius: var(--radius-pill) !important;
-    box-shadow: none;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-btn) !important;
+    box-shadow: var(--shadow-card);
     text-shadow: none;
-    transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+    transition: box-shadow 0.18s, background 0.18s, border-color 0.18s, transform 0.14s;
 
     &:hover,
     &:focus,
     &:active {
+      color: var(--charcoal);
       text-decoration: none;
+      background: var(--white);
       background-image: none;
+      border-color: var(--hairline);
+      box-shadow: var(--shadow-card);
 
       // The theme recolours spans inside a hovered button.
       * {
@@ -575,18 +638,18 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
       }
     }
 
-    &.btn-sm,
-    &.btn-xs {
-      padding: 10px 18px; // 36px
-      font-size: 0.75rem;
+    &:hover:not([disabled]):not(.disabled) {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
     }
 
-    &[disabled],
-    &.disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
-      box-shadow: none;
-      transform: none;
+    // Small pills (.accord-link proportions).
+    &.btn-sm,
+    &.btn-xs {
+      padding: 12px 18px;
+      font-size: var(--size-button-sm);
+      letter-spacing: 0.14em;
     }
   }
 
@@ -594,44 +657,39 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
     margin-left: var(--s2);
   }
 
-  // Featured: Next, Pay, Finish. Charcoal pill; hover goes dark gray, lifts
-  // and takes the dark shadow.
+  // Featured (.link-btn.featured): Next, Pay, Finish. Charcoal pill; hover
+  // moves to dark gray, lifts and takes the dark shadow.
   .btn-primary#{$camp-btn-boost} {
     &,
     &:hover,
     &:focus,
     &:active {
       color: var(--white);
-      background: var(--charcoal);
-      border-color: var(--charcoal);
+      background: var(--action-primary);
+      border-color: var(--action-primary);
     }
 
     &:hover:not([disabled]):not(.disabled) {
-      background: var(--dark-gray);
-      border-color: var(--dark-gray);
+      background: var(--action-primary-hover);
+      border-color: var(--action-primary-hover);
       box-shadow: var(--shadow-dark);
-      transform: translateY(-2px);
     }
   }
 
-  // Secondary: Previous, Apply, Set Up Payment Plan, Delete, Cancel. White
-  // pill with a hairline and the card shadow; hover lifts.
-  .btn-default#{$camp-btn-boost},
-  .btn-link#{$camp-btn-boost},
-  .btn-action#{$camp-btn-boost} {
+  // Disabled: light gray text, hairline border, no shadow, no pointer events.
+  .btn#{$camp-btn-boost}[disabled],
+  .btn#{$camp-btn-boost}.disabled {
+    pointer-events: none;
+
     &,
     &:hover,
-    &:focus,
-    &:active {
-      color: var(--charcoal);
+    &:focus {
+      color: var(--disabled);
       background: var(--white);
       border-color: var(--hairline);
-      box-shadow: var(--shadow-card);
-    }
-
-    &:hover:not([disabled]):not(.disabled) {
-      box-shadow: var(--shadow-hover);
-      transform: translateY(-2px);
+      box-shadow: none;
+      opacity: 1;
+      transform: none;
     }
   }
 
@@ -646,9 +704,9 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
   .well {
     padding: var(--s5);
     margin-bottom: var(--s5);
-    background: var(--white);
+    background: var(--surface-card);
     background-image: none;
-    border: 1px solid var(--hairline);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-card);
     box-shadow: none;
   }
@@ -674,29 +732,31 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
         padding-top: 0;
         padding-bottom: var(--s2);
         margin-bottom: 0;
-        font-size: 0.6875rem;
+        font-size: var(--size-field-label);
         color: var(--mid-gray);
         text-transform: uppercase;
-        letter-spacing: var(--tracking-label);
+        letter-spacing: var(--track-field-label);
 
         strong {
           font-weight: 600;
+          color: inherit;
         }
       }
 
       > .fee-row-cost {
         font-weight: 400;
+        color: var(--text-body);
       }
 
       > .fee-row-fee {
         font-weight: 400;
-        color: var(--dark-gray);
+        color: var(--text-body);
       }
 
       > .fee-row-total {
         margin-top: 0;
         font-weight: 600;
-        color: var(--charcoal);
+        color: var(--text-strong);
         border-top: 0;
         border-bottom: 0;
       }
@@ -726,7 +786,7 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
       padding: 0;
 
       .form-control {
-        border-radius: var(--radius-field);
+        border-radius: var(--radius-input);
       }
     }
   }
@@ -737,22 +797,22 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
 
   // 9. Alerts
   // -------------------------
-  // Validation, waitlist and notices: neutral surface, hairline border,
-  // a 3px left rule. Only danger and validation use red.
+  // Validation, waitlist and notices: 8px radius, hairline border, neutral
+  // surface, a 3px left rule. Only danger and validation use red.
   .alert {
     padding: var(--s4) var(--s5);
-    color: var(--black);
+    color: var(--text-body);
     text-shadow: none;
-    background: var(--page);
+    background: var(--page-bg);
     background-image: none;
     border: 1px solid var(--hairline);
     border-left: 3px solid var(--charcoal);
-    border-radius: var(--radius-field);
+    border-radius: var(--radius-input);
     box-shadow: none;
 
     strong {
       font-weight: 600;
-      color: var(--charcoal);
+      color: var(--text-strong);
     }
 
     p:last-child,
@@ -774,11 +834,12 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
   // Alerts outside the step card (registration full, not found) sit on the
   // page background, so they take the card surface.
   .obsidian-block > div > .alert {
-    background: var(--white);
+    background: var(--surface-card);
   }
 
   // 10. Focus and motion
   // -------------------------
+  // Focus is explicit and never removed: 2px charcoal outline, 2px offset.
   .btn:focus,
   a:focus {
     outline: none;
@@ -794,10 +855,11 @@ $camp-registration-stack: 859px; // buttons go full width below 860px
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .btn,
-    .form-control,
-    .progress-tracker-icon {
-      transition: none !important;
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
     }
 
     .btn:hover {
