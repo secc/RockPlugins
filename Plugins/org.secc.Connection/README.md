@@ -15,8 +15,10 @@ opportunity-search variant kept in source but excluded from the packaged plugin.
 
 - **Packaged plugin:** `SignupWizard.plugin` (built by `BuildPlugin.ps1`, zipped via 7-Zip)
 - **Root namespace:** `org.secc.Connection`
-- **Build model:** No `.csproj` / compiled assembly — block code-behind (`.ascx.cs`) compiles in
-  RockWeb; the plugin ships markup + Lava only.
+- **Build model:** No plugin `.csproj` or compiled assembly — block code-behind (`.ascx.cs`)
+  compiles in RockWeb; the plugin ships markup + Lava only. `org.secc.Connection.Tests.csproj` at the
+  plugin root is a test project only: it compiles the Volunteer Signup Form - Connections code-behind
+  for its tests and is not packaged or deployed.
 - **Deploys to:** `RockWeb/Plugins/org_secc/Connection/` (block `.ascx`/`.ascx.cs`, Lava templates,
   CSS)
 
@@ -32,6 +34,8 @@ opportunity-search variant kept in source but excluded from the packaged plugin.
   CardPage.lava       / CardPage/            Single-page card-panel output
   CardWizard.lava     / CardWizard/          Animated left-to-right card output (Single/Multiple mode)
 BuildPlugin.ps1                              Packages /org_secc into SignupWizard.plugin
+org.secc.Connection.Tests.csproj             Test project (xUnit): links VolunteerSignupFormConnections.ascx.cs
+/org.secc.Connection.Tests/                  Tests and a test-only partial declaring the block's controls
 ```
 
 ## Components
@@ -88,7 +92,9 @@ the `RoleRequests` collection before the form binds. Two details matter:
   over the same key spelled differently in the block setting.
 
 A key must also exist as an attribute on the target group member, and hold a non-empty value, to be
-applied — see `AddGroupMemberAttributes` in `VolunteerSignupFormConnections.ascx.cs`.
+applied — see `AddGroupMemberAttributes` in `VolunteerSignupFormConnections.ascx.cs`. Member
+attribute values, from the link or the form, are written to a request only when that request gets a
+placement group; a request created without a group carries none.
 
 **Connection Opportunity Search** — `Lava Template`, `Enable Debug`, `Enable Campus Context`,
 `Set Page Title`, `Display Name/Campus/Attribute Filters`, `Detail Page` (linked page),
