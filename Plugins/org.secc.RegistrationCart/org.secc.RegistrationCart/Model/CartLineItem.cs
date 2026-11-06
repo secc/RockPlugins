@@ -90,6 +90,15 @@ namespace org.secc.RegistrationCart.Model
         [DataMember]
         public bool IsTemplateDiscountLocked { get; set; }
 
+        /// <summary>
+        /// The first code the discount code workflow made for this line (financial assistance). It
+        /// is kept when the family's answers stop qualifying, so that answering again so they
+        /// qualify brings back this code instead of a new one.
+        /// </summary>
+        [DataMember]
+        [MaxLength( 100 )]
+        public string WorkflowDiscountCode { get; set; }
+
         /// <summary>The Rock Registration created for this line at checkout.</summary>
         [DataMember]
         public int? RegistrationId { get; set; }

@@ -100,8 +100,14 @@ RegistrationEntry fork ran it: the entity is a dictionary with `RegistrationInst
 `RegistrationInfo` (the camper's form answers as registrant field values), and a code the
 workflow applies (725 makes a single-use `FA-` template discount: the $50/$100 tier, or the
 template cost less $20 for "More") becomes that line's locked code. It runs again only when the
-option or answers change. Checkout records it as the registration's discount code, so the
-template's registration workflow (728) then launches the FA evaluation as before.
+option or answers change: on the edit page, changing them frees the code box, and on save a
+workflow that applies no code (the family no longer asks for assistance) removes the FA code and
+lets a typed code stand. A workflow that applies a code again brings back the line's first FA
+code (`CartLineItem.WorkflowDiscountCode`) while it can still be used, and the unused code it
+just made is deleted from the template, so turning assistance off and on doesn't pile up `FA-`
+codes. The first code keeps its value: a new "how much" answer doesn't change it. Checkout
+records the code as the registration's discount code, so the template's registration workflow
+(728) then launches the FA evaluation as before.
 
 Originally built (and verified end to end against Rock 16.9 with the Test Gateway) as a
 standalone `com.secc.ShoppingCart` project; ported into this repo on 2026-10-13 with the
@@ -215,7 +221,7 @@ edit a line whose extra was deleted or turned off).
 | 009 | Adds the *Registration Cart: Prevent Duplicate Registrations* global attribute. |
 | 010 | Adds `CartLineItemAddOn.DiscountApplies`, filled from each add-on's fee. |
 | 011 | Adds the *Show New Templates* and *Default Grade Bands* global attributes and hides the catalog page from navigation. |
-| 012 | One template code per registration (ROCK-9394): adds `CartLineItem.IsTemplateDiscountLocked` (set on existing lines with a code, which all came from the workflow); removes the Discount Codes admin page, block type and entity types and drops the `DiscountCode` / `CartDiscount` tables. Down only drops the new column. |
+| 012 | One template code per registration (ROCK-9394): adds `CartLineItem.IsTemplateDiscountLocked` and `WorkflowDiscountCode` (set on existing lines with a code, which all came from the workflow); removes the Discount Codes admin page, block type and entity types and drops the `DiscountCode` / `CartDiscount` tables. Down only drops the new columns. |
 
 ## Configuration
 

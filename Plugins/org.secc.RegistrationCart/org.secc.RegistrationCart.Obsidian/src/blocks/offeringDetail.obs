@@ -145,6 +145,7 @@
                             </p>
                             <template v-else>
                                 <input id="regcart-discount" class="rc-input" v-model="discountCode" autocomplete="off" :disabled="isAdding" />
+                                <p v-if="answersEdited" class="rc-small rc-muted" style="margin: 6px 0 0;">Your answers changed, so <b>{{ editLine?.discountCode }}</b> will be checked again when you save.</p>
                                 <p class="rc-small rc-muted" style="margin: 6px 0 0;">One {{ discountCodeTerm.toLowerCase() }} per registration. Any discount shows in your cart.</p>
                             </template>
                         </div>
@@ -176,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-    import { computed, ref, watch } from "vue";
+    import { computed, nextTick, onMounted, ref, watch } from "vue";
     import DropDownList from "@Obsidian/Controls/dropDownList.obs";
     import Modal from "@Obsidian/Controls/modal.obs";
     import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
@@ -212,17 +213,34 @@
     const cartError = ref("");
     const isAdding = ref(false);
 
-    // The registration's one discount code. A code the discount code workflow applied (financial
-    // assistance) is shown, not editable; the server keeps it while the answers stay the same.
-    const discountCodeTerm = computed<string>(() => offering.value?.discountCodeTerm || "Discount Code");
-    const isDiscountCodeLocked = !!editLine?.isDiscountCodeLocked;
-    const discountCode = ref<string>(editLine && !editLine.isDiscountCodeLocked ? (editLine.discountCode ?? "") : "");
-    const typedDiscountCode = computed<string>(() => isDiscountCodeLocked ? "" : discountCode.value.trim());
     // Saved, but the server applied a different code than the one typed: say so before leaving.
     const savedNotice = ref("");
 
     // Answers to the template's forms, keyed by form field guid; reloaded per person and option.
     const fieldValues = ref<Record<Guid, unknown>>(editLine ? { ...(editLine.fieldValues ?? {}) } : {});
+
+    // The registration's one discount code. A code the discount code workflow applied (financial
+    // assistance) is shown, not editable, while the option and answers it was made for stay the
+    // same. Changing them frees the box: on save the server runs the workflow again, which drops
+    // the code when the family no longer asks for assistance and brings the same code back when
+    // they do.
+    const discountCodeTerm = computed<string>(() => offering.value?.discountCodeTerm || "Discount Code");
+    const answersEdited = ref(false);
+    if (editLine?.isDiscountCodeLocked) {
+        const answersKey = (): string => JSON.stringify([
+            selectedVariantId.value,
+            Object.keys(fieldValues.value).sort().map(k => [k, fieldValues.value[k]])
+        ]);
+        // Taken once the forms have rendered, so their own start-up updates don't count as edits.
+        let lockedKey: string | null = null;
+        onMounted(() => nextTick(() => { lockedKey = answersKey(); }));
+        watch([fieldValues, selectedVariantId], () => {
+            if (lockedKey !== null) answersEdited.value = answersKey() !== lockedKey;
+        }, { deep: true });
+    }
+    const isDiscountCodeLocked = computed<boolean>(() => !!editLine?.isDiscountCodeLocked && !answersEdited.value);
+    const discountCode = ref<string>(editLine && !editLine.isDiscountCodeLocked ? (editLine.discountCode ?? "") : "");
+    const typedDiscountCode = computed<string>(() => isDiscountCodeLocked.value ? "" : discountCode.value.trim());
     // Fields locked because the person already has a value: shown, not editable.
     const lockedFieldGuids = ref<Guid[]>(editLine?.lockedFieldGuids ?? []);
     const isLoadingValues = ref(false);

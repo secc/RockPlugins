@@ -21,8 +21,10 @@ namespace org.secc.RegistrationCart.Migrations
     /// (ROCK-9394). Removes the cart-wide discount codes (the Discount Codes admin page, its block
     /// type, and the DiscountCode and CartDiscount tables and entity types) and adds
     /// CartLineItem.IsTemplateDiscountLocked: the line's code came from the discount code
-    /// workflow (financial assistance), so the family can't swap it. Existing lines' codes all
-    /// came from that workflow. Down only removes the new column; the cart-wide codes are gone
+    /// workflow (financial assistance), so the family can't swap it; and
+    /// CartLineItem.WorkflowDiscountCode: the first code that workflow made for the line, brought
+    /// back if the family stops and then starts asking for assistance again. Existing lines' codes
+    /// all came from that workflow. Down only removes the new columns; the cart-wide codes are gone
     /// from the plugin.
     /// </summary>
     [MigrationNumber( 12, "1.16.0" )]
@@ -38,8 +40,15 @@ namespace org.secc.RegistrationCart.Migrations
                 END" );
 
             Sql( @"
+                IF COL_LENGTH('dbo._org_secc_RegistrationCart_CartLineItem', 'WorkflowDiscountCode') IS NULL
+                BEGIN
+                    ALTER TABLE [dbo].[_org_secc_RegistrationCart_CartLineItem]
+                        ADD [WorkflowDiscountCode] [nvarchar](100) NULL;
+                END" );
+
+            Sql( @"
                 UPDATE [dbo].[_org_secc_RegistrationCart_CartLineItem]
-                SET [IsTemplateDiscountLocked] = 1
+                SET [IsTemplateDiscountLocked] = 1, [WorkflowDiscountCode] = [TemplateDiscountCode]
                 WHERE ISNULL([TemplateDiscountCode], '') <> '';" );
 
             RockMigrationHelper.DeleteBlock( SystemGuid.Block.ADMIN_DISCOUNT_CODES );
@@ -57,6 +66,12 @@ namespace org.secc.RegistrationCart.Migrations
 
         public override void Down()
         {
+            Sql( @"
+                IF COL_LENGTH('dbo._org_secc_RegistrationCart_CartLineItem', 'WorkflowDiscountCode') IS NOT NULL
+                BEGIN
+                    ALTER TABLE [dbo].[_org_secc_RegistrationCart_CartLineItem] DROP COLUMN [WorkflowDiscountCode];
+                END" );
+
             Sql( @"
                 IF COL_LENGTH('dbo._org_secc_RegistrationCart_CartLineItem', 'IsTemplateDiscountLocked') IS NOT NULL
                 BEGIN

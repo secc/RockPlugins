@@ -472,7 +472,9 @@ namespace org.secc.RegistrationCart.Services
                 || RegistrationForms.AnswersKey( template.Template, answers ) != RegistrationForms.AnswersKey( template.Template, RegistrationForms.FromJson( existing.FieldValuesJson ) );
 
             // The line's discount code. A code the discount code workflow applied stays, and can't
-            // be swapped, while the option and answers it was made for stay the same.
+            // be swapped, while the option and answers it was made for stay the same. When they
+            // change, the workflow runs again on save: no code (the family no longer asks for
+            // assistance) removes it and frees the box; a code brings back the line's first one.
             var discounts = new TemplateDiscounts( _rockContext );
             var otherCartLines = cart?.LineItems.Where( l => l.Id != otherLineId ).ToList() ?? new List<CartLineItem>();
             var keepsLockedCode = existing != null && existing.IsTemplateDiscountLocked && !answersChanged;
@@ -574,6 +576,17 @@ namespace org.secc.RegistrationCart.Services
                     {
                         applied = new TemplateDiscounts.UsableCode { Code = made.Code, Amount = made.Amount, Percentage = made.Percentage };
                         locked = true;
+
+                        // Asking for assistance again after turning it off: the line's first
+                        // workflow code comes back, and the one just made (unused) is removed.
+                        if ( line.WorkflowDiscountCode.IsNotNullOrWhiteSpace() && !DiscountRules.SameCode( line.WorkflowDiscountCode, made.Code )
+                            && discounts.Check( template.Template, option.Instance.Id, line.WorkflowDiscountCode, otherCartLines, out var original ) == null )
+                        {
+                            discounts.RemoveUnused( template.Template.Id, made.Code );
+                            applied = original;
+                        }
+
+                        line.WorkflowDiscountCode = applied.Code;
                     }
                 }
 

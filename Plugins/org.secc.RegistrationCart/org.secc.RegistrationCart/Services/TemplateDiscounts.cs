@@ -125,6 +125,30 @@ namespace org.secc.RegistrationCart.Services
                 .FirstOrDefault( d => DiscountRules.SameCode( d.Code, trimmed ) );
         }
 
+        /// <summary>
+        /// Deletes the template's discount with that code when no registration and no cart line
+        /// uses it: a code the discount code workflow just made that the line won't use.
+        /// </summary>
+        public void RemoveUnused( int registrationTemplateId, string code )
+        {
+            var service = new RegistrationTemplateDiscountService( _rockContext );
+            var discount = service.Queryable().FirstOrDefault( d => d.RegistrationTemplateId == registrationTemplateId && d.Code == code );
+            if ( discount == null )
+            {
+                return;
+            }
+
+            var templateId = registrationTemplateId;
+            var used = new RegistrationService( _rockContext ).Queryable().AsNoTracking()
+                    .Any( r => r.RegistrationInstance.RegistrationTemplateId == templateId && r.DiscountCode == code )
+                || new CartLineItemService( _rockContext ).Queryable().AsNoTracking()
+                    .Any( l => l.RegistrationTemplateId == templateId && l.TemplateDiscountCode == code );
+            if ( !used )
+            {
+                service.Delete( discount );
+            }
+        }
+
         private IQueryable<RegistrationTemplateDiscount> Discounts( int registrationTemplateId ) =>
             new RegistrationTemplateDiscountService( _rockContext ).Queryable().AsNoTracking()
                 .Where( d => d.RegistrationTemplateId == registrationTemplateId );
