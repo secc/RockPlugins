@@ -252,6 +252,37 @@ namespace org.secc.Finance.Tests
         }
 
         [Fact]
+        public void StatementType_IsLookedUpByTheContributionStatementGuid()
+        {
+            var handler = new TestGetStatement { File = NewFile( StatementFileTypeId, requiresViewSecurity: true ) };
+
+            Run( handler, "guid" );
+
+            Assert.Equal( new Guid( "01630dc6-66dd-4e26-b51e-6f70216847ae" ), handler.RequestedFileTypeGuid );
+        }
+
+        [Theory]
+        [MemberData( nameof( Shapes ) )]
+        public void Statement_WithoutLoadedType_LoadsTheTypeBeforeTheViewCheck( string shape )
+        {
+            var file = NewFile( StatementFileTypeId, requiresViewSecurity: true, givingId: "G200", personIds: "200" );
+            file.BinaryFileType = null;
+            var handler = new TestGetStatement
+            {
+                File = file,
+                CurrentUser = NewLogin( "G100", 100 ),
+                AuthorizedToView = true
+            };
+
+            Run( handler, shape );
+
+            Assert.Equal( StatementFileTypeId, handler.LoadedFileTypeId );
+            Assert.NotNull( handler.FileTypeAtViewCheck );
+            Assert.Equal( StatementFileTypeId, handler.FileTypeAtViewCheck.Id );
+            Assert.True( handler.FileSent );
+        }
+
+        [Fact]
         public void Guid_IsLookedUpByGuid()
         {
             var handler = new TestGetStatement();
@@ -331,7 +362,15 @@ namespace org.secc.Finance.Tests
     {
         public BinaryFile File { get; set; }
 
+        public static readonly Guid ContributionStatementTypeGuid = new Guid( "01630dc6-66dd-4e26-b51e-6f70216847ae" );
+
         public int? StatementTypeId { get; set; } = 36;
+
+        public Guid? RequestedFileTypeGuid { get; private set; }
+
+        public int? LoadedFileTypeId { get; private set; }
+
+        public BinaryFileType FileTypeAtViewCheck { get; private set; }
 
         public UserLogin CurrentUser { get; set; }
 
@@ -375,9 +414,16 @@ namespace org.secc.Finance.Tests
             return found ? File : null;
         }
 
-        protected override int? GetStatementFileTypeId()
+        protected override int? GetFileTypeIdByGuid( Guid fileTypeGuid )
         {
-            return StatementTypeId;
+            RequestedFileTypeGuid = fileTypeGuid;
+            return fileTypeGuid == ContributionStatementTypeGuid ? StatementTypeId : null;
+        }
+
+        protected override BinaryFileType GetBinaryFileType( int binaryFileTypeId, RockContext rockContext )
+        {
+            LoadedFileTypeId = binaryFileTypeId;
+            return new BinaryFileType { Id = binaryFileTypeId };
         }
 
         protected override UserLogin GetCurrentUser( RockContext rockContext )
@@ -387,6 +433,7 @@ namespace org.secc.Finance.Tests
 
         protected override bool IsAuthorizedToView( BinaryFile binaryFile, Person person )
         {
+            FileTypeAtViewCheck = binaryFile.BinaryFileType;
             return AuthorizedToView;
         }
 

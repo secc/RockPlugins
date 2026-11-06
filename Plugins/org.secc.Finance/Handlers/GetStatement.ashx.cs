@@ -98,12 +98,12 @@ namespace RockWeb
 
                 // Only contribution statement files are served here, and each one is checked
                 // against the current person whether or not its file type requires view security.
-                var statementFileTypeId = GetStatementFileTypeId();
+                var statementFileTypeId = GetFileTypeIdByGuid( FinancialStatementsController.CONTRIBUTION_STATEMENT_FILETYPE_GUID.AsGuid() );
                 if ( binaryFile != null && statementFileTypeId.HasValue && binaryFile.BinaryFileTypeId == statementFileTypeId.Value )
                 {
                     var currentUser = GetCurrentUser( rockContext );
                     Person currentPerson = currentUser != null ? currentUser.Person : null;
-                    binaryFile.BinaryFileType = binaryFile.BinaryFileType ?? new BinaryFileTypeService( rockContext ).Get( binaryFile.BinaryFileTypeId.Value );
+                    binaryFile.BinaryFileType = binaryFile.BinaryFileType ?? GetBinaryFileType( binaryFile.BinaryFileTypeId.Value, rockContext );
                     if ( currentUser == null )
                     {
                         SendError( context, 403, "Not authorized to view file." );
@@ -162,11 +162,19 @@ namespace RockWeb
         }
 
         /// <summary>
-        /// Gets the Id of the Contribution Statement binary file type, or null if it doesn't exist.
+        /// Gets the Id of the binary file type with the given Guid, or null if it doesn't exist.
         /// </summary>
-        protected virtual int? GetStatementFileTypeId()
+        protected virtual int? GetFileTypeIdByGuid( Guid fileTypeGuid )
         {
-            return BinaryFileTypeCache.GetId( FinancialStatementsController.CONTRIBUTION_STATEMENT_FILETYPE_GUID.AsGuid() );
+            return BinaryFileTypeCache.GetId( fileTypeGuid );
+        }
+
+        /// <summary>
+        /// Gets the binary file type with the given Id.
+        /// </summary>
+        protected virtual BinaryFileType GetBinaryFileType( int binaryFileTypeId, RockContext rockContext )
+        {
+            return new BinaryFileTypeService( rockContext ).Get( binaryFileTypeId );
         }
 
         /// <summary>
