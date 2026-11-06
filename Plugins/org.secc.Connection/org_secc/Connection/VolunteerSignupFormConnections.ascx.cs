@@ -301,6 +301,13 @@ namespace org.secc.Connection
                     .Where( o => o.Id == opportunityId )
                     .FirstOrDefault();
 
+                if ( !IsOpenForSignup( opportunity ) )
+                {
+                    pnlSignup.Visible = false;
+                    ShowError( "Incorrect Opportunity Type", "The requested opportunity does not exist." );
+                    return;
+                }
+
                 int defaultStatusId = opportunity == null ? 0 : opportunity.ConnectionType.ConnectionStatuses
                     .Where( s => s.IsDefault )
                     .Select( s => s.Id )
@@ -519,18 +526,7 @@ namespace org.secc.Connection
                                 }
                             }
 
-                            var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
-                            var hdnGroupRoleTypeId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) );
-
-
-                            if ( hdnGroupId.Value.AsInteger() > 0 && hdnGroupRoleTypeId.Value.AsInteger() > 0 )
-                            {
-                                connectionRequest.AssignedGroupId = hdnGroupId.Value.AsInteger();
-                                connectionRequest.AssignedGroupMemberRoleId = hdnGroupRoleTypeId.Value.AsInteger();
-                                var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == hdnGroupRoleTypeId.Value.AsInteger() ).FirstOrDefault();
-                                connectionRequest.AssignedGroupMemberStatus = groupConfig.GroupMemberStatus;
-
-                            }
+                            ApplyPlacement( connectionRequest, opportunity, RepeaterIndex );
 
                             // ROCK-8790: Enforce the assigned role's Group Requirements at signup — but
                             // OPT-IN per requirement type, per block instance. This block is shared across
@@ -660,7 +656,9 @@ namespace org.secc.Connection
                                 }
                             }
 
-                            var connectionAttributes = GetGroupMemberAttributes( rockContext, RepeaterIndex );
+                            var connectionAttributes = connectionRequest.AssignedGroupId.HasValue
+                                ? GetGroupMemberAttributes( rockContext, RepeaterIndex )
+                                : null;
 
                             if ( connectionAttributes != null && connectionAttributes.Keys.Any() )
                             {
@@ -745,7 +743,7 @@ namespace org.secc.Connection
                 BindPhoneTypeDropdown();
                 
                 var opportunity = new ConnectionOpportunityService( rockContext ).Get( opportunityId );
-                if ( opportunity == null )
+                if ( !IsOpenForSignup( opportunity ) )
                 {
                     pnlSignup.Visible = false;
                     ShowError( "Incorrect Opportunity Type", "The requested opportunity does not exist." );
@@ -911,7 +909,6 @@ namespace org.secc.Connection
                         var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId || gc.GroupMemberRole.Guid.ToString() == roleRequest.GroupTypeRole ).FirstOrDefault();
                         ( ( Literal ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "ltRole" ) ) ).Text = groupConfig.GroupType.Name + " - " + groupConfig.GroupMemberRole.Name;
                         ( ( Literal ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "ltRole" ) ) ).Visible = true;
-                        ( ( HiddenField ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) ).Value = groupConfig.GroupMemberRole.Id.ToString();
 
                     }
                     repeaterIndex++;
@@ -1137,6 +1134,72 @@ namespace org.secc.Connection
                         phone.NumberFormattedWithCountryCode );
                 }
 
+            }
+        }
+
+        /// <summary>
+        /// Whether the opportunity takes signups: it exists, and both it and its connection type are active.
+        /// </summary>
+        protected static bool IsOpenForSignup( ConnectionOpportunity opportunity )
+        {
+            return opportunity != null &&
+                opportunity.IsActive &&
+                opportunity.ConnectionType != null &&
+                opportunity.ConnectionType.IsActive;
+        }
+
+        /// <summary>
+        /// Sets the connection request's group, role and member status from the role request at the given
+        /// index, or leaves them unset when that request has no placement on this opportunity.
+        /// </summary>
+        protected void ApplyPlacement( ConnectionRequest connectionRequest, ConnectionOpportunity opportunity, int requestIndex )
+        {
+            var placement = ResolvePlacement( opportunity, RoleRequests[requestIndex] );
+            if ( placement.HasValue )
+            {
+                connectionRequest.AssignedGroupId = placement.Value.GroupId;
+                connectionRequest.AssignedGroupMemberRoleId = placement.Value.GroupMemberRoleId;
+                connectionRequest.AssignedGroupMemberStatus = placement.Value.GroupMemberStatus;
+            }
+        }
+
+        /// <summary>
+        /// The group, role and member status a role request places the person with on this opportunity: the
+        /// group must exist, be active, not be archived and not be a security role, and the opportunity must
+        /// have a group config for the group's type and the requested role (its member status is used).
+        /// Returns null otherwise.
+        /// </summary>
+        protected (int GroupId, int GroupMemberRoleId, GroupMemberStatus GroupMemberStatus)? ResolvePlacement( ConnectionOpportunity opportunity, ConnectionRoleRequest roleRequest )
+        {
+            if ( opportunity == null || roleRequest == null || roleRequest.GroupId <= 0 || roleRequest.GroupTypeRoleId <= 0 )
+            {
+                return null;
+            }
+
+            var group = LoadGroup( roleRequest.GroupId );
+            if ( group == null || !group.IsActive || group.IsArchived || group.IsSecurityRoleOrSecurityGroupType() )
+            {
+                return null;
+            }
+
+            var groupConfig = opportunity.ConnectionOpportunityGroupConfigs
+                .FirstOrDefault( gc => gc.GroupTypeId == group.GroupTypeId && gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId );
+            if ( groupConfig == null )
+            {
+                return null;
+            }
+
+            return (group.Id, roleRequest.GroupTypeRoleId, groupConfig.GroupMemberStatus);
+        }
+
+        /// <summary>
+        /// Loads a group by Id, archived groups included.
+        /// </summary>
+        protected virtual Group LoadGroup( int groupId )
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                return new GroupService( rockContext ).Get( groupId );
             }
         }
 

@@ -53,7 +53,6 @@
                         <ItemTemplate>
                             <div class="col-md-6">
                                 <Rock:RockLiteral ID="ltRole" runat="server" Label="Serving Role" Visible="false" CssClass="literal" />
-                                <asp:HiddenField runat="server" ID="hdnGroupRoleTypeId" />
                                 <asp:HiddenField runat="server" ID="hdnGroupId" />
                     
                                 <asp:PlaceHolder runat="server" ID="phAttributes" />
