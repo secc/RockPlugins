@@ -145,7 +145,10 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         protected void btnConfirmationFinish_Click( object sender, EventArgs e )
         {
-            ProcessRegistration();
+            if ( !ProcessRegistration() )
+            {
+                return;
+            }
             LoadStep( ActiveStep.COMPLETE );
         }
 
@@ -166,6 +169,22 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         protected void btnSchoolNext_Click( object sender, EventArgs e )
         {
+            if ( !Page.IsValid )
+            {
+                return;
+            }
+
+            // Page.IsValid alone is not enough on the server: RockDropDownList adds its required
+            // validator in CreateChildControls, which runs at PreRender, after this postback has
+            // already been validated. A blank school therefore passes server-side; this check is
+            // what stops it. (RockRadioButtonList wires its validator in OnLoad, so the sibling
+            // check here is only a backstop.)
+            if ( GetSelectedSchool() == null || rblSiblingGroups.SelectedItem == null )
+            {
+                ShowSchoolSelectionWarning();
+                return;
+            }
+
             LoadStep( ActiveStep.CONFIRMATION );
         }
 
@@ -177,9 +196,9 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         protected void ddlSchools_SelectedIndexChanged( object sender, EventArgs e )
         {
-            var selectedValue = ddlSchools.SelectedValue.AsInteger();
+            nbSchoolWarning.Visible = false;
 
-            var school = SchoolList.FirstOrDefault( s => s.Id == selectedValue );
+            var school = GetSelectedSchool();
 
             if (school == null)
             {
@@ -291,9 +310,13 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             pnlAcknowledgement.Visible = true;
         }
 
+        /// <summary>
+        /// Renders the confirmation step. The caller (btnSchoolNext_Click) has already checked
+        /// that a school and a sibling answer are selected.
+        /// </summary>
         private void LoadConfirmation()
         {
-            var school = SchoolList.Where( s => s.Id == ddlSchools.SelectedValue.AsInteger() ).FirstOrDefault();
+            var school = GetSelectedSchool();
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, CurrentPerson );
             mergeFields.Add( "RegistrantFirstName", tbFirstName.Text.Trim() );
@@ -306,6 +329,34 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             lConfirmationText.Text = GetAttributeValue( AttributeKeys.ConfirmationText ).ResolveMergeFields( mergeFields, GetAttributeValue( AttributeKeys.LavaCommands ) );
 
             pnlConfirmation.Visible = true;
+        }
+
+        /// <summary>
+        /// Returns the school picked in the dropdown, or null when the blank item is selected
+        /// or the value is not in the list loaded for this visitor. This is the server-side
+        /// guard against a missing school; do not remove it as redundant with the required
+        /// validator (see btnSchoolNext_Click).
+        /// </summary>
+        private SupportedSchool GetSelectedSchool()
+        {
+            var selectedId = ddlSchools.SelectedValueAsInt();
+            if ( !selectedId.HasValue || SchoolList == null )
+            {
+                return null;
+            }
+
+            return SchoolList.FirstOrDefault( s => s.Id == selectedId.Value );
+        }
+
+        /// <summary>
+        /// Sends the visitor back to the school step with a message instead of throwing.
+        /// </summary>
+        private void ShowSchoolSelectionWarning()
+        {
+            LoadStep( ActiveStep.SCHOOL_SELECTION );
+            nbSchoolWarning.Text = "Please choose a school from the list and answer the sibling group question. "
+                + "If the school you are looking for is not listed, all of its sponsorships have been claimed.";
+            nbSchoolWarning.Visible = true;
         }
 
         private void LoadCompletePanel()
@@ -341,14 +392,18 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         private void LoadSchoolSelection()
         {
-            if (ddlSchools.Items.Count == 0 || ddlSchools.SelectedValue == "0")
+            if (ddlSchools.Items.Count == 0 || ddlSchools.SelectedValue.IsNullOrWhiteSpace())
             {
                 ddlSchools.DataValueField = "Id";
                 ddlSchools.DataTextField = "DataTextField";
                 ddlSchools.DataSource = SchoolList.OrderBy( s => s.Name ).ToList();
                 ddlSchools.DataBind();
 
-                ddlSchools.Items.Insert( 0, new ListItem( "", "0" ) );
+                // Empty value (not "0") so the browser-side required check rejects the blank
+                // item; it only treats "" as "nothing selected". The server-side required check
+                // does not run on this postback (see btnSchoolNext_Click), so GetSelectedSchool()
+                // is what actually blocks a blank school there.
+                ddlSchools.Items.Insert( 0, new ListItem( "", "" ) );
                 nudSponsorships.Enabled = false;
             }
             else
@@ -367,6 +422,8 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             pnlSelectSchool.Visible = false;
             pnlConfirmation.Visible = false;
             pnlComplete.Visible = false;
+            nbSchoolWarning.Visible = false;
+            nbConfirmationError.Visible = false;
 
             switch (visiblePanel)
             {
@@ -390,11 +447,16 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             }
         }
 
-        private void ProcessRegistration()
+        private bool ProcessRegistration()
         {
             var workflowTypeGuid = GetAttributeValue( AttributeKeys.RegistrationWorkflow ).AsGuid();
             var workflowTypeCache = WorkflowTypeCache.Get( workflowTypeGuid );
-            var school = SchoolList.FirstOrDefault( s => s.Id == ddlSchools.SelectedValueAsInt() );
+            var school = GetSelectedSchool();
+            if ( school == null || rblSiblingGroups.SelectedItem == null )
+            {
+                ShowSchoolSelectionWarning();
+                return false;
+            }
 
 
             var workflowTitle = $"{tbFirstName.Text.Trim()} {tbLastName.Text.Trim()} - Sponsorship Registration";
@@ -413,8 +475,26 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             workflow.SetAttributeValue( "SponsorSiblingGroup", rblSiblingGroups.SelectedValue.AsBoolean().ToString() );
             workflow.SetAttributeValue( "InfoShareDate", RockDateTime.Now.ToRfc822DateTime() );
 
-            List<string> errors = new List<string>();
-            new WorkflowService( new RockContext() ).Process( workflow, out errors );
+            List<string> errors;
+            var processed = new WorkflowService( new RockContext() ).Process( workflow, out errors );
+            if ( !processed )
+            {
+                ExceptionLogService.LogException( new Exception(
+                    $"Community Gives Back registration workflow \"{workflowTitle}\" (Id {workflow.Id}) reported errors: "
+                    + ( errors ?? new List<string>() ).AsDelimited( "; " ) ) );
+            }
+
+            // Process() saves the workflow even when an action reports an error, and a saved
+            // workflow already counts against the school's sponsorships. Only treat the
+            // registration as failed when nothing was saved, so a retry can't create a duplicate.
+            if ( workflow.Id == 0 )
+            {
+                nbConfirmationError.Text = "We could not save your registration. Please try again later or contact us for help.";
+                nbConfirmationError.Visible = true;
+                return false;
+            }
+
+            return true;
         }
 
 

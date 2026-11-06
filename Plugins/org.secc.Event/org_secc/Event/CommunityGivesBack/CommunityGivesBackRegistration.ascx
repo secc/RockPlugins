@@ -60,6 +60,7 @@
             <div class="panel-heading">School Selection</div>
             <div class="panel-body">
                 <asp:ValidationSummary ID="vsSchool" runat="server" CssClass="alert alert-validation" HeaderText="Please Review the Following." ValidationGroup="valSchool" />
+                <Rock:NotificationBox ID="nbSchoolWarning" runat="server" NotificationBoxType="Warning" Visible="false" />
 
                 <div class="row">
                     <div class="col-md-6 col-sm-9 col-xs-12">
@@ -86,6 +87,7 @@
         <asp:Panel ID="pnlConfirmation" runat="server" CssClass="panel panel-default" Visible="false">
             <div class="panel-heading">Please Confirm</div>
             <div class="panel-body">
+                <Rock:NotificationBox ID="nbConfirmationError" runat="server" NotificationBoxType="Danger" Visible="false" />
                 <div class="row">
                     <div class="col-xs-12">
                         <asp:Literal ID="lConfirmationText" runat="server" />
