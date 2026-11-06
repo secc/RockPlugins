@@ -21,8 +21,10 @@ plugin. Read the plugin's README before changing it.
 
 ## Building
 
-Plugins reference Rock as a prebuilt DLL (`$(SolutionDir)RockWeb\Bin\Rock.dll`), so there is
-no need to rebuild Rock to build a plugin.
+Old-style plugin projects reference Rock as a prebuilt DLL (`$(SolutionDir)RockWeb\Bin\Rock.dll`),
+so there is no need to rebuild Rock to build them. SDK-style projects (csproj starts with
+`<Project Sdk=`) get Rock from NuGet instead (check the `RockRMS.Rock` `PackageReference` for the
+version); the stale-Rock check doesn't apply to them.
 
 - Build with `Tools/build-plugin.ps1` (PowerShell). No arguments builds the plugins changed vs
   `origin/master`; or pass names (`Workflow`, `LinkList,Event`). It warns when `../Rock`
@@ -31,9 +33,8 @@ no need to rebuild Rock to build a plugin.
   assets) except the `org_secc` and `Themes` copies. Use `-NoCopy` for a compile check that
   copies nothing and doesn't recycle a running site.
 - If the stale-Rock warning appears and the change matters, rebuild Rock once in Visual Studio.
-- Plugins with no csproj (Administration, CheckinMonitor, Connection, Equip, Event,
-  FamilyOnMission, GroupTrackerDemo, RegistrationCart, Themes) are `.ascx`/`.ascx.cs` blocks
-  compiled by RockWeb at runtime. There is nothing to build; errors show up only when the page
+- Plugins whose folder has no `.csproj` are `.ascx`/`.ascx.cs` blocks compiled by RockWeb at
+  runtime. There is nothing to build; errors show up only when the page
   loads, so type-check carefully.
 - Obsidian UI (`*.Obsidian` folders in LinkList and RegistrationCart): a solution build does not
   refresh the JS bundle. Run `npm run deploy` in the `.Obsidian` folder, then hard-refresh.
@@ -59,7 +60,8 @@ no need to rebuild Rock to build a plugin.
 - The pipeline does **not** deploy `Content/` or `Plugins/*/Themes/`. Those are copied by hand
   to the IIS file share, and the prod share is the source of truth. Never copy repo -> share
   blind: compare share, master and the merge base first, and copy back with LF line endings.
-- Plugin migrations live in `Plugins/*/Migrations/` and run on app start after deploy.
+- Plugin migrations live in `Migrations/` inside each plugin's project folder and run on app
+  start after deploy.
 
 ## Rock data and safety
 

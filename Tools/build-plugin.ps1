@@ -4,8 +4,10 @@
     without rebuilding the Rock solution.
 
 .DESCRIPTION
-    Plugins reference Rock as a DLL ($(SolutionDir)RockWeb\Bin\Rock.dll), so they only need
-    Rock to have been built once. This script:
+    Old-style plugin projects reference Rock as a DLL ($(SolutionDir)RockWeb\Bin\Rock.dll), so
+    they only need Rock to have been built once. SDK-style projects (LinkList) get Rock from
+    NuGet (RockRMS.Rock PackageReference), so the stale-Rock warning doesn't apply to them.
+    This script:
       1. Warns when a Rock assembly in RockWeb\Bin is older than its source (stale Rock build).
       2. Builds the requested plugin csproj files with MSBuild, SolutionDir pointed at ..\Rock.
       3. Unless -NoCopy: copies the plugin's org.secc.* DLL/PDB into RockWeb\Bin and runs the
@@ -226,6 +228,13 @@ if (-not $targets) {
 
 # --- Build events ----------------------------------------------------------
 $solutionDir = "$RockPath\"
+# MSBuild wants SolutionDir to end in '\'. With a space in the path PowerShell quotes the
+# argument, and on Windows PowerShell 5.1 (Legacy argument passing) the trailing '\"' then
+# escapes the closing quote. PowerShell 7.3+ escapes it itself.
+if ($RockPath -match '\s' -and
+    (Get-Variable PSNativeCommandArgumentPassing -ValueOnly -ErrorAction SilentlyContinue) -in $null, 'Legacy') {
+    $solutionDir += '\'
+}
 $skipEventLine = '\\RockWeb\\(Plugins\\org_secc|Themes)(\\|"|\s|$)'
 $eventsRun = @{}   # csproj full path (lower case) -> $true, so each project's events run once
 
@@ -271,10 +280,15 @@ function Invoke-BuildEvents([string] $csprojPath, $props) {
         }
         $cmdFile = Join-Path ([IO.Path]::GetTempPath()) "build-plugin-$([guid]::NewGuid().ToString('N')).cmd"
         Set-Content -Path $cmdFile -Value $keep -Encoding Ascii
+        # On Windows PowerShell 5.1, 'Stop' turns any stderr line from 2>&1 into a terminating
+        # error; the exit code below decides success instead.
+        $eap = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
         try {
-            $out = & cmd.exe /Q /D /C $cmdFile 2>&1 | Out-String
+            $out = & cmd.exe /Q /D /C $cmdFile 2>&1 | ForEach-Object { "$_" } | Out-String
             $code = $LASTEXITCODE
         } finally {
+            $ErrorActionPreference = $eap
             Remove-Item $cmdFile -ErrorAction SilentlyContinue
         }
         if ($code -ne 0) {
