@@ -132,8 +132,8 @@ namespace org.secc.Attributes.Controls
         }
 
         /// <summary>
-        /// The persisted AttributeMatrix Guid. Set by the field type before render;
-        /// returned (potentially updated) after postback by the field type's GetEditValue.
+        /// The persisted attribute value (comma-separated BinaryFile Guids, or a legacy
+        /// AttributeMatrix Guid). Set by the field type's SetEditValue before render.
         /// </summary>
         public string Value
         {
