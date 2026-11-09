@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <!-- Build org.secc.PersonMatch only through the plugin's own reference, so the empty
+         PostBuildEvent below applies to it too. -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <!-- Resolve RockWeb the same way LinkList.Tests does: honor an explicit
+       /p:RockWebPath, then probe the rock-dev-tool layout (Rock next to the
+       plugin folder) and the Rock solution layout (SolutionDir). -->
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('..\..\Rock\RockWeb\Bin')">..\..\Rock\RockWeb</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The post-build events of the plugin and of org.secc.PersonMatch, which it references, copy
+         their files into RockWeb. An empty PostBuildEvent for this reference turns both off when
+         they're built for the tests; building them on their own or from Rock.sln still copies them. -->
+    <ProjectReference Include="..\org.secc.Workflow.csproj" AdditionalProperties="PostBuildEvent=" />
+    <!-- The tests build Rock workflows in memory and don't touch a database. -->
+    <Reference Include="Rock">
+      <HintPath>$(RockWebPath)\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common">
+      <HintPath>$(RockWebPath)\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Enums">
+      <HintPath>$(RockWebPath)\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>$(RockWebPath)\Bin\EntityFramework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

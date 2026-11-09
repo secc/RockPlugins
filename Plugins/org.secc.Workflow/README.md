@@ -146,7 +146,7 @@ Category in Rock: **SECC > Workflow**.
 | Block | Purpose |
 |-------|---------|
 | Workflow Bulk Select | Tool for bulk-selecting workflows. |
-| Workflow Bulk Update | Tool for updating workflows in bulk. |
+| Workflow Bulk Update | Tool for updating workflows in bulk. Updates only the workflows in the set that the current person can edit and shows how many were skipped. Attribute values and the status resolve Lava merge fields, with no Lava commands enabled. |
 
 ## Dependencies & Integrations
 
