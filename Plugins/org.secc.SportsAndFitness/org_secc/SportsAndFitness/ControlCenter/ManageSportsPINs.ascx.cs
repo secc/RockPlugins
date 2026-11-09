@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
+using org.secc.Security.Utility;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -23,6 +24,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         string PinPurposeAttributeGuid = "aae4d6b6-88dc-427f-bda9-60ec7a75db65";
         int minPinLength = 4;
 
+        /// <summary>
+        /// True when the current person can add and remove the PINs shown in the list.
+        /// </summary>
+        protected bool CanManagePins { get; private set; }
 
         protected override void OnInit( EventArgs e )
         {
@@ -76,6 +81,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 var userLoginService = new UserLoginService( rockContext );
                 var attributeValueService = new AttributeValueService( rockContext );
 
+                var canAdministratePins = CanAdministratePins( rockContext );
+                var person = new PersonService( rockContext ).Get( personId.Value );
+                CanManagePins = CanManagePinsFor( person, canAdministratePins );
+                tbPIN.Visible = CanManagePins;
+                lbAdd.Visible = CanManagePins;
+
                 var attributeGuid = PinPurposeAttributeGuid.AsGuid();
                 var attributeQry = attributeValueService.Queryable()
                     .Where( a => a.Attribute.Guid == attributeGuid );
@@ -88,7 +99,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Where( l => l.UserLogin.EntityTypeId == pinLoginType.Id )
                     .ToList()
                     .Where( l => l.PurposeValue.SplitDelimitedValues().Contains( SFPurpose.Id.ToString() ) )
-                    .Select( l => l.UserLogin )
+                    .Select( l => new { l.UserLogin.Id, UserName = PinManagerRules.DisplayPin( l.UserLogin.UserName, canAdministratePins ) } )
                     .ToList();
 
                 rSportsPins.DataSource = userLogins;
@@ -103,7 +114,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         private void AddPIN()
         {
             // Derive the target person from the server-side page parameter and
-            // verify the current user is authorized to edit them. The client-posted
+            // verify the current user can administrate PIN Authentication and edit
+            // them (GetAuthorizedPerson). The client-posted
             // hidden field must never be trusted for this (ROCK-8766).
             var person = GetAuthorizedPerson();
 
@@ -184,8 +196,9 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         private void RemovePIN(int loginId)
         {
             // Same access-control requirement as AddPIN: resolve the person from the
-            // server-side page parameter and confirm the current user can edit them,
-            // rather than trusting the client-posted hidden field (ROCK-8766).
+            // server-side page parameter and confirm the current user can administrate
+            // PIN Authentication and edit them (GetAuthorizedPerson), rather than
+            // trusting the client-posted hidden field (ROCK-8766).
             var person = GetAuthorizedPerson();
 
             if(person == null)
@@ -198,17 +211,34 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             using (var rockContext = new RockContext())
             {
                 var userLoginService = new UserLoginService( rockContext );
-                var login = userLoginService.Queryable()
-                    .Where( l => l.Id == loginId )
-                    .Where( l => l.PersonId == personId )
-                    .SingleOrDefault();
+                var login = userLoginService.Get( loginId );
 
-                if(login == null)
+                if ( !PinManagerRules.IsPersonPin( login, personId, EntityTypeCache.Get( Rock.SystemGuid.EntityType.AUTHENTICATION_PIN ).Id ) )
                 {
                     return;
                 }
 
-                userLoginService.Delete( login );
+                // Same as Person Actions: remove only the Sports and Fitness purpose from a PIN with other
+                // purposes, delete a PIN whose only purpose is Sports and Fitness, and leave other PINs alone.
+                var sportsPINDV = DefinedValueCache.Get( SFPurposeGuid );
+                var purposeKey = AttributeCache.Get( PinPurposeAttributeGuid ).Key;
+                login.LoadAttributes( rockContext );
+                var pinTypesIds = login.GetAttributeValue( purposeKey ).SplitDelimitedValues()
+                    .Select( v => v.AsInteger() )
+                    .Distinct()
+                    .ToList();
+
+                if ( pinTypesIds.Count() > 1 && pinTypesIds.Contains( sportsPINDV.Id ) )
+                {
+                    pinTypesIds.Remove( sportsPINDV.Id );
+                    login.SetAttributeValue( purposeKey, string.Join( "|", pinTypesIds ) );
+                    login.SaveAttributeValue( purposeKey );
+                }
+                else if ( pinTypesIds.Contains( sportsPINDV.Id ) )
+                {
+                    userLoginService.Delete( login );
+                }
+
                 rockContext.SaveChanges();
 
             }
@@ -216,9 +246,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         /// <summary>
         /// Resolves the target person from the server-side "Person" page parameter and
-        /// verifies the current user is authorized to edit that person before any PIN
-        /// login is created or removed. Returns null (showing an alert when appropriate)
-        /// if no person is specified or the current user is not authorized.
+        /// verifies the current user can administrate PIN Authentication and is authorized
+        /// to edit that person before any PIN login is created or removed. Returns null
+        /// (showing an alert when appropriate) if no person is specified or the current
+        /// user is not authorized.
         /// </summary>
         private Person GetAuthorizedPerson()
         {
@@ -238,7 +269,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     return null;
                 }
 
-                if(!person.IsAuthorized( Authorization.EDIT, CurrentPerson ))
+                if ( !CanManagePinsFor( person, CanAdministratePins( rockContext ) ) )
                 {
                     ShowAlert( "Not Authorized", "You are not authorized to manage PINs for this person." );
                     return null;
@@ -246,6 +277,26 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 return person;
             }
+        }
+
+        /// <summary>
+        /// Returns true when the current person can add and remove the person's PINs: they can administrate
+        /// PIN Authentication (<paramref name="canAdministratePins"/>, from CanAdministratePins) and edit the person.
+        /// </summary>
+        private bool CanManagePinsFor( Person person, bool canAdministratePins )
+        {
+            return person != null
+                && canAdministratePins
+                && person.IsAuthorized( Authorization.EDIT, CurrentPerson );
+        }
+
+        /// <summary>
+        /// Returns true when the current person can administrate PIN Authentication, the same check as the PIN Manager block.
+        /// </summary>
+        private bool CanAdministratePins( RockContext rockContext )
+        {
+            return new EntityTypeService( rockContext ).Get( EntityTypeCache.Get( Rock.SystemGuid.EntityType.AUTHENTICATION_PIN ).Id )
+                .IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson );
         }
 
         private void ShowAlert(string title, string message)
