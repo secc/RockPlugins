@@ -15,7 +15,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using org.secc.Workflow.Utility;
-using Rock.Model;
 using Rock.Security;
 using Xunit;
 
@@ -27,7 +26,7 @@ namespace org.secc.Workflow.Tests
     /// </summary>
     public class WorkflowBulkUpdateAccessTests
     {
-        private static readonly Person CurrentPerson = new Person { Id = 42, FirstName = "Test", LastName = "Person" };
+        private static readonly Rock.Model.Person CurrentPerson = new Rock.Model.Person { Id = 42, FirstName = "Test", LastName = "Person" };
 
         [Fact]
         public void KeepsOnlyWorkflowsThePersonCanEdit_InOrder()
@@ -122,9 +121,9 @@ namespace org.secc.Workflow.Tests
                 _allowedActions = new HashSet<string>( allowedActions );
             }
 
-            public List<(string Action, Person Person)> Checks { get; } = new List<(string Action, Person Person)>();
+            public List<(string Action, Rock.Model.Person Person)> Checks { get; } = new List<(string Action, Rock.Model.Person Person)>();
 
-            public override bool IsAuthorized( string action, Person person )
+            public override bool IsAuthorized( string action, Rock.Model.Person person )
             {
                 Checks.Add( (action, person) );
                 return _allowedActions.Contains( action );

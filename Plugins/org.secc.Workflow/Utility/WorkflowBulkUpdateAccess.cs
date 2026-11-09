@@ -13,7 +13,6 @@
 // </copyright>
 //
 using System.Collections.Generic;
-using Rock.Model;
 using Rock.Security;
 
 namespace org.secc.Workflow.Utility
@@ -29,7 +28,7 @@ namespace org.secc.Workflow.Utility
         /// <param name="workflows">The workflows in the entity set.</param>
         /// <param name="person">The current person.</param>
         /// <param name="skippedCount">The number of workflows left out because the person can't edit them.</param>
-        public static List<Rock.Model.Workflow> GetEditableWorkflows( IEnumerable<Rock.Model.Workflow> workflows, Person person, out int skippedCount )
+        public static List<Rock.Model.Workflow> GetEditableWorkflows( IEnumerable<Rock.Model.Workflow> workflows, Rock.Model.Person person, out int skippedCount )
         {
             var editableWorkflows = new List<Rock.Model.Workflow>();
             skippedCount = 0;
