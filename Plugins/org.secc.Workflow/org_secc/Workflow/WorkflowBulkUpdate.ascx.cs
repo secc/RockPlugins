@@ -77,7 +77,9 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
                 if ( skippedCount > 0 )
                 {
                     nbNotification.NotificationBoxType = NotificationBoxType.Warning;
-                    nbNotification.Text = string.Format( "You don't have edit access to any of the {0} workflows in this set.", skippedCount );
+                    nbNotification.Text = skippedCount == 1
+                        ? "You don't have edit access to the 1 workflow in this set."
+                        : string.Format( "You don't have edit access to any of the {0} workflows in this set.", skippedCount );
                     btnContinue.Visible = false;
                 }
                 return;
@@ -104,8 +106,12 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
 
             hfCount.Value = workflows.Count.ToString();
             hfWorkflowTypeName.Value = firstWorkflow.WorkflowType.Name;
-            nbNotification.Text = string.Format( "Updating {0} {1} workflows.", workflows.Count, firstWorkflow.WorkflowType.Name );
-            if ( skippedCount > 0 )
+            nbNotification.Text = string.Format( "Updating {0} {1} {2}.", workflows.Count, firstWorkflow.WorkflowType.Name, workflows.Count == 1 ? "workflow" : "workflows" );
+            if ( skippedCount == 1 )
+            {
+                nbNotification.Text += " 1 workflow in this set will be skipped because you don't have edit access to it.";
+            }
+            else if ( skippedCount > 1 )
             {
                 nbNotification.Text += string.Format( " {0} workflows in this set will be skipped because you don't have edit access to them.", skippedCount );
             }
@@ -118,6 +124,9 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
             var workflows = GetWorkflows( rockContext );
             if ( !workflows.Any() )
             {
+                nbNotification.NotificationBoxType = NotificationBoxType.Warning;
+                nbNotification.Text = "No workflows in this set can be updated.";
+                btnContinue.Visible = false;
                 pnlConfirmation.Visible = false;
                 pnlDisplay.Visible = true;
                 return;
@@ -310,13 +319,16 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
                 }
             }
 
+            var attributeValuesByWorkflowId = attributeValues.ToLookup( av => av.EntityId.Value );
+
             foreach ( var workflow in workflows )
             {
                 workflow.Attributes = attributes;
                 workflow.AttributeValues = new Dictionary<string, AttributeValueCache>();
+                var workflowAttributeValues = attributeValuesByWorkflowId[workflow.Id];
                 foreach ( var attribute in attributes )
                 {
-                    var attributeValue = attributeValues.Where( av => av.EntityId == workflow.Id && av.AttributeKey == attribute.Key ).FirstOrDefault();
+                    var attributeValue = workflowAttributeValues.Where( av => av.AttributeKey == attribute.Key ).FirstOrDefault();
                     workflow.AttributeValues[attribute.Key] = attributeValue != null ? new AttributeValueCache( attributeValue ) : new AttributeValueCache();
                 }
             }
