@@ -36,6 +36,8 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
+using Rock.Web.Cache;
+using org.secc.Finance.Rest.Controllers;
 
 namespace RockWeb
 {
@@ -64,11 +66,11 @@ namespace RockWeb
 
             if ( fileGuid != Guid.Empty )
             {
-                return new BinaryFileService( new RockContext() ).BeginGet( cb, context, fileGuid );
+                return BeginGetFile( cb, context, fileGuid );
             }
             else if ( fileId != 0 )
             {
-                return new BinaryFileService( new RockContext() ).BeginGet( cb, context, fileId );
+                return BeginGetFile( cb, context, fileId );
             }
             else
             {
@@ -90,43 +92,121 @@ namespace RockWeb
 
                 context.Response.Clear();
 
-                var rockContext = new RockContext();
+                var rockContext = CreateRockContext();
 
-                bool requiresViewSecurity = false;
-                BinaryFile binaryFile = new BinaryFileService( rockContext ).EndGet( result, context, out requiresViewSecurity );
-                if ( binaryFile != null )
+                BinaryFile binaryFile = EndGetFile( result, context, rockContext );
+
+                // Only contribution statement files are served here, and each one is checked
+                // against the current person whether or not its file type requires view security.
+                var statementFileTypeId = GetFileTypeIdByGuid( FinancialStatementsController.CONTRIBUTION_STATEMENT_FILETYPE_GUID.AsGuid() );
+                if ( binaryFile != null && statementFileTypeId.HasValue && binaryFile.BinaryFileTypeId == statementFileTypeId.Value )
                 {
-                    //// if the binaryFile's BinaryFileType requires security, check security
-                    //// note: we put a RequiresViewSecurity flag on BinaryFileType because checking security for every file would be slow (~40ms+ per request)
-                    if ( requiresViewSecurity )
+                    var currentUser = GetCurrentUser( rockContext );
+                    Person currentPerson = currentUser != null ? currentUser.Person : null;
+                    binaryFile.BinaryFileType = binaryFile.BinaryFileType ?? GetBinaryFileType( binaryFile.BinaryFileTypeId.Value, rockContext );
+                    if ( currentUser == null )
                     {
-                        var currentUser = new UserLoginService( rockContext ).GetByUserName( UserLogin.GetCurrentUserName() );
-                        Person currentPerson = currentUser != null ? currentUser.Person : null;
-                        binaryFile.BinaryFileType = binaryFile.BinaryFileType ?? new BinaryFileTypeService( rockContext ).Get( binaryFile.BinaryFileTypeId.Value );
-                        if ( currentUser == null )
+                        SendError( context, 403, "Not authorized to view file." );
+                        return;
+                    }
+                    if ( !IsAuthorizedToView( binaryFile, currentPerson ) )
+                    {
+                        LoadAttributes( binaryFile );
+                        var previousPersonIds = currentPerson.Aliases.Select( pa => pa.AliasPersonId ).ToArray();
+                        var binaryFilePersonIds = binaryFile.GetAttributeValue( AttributeKeys.PersonIds ).SplitDelimitedValues().Select( pi => pi.AsIntegerOrNull() );
+                        if ( !( binaryFile.GetAttributeValue( AttributeKeys.GivingId ) == currentPerson.GivingId || previousPersonIds.Intersect( binaryFilePersonIds ).Any() ) )
                         {
                             SendError( context, 403, "Not authorized to view file." );
                             return;
                         }
-                        if ( !binaryFile.IsAuthorized( Authorization.VIEW, currentPerson ) )
-                        {
-                            binaryFile.LoadAttributes();
-                            var previousPersonIds = currentPerson.Aliases.Select( pa => pa.AliasPersonId ).ToArray();
-                            var binaryFilePersonIds = binaryFile.GetAttributeValue( AttributeKeys.PersonIds ).SplitDelimitedValues().Select( pi => pi.AsIntegerOrNull() );
-                            if ( !( binaryFile.GetAttributeValue( AttributeKeys.GivingId ) == currentPerson.GivingId || previousPersonIds.Intersect( binaryFilePersonIds ).Any() ) )
-                            {
-                                SendError( context, 403, "Not authorized to view file." );
-                                return;
-                            }
-                        }
                     }
 
-                    SendFile( context, binaryFile.ContentStream, binaryFile.MimeType, binaryFile.FileName, binaryFile.Guid.ToString( "N" ) );
+                    SendBinaryFile( context, binaryFile );
                     return;
                 }
 
                 SendError( context, 404, "File could not be found." );
             }
+        }
+
+        /// <summary>
+        /// Creates the RockContext used to read the file, its type and the current user.
+        /// </summary>
+        protected virtual RockContext CreateRockContext()
+        {
+            return new RockContext();
+        }
+
+        /// <summary>
+        /// Starts reading the binary file with the given Guid.
+        /// </summary>
+        protected virtual IAsyncResult BeginGetFile( AsyncCallback cb, HttpContext context, Guid fileGuid )
+        {
+            return new BinaryFileService( new RockContext() ).BeginGet( cb, context, fileGuid );
+        }
+
+        /// <summary>
+        /// Starts reading the binary file with the given Id.
+        /// </summary>
+        protected virtual IAsyncResult BeginGetFile( AsyncCallback cb, HttpContext context, int fileId )
+        {
+            return new BinaryFileService( new RockContext() ).BeginGet( cb, context, fileId );
+        }
+
+        /// <summary>
+        /// Finishes reading the binary file, or returns null if it wasn't found.
+        /// </summary>
+        protected virtual BinaryFile EndGetFile( IAsyncResult result, HttpContext context, RockContext rockContext )
+        {
+            return new BinaryFileService( rockContext ).EndGet( result, context );
+        }
+
+        /// <summary>
+        /// Gets the Id of the binary file type with the given Guid, or null if it doesn't exist.
+        /// </summary>
+        protected virtual int? GetFileTypeIdByGuid( Guid fileTypeGuid )
+        {
+            return BinaryFileTypeCache.GetId( fileTypeGuid );
+        }
+
+        /// <summary>
+        /// Gets the binary file type with the given Id.
+        /// </summary>
+        protected virtual BinaryFileType GetBinaryFileType( int binaryFileTypeId, RockContext rockContext )
+        {
+            return new BinaryFileTypeService( rockContext ).Get( binaryFileTypeId );
+        }
+
+        /// <summary>
+        /// Gets the current user's login, or null if no one is logged in.
+        /// </summary>
+        protected virtual UserLogin GetCurrentUser( RockContext rockContext )
+        {
+            return new UserLoginService( rockContext ).GetByUserName( UserLogin.GetCurrentUserName() );
+        }
+
+        /// <summary>
+        /// Determines whether the person has View access to the binary file.
+        /// </summary>
+        protected virtual bool IsAuthorizedToView( BinaryFile binaryFile, Person person )
+        {
+            return binaryFile.IsAuthorized( Authorization.VIEW, person );
+        }
+
+        /// <summary>
+        /// Loads the binary file's attribute values.
+        /// </summary>
+        protected virtual void LoadAttributes( BinaryFile binaryFile )
+        {
+            binaryFile.LoadAttributes();
+        }
+
+        /// <summary>
+        /// Sends the binary file's content.
+        /// </summary>
+        protected virtual void SendBinaryFile( HttpContext context, BinaryFile binaryFile )
+        {
+            SendFile( context, binaryFile.ContentStream, binaryFile.MimeType, binaryFile.FileName, binaryFile.Guid.ToString( "N" ) );
         }
 
         /// <summary>
@@ -220,7 +300,7 @@ namespace RockWeb
         /// <param name="context">THe HttpContext for this request.</param>
         /// <param name="code">The response code to send.</param>
         /// <param name="message">The response message to send.</param>
-        private void SendError( HttpContext context, int code, string message )
+        protected virtual void SendError( HttpContext context, int code, string message )
         {
             context.Response.Clear();
             context.Response.StatusCode = code;
