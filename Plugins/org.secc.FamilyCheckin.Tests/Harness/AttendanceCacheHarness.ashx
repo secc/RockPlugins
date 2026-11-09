@@ -57,10 +57,21 @@ public class AttendanceCacheHarness : IHttpHandler
         context.Response.Write( sb.ToString() );
     }
 
+    // Today's attendance as the cache defines it (created today and dated today).
     static int DbTodayCount()
     {
+        return new AttendanceService( new RockContext() ).Queryable().Count( AttendanceCache.TodayFilter( RockDateTime.Today ) );
+    }
+
+    // Fixture rows created today but dated yesterday or tomorrow. The cache must leave them out.
+    static List<int> OutOfDayFixtureIds()
+    {
         var today = RockDateTime.Today;
-        return new AttendanceService( new RockContext() ).Queryable().Count( a => a.CreatedDateTime != null && a.CreatedDateTime >= today );
+        var tomorrow = today.AddDays( 1 );
+        return new AttendanceService( new RockContext() ).Queryable()
+            .Where( a => a.ForeignKey == Fk && ( a.StartDateTime < today || a.StartDateTime >= tomorrow ) )
+            .Select( a => a.Id )
+            .ToList();
     }
 
     static void All( StringBuilder sb )
@@ -71,8 +82,10 @@ public class AttendanceCacheHarness : IHttpHandler
         var sw2 = Stopwatch.StartNew();
         var again = AttendanceCache.All();
         sw2.Stop();
-        sb.AppendLine( string.Format( "all: count={0} db_today={1} first_ms={2} warm_ms={3} warm_count={4} distinct_ids={5}",
-            items.Count, DbTodayCount(), sw.ElapsedMilliseconds, sw2.ElapsedMilliseconds, again.Count, items.Select( i => i.Id ).Distinct().Count() ) );
+        var outOfDayIds = OutOfDayFixtureIds();
+        sb.AppendLine( string.Format( "all: count={0} db_today={1} first_ms={2} warm_ms={3} warm_count={4} distinct_ids={5} out_of_day_rows={6} out_of_day_cached={7}",
+            items.Count, DbTodayCount(), sw.ElapsedMilliseconds, sw2.ElapsedMilliseconds, again.Count, items.Select( i => i.Id ).Distinct().Count(),
+            outOfDayIds.Count, items.Count( i => outOfDayIds.Contains( i.Id ) ) ) );
         foreach ( var g in items.GroupBy( i => i.AttendanceState.ToString() + ( i.WithParent ? "+WithParent" : "" ) ).OrderBy( g => g.Key ) )
         {
             sb.AppendLine( string.Format( "  state {0}: {1}", g.Key, g.Count() ) );
@@ -190,6 +203,7 @@ public class AttendanceCacheHarness : IHttpHandler
     static void Race( StringBuilder sb, int n )
     {
         var targetId = new AttendanceService( new RockContext() ).Queryable()
+            .Where( AttendanceCache.TodayFilter( RockDateTime.Today ) )
             .Where( a => a.ForeignKey == Fk && a.EndDateTime == null && a.DidAttend == true && a.PersonAliasId != null && a.QualifierValueId == null )
             .OrderByDescending( a => a.Id ).Select( a => a.Id ).First();
         SetEnd( targetId, null );
@@ -266,7 +280,8 @@ public class AttendanceCacheHarness : IHttpHandler
         {
             var cacheActive = o.Attendances.Count( a => a.AttendanceState != AttendanceState.CheckedOut );
             var dbActive = new AttendanceService( new RockContext() ).Queryable()
-                .Count( a => a.CreatedDateTime >= today && a.EndDateTime == null && a.Occurrence.GroupId == o.GroupId && a.Occurrence.LocationId == o.LocationId && a.Occurrence.ScheduleId == o.ScheduleId );
+                .Where( AttendanceCache.TodayFilter( today ) )
+                .Count( a => a.EndDateTime == null && a.Occurrence.GroupId == o.GroupId && a.Occurrence.LocationId == o.LocationId && a.Occurrence.ScheduleId == o.ScheduleId );
             sb.AppendLine( string.Format( "  {0} loc={1} soft={2} firm={3} IsFull={4} cache_active={5} db_active={6}",
                 o.AccessKey, o.LocationId, o.SoftRoomThreshold, o.FirmRoomThreshold, o.IsFull, cacheActive, dbActive ) );
         }
