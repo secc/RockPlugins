@@ -55,6 +55,10 @@
     <Reference Include="Rock.Enums">
       <HintPath>$(RockWebPath)\Bin\Rock.Enums.dll</HintPath>
     </Reference>
+    <!-- The GroupApp access tests subclass GroupApp controllers, whose base class is in Rock.Rest. -->
+    <Reference Include="Rock.Rest">
+      <HintPath>$(RockWebPath)\Bin\Rock.Rest.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Http">
       <HintPath>$(RockWebPath)\Bin\System.Web.Http.dll</HintPath>
     </Reference>

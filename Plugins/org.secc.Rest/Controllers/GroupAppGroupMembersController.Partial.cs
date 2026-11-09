@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Web.Http;
 using org.secc.Rest.Models;
@@ -36,9 +37,14 @@ namespace org.secc.Rest.Controllers
         private readonly PersonService _personService;
         private readonly RockContext _context;
 
-        public GroupAppGroupMembersController()
+        public GroupAppGroupMembersController() : this( new RockContext() )
         {
-            _context = new RockContext();
+        }
+
+        // The tests pass a context that never connects.
+        protected GroupAppGroupMembersController( RockContext context )
+        {
+            _context = context;
             _definedValueService = new DefinedValueService( _context );
             _groupService = new GroupService( _context );
             _groupMemberService = new GroupMemberService( _context );
@@ -54,32 +60,29 @@ namespace org.secc.Rest.Controllers
         [System.Web.Http.Route( "api/GroupApp/GetGroupMembers/{groupId}" )]
         public IHttpActionResult GetGroupMembers( int groupId )
         {
-            var currentUser = UserLoginService.GetCurrentUser();
+            var currentUser = GetCurrentUserLogin();
 
             if ( currentUser == null )
             {
                 return StatusCode( HttpStatusCode.Unauthorized );
             }
 
-            var group = _groupService.Get( groupId );
+            var group = FindGroup( groupId );
             if ( group == null )
             {
                 return NotFound();
             }
 
-            bool isGroupMember = _groupMemberService.Queryable()
-                .Any( gm => gm.GroupId == group.Id
-                    && gm.PersonId == currentUser.Person.Id
-                    && gm.IsArchived == false
-                    && gm.GroupMemberStatus == GroupMemberStatus.Active );
+            bool isGroupMember = IsActiveGroupMember( group.Id, currentUser.Person.Id );
 
-            if ( isGroupMember || group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            // Active members, and people with Edit and Manage Members permission on the group (not through a group role).
+            if ( isGroupMember || HasSecurityGrant( group, currentUser.Person ) )
             {
                 var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
 
                 // For table-based groups this is the caller's own table; a caller with no
                 // table (not a member, or TableNumber blank) sees nothing.
-                var scope = groupMemberServiceHelper.GetScopedGroupMembers( group, currentUser.Person );
+                var scope = GetScopedGroupMembers( groupMemberServiceHelper, group, currentUser.Person );
                 if ( !scope.SenderHasScope )
                 {
                     // A flag the app can test, rather than a bare message string.
@@ -535,7 +538,7 @@ namespace org.secc.Rest.Controllers
                 {
                     // Staff with a security grant fall back to the full roster; a table leader
                     // with a blank TableNumber still gets the 400.
-                    if ( !GroupMemberServiceHelper.HasSecurityGrant( group, currentUser.Person ) )
+                    if ( !HasSecurityGrant( group, currentUser.Person ) )
                     {
                         return BadRequest( GroupMemberServiceHelper.NotAssignedToTableMessage );
                     }
@@ -584,6 +587,21 @@ namespace org.secc.Rest.Controllers
             }
 
         }
+
+        protected virtual UserLogin GetCurrentUserLogin() => UserLoginService.GetCurrentUser();
+
+        protected virtual Group FindGroup( int groupId ) => _groupService.Get( groupId );
+
+        private bool IsActiveGroupMember( int groupId, int personId ) => AnyGroupMember( GroupMemberServiceHelper.ActiveMemberOf( groupId, personId ) );
+
+        protected virtual bool AnyGroupMember( Expression<Func<GroupMember, bool>> predicate ) => _groupMemberService.Queryable().Any( predicate );
+
+        protected virtual bool Authorized( Rock.Security.ISecured entity, string action, Person person ) => Rock.Security.Authorization.Authorized( entity, action, person );
+
+        private bool HasSecurityGrant( Group group, Person person ) => GroupMemberServiceHelper.HasSecurityGrant( action => Authorized( group, action, person ) );
+
+        protected virtual ScopedGroupMembers GetScopedGroupMembers( GroupMemberServiceHelper helper, Group group, Person person )
+            => helper.GetScopedGroupMembers( group, person );
     }
 
     public class GroupAppAddGroupMember
@@ -643,16 +661,40 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
-        /// True when <paramref name="person"/> holds EDIT + MANAGE_MEMBERS on the group through
-        /// Rock security rather than a group role. Such staff oversee the whole group, so they
-        /// may remove members without a table (adding still needs one; see AddGroupMembers).
-        /// Authorization.Authorized skips Group.IsAuthorized's group-role grant, so a table
-        /// leader with a blank TableNumber does not qualify.
+        /// True when the person holds EDIT + MANAGE_MEMBERS on the group through Rock security
+        /// rather than a group role, given <paramref name="isAuthorized"/>: whether the person is
+        /// authorized for an action on the group. The controllers pass Authorization.Authorized,
+        /// which skips Group.IsAuthorized's group-role grant, so a table leader with a blank
+        /// TableNumber does not qualify. Such staff oversee the whole group, so they may remove
+        /// members without a table (adding still needs one; see AddGroupMembers).
         /// </summary>
-        public static bool HasSecurityGrant( Group group, Person person )
+        internal static bool HasSecurityGrant( Func<string, bool> isAuthorized )
         {
-            return Rock.Security.Authorization.Authorized( group, Rock.Security.Authorization.EDIT, person )
-                && Rock.Security.Authorization.Authorized( group, Rock.Security.Authorization.MANAGE_MEMBERS, person );
+            return isAuthorized( Rock.Security.Authorization.EDIT )
+                && isAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS );
+        }
+
+        /// <summary>
+        /// Rows for an active, unarchived membership of <paramref name="personId"/> in <paramref name="groupId"/>.
+        /// </summary>
+        internal static Expression<Func<GroupMember, bool>> ActiveMemberOf( int groupId, int personId )
+        {
+            return gm => gm.GroupId == groupId
+                && gm.PersonId == personId
+                && gm.IsArchived == false
+                && gm.GroupMemberStatus == GroupMemberStatus.Active;
+        }
+
+        /// <summary>
+        /// Rows for an active membership of <paramref name="personId"/> in <paramref name="groupId"/>
+        /// in a leader role.
+        /// </summary>
+        internal static Expression<Func<GroupMember, bool>> ActiveLeaderOf( int groupId, int personId )
+        {
+            return gm => gm.GroupId == groupId
+                && gm.PersonId == personId
+                && gm.GroupRole.IsLeader == true
+                && gm.GroupMemberStatus == GroupMemberStatus.Active;
         }
 
         /// <summary>
