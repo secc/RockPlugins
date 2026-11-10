@@ -45,13 +45,17 @@ using Newtonsoft.Json;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
-using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
 namespace org.secc.Connection
 {
+    // Imported inside the namespace so ConnectionState resolves to Rock's enum rather than
+    // System.Data.ConnectionState on Rock v19+, where it moved into Rock.Model. Earlier
+    // versions declare it in the global namespace, which this lookup still falls through to.
+    using Rock.Model;
+
     /// <summary>
     /// Block that can load sample data into your Rock database.
     /// Dev note: You can set the XML Document Url setting to your local
@@ -1286,7 +1290,7 @@ namespace org.secc.Connection
                 else
                 {
                     // Base case for recursion
-                    inner.Add( "Filled", subRequests != null ? subRequests.Where( sr => sr.ConnectionState != Rock.Model.ConnectionState.Inactive ).Count() : 0 );
+                    inner.Add( "Filled", subRequests != null ? subRequests.Where( sr => sr.ConnectionState != ConnectionState.Inactive ).Count() : 0 );
                 }
                 partitionList.Add( inner );
             }
