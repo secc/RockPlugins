@@ -31,7 +31,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
+// System.Data is imported piecemeal so ConnectionState stays unambiguous on Rock v19+,
+// where Rock.Model.ConnectionState would otherwise clash with System.Data.ConnectionState.
+using DataColumn = System.Data.DataColumn;
+using DataRow = System.Data.DataRow;
+using DataTable = System.Data.DataTable;
+using static System.Data.DataRowExtensions;
+using static System.Data.DataTableExtensions;
 using System.Data.Entity;
 using System.Diagnostics;
 using System.Dynamic;
@@ -45,17 +51,13 @@ using Newtonsoft.Json;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
 namespace org.secc.Connection
 {
-    // Imported inside the namespace so ConnectionState resolves to Rock's enum rather than
-    // System.Data.ConnectionState on Rock v19+, where it moved into Rock.Model. Earlier
-    // versions declare it in the global namespace, which this lookup still falls through to.
-    using Rock.Model;
-
     /// <summary>
     /// Block that can load sample data into your Rock database.
     /// Dev note: You can set the XML Document Url setting to your local
