@@ -52,8 +52,8 @@ namespace org.secc.Jobs
                                        connectionOpportunities.Contains(cr.ConnectionOpportunity.Guid.ToString())
                                        && cr.ConnectorPersonAliasId != null
                                        && (
-                                            cr.ConnectionState == ConnectionState.Active
-                                            || (cr.ConnectionState == ConnectionState.FutureFollowUp && cr.FollowupDate.HasValue && cr.FollowupDate.Value < _midnightToday)
+                                            cr.ConnectionState == Rock.Model.ConnectionState.Active
+                                            || (cr.ConnectionState == Rock.Model.ConnectionState.FutureFollowUp && cr.FollowupDate.HasValue && cr.FollowupDate.Value < _midnightToday)
                                         ));
 
             var connectionRequestGroups = connectionRequestsQry.GroupBy(cr => cr.ConnectorPersonAlias.PersonId);
