@@ -269,8 +269,17 @@ namespace org.secc.Attributes.FieldTypes
             using ( var rockContext = new RockContext() )
             {
                 // Legacy matrix values resolve to their file Guids here, so the control only
-                // ever holds plain file Guids.
-                ctrl.SetCurrentFileGuids( GetFileGuids( value, rockContext ) );
+                // ever holds plain file Guids. Keep only Guids that are real files: a legacy value
+                // whose matrix Cleanup deleted comes back as the matrix Guid itself, and a stale
+                // entry would count against MaxFiles in the browser with no list row to remove it.
+                var fileGuids = GetFileGuids( value, rockContext );
+                var existing = fileGuids.Any()
+                    ? new HashSet<Guid>( new BinaryFileService( rockContext ).Queryable()
+                        .Where( bf => fileGuids.Contains( bf.Guid ) )
+                        .Select( bf => bf.Guid ) )
+                    : new HashSet<Guid>();
+
+                ctrl.SetCurrentFileGuids( fileGuids.Where( existing.Contains ) );
             }
         }
 
