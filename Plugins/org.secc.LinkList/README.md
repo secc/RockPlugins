@@ -128,7 +128,7 @@ Each **link row** has a `DisplayStyle` (matrix attribute, migration 012):
 | Style | Renders as | Fields used |
 |-------|-----------|-------------|
 | `button` (default) | The rounded pill button. | Text, Subtitle (second line), URL, Target |
-| `card` | A card: optional image on top, then title and description. The **whole card is one `<a>`**, so clicking anywhere on it follows the link and sends the click beacon. | Text (title), Subtitle (shown as the card description), `CardImage` (optional BinaryFile guid), URL, Target |
+| `card` | A card (per Steven Estes' design): optional 16:9 image on top, then a left-aligned uppercase title with the description below it and a `›` arrow at the right. The **whole card is one `<a>`**, so clicking anywhere on it follows the link and sends the click beacon. | Text (title), Subtitle (shown as the card description), `CardImage` (optional BinaryFile guid), URL, Target |
 
 - The style is **per link**, not per list, matching how other per-link presentation (Subtitle,
   IsFeatured) is already stored on matrix rows. A list can mix buttons and cards.

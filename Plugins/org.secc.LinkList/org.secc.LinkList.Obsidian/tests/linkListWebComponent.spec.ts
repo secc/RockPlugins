@@ -321,6 +321,17 @@ describe("ROCK-9361 — card display style", () => {
         expect(el.shadowRoot!.querySelector("a.link-btn")).toBeNull();
     });
 
+    it("lays out the card body as text column + trailing arrow (design se-church-links_8)", async () => {
+        const el = await mount(baseBag({
+            items: [{ guid: "1", itemType: "link", text: "Serve", url: "https://a.test", subtitle: "Find a team", displayStyle: "card", order: 0 }]
+        }));
+        const body = el.shadowRoot!.querySelector("a.link-card > .card-body")!;
+        const kids = Array.from(body.children).map(c => c.className);
+        expect(kids).toEqual(["card-text", "card-arrow"]);
+        expect(body.querySelector('.card-text > [part="card-title"]')?.textContent).toBe("Serve");
+        expect(body.querySelector('.card-text > [part="card-description"]')).not.toBeNull();
+    });
+
     it("omits the image and description when not set", async () => {
         const el = await mount(baseBag({
             items: [{ guid: "1", itemType: "link", text: "Bare", url: "https://a.test", displayStyle: "card", cardImage: "not-a-guid", order: 0 }]

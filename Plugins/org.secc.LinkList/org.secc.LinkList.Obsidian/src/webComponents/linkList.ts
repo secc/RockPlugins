@@ -345,7 +345,8 @@ ${this.styles()}
         const linkId = safeText( item.guid || item.matrixItemGuid || "" );
         return `<a class="${classes}" part="link" href="${safeText( url )}" target="${target}"${rel}${linkId ? ` data-link-id="${linkId}"` : ""}>`
             + imgMarkup
-            + `<div class="card-body"><div class="card-title" part="card-title"><span>${label}</span><span class="card-arrow" aria-hidden="true">&rsaquo;</span></div>${desc}</div></a>`;
+            + `<div class="card-body"><div class="card-text"><div class="card-title" part="card-title">${label}</div>${desc}</div>`
+            + `<span class="card-arrow" aria-hidden="true">&rsaquo;</span></div></a>`;
     }
 
     private renderTopLink( item: LinkItemBag ): string {
@@ -436,7 +437,7 @@ ${this.styles()}
 .ll-root {
     --white:#FFFFFF; --page-bg:#F5F4F2; --black:#0F0F0F; --charcoal:#1C1C1C;
     --dark-gray:#3A3A3A; --mid-gray:#888888; --light-gray:#D4D2CE; --hairline:#E4E2DE;
-    --radius-btn:100px; --radius-accord:10px;
+    --radius-btn:100px; --radius-accord:10px; --radius-card:14px;
     --shadow-card:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
     --shadow-hover:0 6px 20px rgba(0,0,0,.11),0 2px 6px rgba(0,0,0,.05);
     font-family:'Inter',system-ui,-apple-system,sans-serif;
@@ -506,28 +507,34 @@ ${this.styles()}
 .btn-sub { font-weight:400; font-size:.85rem; color:var(--mid-gray); letter-spacing:.01em; }
 .btn-arrow { font-size:1.3rem; color:var(--light-gray); line-height:1; margin-left:4px; transition:transform .18s,color .18s; }
 .link-btn:hover .btn-arrow { transform:translateX(2px); color:var(--mid-gray); }
-/* ROCK-9361: card-style links. Same theming vars as the pills (button colors at
-   top level, inner-pill colors inside a section, featured colors when featured);
-   squarer radius so a card reads as a card, not a stretched pill. */
+/* ROCK-9361: card-style links, per Steven Estes' design (se-church-links_8):
+   optional 16:9 image, left-aligned uppercase title + description, arrow at the
+   right, whole card clickable. Same theming vars as the pills (button colors at
+   top level, section colors inside an accordion, featured colors when featured). */
 .link-card {
     width:100%; display:flex; flex-direction:column; overflow:hidden;
     background:var(--ll-btn-bg, var(--white)); color:var(--ll-btn-fg, var(--charcoal));
-    border:1px solid var(--hairline); border-radius:var(--radius-accord);
+    border:1px solid var(--hairline); border-radius:var(--radius-card);
     box-shadow:var(--shadow-card); text-decoration:none; text-align:left;
-    transition:box-shadow .18s, border-color .18s, transform .14s;
+    transition:box-shadow .18s, background .18s, border-color .18s, transform .14s;
 }
 .link-card:hover { box-shadow:var(--shadow-hover); border-color:var(--light-gray); transform:translateY(-2px); }
-.link-card:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+.link-card:focus-visible { outline:2px solid var(--charcoal); outline-offset:3px; }
+.card-img { display:block; width:100%; aspect-ratio:16/9; height:auto; object-fit:cover; background:var(--light-gray); }
+.card-body { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px 20px 18px; }
+.card-text { display:flex; flex-direction:column; gap:6px; text-align:left; min-width:0; }
+.card-title { font-weight:600; font-size:.95rem; letter-spacing:.13em; text-transform:uppercase; line-height:1.2; color:inherit; }
+.card-desc { font-weight:400; font-size:.9rem; line-height:1.5; color:var(--mid-gray); }
+.card-arrow { font-size:1.3rem; line-height:1; color:var(--light-gray); flex-shrink:0; transition:transform .18s, color .18s; }
+.link-card:hover .card-arrow { transform:translateX(2px); color:var(--mid-gray); }
 .link-card.featured { background:var(--ll-feat-bg, var(--charcoal)); border-color:var(--ll-feat-bg, var(--charcoal)); color:var(--ll-feat-fg, var(--white)); }
+.link-card.featured .card-desc { color:rgba(255,255,255,.55); }
+.link-card.featured .card-arrow { color:rgba(255,255,255,.25); }
 .link-card.featured:hover { filter:brightness(1.12); box-shadow:0 8px 28px rgba(0,0,0,.22); }
-.link-card.in-section { background:var(--ll-bg, var(--page-bg)); color:var(--ll-fg, var(--charcoal)); border-color:rgba(0,0,0,.10); box-shadow:none; }
+.link-card.featured:hover .card-arrow { color:rgba(255,255,255,.5); }
+.link-card.in-section { background:var(--ll-bg, var(--page-bg)); color:var(--ll-fg, var(--charcoal)); box-shadow:none; border-radius:12px; }
 .link-card.in-section:hover { box-shadow:var(--shadow-hover); transform:translateY(-1px); }
-.card-img { display:block; width:100%; aspect-ratio:16/9; height:auto; object-fit:cover; background:var(--hairline); }
-.card-body { display:flex; flex-direction:column; gap:6px; padding:16px 20px 18px; }
-.card-title { display:flex; align-items:center; justify-content:space-between; gap:12px; font-weight:600; font-size:1.05rem; line-height:1.3; color:inherit; }
-.card-arrow { font-size:1.3rem; line-height:1; opacity:.45; flex-shrink:0; transition:transform .18s, opacity .18s; }
-.link-card:hover .card-arrow { transform:translateX(2px); opacity:.8; }
-.card-desc { font-weight:400; font-size:.9rem; line-height:1.55; color:inherit; opacity:.75; }
+.link-card.in-section .card-body { padding:14px 18px 16px; }
 .rule { width:100%; height:1px; background:var(--hairline); margin:4px 0 0; }
 /* WS7 fix 8 (supersedes fix 4): accordions are themed cards. The card surface uses
    the button color with button-text-color heading/chevron/description; inner pills
