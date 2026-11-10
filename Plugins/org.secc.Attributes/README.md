@@ -9,7 +9,7 @@ standard Rock attribute editor (configure once, then attach to any entity) and p
 control and value-formatting logic. The three types are a **cascading dropdown** (chained dropdowns
 filtered by the prior selection, driven by a key^value matrix or a SQL query), a **dynamic phone
 number** (phone-type defined value + number), and a **multi-file upload** (multiple `BinaryFile`s
-stored behind a single attribute via an `AttributeMatrix`). Two of them ship a strongly-typed
+stored behind a single attribute as a comma-separated list of their Guids). Two of them ship a strongly-typed
 `FieldAttribute` subclass so they can be applied to blocks/components in code.
 
 ## Project Info
@@ -53,7 +53,7 @@ defined-value Id back to its label (e.g. `Mobile: 555-1234`).
 
 **`MultiFileFieldType`** — the most involved. Uploaded files become `BinaryFile`s; the attribute value
 is a comma-separated list of their Guids, in display order. `GetEditValue` keeps only files of the
-configured binary file type and marks them permanent (`IsTemporary = false`), because the upload
+configured binary file type that are fresh uploads or already in the value, and marks them permanent (`IsTemporary = false`), because the upload
 handler creates them as temporary and Rock only does that for core File/Image fields. Values saved
 before Nov 2026 hold the Guid of an `AttributeMatrix` (shared template `D95683B6-…-F48A79340175`,
 one `File` row per file); they are still read but never written. Rock Cleanup's
@@ -82,7 +82,7 @@ a link. Condensed/grid contexts show an `"N files"` count rather than embedded m
 |---------|------------|---------|
 | `CascadingDropDownList` | `CompositeControl`, `IRockControl` | N chained `RockDropDownList`s, re-filtered on `SelectedIndexChanged` postback. |
 | `DynamicPhoneNumberPicker` | `CompositeControl`, `IRockControl` | Phone-type `RockDropDownList` + `PhoneNumberBox` in a Bootstrap row. |
-| `MultiFileUpload` | `CompositeControl`, `IRockControl` | HTML5 multi-file `<input>` + a server-rendered removable file list; uploads each file to `/FileUploader.ashx` over XHR and tracks resulting Ids in a hidden field. |
+| `MultiFileUpload` | `CompositeControl`, `IRockControl` | HTML5 multi-file `<input>` + a server-rendered removable file list; uploads each file to `/FileUploader.ashx` over XHR and tracks the resulting Guids (never the guessable integer Ids) in a hidden field. |
 
 ### Field Attributes
 
@@ -127,4 +127,4 @@ a link. Condensed/grid contexts show an `"N files"` count rather than embedded m
 
 ---
 
-**Last updated:** 2026-06-29
+**Last updated:** 2026-11-10

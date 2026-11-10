@@ -29,8 +29,9 @@ namespace org.secc.Attributes.Controls
     /// <summary>
     /// Edit control for MultiFileFieldType. Renders an HTML5 multi-file picker that
     /// uploads each selected file via Rock's FileUploader handler, tracks the resulting
-    /// BinaryFile Ids in a hidden field, and renders a removable list of currently
-    /// attached files.
+    /// BinaryFile Guids in a hidden field, and renders a removable list of currently
+    /// attached files. Guids, not Ids: Ids are sequential, so a hidden field of Ids lets a
+    /// visitor claim someone else's pending upload by guessing a nearby number.
     /// </summary>
     public class MultiFileUpload : CompositeControl, IRockControl
     {
@@ -95,7 +96,7 @@ namespace org.secc.Attributes.Controls
                 {
                     return true;
                 }
-                return GetCurrentFileIds().Any();
+                return GetCurrentFileGuids().Any();
             }
         }
 
@@ -158,27 +159,28 @@ namespace org.secc.Attributes.Controls
         }
 
         /// <summary>
-        /// Seeds the hidden field with the BinaryFile Ids currently attached to this attribute.
-        /// Called by the field type's SetEditValue on initial page load.
+        /// Sets the hidden field to the BinaryFile Guids attached to this attribute, in order.
+        /// Called by the field type's SetEditValue on initial load, and by GetEditValue to drop
+        /// any posted entries it rejected so they are not re-rendered.
         /// </summary>
-        public void SetCurrentFileIds( IEnumerable<int> ids )
+        public void SetCurrentFileGuids( IEnumerable<Guid> guids )
         {
             EnsureChildControls();
-            _hfFileIds.Value = ids == null ? string.Empty : string.Join( ",", ids );
+            _hfFileIds.Value = guids == null ? string.Empty : string.Join( ",", guids.Select( g => g.ToString() ) );
         }
 
         /// <summary>
-        /// Reads the BinaryFile Ids that the user has chosen (initial set plus any uploaded,
-        /// minus any removed). The field type calls this from GetEditValue.
+        /// Reads the BinaryFile Guids that the user has chosen (initial set plus any uploaded,
+        /// minus any removed), in order. The field type calls this from GetEditValue.
         /// </summary>
-        public List<int> GetCurrentFileIds()
+        public List<Guid> GetCurrentFileGuids()
         {
             EnsureChildControls();
             return ( _hfFileIds.Value ?? string.Empty )
                 .Split( new[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
-                .Select( s => s.Trim().AsIntegerOrNull() )
-                .Where( i => i.HasValue && i.Value > 0 )
-                .Select( i => i.Value )
+                .Select( s => s.Trim().AsGuidOrNull() )
+                .Where( g => g.HasValue && g.Value != Guid.Empty )
+                .Select( g => g.Value )
                 .Distinct()
                 .ToList();
         }
@@ -219,17 +221,20 @@ namespace org.secc.Attributes.Controls
         {
             EnsureChildControls();
 
-            // Look up the file names for currently-attached ids so we can render the list server-side.
-            var currentIds = GetCurrentFileIds();
+            // Look up the file names for the attached Guids so we can render the list server-side,
+            // in the stored order.
+            var currentGuids = GetCurrentFileGuids();
             var files = new List<FileDisplay>();
-            if ( currentIds.Any() )
+            if ( currentGuids.Any() )
             {
                 using ( var rockContext = new RockContext() )
                 {
-                    files = new BinaryFileService( rockContext ).Queryable()
-                        .Where( bf => currentIds.Contains( bf.Id ) )
-                        .Select( bf => new FileDisplay { Id = bf.Id, Guid = bf.Guid, FileName = bf.FileName } )
-                        .ToList();
+                    var filesByGuid = new BinaryFileService( rockContext ).Queryable()
+                        .Where( bf => currentGuids.Contains( bf.Guid ) )
+                        .Select( bf => new FileDisplay { Guid = bf.Guid, FileName = bf.FileName } )
+                        .ToList()
+                        .ToDictionary( f => f.Guid );
+                    files = currentGuids.Where( filesByGuid.ContainsKey ).Select( g => filesByGuid[g] ).ToList();
                 }
             }
 
@@ -245,7 +250,7 @@ namespace org.secc.Attributes.Controls
             writer.RenderBeginTag( HtmlTextWriterTag.Ul );
             foreach ( var f in files )
             {
-                RenderListItem( writer, f.Id, f.Guid, f.FileName );
+                RenderListItem( writer, f.Guid, f.FileName );
             }
             writer.RenderEndTag(); // ul
 
@@ -270,9 +275,9 @@ namespace org.secc.Attributes.Controls
             RegisterClientScript();
         }
 
-        private void RenderListItem( HtmlTextWriter writer, int id, Guid guid, string fileName )
+        private void RenderListItem( HtmlTextWriter writer, Guid guid, string fileName )
         {
-            writer.AddAttribute( "data-file-id", id.ToString() );
+            writer.AddAttribute( "data-file-guid", guid.ToString() );
             writer.RenderBeginTag( HtmlTextWriterTag.Li );
 
             writer.AddAttribute( HtmlTextWriterAttribute.Href, "/GetFile.ashx?guid=" + guid );
@@ -320,7 +325,7 @@ namespace org.secc.Attributes.Controls
     var uploadUrl = '/FileUploader.ashx" + uploadQs + @"';
 
     function getIds() {
-        return (hf.value || '').split(',').filter(function(s){ return s.length > 0; });
+        return (hf.value || '').toLowerCase().split(',').filter(function(s){ return s.length > 0; });
     }
     function setIds(arr) { hf.value = arr.join(','); }
     function makeRemoveBtn() {
@@ -368,8 +373,8 @@ namespace org.secc.Attributes.Controls
         if (!btn || btn === list) { return; }
         e.preventDefault();
         var li = btn.parentNode;
-        var id = li.getAttribute('data-file-id');
-        setIds(getIds().filter(function(x){ return x !== id; }));
+        var guid = (li.getAttribute('data-file-guid') || '').toLowerCase();
+        setIds(getIds().filter(function(x){ return x !== guid; }));
         li.parentNode.removeChild(li);
     });
 
@@ -432,18 +437,17 @@ namespace org.secc.Attributes.Controls
                 var resp;
                 try { resp = JSON.parse(xhr.responseText); }
                 catch (err) { showWarning('Upload response parse error: ' + err); return; }
-                var id = (resp.Id || resp.id || '').toString();
-                var guid = resp.Guid || resp.guid || '';
+                var guid = (resp.Guid || resp.guid || '').toString().toLowerCase();
                 var fileName = resp.FileName || resp.fileName || file.name;
-                if (!id) { showWarning('Upload response missing Id.'); return; }
+                if (!guid) { showWarning('Upload response missing Guid.'); return; }
                 var ids = getIds();
-                if (ids.indexOf(id) !== -1) { return; }
-                ids.push(id);
+                if (ids.indexOf(guid) !== -1) { return; }
+                ids.push(guid);
                 setIds(ids);
                 var li = document.createElement('li');
-                li.setAttribute('data-file-id', id);
+                li.setAttribute('data-file-guid', guid);
                 var a = document.createElement('a');
-                a.href = guid ? ('/GetFile.ashx?guid=' + guid) : ('/GetFile.ashx?id=' + id);
+                a.href = '/GetFile.ashx?guid=' + guid;
                 a.target = '_blank';
                 a.textContent = fileName;
                 li.appendChild(a);
@@ -465,7 +469,6 @@ namespace org.secc.Attributes.Controls
 
         private class FileDisplay
         {
-            public int Id { get; set; }
             public Guid Guid { get; set; }
             public string FileName { get; set; }
         }

@@ -202,8 +202,8 @@ namespace org.secc.Attributes.FieldTypes
                 return string.Empty;
             }
 
-            var pendingFileIds = ctrl.GetCurrentFileIds();
-            if ( !pendingFileIds.Any() )
+            var pendingFileGuids = ctrl.GetCurrentFileGuids();
+            if ( !pendingFileGuids.Any() )
             {
                 return string.Empty;
             }
@@ -217,41 +217,41 @@ namespace org.secc.Attributes.FieldTypes
             using ( var rockContext = new RockContext() )
             {
                 var query = new BinaryFileService( rockContext ).Queryable()
-                    .Where( bf => pendingFileIds.Contains( bf.Id ) );
+                    .Where( bf => pendingFileGuids.Contains( bf.Guid ) );
 
-                // The Ids come from a client-side hidden field, so only accept files of the configured type.
+                // The Guids come from a client-side hidden field, so only accept files of the configured type.
                 if ( binaryFileTypeGuid.HasValue )
                 {
                     query = query.Where( bf => bf.BinaryFileType.Guid == binaryFileTypeGuid.Value );
                 }
 
-                // Only accept fresh uploads (still temporary) or files this value already held.
-                // Otherwise an edited hidden field could attach any permanent file of the type,
-                // e.g. another applicant's video (Ids are sequential).
+                // Only accept fresh uploads (still temporary) or files this value already held, so
+                // a known Guid of someone else's saved file can't be attached through the hidden field.
                 var existingFileGuids = GetFileGuids( ctrl.Value, rockContext );
-                var filesById = query.ToList()
+                var filesByGuid = query.ToList()
                     .Where( bf => bf.IsTemporary || existingFileGuids.Contains( bf.Guid ) )
-                    .ToDictionary( bf => bf.Id );
+                    .ToDictionary( bf => bf.Guid );
 
                 // FileUploader.ashx creates files as temporary, and Rock only makes a file permanent
                 // when a core File/Image field saves it. This value is plain text, so do it here, or
                 // Rock Cleanup's "Temporary Binary Files" step deletes the uploads.
                 // Removed files are left alone: the same value is copied between workflows (e.g.
                 // WT 858 -> 859), so another attribute may still point at them.
-                foreach ( var binaryFile in filesById.Values.Where( bf => bf.IsTemporary ) )
+                foreach ( var binaryFile in filesByGuid.Values.Where( bf => bf.IsTemporary ) )
                 {
                     binaryFile.IsTemporary = false;
                 }
 
                 rockContext.SaveChanges();
 
-                var value = string.Join( ",", pendingFileIds
-                    .Where( filesById.ContainsKey )
-                    .Select( id => filesById[id].Guid.ToString() ) );
+                var acceptedGuids = pendingFileGuids.Where( filesByGuid.ContainsKey ).ToList();
+                var value = string.Join( ",", acceptedGuids.Select( g => g.ToString() ) );
 
                 // The files are permanent now, so a re-submit after a failed postback must
-                // still recognise them as this value's own.
+                // still recognise them as this value's own. Also drop rejected entries from the
+                // hidden field so a re-render never lists files that were not accepted.
                 ctrl.Value = value;
+                ctrl.SetCurrentFileGuids( acceptedGuids );
                 return value;
             }
         }
@@ -268,20 +268,9 @@ namespace org.secc.Attributes.FieldTypes
 
             using ( var rockContext = new RockContext() )
             {
-                var fileGuids = GetFileGuids( value, rockContext );
-                if ( !fileGuids.Any() )
-                {
-                    ctrl.SetCurrentFileIds( new List<int>() );
-                    return;
-                }
-
-                var idsByGuid = new BinaryFileService( rockContext ).Queryable()
-                    .Where( bf => fileGuids.Contains( bf.Guid ) )
-                    .Select( bf => new { bf.Guid, bf.Id } )
-                    .ToList()
-                    .ToDictionary( bf => bf.Guid, bf => bf.Id );
-
-                ctrl.SetCurrentFileIds( fileGuids.Where( idsByGuid.ContainsKey ).Select( g => idsByGuid[g] ) );
+                // Legacy matrix values resolve to their file Guids here, so the control only
+                // ever holds plain file Guids.
+                ctrl.SetCurrentFileGuids( GetFileGuids( value, rockContext ) );
             }
         }
 
