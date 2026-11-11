@@ -19,6 +19,7 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.Attributes.FieldTypes;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -85,6 +86,7 @@ namespace org.secc.Attributes.Controls
             {
                 ViewState["ValidationGroup"] = value;
                 if ( RequiredFieldValidator != null ) { RequiredFieldValidator.ValidationGroup = value; }
+                if ( _cvFiles != null ) { _cvFiles.ValidationGroup = value; }
             }
         }
 
@@ -92,6 +94,12 @@ namespace org.secc.Attributes.Controls
         {
             get
             {
+                // Only once the validator has run and failed, so a postback that merely recorded a
+                // rejection (e.g. a visibility-rule postback) doesn't show a red field with no message.
+                if ( _cvFiles != null && !_cvFiles.IsValid )
+                {
+                    return false;
+                }
                 if ( !Required )
                 {
                     return true;
@@ -142,11 +150,57 @@ namespace org.secc.Attributes.Controls
             set { ViewState["Value"] = value ?? string.Empty; }
         }
 
+        /// <summary>
+        /// The value as SetEditValue loaded it. Unlike <see cref="Value"/>, GetEditValue never
+        /// overwrites it, so it still says how many files the saved value held before this edit.
+        /// </summary>
+        public string LoadedValue
+        {
+            get { return ViewState["LoadedValue"] as string ?? string.Empty; }
+            set { ViewState["LoadedValue"] = value ?? string.Empty; }
+        }
+
+        /// <summary>True once SetEditValue has set <see cref="LoadedValue"/> for this control.</summary>
+        public bool HasLoadedValue
+        {
+            get { return ViewState["LoadedValue"] != null; }
+        }
+
         #endregion
 
         #region Private State
 
         private HiddenField _hfFileIds;
+        private CustomValidator _cvFiles;
+
+        /// <summary>
+        /// Posted Guids that were rejected (and stripped from the hidden field) but not yet reported
+        /// to the visitor. Kept in ViewState because WorkflowEntry calls GetEditValue on postbacks
+        /// that don't validate (e.g. conditional-visibility postbacks): the strip persists, so the
+        /// rejection must too, or the next submit would pass and save without the file. The
+        /// validator reports it once and clears it.
+        /// </summary>
+        private List<Guid> PendingRejectedFileGuids
+        {
+            get
+            {
+                return ( ViewState["PendingRejectedFileGuids"] as string ?? string.Empty )
+                    .Split( new[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
+                    .Select( s => s.AsGuid() )
+                    .ToList();
+            }
+            set { ViewState["PendingRejectedFileGuids"] = value == null ? string.Empty : string.Join( ",", value ); }
+        }
+
+        /// <summary>
+        /// Files GetEditValue switched from temporary to permanent during this request. If this
+        /// request's validation fails, OnPreRender switches them back, so an abandoned form doesn't
+        /// leave permanent files nothing points at.
+        /// </summary>
+        private readonly List<Guid> _filesMadePermanent = new List<Guid>();
+
+        /// <summary>True once this control's validator has run in this request.</summary>
+        private bool _validatedThisRequest;
 
         #endregion
 
@@ -185,6 +239,39 @@ namespace org.secc.Attributes.Controls
                 .ToList();
         }
 
+        /// <summary>
+        /// Records posted Guids that were not accepted, so the next validating submit fails instead
+        /// of the value silently saving without them. GetEditValue strips rejected entries from the
+        /// hidden field (and WorkflowEntry calls it before it validates), so the validator can't
+        /// rediscover them itself and relies on this record.
+        /// </summary>
+        internal void MarkFilesRejected( IEnumerable<Guid> guids )
+        {
+            var pending = PendingRejectedFileGuids;
+            var added = false;
+            foreach ( var guid in guids )
+            {
+                if ( !pending.Contains( guid ) )
+                {
+                    pending.Add( guid );
+                    added = true;
+                }
+            }
+
+            if ( added )
+            {
+                PendingRejectedFileGuids = pending;
+            }
+        }
+
+        /// <summary>
+        /// Records files GetEditValue just made permanent, so a failed submit can undo it.
+        /// </summary>
+        internal void MarkFilesMadePermanent( IEnumerable<Guid> guids )
+        {
+            _filesMadePermanent.AddRange( guids );
+        }
+
         protected override void OnLoad( EventArgs e )
         {
             EnsureChildControls();
@@ -207,6 +294,127 @@ namespace org.secc.Attributes.Controls
                 RequiredFieldValidator.Enabled = Required;
                 RequiredFieldValidator.ValidationGroup = ValidationGroup;
             }
+
+            // Server-only: the accept rule needs the database.
+            _cvFiles = new CustomValidator
+            {
+                ID = "cvFiles",
+                Display = ValidatorDisplay.Dynamic,
+                CssClass = "validation-error help-inline",
+                EnableClientScript = false,
+                ValidationGroup = ValidationGroup
+            };
+            _cvFiles.ServerValidate += cvFiles_ServerValidate;
+            Controls.Add( _cvFiles );
+        }
+
+        /// <summary>
+        /// Fails when a posted file can't be attached: it no longer exists (e.g. Cleanup removed a
+        /// stale temporary upload), is the wrong file type, or is someone else's saved file. The
+        /// rejected entries are dropped from the hidden field, so the re-rendered list shows only
+        /// the files that will save, and the visitor can upload the missing ones again.
+        /// </summary>
+        private void cvFiles_ServerValidate( object source, ServerValidateEventArgs args )
+        {
+            _validatedThisRequest = true;
+            var postedGuids = GetCurrentFileGuids();
+            if ( postedGuids.Any() )
+            {
+                using ( var rockContext = new RockContext() )
+                {
+                    var acceptedGuids = MultiFileFieldType.GetAcceptableFiles( postedGuids, BinaryFileTypeGuid, Value, rockContext ).Keys;
+                    var rejectedGuids = postedGuids.Where( g => !acceptedGuids.Contains( g ) ).ToList();
+                    if ( rejectedGuids.Any() )
+                    {
+                        MarkFilesRejected( rejectedGuids );
+                        SetCurrentFileGuids( postedGuids.Where( g => acceptedGuids.Contains( g ) ) );
+                    }
+                }
+            }
+
+            // ValidationSummary renders ErrorMessage as HTML.
+            var name = HttpUtility.HtmlEncode( string.IsNullOrWhiteSpace( Label ) ? "Files" : Label );
+            var messages = new List<string>();
+
+            // Worded for a rejection recorded on an earlier postback, when the visitor may already
+            // have noticed and re-uploaded. The list is cleared in OnPreRender, not here, so a
+            // second Validate() of the same group in this request still fails.
+            var rejectedCount = PendingRejectedFileGuids.Count;
+            if ( rejectedCount > 0 )
+            {
+                messages.Add( string.Format(
+                    "{0}: {1} could not be attached and {2} removed from the list. Check the list and upload any missing files again.",
+                    name,
+                    rejectedCount == 1 ? "one file" : rejectedCount + " files",
+                    rejectedCount == 1 ? "was" : "were" ) );
+            }
+
+            // The browser enforces MaxFiles too, but the hidden field can be edited. A value saved
+            // before an admin lowered MaxFiles may keep what it has, just not grow.
+            var fileCount = postedGuids.Count == 0 ? 0 : GetCurrentFileGuids().Count;
+            var limit = MaxFiles > 0 && fileCount > MaxFiles
+                ? Math.Max( MaxFiles, MultiFileFieldType.CountFilesInValue( LoadedValue ) )
+                : MaxFiles;
+            if ( limit > 0 && fileCount > limit )
+            {
+                messages.Add( string.Format(
+                    "{0}: no more than {1} {2} can be attached. Remove {3} and submit again.",
+                    name,
+                    limit,
+                    limit == 1 ? "file" : "files",
+                    fileCount - limit == 1 ? "one file" : ( fileCount - limit ) + " files" ) );
+            }
+
+            args.IsValid = !messages.Any();
+            if ( !args.IsValid )
+            {
+                _cvFiles.ErrorMessage = string.Join( " ", messages );
+            }
+        }
+
+        private bool ValidationFailedThisRequest()
+        {
+            return _validatedThisRequest
+                && Page.GetValidators( ValidationGroup ).Cast<IValidator>().Any( v => !v.IsValid );
+        }
+
+        protected override void OnPreRender( EventArgs e )
+        {
+            // The visitor has now been told, so a resubmit goes through with the files still listed.
+            if ( _cvFiles != null && !_cvFiles.IsValid )
+            {
+                PendingRejectedFileGuids = new List<Guid>();
+            }
+
+            // GetEditValue runs before validation (WorkflowEntry reads values first), so it may have
+            // made new uploads permanent for a submit that then failed validation. Put them back to
+            // temporary: if the visitor abandons the form, Rock Cleanup removes them as it does any
+            // stale upload, and a resubmit still accepts them as fresh uploads.
+            // Only when this request certainly saved nothing: this validator ran and its group
+            // failed (WorkflowEntry and Workflow Detail both stop before saving then). Any other
+            // request may have saved the value, e.g. a form button with Causes Validation off, and
+            // undoing there would let Cleanup delete files a saved value points at. Leaking an
+            // abandoned upload is the lesser failure.
+            if ( _filesMadePermanent.Any() && Page != null && ValidationFailedThisRequest() )
+            {
+                using ( var rockContext = new RockContext() )
+                {
+                    var guids = _filesMadePermanent.Distinct().ToList();
+                    var files = new BinaryFileService( rockContext ).Queryable()
+                        .Where( bf => guids.Contains( bf.Guid ) && !bf.IsTemporary )
+                        .ToList();
+                    foreach ( var file in files )
+                    {
+                        file.IsTemporary = true;
+                    }
+
+                    rockContext.SaveChanges();
+                }
+
+                _filesMadePermanent.Clear();
+            }
+
+            base.OnPreRender( e );
         }
 
         public override void RenderControl( HtmlTextWriter writer )
@@ -269,6 +477,8 @@ namespace org.secc.Attributes.Controls
             }
             writer.RenderBeginTag( HtmlTextWriterTag.Input );
             writer.RenderEndTag();
+
+            _cvFiles.RenderControl( writer );
 
             writer.RenderEndTag(); // div
 

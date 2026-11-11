@@ -216,33 +216,25 @@ namespace org.secc.Attributes.FieldTypes
 
             using ( var rockContext = new RockContext() )
             {
-                var query = new BinaryFileService( rockContext ).Queryable()
-                    .Where( bf => pendingFileGuids.Contains( bf.Guid ) );
-
-                // The Guids come from a client-side hidden field, so only accept files of the configured type.
-                if ( binaryFileTypeGuid.HasValue )
-                {
-                    query = query.Where( bf => bf.BinaryFileType.Guid == binaryFileTypeGuid.Value );
-                }
-
-                // Only accept fresh uploads (still temporary) or files this value already held, so
-                // a known Guid of someone else's saved file can't be attached through the hidden field.
-                var existingFileGuids = GetFileGuids( ctrl.Value, rockContext );
-                var filesByGuid = query.ToList()
-                    .Where( bf => bf.IsTemporary || existingFileGuids.Contains( bf.Guid ) )
-                    .ToDictionary( bf => bf.Guid );
+                var filesByGuid = GetAcceptableFiles( pendingFileGuids, binaryFileTypeGuid, ctrl.Value, rockContext );
 
                 // FileUploader.ashx creates files as temporary, and Rock only makes a file permanent
                 // when a core File/Image field saves it. This value is plain text, so do it here, or
                 // Rock Cleanup's "Temporary Binary Files" step deletes the uploads.
                 // Removed files are left alone: the same value is copied between workflows (e.g.
                 // WT 858 -> 859), so another attribute may still point at them.
+                var madePermanent = new List<Guid>();
                 foreach ( var binaryFile in filesByGuid.Values.Where( bf => bf.IsTemporary ) )
                 {
                     binaryFile.IsTemporary = false;
+                    madePermanent.Add( binaryFile.Guid );
                 }
 
                 rockContext.SaveChanges();
+
+                // Rock reads edit values before it validates, so this can run for a submit that then
+                // fails. The control undoes it in that case (see MultiFileUpload.OnPreRender).
+                ctrl.MarkFilesMadePermanent( madePermanent );
 
                 var acceptedGuids = pendingFileGuids.Where( filesByGuid.ContainsKey ).ToList();
                 var value = string.Join( ",", acceptedGuids.Select( g => g.ToString() ) );
@@ -252,7 +244,47 @@ namespace org.secc.Attributes.FieldTypes
                 // hidden field so a re-render never lists files that were not accepted.
                 ctrl.Value = value;
                 ctrl.SetCurrentFileGuids( acceptedGuids );
+
+                // Tell the control's validator, so the submit fails instead of saving without them.
+                ctrl.MarkFilesRejected( pendingFileGuids.Where( g => !filesByGuid.ContainsKey( g ) ) );
                 return value;
+            }
+        }
+
+        /// <summary>
+        /// The posted files this value may hold, keyed by Guid and tracked by the context. The
+        /// Guids come from a client-side hidden field, so accept a file only if it is already in
+        /// the current value, or is a fresh upload (still temporary) of the configured type.
+        /// Otherwise a known Guid of someone else's saved file could be attached. Files already in
+        /// the value skip the type check, so an admin changing the attribute's file type doesn't
+        /// drop files that were saved under the old one. Shared with the control's validator so
+        /// both apply the same rule.
+        /// </summary>
+        internal static Dictionary<Guid, BinaryFile> GetAcceptableFiles( List<Guid> fileGuids, Guid? binaryFileTypeGuid, string currentValue, RockContext rockContext )
+        {
+            var existingFileGuids = GetFileGuids( currentValue, rockContext );
+            return new BinaryFileService( rockContext ).Queryable()
+                .Where( bf => fileGuids.Contains( bf.Guid ) )
+                .Select( bf => new { File = bf, TypeGuid = ( Guid? ) bf.BinaryFileType.Guid } )
+                .ToList()
+                .Where( x => existingFileGuids.Contains( x.File.Guid )
+                    || ( x.File.IsTemporary && ( !binaryFileTypeGuid.HasValue || x.TypeGuid == binaryFileTypeGuid.Value ) ) )
+                .ToDictionary( x => x.File.Guid, x => x.File );
+        }
+
+        /// <summary>
+        /// How many files a saved value holds (legacy matrix values included).
+        /// </summary>
+        internal static int CountFilesInValue( string value )
+        {
+            if ( string.IsNullOrWhiteSpace( value ) )
+            {
+                return 0;
+            }
+
+            using ( var rockContext = new RockContext() )
+            {
+                return GetFileGuids( value, rockContext ).Count;
             }
         }
 
@@ -265,6 +297,12 @@ namespace org.secc.Attributes.FieldTypes
             }
 
             ctrl.Value = value ?? string.Empty;
+            // First load only: a visibility rule hiding/re-showing the field calls SetEditValue again
+            // with null or the in-progress value, which must not move the MaxFiles baseline.
+            if ( !ctrl.HasLoadedValue )
+            {
+                ctrl.LoadedValue = value ?? string.Empty;
+            }
 
             using ( var rockContext = new RockContext() )
             {

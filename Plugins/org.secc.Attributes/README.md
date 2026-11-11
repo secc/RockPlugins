@@ -54,7 +54,18 @@ defined-value Id back to its label (e.g. `Mobile: 555-1234`).
 **`MultiFileFieldType`** — the most involved. Uploaded files become `BinaryFile`s; the attribute value
 is a comma-separated list of their Guids, in display order. `GetEditValue` keeps only files of the
 configured binary file type that are fresh uploads or already in the value, and marks them permanent (`IsTemporary = false`), because the upload
-handler creates them as temporary and Rock only does that for core File/Image fields. Values saved
+handler creates them as temporary and Rock only does that for core File/Image fields. A posted file
+that fails that check (gone, wrong type, or someone else's saved file) drops out of the list, and the
+next validating submit fails once with a message rather than silently saving without it. The
+rejection is kept in ViewState because WorkflowEntry reads edit values on postbacks that don't
+validate (visibility rules). A non-validating action button (Cancel) still saves without it.
+Because Rock reads edit values before it validates, uploads are made permanent early; if that submit
+then fails validation, the control sets them back to temporary so Cleanup can remove abandoned uploads.
+It does not undo on any other request (a visibility postback, a non-validating button), since that
+request may have saved the value, so those abandoned uploads can still be left permanent. Files already
+in the value are kept even if the attribute's binary file type has since changed. `MaxFiles` is enforced
+on the server as well as in the browser; a value saved before an admin lowered it may keep its files
+but not add more. Values saved
 before Nov 2026 hold the Guid of an `AttributeMatrix` (shared template `D95683B6-…-F48A79340175`,
 one `File` row per file); they are still read but never written. Rock Cleanup's
 `spCore_DeleteOrphanedAttributeMatrices` only keeps matrices referenced by a core Matrix field, so it
@@ -127,4 +138,4 @@ a link. Condensed/grid contexts show an `"N files"` count rather than embedded m
 
 ---
 
-**Last updated:** 2026-11-10
+**Last updated:** 2026-11-11
