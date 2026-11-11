@@ -31,7 +31,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
+// System.Data is imported piecemeal so ConnectionState stays unambiguous on Rock v19+,
+// where Rock.Model.ConnectionState would otherwise clash with System.Data.ConnectionState.
+using DataColumn = System.Data.DataColumn;
+using DataRow = System.Data.DataRow;
+using DataTable = System.Data.DataTable;
+using static System.Data.DataRowExtensions;
+using static System.Data.DataTableExtensions;
 using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
