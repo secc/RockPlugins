@@ -31,25 +31,27 @@ namespace org.secc.Attributes.FieldTypes
 {
     /// <summary>
     /// Field type that accepts multiple file uploads against a single attribute.
-    /// Files are stored as BinaryFiles; the attribute value is an AttributeMatrix Guid
-    /// whose rows each reference one BinaryFile.
+    /// Files are stored as BinaryFiles; the attribute value is a comma-separated list of
+    /// their Guids, in display order.
+    ///
+    /// Values saved before Nov 2026 hold an AttributeMatrix Guid instead (one matrix row per
+    /// file). Those are still read, but nothing writes them any more: Rock Cleanup's
+    /// spCore_DeleteOrphanedAttributeMatrices only keeps matrices referenced by a core Matrix
+    /// field type, so it deletes every MultiFile matrix as an orphan.
     /// </summary>
     [Serializable]
     public class MultiFileFieldType : Rock.Field.FieldType
     {
         #region Constants
 
-        // Well-known Guid for the system-managed AttributeMatrixTemplate that backs every
-        // MultiFile attribute. Auto-provisioned on first use. Do not change.
-        // Generated via PowerShell [guid]::NewGuid() (CSPRNG-backed); not LLM-invented.
+        // Well-known Guid of the AttributeMatrixTemplate that backed legacy (matrix) values.
+        // No longer provisioned or written; kept so legacy values can still be read. Do not change.
         public const string SHARED_TEMPLATE_GUID = "D95683B6-3587-43A6-8317-F48A79340175";
         public const string TEMPLATE_FILE_ATTRIBUTE_KEY = "File";
 
         private const string CONFIG_BINARY_FILE_TYPE = "binaryfiletype";
         private const string CONFIG_MAX_FILES = "maxfiles";
         private const string CONFIG_ALLOWED_EXTENSIONS = "allowedextensions";
-
-        private static int? _sharedTemplateIdCache;
 
         #endregion
 
@@ -200,79 +202,89 @@ namespace org.secc.Attributes.FieldTypes
                 return string.Empty;
             }
 
-            var pendingFileIds = ctrl.GetCurrentFileIds();
+            var pendingFileGuids = ctrl.GetCurrentFileGuids();
+            if ( !pendingFileGuids.Any() )
+            {
+                return string.Empty;
+            }
+
+            Guid? binaryFileTypeGuid = null;
+            if ( configurationValues != null && configurationValues.ContainsKey( CONFIG_BINARY_FILE_TYPE ) )
+            {
+                binaryFileTypeGuid = configurationValues[CONFIG_BINARY_FILE_TYPE].Value.AsGuidOrNull();
+            }
 
             using ( var rockContext = new RockContext() )
             {
-                // Resolve BinaryFile Ids to Guids
-                var binaryFileService = new BinaryFileService( rockContext );
-                var idToGuid = pendingFileIds
-                    .Select( i => binaryFileService.Get( i ) )
-                    .Where( bf => bf != null )
-                    .ToDictionary( bf => bf.Id, bf => bf.Guid );
+                var filesByGuid = GetAcceptableFiles( pendingFileGuids, binaryFileTypeGuid, ctrl.Value, rockContext );
 
-                var pendingFileGuids = idToGuid.Values.ToList();
-
-                var matrixService = new AttributeMatrixService( rockContext );
-                AttributeMatrix matrix = null;
-
-                var existingMatrixGuid = ctrl.Value.AsGuidOrNull();
-                if ( existingMatrixGuid.HasValue )
+                // FileUploader.ashx creates files as temporary, and Rock only makes a file permanent
+                // when a core File/Image field saves it. This value is plain text, so do it here, or
+                // Rock Cleanup's "Temporary Binary Files" step deletes the uploads.
+                // Removed files are left alone: the same value is copied between workflows (e.g.
+                // WT 858 -> 859), so another attribute may still point at them.
+                var madePermanent = new List<Guid>();
+                foreach ( var binaryFile in filesByGuid.Values.Where( bf => bf.IsTemporary ) )
                 {
-                    matrix = matrixService.Get( existingMatrixGuid.Value );
-                }
-
-                // No existing matrix and no files to store - just return empty
-                if ( matrix == null && !pendingFileGuids.Any() )
-                {
-                    return string.Empty;
-                }
-
-                if ( matrix == null )
-                {
-                    matrix = new AttributeMatrix
-                    {
-                        AttributeMatrixTemplateId = EnsureSharedTemplate( rockContext ),
-                        AttributeMatrixItems = new List<AttributeMatrixItem>()
-                    };
-                    matrixService.Add( matrix );
-                    rockContext.SaveChanges();
-                }
-
-                // Reconcile rows: index existing items by their File attribute Guid
-                var itemService = new AttributeMatrixItemService( rockContext );
-                var existingItems = matrix.AttributeMatrixItems.ToList();
-                var existingByFileGuid = new Dictionary<Guid, AttributeMatrixItem>();
-                foreach ( var item in existingItems )
-                {
-                    item.LoadAttributes();
-                    var fileGuid = item.GetAttributeValue( TEMPLATE_FILE_ATTRIBUTE_KEY ).AsGuidOrNull();
-                    if ( fileGuid.HasValue )
-                    {
-                        existingByFileGuid[fileGuid.Value] = item;
-                    }
-                }
-
-                // Remove rows whose file is no longer in the pending list
-                foreach ( var kv in existingByFileGuid.Where( x => !pendingFileGuids.Contains( x.Key ) ).ToList() )
-                {
-                    matrix.AttributeMatrixItems.Remove( kv.Value );
-                    itemService.Delete( kv.Value );
-                }
-
-                // Add rows for newly uploaded files
-                foreach ( var newGuid in pendingFileGuids.Where( g => !existingByFileGuid.ContainsKey( g ) ) )
-                {
-                    var newItem = new AttributeMatrixItem { AttributeMatrix = matrix };
-                    matrix.AttributeMatrixItems.Add( newItem );
-                    rockContext.SaveChanges();
-                    newItem.LoadAttributes();
-                    newItem.SetAttributeValue( TEMPLATE_FILE_ATTRIBUTE_KEY, newGuid.ToString() );
-                    newItem.SaveAttributeValues( rockContext );
+                    binaryFile.IsTemporary = false;
+                    madePermanent.Add( binaryFile.Guid );
                 }
 
                 rockContext.SaveChanges();
-                return matrix.Guid.ToString();
+
+                // Rock reads edit values before it validates, so this can run for a submit that then
+                // fails. The control undoes it in that case (see MultiFileUpload.OnPreRender).
+                ctrl.MarkFilesMadePermanent( madePermanent );
+
+                var acceptedGuids = pendingFileGuids.Where( filesByGuid.ContainsKey ).ToList();
+                var value = string.Join( ",", acceptedGuids.Select( g => g.ToString() ) );
+
+                // The files are permanent now, so a re-submit after a failed postback must
+                // still recognise them as this value's own. Also drop rejected entries from the
+                // hidden field so a re-render never lists files that were not accepted.
+                ctrl.Value = value;
+                ctrl.SetCurrentFileGuids( acceptedGuids );
+
+                // Tell the control's validator, so the submit fails instead of saving without them.
+                ctrl.MarkFilesRejected( pendingFileGuids.Where( g => !filesByGuid.ContainsKey( g ) ) );
+                return value;
+            }
+        }
+
+        /// <summary>
+        /// The posted files this value may hold, keyed by Guid and tracked by the context. The
+        /// Guids come from a client-side hidden field, so accept a file only if it is already in
+        /// the current value, or is a fresh upload (still temporary) of the configured type.
+        /// Otherwise a known Guid of someone else's saved file could be attached. Files already in
+        /// the value skip the type check, so an admin changing the attribute's file type doesn't
+        /// drop files that were saved under the old one. Shared with the control's validator so
+        /// both apply the same rule.
+        /// </summary>
+        internal static Dictionary<Guid, BinaryFile> GetAcceptableFiles( List<Guid> fileGuids, Guid? binaryFileTypeGuid, string currentValue, RockContext rockContext )
+        {
+            var existingFileGuids = GetFileGuids( currentValue, rockContext );
+            return new BinaryFileService( rockContext ).Queryable()
+                .Where( bf => fileGuids.Contains( bf.Guid ) )
+                .Select( bf => new { File = bf, TypeGuid = ( Guid? ) bf.BinaryFileType.Guid } )
+                .ToList()
+                .Where( x => existingFileGuids.Contains( x.File.Guid )
+                    || ( x.File.IsTemporary && ( !binaryFileTypeGuid.HasValue || x.TypeGuid == binaryFileTypeGuid.Value ) ) )
+                .ToDictionary( x => x.File.Guid, x => x.File );
+        }
+
+        /// <summary>
+        /// How many files a saved value holds (legacy matrix values included).
+        /// </summary>
+        internal static int CountFilesInValue( string value )
+        {
+            if ( string.IsNullOrWhiteSpace( value ) )
+            {
+                return 0;
+            }
+
+            using ( var rockContext = new RockContext() )
+            {
+                return GetFileGuids( value, rockContext ).Count;
             }
         }
 
@@ -285,40 +297,27 @@ namespace org.secc.Attributes.FieldTypes
             }
 
             ctrl.Value = value ?? string.Empty;
-
-            var matrixGuid = value.AsGuidOrNull();
-            if ( !matrixGuid.HasValue )
+            // First load only: a visibility rule hiding/re-showing the field calls SetEditValue again
+            // with null or the in-progress value, which must not move the MaxFiles baseline.
+            if ( !ctrl.HasLoadedValue )
             {
-                ctrl.SetCurrentFileIds( new List<int>() );
-                return;
+                ctrl.LoadedValue = value ?? string.Empty;
             }
 
             using ( var rockContext = new RockContext() )
             {
-                var matrix = new AttributeMatrixService( rockContext ).Get( matrixGuid.Value );
-                if ( matrix == null )
-                {
-                    ctrl.SetCurrentFileIds( new List<int>() );
-                    return;
-                }
+                // Legacy matrix values resolve to their file Guids here, so the control only
+                // ever holds plain file Guids. Keep only Guids that are real files: a legacy value
+                // whose matrix Cleanup deleted comes back as the matrix Guid itself, and a stale
+                // entry would count against MaxFiles in the browser with no list row to remove it.
+                var fileGuids = GetFileGuids( value, rockContext );
+                var existing = fileGuids.Any()
+                    ? new HashSet<Guid>( new BinaryFileService( rockContext ).Queryable()
+                        .Where( bf => fileGuids.Contains( bf.Guid ) )
+                        .Select( bf => bf.Guid ) )
+                    : new HashSet<Guid>();
 
-                var fileGuids = new List<Guid>();
-                foreach ( var item in matrix.AttributeMatrixItems )
-                {
-                    item.LoadAttributes();
-                    var fg = item.GetAttributeValue( TEMPLATE_FILE_ATTRIBUTE_KEY ).AsGuidOrNull();
-                    if ( fg.HasValue )
-                    {
-                        fileGuids.Add( fg.Value );
-                    }
-                }
-
-                var ids = new BinaryFileService( rockContext ).Queryable()
-                    .Where( bf => fileGuids.Contains( bf.Guid ) )
-                    .Select( bf => bf.Id )
-                    .ToList();
-
-                ctrl.SetCurrentFileIds( ids );
+                ctrl.SetCurrentFileGuids( fileGuids.Where( existing.Contains ) );
             }
         }
 
@@ -407,51 +406,33 @@ namespace org.secc.Attributes.FieldTypes
             files.Count == 1 ? "1 file" : ( files.Count + " files" );
 
         /// <summary>
-        /// Resolves a stored AttributeMatrix Guid to its files in display order, each with the
-        /// FileName and MimeType needed for media detection. Shared by all format methods
+        /// Resolves a stored value to its files in display order, each with the FileName and
+        /// MimeType needed for media detection. Shared by all format methods
         /// (<see cref="FormatValue"/>, <see cref="FormatValueAsHtml"/>, <see cref="GetTextValue"/>,
         /// <see cref="GetCondensedTextValue"/>) so they can't drift.
         /// </summary>
         private static List<MultiFileInfo> GetOrderedFiles( string value )
         {
-            var matrixGuid = value.AsGuidOrNull();
-            if ( !matrixGuid.HasValue )
+            if ( string.IsNullOrWhiteSpace( value ) )
             {
                 return new List<MultiFileInfo>();
             }
 
             using ( var rockContext = new RockContext() )
             {
-                var matrix = new AttributeMatrixService( rockContext ).Get( matrixGuid.Value );
-                if ( matrix == null || matrix.AttributeMatrixItems == null || !matrix.AttributeMatrixItems.Any() )
-                {
-                    return new List<MultiFileInfo>();
-                }
-
-                var fileGuids = new List<Guid>();
-                foreach ( var item in matrix.AttributeMatrixItems )
-                {
-                    item.LoadAttributes();
-                    var fg = item.GetAttributeValue( TEMPLATE_FILE_ATTRIBUTE_KEY ).AsGuidOrNull();
-                    if ( fg.HasValue )
-                    {
-                        fileGuids.Add( fg.Value );
-                    }
-                }
-
+                var fileGuids = GetFileGuids( value, rockContext );
                 if ( !fileGuids.Any() )
                 {
                     return new List<MultiFileInfo>();
                 }
 
-                // The GUID-IN query doesn't guarantee order; key by Guid so we can emit in matrix order.
+                // The GUID-IN query doesn't guarantee order; key by Guid so we can emit in stored order.
                 var filesByGuid = new BinaryFileService( rockContext ).Queryable()
                     .Where( bf => fileGuids.Contains( bf.Guid ) )
                     .Select( bf => new { bf.Guid, bf.FileName, bf.MimeType } )
                     .ToList()
                     .ToDictionary( bf => bf.Guid );
 
-                // fileGuids is already in matrix/display order; iterate it to preserve that order (O(n)).
                 return fileGuids
                     .Where( filesByGuid.ContainsKey )
                     .Select( g =>
@@ -461,6 +442,46 @@ namespace org.secc.Attributes.FieldTypes
                     } )
                     .ToList();
             }
+        }
+
+        /// <summary>
+        /// Parses a stored value into BinaryFile Guids in display order. Current values are a
+        /// comma-separated Guid list. A single Guid that matches an AttributeMatrix is a legacy
+        /// value; its rows are read in matrix order.
+        /// </summary>
+        private static List<Guid> GetFileGuids( string value, RockContext rockContext )
+        {
+            var guids = ( value ?? string.Empty )
+                .Split( new[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
+                .Select( s => s.Trim().AsGuidOrNull() )
+                .Where( g => g.HasValue )
+                .Select( g => g.Value )
+                .Distinct()
+                .ToList();
+
+            if ( guids.Count != 1 )
+            {
+                return guids;
+            }
+
+            var matrix = new AttributeMatrixService( rockContext ).Get( guids[0] );
+            if ( matrix == null )
+            {
+                return guids;
+            }
+
+            var fileGuids = new List<Guid>();
+            foreach ( var item in matrix.AttributeMatrixItems.OrderBy( i => i.Order ).ThenBy( i => i.Id ) )
+            {
+                item.LoadAttributes( rockContext );
+                var fg = item.GetAttributeValue( TEMPLATE_FILE_ATTRIBUTE_KEY ).AsGuidOrNull();
+                if ( fg.HasValue )
+                {
+                    fileGuids.Add( fg.Value );
+                }
+            }
+
+            return fileGuids;
         }
 
         private class MultiFileInfo
@@ -544,68 +565,6 @@ namespace org.secc.Attributes.FieldTypes
             }
 
             return BuildFileLinkHtml( guid, fileName );
-        }
-
-        #endregion
-
-        #region Template Provisioning
-
-        /// <summary>
-        /// Ensures the shared AttributeMatrixTemplate that backs all MultiFile attributes
-        /// exists, creating it with a single "File" column if needed. Returns the template's Id.
-        /// </summary>
-        private static int EnsureSharedTemplate( RockContext rockContext )
-        {
-            if ( _sharedTemplateIdCache.HasValue )
-            {
-                return _sharedTemplateIdCache.Value;
-            }
-
-            var templateGuid = SHARED_TEMPLATE_GUID.AsGuid();
-            var templateService = new AttributeMatrixTemplateService( rockContext );
-            var template = templateService.Get( templateGuid );
-
-            if ( template == null )
-            {
-                template = new AttributeMatrixTemplate
-                {
-                    Guid = templateGuid,
-                    Name = "Multi-File Upload (system)",
-                    Description = "System-managed template used by org.secc.Attributes MultiFileFieldType. Do not edit.",
-                    IsActive = true
-                };
-                templateService.Add( template );
-                rockContext.SaveChanges();
-
-                var fileFieldTypeId = FieldTypeCache.All()
-                    .FirstOrDefault( ft => ft.Class == "Rock.Field.Types.FileFieldType" )?.Id;
-
-                if ( !fileFieldTypeId.HasValue )
-                {
-                    throw new Exception( "Rock.Field.Types.FileFieldType not found in FieldTypeCache." );
-                }
-
-                var attributeMatrixItemEntityTypeId = EntityTypeCache.Get( typeof( AttributeMatrixItem ) ).Id;
-
-                var fileAttribute = new Rock.Model.Attribute
-                {
-                    Key = TEMPLATE_FILE_ATTRIBUTE_KEY,
-                    Name = "File",
-                    EntityTypeId = attributeMatrixItemEntityTypeId,
-                    EntityTypeQualifierColumn = "AttributeMatrixTemplateId",
-                    EntityTypeQualifierValue = template.Id.ToString(),
-                    FieldTypeId = fileFieldTypeId.Value,
-                    Order = 0,
-                    IsRequired = false,
-                    IsGridColumn = true,
-                    AllowSearch = false
-                };
-                new AttributeService( rockContext ).Add( fileAttribute );
-                rockContext.SaveChanges();
-            }
-
-            _sharedTemplateIdCache = template.Id;
-            return template.Id;
         }
 
         #endregion
