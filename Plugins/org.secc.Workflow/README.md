@@ -186,4 +186,4 @@ and the attributes render the configuration UI automatically.
   sibling as a template.
 - Person-matching behavior lives in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md), not here.
 
-**Last updated:** 2026-10-30
+**Last updated:** 2026-11-11

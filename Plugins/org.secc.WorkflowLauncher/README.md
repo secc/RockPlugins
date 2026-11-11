@@ -106,4 +106,4 @@ Ships one Rock plugin migration under `/Migrations/`:
 - Related: [org.secc.Workflow](../org.secc.Workflow/README.md) (custom workflow actions) and the
   workflow-closing jobs in [org.secc.Jobs](../org.secc.Jobs/README.md).
  
-Last updated: 2026-09-21
+Last updated: 2026-11-11
