@@ -16,6 +16,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -28,6 +29,7 @@ using org.secc.LinkList.Utility;
 
 using Rock;
 using Rock.Data;
+using Rock.Model;
 
 namespace org.secc.LinkList.Rest.Controllers
 {
@@ -218,6 +220,212 @@ namespace org.secc.LinkList.Rest.Controllers
             }
 
             return ok;
+        }
+
+        /// <summary>
+        /// ROCK-9362: the editor's upload target for link files (PDF / JPG / PNG). Called
+        /// by Obsidian's uploadBinaryFile helper (baseUrl override), which appends
+        /// FileUploader.ashx-style query parameters that are ignored here, and reads
+        /// back <c>{ Guid, FileName }</c> (PascalCase, like FileUploader.ashx).
+        ///
+        /// Why not FileUploader.ashx: it enforces neither an extension allow-list nor
+        /// magic bytes, and it does not record who uploaded the file
+        /// (CreatedByPersonAliasId is NULL for its uploads in production), which
+        /// SaveList needs to stop an editor attaching someone else's file by guid. The
+        /// Link List File type grants no EDIT to regular users, so FileUploader.ashx
+        /// refuses them for this type - this endpoint is the only way in.
+        ///
+        /// Rules (all server-side): signed in; EDIT on the Link List File type (admins,
+        /// Rock Edit Access, Staff Like Workers by default - checked before the body is
+        /// read); Content-Length within the cap; one file;
+        /// allowed extension, consistent reported MIME type, size cap, matching magic
+        /// bytes. The file is stored TEMPORARY with the uploader stamped; SaveList makes
+        /// it permanent once a saved link references it, and Rock Cleanup removes it
+        /// after a day otherwise. Content is copied to a MemoryStream before it is
+        /// handed to the provider, never the request stream (the 2026-08
+        /// storage-provider landmine audit: the Azure provider does not dispose it).
+        /// Errors are JSON <c>{ message }</c> with a 4xx status.
+        /// </summary>
+        [HttpPost]
+        [System.Web.Http.Route( "upload" )]
+        public HttpResponseMessage PostUpload()
+        {
+            var person = UserLoginService.GetCurrentUser( false )?.Person;
+            if ( person == null || !person.PrimaryAliasId.HasValue )
+            {
+                return UploadError( HttpStatusCode.Unauthorized, "Sign in to upload files." );
+            }
+
+            // Who may upload is the file type's EDIT permission, so it is managed on the
+            // type's security in Rock rather than in code. Checked before the body is
+            // parsed, so a refused caller costs no upload processing.
+            using ( var authContext = new RockContext() )
+            {
+                var type = new BinaryFileTypeService( authContext )
+                    .Get( SystemGuids.LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+                if ( type == null )
+                {
+                    return UploadError( HttpStatusCode.InternalServerError,
+                        "File uploads are not set up on this server (the Link List File type is missing)." );
+                }
+                if ( !type.IsAuthorized( Rock.Security.Authorization.EDIT, person ) )
+                {
+                    return UploadError( HttpStatusCode.Forbidden,
+                        "You don't have permission to upload files. Link to the file's URL instead." );
+                }
+            }
+
+            var httpRequest = System.Web.HttpContext.Current?.Request;
+            if ( httpRequest == null )
+            {
+                return UploadError( HttpStatusCode.BadRequest, "No file was uploaded." );
+            }
+
+            // Checked BEFORE Files is touched (that parses the whole body). A chunked
+            // body reports 0 here and is bounded by the site's maxRequestLength.
+            if ( httpRequest.ContentLength > LinkListFiles.MaxFileSizeBytes + LinkListFiles.MultipartOverheadBytes )
+            {
+                return UploadError( HttpStatusCode.RequestEntityTooLarge,
+                    $"Files must be {LinkListFiles.MaxFileSizeBytes / ( 1024 * 1024 )} MB or smaller." );
+            }
+
+            var upload = httpRequest.Files.Count > 0 ? httpRequest.Files[0] : null;
+            if ( upload == null || upload.ContentLength <= 0 )
+            {
+                return UploadError( HttpStatusCode.BadRequest, "No file was uploaded." );
+            }
+
+            var fileName = LinkListFiles.CleanFileName( upload.FileName );
+            var error = LinkListFiles.ValidateMetadata( fileName, upload.ContentType, upload.ContentLength );
+            if ( error != null )
+            {
+                return UploadError( HttpStatusCode.BadRequest, error );
+            }
+
+            using ( var content = new System.IO.MemoryStream() )
+            {
+                upload.InputStream.CopyTo( content );
+                content.Position = 0;
+                if ( !LinkListFiles.MatchesSignature( fileName, LinkListFiles.ReadSignature( content ) ) )
+                {
+                    return UploadError( HttpStatusCode.BadRequest,
+                        $"'{fileName}' does not look like a {LinkListFiles.AllowedTypesDescription} file." );
+                }
+                content.Position = 0;
+
+                using ( var rockContext = new RockContext() )
+                {
+                    var fileType = new BinaryFileTypeService( rockContext )
+                        .Get( SystemGuids.LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+                    if ( fileType == null )
+                    {
+                        return UploadError( HttpStatusCode.InternalServerError,
+                            "File uploads are not set up on this server (the Link List File type is missing)." );
+                    }
+
+                    var binaryFile = new BinaryFile
+                    {
+                        IsTemporary = true,
+                        BinaryFileTypeId = fileType.Id,
+                        BinaryFileType = fileType,
+                        FileName = fileName,
+                        // The allow-listed type, not the client-reported one.
+                        MimeType = LinkListFiles.GetContentType( fileName ),
+                        FileSize = content.Length,
+                        // An API request has no HttpContext "CurrentPerson", so Rock would
+                        // leave this NULL; SaveList relies on it (see summary).
+                        CreatedByPersonAliasId = person.PrimaryAliasId,
+                        ContentStream = content
+                    };
+                    new BinaryFileService( rockContext ).Add( binaryFile );
+                    rockContext.SaveChanges();
+
+                    var response = new HttpResponseMessage( HttpStatusCode.OK )
+                    {
+                        Content = new StringContent(
+                            JsonConvert.SerializeObject( new { Guid = binaryFile.Guid, FileName = binaryFile.FileName } ),
+                            Encoding.UTF8, "application/json" )
+                    };
+                    response.Headers.CacheControl = new CacheControlHeaderValue { NoStore = true };
+                    return response;
+                }
+            }
+        }
+
+        private static HttpResponseMessage UploadError( HttpStatusCode status, string message )
+        {
+            return new HttpResponseMessage( status )
+            {
+                Content = new StringContent( JsonConvert.SerializeObject( new { message } ), Encoding.UTF8, "application/json" )
+            };
+        }
+
+        /// <summary>
+        /// ROCK-9362: serves an uploaded link file (PDF / JPG / PNG). This is the ONLY
+        /// way these files are served (to anyone but Rock admins): their BinaryFileType
+        /// requires view security with VIEW denied to everyone else, so GetFile.ashx
+        /// refuses them.
+        ///
+        /// The gate is the owning list's, applied by
+        /// <see cref="LinkListService.GetServableLinkFile"/>: a public list's files are
+        /// public; a private list's files are served only to someone who can edit the
+        /// list (the in-Rock preview); a file removed from the list stops being served
+        /// at once. Every refusal is a 404, matching Get(), so nothing is enumerable.
+        ///
+        /// The Content-Type comes from the extension allow-list (never the stored,
+        /// client-reported MIME type) and is pinned with nosniff, so a file can only
+        /// ever render as a PDF or an image. The provider stream is STREAMED, not
+        /// buffered (files run to <see cref="LinkListFiles.MaxFileSizeBytes"/>): both the
+        /// Database provider (a MemoryStream over bytes already loaded) and Azure (a blob
+        /// read stream) hand back a stream that doesn't depend on the RockContext, and
+        /// StreamContent disposes it when the response completes, so it can't leak (the
+        /// 2026-08 storage-provider landmine audit). It is read from a fresh entity
+        /// that is never saved, so its cached stream is never reused.
+        /// </summary>
+        [HttpGet]
+        [System.Web.Http.Route( "{listGuid:guid}/file/{fileGuid:guid}" )]
+        public HttpResponseMessage GetFile( Guid listGuid, Guid fileGuid )
+        {
+            // The forms-auth cookie still identifies a signed-in editor on this
+            // anonymous endpoint; only needed for a private list's preview.
+            var person = UserLoginService.GetCurrentUser( false )?.Person;
+
+            using ( var rockContext = new RockContext() )
+            {
+                var service = new LinkListService( rockContext );
+                var binaryFile = service.GetServableLinkFile( listGuid, fileGuid, person, out var isPublic );
+                if ( binaryFile == null )
+                {
+                    return new HttpResponseMessage( HttpStatusCode.NotFound );
+                }
+
+                var stream = binaryFile.ContentStream;
+                if ( stream == null )
+                {
+                    // Azure returns no stream when the blob is missing.
+                    return new HttpResponseMessage( HttpStatusCode.NotFound );
+                }
+
+                var response = new HttpResponseMessage( HttpStatusCode.OK )
+                {
+                    // Owns and disposes the stream once the body is sent.
+                    Content = new StreamContent( stream )
+                };
+                response.Content.Headers.ContentType =
+                    new MediaTypeHeaderValue( LinkListFiles.GetContentType( binaryFile.FileName ) );
+                response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue( "inline" )
+                {
+                    FileNameStar = binaryFile.FileName
+                };
+                response.Headers.Add( "X-Content-Type-Options", "nosniff" );
+
+                // Public: short shared caching, so taking a list private (or removing
+                // the file) takes effect within minutes. Private preview: never cached.
+                response.Headers.CacheControl = isPublic
+                    ? new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromMinutes( 5 ) }
+                    : new CacheControlHeaderValue { Private = true, NoStore = true };
+                return response;
+            }
         }
 
         // ROCK-8881: X-Forwarded-For-aware client IP. Web API exposes the

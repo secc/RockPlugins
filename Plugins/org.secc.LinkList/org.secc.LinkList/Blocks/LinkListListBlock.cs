@@ -169,8 +169,23 @@ namespace org.secc.LinkList.Blocks
                 {
                     return ActionBadRequest( error );
                 }
+
+                // ROCK-9362: captured before the delete (the rows go with the item).
+                var fileGuids = service.GetSavedFileGuids( item );
+
                 itemService.Delete( item );
                 rockContext.SaveChanges();
+
+                // Uploaded link files now belong to nothing: let Rock's cleanup job
+                // remove them. Best-effort, same as the detail block's DeleteList.
+                try
+                {
+                    service.MarkLinkFilesTemporary( fileGuids, isTemporary: true );
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+                }
 
                 return ActionOk();
             }

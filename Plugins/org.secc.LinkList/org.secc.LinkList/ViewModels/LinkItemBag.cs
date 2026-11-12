@@ -41,6 +41,17 @@ namespace org.secc.LinkList.ViewModels
         /// <summary>WS10: when true, this link is the list's featured button (max one; hoisted to the top at render time).</summary>
         public bool IsFeatured { get; set; }
 
+        /// <summary>
+        /// ROCK-9362: BinaryFile GUID when this link points at an uploaded file (PDF/JPG/PNG)
+        /// instead of a typed URL. On save the server derives <see cref="Url"/> from it
+        /// (<c>/api/secc/linklist/{list}/file/{file}</c>); on read it is parsed back out of
+        /// the stored URL. Link rows only.
+        /// </summary>
+        public string FileGuid { get; set; }
+
+        /// <summary>ROCK-9362: display name of the uploaded file (read-only; ignored on save).</summary>
+        public string FileName { get; set; }
+
         public int Order { get; set; }
     }
 }
