@@ -19,15 +19,13 @@
     {% if EventItemOccurrence.Name != '' %}
         <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md g-margin-b-5--xs">{{ Event.Name }}</h3>
     {% endif %}
-    {% if numOccurrences > 1 and multiCampus == true %}
-        <p class="g-font-size-14-xs g-font-weight--300">
-            <i class="fal fa-church"></i> Multiple Campuses
-        </p>
-    {% else %}
-        <p class="g-font-size-14-xs g-font-weight--300">
-            <i class="fal fa-church"></i> {{ EventItemOccurrence.Campus.Name}} Campus
-        </p>
-    {% endif %}
+    {% comment %}
+        Each card is a single occurrence, so it names its own campus. An occurrence with
+        no campus is open to every campus.
+    {% endcomment %}
+    <p class="g-font-size-14-xs g-font-weight--300">
+        <i class="fal fa-church"></i> {% if EventItemOccurrence.CampusId != null %}{{ EventItemOccurrence.Campus.Name }} Campus{% else %}All Campuses{% endif %}
+    </p>
     {% assign childcare = EventItemOccurrence | Attribute: 'ChildcareAvailable' %}
     {% assign list_regs_horiz = EventItemOccurrence | Attribute: 'ListRegistrationHorizontally' %}
 
@@ -64,14 +62,12 @@
     </p>
 
     <p class="g-font-size-14-xs g-font-weight--300">
-        <i class="fal fa-map-marker-alt"></i> {% if EventItemOccurrence.Location != '' %}
+        <i class="fal fa-map-marker-alt"></i> {% if EventItemOccurrence.Location != null and EventItemOccurrence.Location != '' %}
             {{ EventItemOccurrence.Location }}
-            {% else %}
-            {% if numOccurrences > 1 and multiCampus == true %}
-                Multiple <br />Campuses
-                {% else %}
-                {{EventItemOccurrence.Campus.Name}} <br />Campus
-            {% endif %}
+        {% elseif EventItemOccurrence.CampusId != null %}
+            {{ EventItemOccurrence.Campus.Name }} <br />Campus
+        {% else %}
+            All <br />Campuses
         {% endif %}
     </p>
 

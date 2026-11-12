@@ -29,26 +29,70 @@
         {%- comment -%}Fluid: an unassigned limit: variable yields zero iterations (DotLiquid ignores it){%- endcomment -%}
         {%- if limitEvents == null or limitEvents == '' -%}{%- assign limitEvents = 1000000 -%}{%- endif -%}
         {% for eventItemList in EventItems limit:limitEvents %}
+            {% comment %}
+                One card stands for every occurrence of the event, so work out what the
+                occurrences share before printing anything: campus, location, next date
+                and childcare. The card shows a single value only when all of them agree.
+            {% endcomment %}
             {% assign campusId = 0 %}
+            {% assign hasAllCampusOccurrence = false %}
             {% assign multiCampus = false %}
+            {% assign sharedLocation = '' %}
+            {% assign multiLocation = false %}
+            {% assign sharedDate = '' %}
+            {% assign multiDate = false %}
+            {% assign isRecurringEvent = false %}
             {% assign numOccurrences = eventItemList | Size %}
-            {% assign childCareIsAvailable = 'No' %}
+            {% assign childcareCount = 0 %}
 
             {% for eventItemOccurrence in eventItemList %}
-                {% if campusId == 0 %}
-                    {% if eventItemOccurrence.EventItemOccurrence.CampusId == null %}
-                        {% assign multiCampus = true %}
-                    {% else %}
-                        {% assign campusId = eventItemOccurrence.EventItemOccurrence.CampusId %}
-                    {% endif %}
-                {% elseif eventItemOccurrence.EventItemOccurrence.CampusId != campusId %}
+                {% assign occurrenceCampusId = eventItemOccurrence.EventItemOccurrence.CampusId %}
+                {% if occurrenceCampusId == null %}
+                    {% assign hasAllCampusOccurrence = true %}
+                {% elseif campusId == 0 %}
+                    {% assign campusId = occurrenceCampusId %}
+                {% elseif occurrenceCampusId != campusId %}
                     {% assign multiCampus = true %}
                 {% endif %}
-				{% assign childcareTest = eventItemOccurrence.AttChildcareAvailable %}
-                {% if childcareTest == 'True' %}
-                    {% assign childCareIsAvailable = 'Yes' %}
+
+                {% assign occurrenceLocation = eventItemOccurrence.EventItemOccurrence.Location | Default:'' | Trim %}
+                {% assign occurrenceDate = eventItemOccurrence.Date | Default:'' %}
+                {% if forloop.first %}
+                    {% assign sharedLocation = occurrenceLocation %}
+                    {% assign sharedDate = occurrenceDate %}
+                {% else %}
+                    {% if occurrenceLocation != sharedLocation %}
+                        {% assign multiLocation = true %}
+                    {% endif %}
+                    {% if occurrenceDate != sharedDate %}
+                        {% assign multiDate = true %}
+                    {% endif %}
+                {% endif %}
+
+                {% comment %}
+                    Recurring = some campus's schedule still has at least two dates ahead.
+                    Several campuses on one date is not recurring, and neither is a series
+                    with only one date left.
+                {% endcomment %}
+                {% assign occurrenceICal = eventItemOccurrence.ICalendarContent | Default:'' %}
+                {% if isRecurringEvent == false %}
+                    {% if occurrenceICal contains 'RRULE' or occurrenceICal contains 'RDATE' %}
+                        {% assign upcomingDateCount = occurrenceICal | DatesFromICal:2 | Size %}
+                        {% if upcomingDateCount > 1 %}
+                            {% assign isRecurringEvent = true %}
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+
+                {% if eventItemOccurrence.AttChildcareAvailable == 'True' %}
+                    {% assign childcareCount = childcareCount | Plus:1 %}
                 {% endif %}
             {% endfor %}
+
+            {% comment %} An all-campus occurrence alongside a campus-specific one is still more than one campus. {% endcomment %}
+            {% if hasAllCampusOccurrence == true and campusId != 0 %}
+                {% assign multiCampus = true %}
+            {% endif %}
 
             {% for eventItemOccurrence in eventItemList %}
 
@@ -81,8 +125,6 @@
                 {% endif %}
                 <div class="event-calendar">
                     <div class="clearfix card">
-                        {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Default:'' | Split: 'RRULE' %}
-                        {% assign scheduledNumDates = scheduledDates | Size %}
                         <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 
                             {% if eventItemOccurrence.Name != '' %}
@@ -99,7 +141,7 @@
                             {% endif %}
 
 
-                            {% if numOccurrences > 1 and multiCampus == true %}
+                            {% if multiCampus == true %}
                                     <p class="g-font-size-14-xs g-font-weight--300">
                                         <i class="fal fa-church"></i> Multiple Campuses
                                     </p>
@@ -107,51 +149,70 @@
                             <p class="g-font-size-14-xs g-font-weight--300">
                                 <i class="fal fa-church"></i> {{eventItemOccurrence.EventItemOccurrence.Campus.Name}}
                             </p>
+                            {% else %}
+                            <p class="g-font-size-14-xs g-font-weight--300">
+                                <i class="fal fa-church"></i> All Campuses
+                            </p>
                             {% endif %}
 
+                            {% comment %}
+                                The block hands these over as stored values, not display text:
+                                EventDatesHide is a Boolean ("True") and UseOnlyScheduleText is a
+                                single-select whose stored value is "1" (shown as "Yes").
+                                Hidden dates with no custom text drop the whole row, icon included.
+                            {% endcomment %}
+                            {% assign customDateText = eventItemOccurrence.CustomDateText | Default:'' | Trim %}
+                            {% if customDateText != '' %}
                             <p class="g-font-size-14-xs g-font-weight--300">
-                                <i class="fal fa-calendar"></i> {% if eventItemOccurrence.CustomDateText != null and eventItemOccurrence.CustomDateText != '' -%}
-                                    {{ eventItemOccurrence.CustomDateText }}
-                                {% else -%}
-                                    {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
-                                    {% unless eventItemDatesIsHidden == 'Yes' %}
-                                        {% assign useOnlyScheduleText = eventItemOccurrence.AttUseOnlyScheduleText %}
-                                        {% if useOnlyScheduleText == 'Yes' %}
-                                            {{eventItemOccurrence.AttScheduleText }}
-                                        {% else %}
-                                            {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
-                                        {% endif %}
-                                    {% endunless %}
-                                    <br />
-                                    {% if numOccurrences > 1 and multiCampus == true %}
-                                        <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
-                                    {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
-                                        <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
-                                    {% endif %}
-                                {% endif -%}
+                                <i class="fal fa-calendar"></i> {{ customDateText }}
                             </p>
+                            {% elseif eventItemOccurrence.EventDatesHide != 'True' %}
+                            {% assign useOnlyScheduleText = eventItemOccurrence.AttUseOnlyScheduleText %}
+                            {% assign scheduleText = eventItemOccurrence.AttScheduleText | Default:'' | Trim %}
+                            <p class="g-font-size-14-xs g-font-weight--300">
+                                <i class="fal fa-calendar"></i>
+                                {% if scheduleText != '' and useOnlyScheduleText == '1' %}
+                                    {{ scheduleText }}
+                                {% elseif scheduleText != '' and useOnlyScheduleText == 'Yes' %}
+                                    {{ scheduleText }}
+                                {% else %}
+                                    {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
+                                {% endif %}
+                                <br />
+                                {% if multiDate == true %}
+                                    <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
+                                {% elseif isRecurringEvent == true %}
+                                    <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
+                                {% endif %}
+                            </p>
+                            {% endif %}
 
                             <p class="g-font-size-14-xs g-font-weight--300">
                                 <i class="fal fa-map-marker-alt"></i>
                                 {% if eventItemOccurrence.CustomLocationText != null and eventItemOccurrence.CustomLocationText != '' -%}
                                     {{ eventItemOccurrence.CustomLocationText}}
-                                {% else %}
-                                {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
-                                        {{ eventItemOccurrence.EventItemOccurrence.Location }}
+                                {% elseif multiLocation == true %}
+                                    {% comment %} Occurrences meet in different places, so no single room is right for everyone. {% endcomment %}
+                                    {% if multiCampus == true %}
+                                        Multiple <br />Campuses
                                     {% else %}
-                                        {% if numOccurrences > 1 and multiCampus == true %}
-                                            Multiple <br />Campuses
-                                        {% else %}
-                                            {{eventItemOccurrence.EventItemOccurrence.Campus.Name}} <br />Campus
-                                        {% endif %}
+                                        Multiple <br />Locations
                                     {% endif %}
+                                {% elseif sharedLocation != '' %}
+                                    {{ sharedLocation }}
+                                {% elseif multiCampus == true %}
+                                    Multiple <br />Campuses
+                                {% elseif eventItemOccurrence.EventItemOccurrence.Campus.Name != null %}
+                                    {{eventItemOccurrence.EventItemOccurrence.Campus.Name}} <br />Campus
+                                {% else %}
+                                    All <br />Campuses
                                 {% endif %}
                             </p>
 
                             <!-- ChildCare -->
-                            {% if childCareIsAvailable == 'Yes' %}
+                            {% if childcareCount > 0 %}
                                 <p class="g-font-size-14-xs g-font-weight--300">
-                                    <i class="fal fa-child"></i> Children's Programming
+                                    <i class="fal fa-child"></i> Children's Programming{% if childcareCount < numOccurrences %} (some sessions){% endif %}
                                 </p>
                             {% endif %}
                         </div><!-- END: caption -->
