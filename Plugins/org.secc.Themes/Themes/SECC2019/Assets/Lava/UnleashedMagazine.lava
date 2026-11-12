@@ -5,7 +5,7 @@
 {%- assign storySlug = 'Global' | PageParameter:'StorySlug' -%}
 {%- cache key:'storyPage:{{storySlug}}' duration:'0' twopass:'true' -%}
 
-{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' | AsDouble -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMdd.HHmmss' | AsDouble -%}
 
 {%- comment -%}
 ************ Get the story or issue from the slug ************
@@ -29,8 +29,8 @@
 {% else %}
     {%- contentchannelitem where:'ContentChannelId==89' -%}
         {%- for item in contentchannelitemItems -%}
-            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' | AsDouble -%}
-            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | AsDouble | Default:'99999999999999' -%}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMdd.HHmmss' | AsDouble -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMdd.HHmmss' | AsDouble | Default:'99999999.999999' -%}
             {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
                 {%- assign magazine = item -%}
                 {%- break -%}

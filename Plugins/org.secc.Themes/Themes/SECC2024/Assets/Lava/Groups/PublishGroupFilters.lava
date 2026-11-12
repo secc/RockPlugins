@@ -129,11 +129,9 @@
 				{% assign webrequest = webrequest | Append:selectedCampus.Id %}
 			{% endif %}
 			{% webrequest url:'{{ webrequest }}' %}
-				{% for item in results %}
-					{% for data in item.AvailAudienceIds %}
+					{% for data in results.AvailAudienceIds %}
 						{% assign availAudienceIds = availAudienceIds | Append:',' | Append:data.Key %}
 					{% endfor %}
-				{% endfor %}
 			{% endwebrequest %}
 			{% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
 			{% definedvalue where:'DefinedTypeId==16' %}

@@ -11,7 +11,7 @@
     {% definedvalue where:'DefinedTypeId == 223' %}
         {% for communityPastor in definedvalueItems %}
 
-            {% assign PastorObject = communityPastor | 'Object' %}
+            {% assign PastorObject = communityPastor %}
             {% assign ImageGuid = communityPastor | Attribute:'BioImage','RawValue' %}
             {% assign PastorRole = communityPastor | Attribute:'CommunityRole','RawValue' %}
             {% assign Pastor = communityPastor | Attribute:'Person','Object' %}
