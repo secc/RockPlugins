@@ -37,6 +37,7 @@ Grow Reading Plans Page
 	},
 	"items": [
         {% contentchannelitem where:'ContentChannelId == 67' sort:'Order' %}
+            {%- assign hasOutput = false -%}
             {% for item in contentchannelitemItems %}
                 {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
                 {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
@@ -47,6 +48,8 @@ Grow Reading Plans Page
                     {%- assign imgGuid = item | Attribute:'SquarePodcastImage','RawValue' -%}
                     {%- if imgGuid == '' -%}{%- assign imgGuid = item | Attribute:'Image','RawValue' -%}{%- endif -%}
                     {%- assign daysInPlan = item | Attribute:'DaysinPlan','RawValue' -%}
+                    {%- if hasOutput -%},{%- endif -%}
+                    {%- assign hasOutput = true -%}
                     {
                         {%- if imgGuid != '' -%}
                         "images":[
@@ -63,7 +66,7 @@ Grow Reading Plans Page
                             "showBrowserControls": true,
                             "contentUrl": "{{ readingPlanURL }}"
                         }]
-                    }{%- if forloop.last -%}{%- else -%},{%- endif -%}
+                    }
                 {%- endif -%}
             {% endfor %}
         {% endcontentchannelitem %}

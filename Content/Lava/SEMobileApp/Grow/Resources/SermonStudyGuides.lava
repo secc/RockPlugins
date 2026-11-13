@@ -56,7 +56,7 @@ Grow Sermon Study Guides Page
 					{%- assign itemActionUrl = 'Global' |  Attribute:'MobileApplicationRoot' | Append:'api/subsplash/webhook/tabs/series/' | Append:series.Id | Append:'/resources' -%}
 					{
 						"title": "{{-series.Title | Replace:'"',bsq -}}",
-						"subtitle": "{{- series.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  -}}",
+						"subtitle": "{{- series.Content | StripHtml | HtmlDecode | UrlEncode | Replace:'%0A','' | Replace:'%0D','' | UrlDecode | Truncate:120 | Replace:'"',bsq -}}",
 						{%- assign imgGuid = series | Attribute:'SquarePodcastImage','RawValue' -%}
 						{%- if imgGuid == '' -%}{%- assign imgGuid = series | Attribute:'Image','RawValue' -%}{%- endif -%}
 						{%- if imgGuid != '' -%}
