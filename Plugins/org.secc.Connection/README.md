@@ -78,13 +78,15 @@ Category in Rock: **SECC > Connection**.
 #### How a signup is placed
 
 - Signups are taken only when the opportunity and its connection type are both active. Otherwise
-  the form shows "The requested opportunity does not exist." and Connect creates nothing.
+  the form shows "This opportunity isn't taking signups right now." (or "The requested opportunity
+  does not exist." when there is no such opportunity) and Connect creates nothing.
 - Each request's group and role come from the link: `GroupId` with `GroupTypeRoleId` or
-  `GroupTypeRole` (the group type's default role when neither is given), or the `RoleRequests` JSON.
+  `GroupTypeRole` (a role Guid; the group type's default role when neither is given), or the
+  `RoleRequests` JSON, whose entries carry `GroupId` with `GroupTypeRoleId` or `GroupTypeRole`.
 - A request is placed (`AssignedGroup`, role and member status set) only when the group is active,
   not archived, not a role group, and its group type plus the requested role match one of the
-  opportunity's group configs. The member status comes from that config. The group does not have to
-  be on the opportunity's group list.
+  opportunity's group configs. The member status comes from that config. The group must also be on
+  the opportunity's group list, unless that config has **Use All Groups of This Type** set to Yes.
 - Otherwise the request is still created, with no group, role or member status.
 - **Signup-Blocking Requirement Types** and group member attribute values apply only to placed
   requests.
@@ -187,4 +189,4 @@ Content share and are copied there by hand, so a change to the partials here has
 - If a URL-supplied attribute value isn't landing on the connection request, check the merge in the
   `RoleRequests` getter and the apply step in `AddGroupMemberAttributes` — a key has to survive both.
 
-Last updated: 2026-11-06
+Last updated: 2026-11-13
