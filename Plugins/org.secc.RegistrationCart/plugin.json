@@ -1,0 +1,15 @@
+{
+    "organization": {
+        "name": "Southeast Christian Church",
+        "code": "org.secc"
+    },
+    "name": "Registration Cart",
+    "version": "1.0.0",
+    "include": {
+        "org.secc.RegistrationCart/bin/Release/net472/org.secc.RegistrationCart.dll": "Bin/",
+        "org.secc.RegistrationCart.Obsidian/dist/**": "Plugins/org_secc/RegistrationCart"
+    },
+    "exclude": [
+        "**/*.js.map"
+    ]
+}
