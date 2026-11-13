@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Stories' componententityid:'31004' operation:'View' summary:'Grow Stories' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
 Grow Stories Page
 {% endinteractionwrite %}
@@ -6,11 +7,13 @@ Grow Stories Page
 		"title": "Stories"
 	},
 	"displayOptions":{
-		"style":"stacked",
-		"contentWidthRatio":1,
+		"style":"rows",
+		"contentWidthRatio":0.9,
 	    "itemDisplayOptions":{
-	        "indicatorAspectRatio":2.5265,
-	        "textPosition": "none"
+	        "indicatorAspectRatio":1,
+	        "indicatorShadowEnabled":true,
+	        "maxWidth":640,
+	        "textPosition":"below"
 	    },
 		"colors":{
 	        "brand":{
@@ -34,18 +37,27 @@ Grow Stories Page
 	},
 	"items": [
         {% contentchannelitem where:'Status == 2 && ContentChannelId == 35' sort:'Order desc' %}
+            {%- assign hasOutput = false -%}
             {% for item in contentchannelitemItems %}
                 {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
                 {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
                 {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
                 {%- assign readingPlanURL = item | Attribute:'YouVersionPlanUrl','RawValue' -%}
                 {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
-                    {%- assign title = item.Title -%}
+                    {%- assign title = item.Title | Replace:'"',bsq -%}
+                    {%- assign imgGuid = item | Attribute:'SquarePodcastImage','RawValue' -%}
+                    {%- if imgGuid == '' -%}{%- assign imgGuid = item | Attribute:'Image','RawValue' -%}{%- endif -%}
+                    {%- assign daysInPlan = item | Attribute:'DaysinPlan','RawValue' -%}
+                    {%- if hasOutput -%},{%- endif -%}
+                    {%- assign hasOutput = true -%}
                     {
+                        {%- if imgGuid != '' -%}
                         "images":[
-                            {"width": 667,
-                            "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+                            {"width": 640,
+                            "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{ imgGuid }}.jpg?guid={{ imgGuid }}&width=640&height=640&mode=crop"}
                         ],
+                        {%- endif -%}
+                        {%- if daysInPlan != '' -%}"subtitle": "{{ daysInPlan }} Days",{%- endif -%}
                         "title": "{{ title }}",
                         "actions":[{
                             "handler":"browser",
@@ -54,7 +66,7 @@ Grow Stories Page
                             "showBrowserControls": true,
                             "contentUrl": "{{ 'Global' | Attribute:'PublicApplicationRoot' }}stories/{{ item.PrimarySlug }}"
                         }]
-                    }{%- if forloop.last -%}{%- else -%},{%- endif -%}
+                    }
                 {%- endif -%}
             {% endfor %}
         {% endcontentchannelitem %}
