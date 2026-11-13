@@ -164,7 +164,6 @@ namespace org.secc.Connection
                 // Handle any situation where we have a 0 role id
                 if ( _roleRequests.Any( rr => rr.GroupId > 0 && rr.GroupTypeRoleId == 0 ) )
                 {
-                    GroupService groupService = new GroupService( new RockContext() );
                     foreach ( var roleRequest in _roleRequests )
                     {
 
@@ -176,7 +175,7 @@ namespace org.secc.Connection
                         // Get the Default role from this group
                         if ( roleRequest.GroupId > 0 && roleRequest.GroupTypeRoleId == 0 )
                         {
-                            Group group = groupService.Get( roleRequest.GroupId );
+                            Group group = new GroupService( new RockContext() ).Get( roleRequest.GroupId );
                             if ( group != null && group.GroupType.DefaultGroupRoleId.HasValue )
                             {
                                 roleRequest.GroupTypeRoleId = group.GroupType.DefaultGroupRoleId.Value;

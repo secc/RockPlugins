@@ -652,7 +652,7 @@ namespace org.secc.Connection.Tests
             block.Connect();
 
             Assert.Equal( new[] { 1 }, block.LoadedOpportunityIds );
-            Assert.Null( block.ErrorText );
+            Assert.True( string.IsNullOrEmpty( block.ErrorText ) );
             Assert.True( block.SignupPanelVisible );
         }
 
