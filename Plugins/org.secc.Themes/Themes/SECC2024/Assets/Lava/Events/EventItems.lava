@@ -141,6 +141,10 @@
                             {% endif %}
 
 
+                            {% comment %}
+                                No campus on the occurrence means staff left it campus-free (online, a trip,
+                                a church-wide night) and describe the place in the Location text, so no campus line.
+                            {% endcomment %}
                             {% if multiCampus == true %}
                                     <p class="g-font-size-14-xs g-font-weight--300">
                                         <i class="fal fa-church"></i> Multiple Campuses
@@ -148,10 +152,6 @@
                             {% elseif eventItemOccurrence.EventItemOccurrence.Campus.Name != null %}
                             <p class="g-font-size-14-xs g-font-weight--300">
                                 <i class="fal fa-church"></i> {{eventItemOccurrence.EventItemOccurrence.Campus.Name}}
-                            </p>
-                            {% else %}
-                            <p class="g-font-size-14-xs g-font-weight--300">
-                                <i class="fal fa-church"></i> All Campuses
                             </p>
                             {% endif %}
 
@@ -187,8 +187,7 @@
                             </p>
                             {% endif %}
 
-                            <p class="g-font-size-14-xs g-font-weight--300">
-                                <i class="fal fa-map-marker-alt"></i>
+                            {% capture locationLine %}
                                 {% if eventItemOccurrence.CustomLocationText != null and eventItemOccurrence.CustomLocationText != '' -%}
                                     {{ eventItemOccurrence.CustomLocationText}}
                                 {% elseif multiLocation == true %}
@@ -204,10 +203,15 @@
                                     Multiple <br />Campuses
                                 {% elseif eventItemOccurrence.EventItemOccurrence.Campus.Name != null %}
                                     {{eventItemOccurrence.EventItemOccurrence.Campus.Name}} <br />Campus
-                                {% else %}
-                                    All <br />Campuses
                                 {% endif %}
+                            {% endcapture %}
+                            {% assign locationLine = locationLine | Trim %}
+                            {% if locationLine != '' %}
+                            <p class="g-font-size-14-xs g-font-weight--300">
+                                <i class="fal fa-map-marker-alt"></i>
+                                {{ locationLine }}
                             </p>
+                            {% endif %}
 
                             <!-- ChildCare -->
                             {% if childcareCount > 0 %}
