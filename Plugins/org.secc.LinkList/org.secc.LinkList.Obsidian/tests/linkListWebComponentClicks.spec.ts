@@ -169,3 +169,16 @@ describe("click beacon", () => {
         expect(beacon).not.toHaveBeenCalled();
     });
 });
+
+describe("ROCK-9361 — card links", () => {
+    it("sends a click beacon when a card (or anything inside it) is clicked", async () => {
+        const beacon = mockBeacon();
+        const el = await mountFetch(baseBag({
+            items: [link({ displayStyle: "card", subtitle: "Desc", cardImage: "C9F920B9-B462-447B-ABC8-CE150A135F8D" })]
+        }));
+        const desc = el.shadowRoot!.querySelector('[part="card-description"]')!;
+        desc.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }));
+        expect(beacon).toHaveBeenCalledTimes(1);
+        expect(beacon.mock.calls[0][1]).toBe(JSON.stringify({ matrixItemGuid: LINK_GUID }));
+    });
+});

@@ -57,6 +57,10 @@ namespace org.secc.LinkList.SystemGuids
         // WS10: per-row IsFeatured toggle (link rows, max one). Migration 006.
         public const string MatrixAttributeIsFeatured = "3D7A1E4F-6B82-4C93-A0D1-5E6F7A8B9C0D";
 
+        // ROCK-9361: per-row display style (button | card) + optional card image. Migration 012.
+        public const string MatrixAttributeDisplayStyle = "7B9A9359-6638-491B-834A-91ED9C2C2DD2";
+        public const string MatrixAttributeCardImage = "76FF6F1B-F2F1-4E58-AFC3-F9DFF1613352";
+
         // WS10: per-list featured-button colors (ContentChannelType item attrs). Migration 006.
         public const string TypeAttributeFeaturedButtonColor = "4E8B2F5A-7C93-4DA4-B1E2-6F7A8B9C0D1E";
         public const string TypeAttributeFeaturedButtonTextColor = "5F9C3A6B-8D04-4EB5-C2F3-7A8B9C0D1E2F";
@@ -138,6 +142,12 @@ namespace org.secc.LinkList.SystemGuids
 
             // WS10: link row may be the (single) featured button for the list.
             public const string IsFeatured = "IsFeatured";
+
+            // ROCK-9361: link row renders as a pill button (default) or a card.
+            public const string DisplayStyle = "DisplayStyle";
+
+            // ROCK-9361: optional BinaryFile guid shown at the top of a card.
+            public const string CardImage = "CardImage";
         }
 
         public static class ChannelAttributeKey
@@ -206,6 +216,13 @@ namespace org.secc.LinkList.SystemGuids
 
         /// <summary>Naming prefix for auto-created list-specific security groups.</summary>
         public const string SecurityGroupNamePrefix = "RSR - Link List - ";
+
+        /// <summary>ROCK-9361: values of the DisplayStyle matrix attribute (link rows only).</summary>
+        public static class DisplayStyleValue
+        {
+            public const string Button = "button";
+            public const string Card = "card";
+        }
 
         public static class ItemTypeValue
         {

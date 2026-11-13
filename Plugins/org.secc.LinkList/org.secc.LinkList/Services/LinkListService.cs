@@ -712,6 +712,8 @@ namespace org.secc.LinkList.Services
                     Subtitle = SafeAttr( row, LinkListGuids.MatrixAttributeKey.Subtitle, string.Empty ),
                     Description = SafeAttr( row, LinkListGuids.MatrixAttributeKey.Description, string.Empty ),
                     IsFeatured = SafeAttr( row, LinkListGuids.MatrixAttributeKey.IsFeatured, "False" ).AsBoolean(),
+                    DisplayStyle = NormalizeDisplayStyle( SafeAttr( row, LinkListGuids.MatrixAttributeKey.DisplayStyle, LinkListGuids.DisplayStyleValue.Button ) ),
+                    CardImage = SafeAttr( row, LinkListGuids.MatrixAttributeKey.CardImage, string.Empty ),
                     Order = displayOrder++
                 } );
             }
@@ -978,6 +980,21 @@ namespace org.secc.LinkList.Services
                     }
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.IsFeatured, isFeatured.ToString() );
 
+                    // ROCK-9361: display style + card image. Only link rows carry a
+                    // style (sections/separators are always "button"), and only a
+                    // card keeps its image - switching a link back to a button clears
+                    // it, so a row never references an image it doesn't show. The
+                    // CardImage value is re-serialized from a parsed guid (never raw
+                    // client text).
+                    var displayStyle = normalizedType == LinkListGuids.ItemTypeValue.Link
+                        ? NormalizeDisplayStyle( bagRow.DisplayStyle )
+                        : LinkListGuids.DisplayStyleValue.Button;
+                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.DisplayStyle, displayStyle );
+                    var cardImage = displayStyle == LinkListGuids.DisplayStyleValue.Card
+                        ? bagRow.CardImage.AsGuidOrNull()?.ToString() ?? string.Empty
+                        : string.Empty;
+                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.CardImage, cardImage );
+
                     row.SaveAttributeValues( _rockContext );
                 }
             }
@@ -991,7 +1008,19 @@ namespace org.secc.LinkList.Services
             }
         }
 
-        private static string NormalizeItemType( string raw )
+        /// <summary>
+        /// ROCK-9361: canonical DisplayStyle value. Anything other than "card"
+        /// (case-insensitive) - including blank, which is every row saved before
+        /// migration 012 - is a button, so existing lists render unchanged.
+        /// </summary>
+        public static string NormalizeDisplayStyle( string raw )
+        {
+            return string.Equals( raw?.Trim(), LinkListGuids.DisplayStyleValue.Card, StringComparison.OrdinalIgnoreCase )
+                ? LinkListGuids.DisplayStyleValue.Card
+                : LinkListGuids.DisplayStyleValue.Button;
+        }
+
+        public static string NormalizeItemType( string raw )
         {
             if ( raw.IsNullOrWhiteSpace() ) return LinkListGuids.ItemTypeValue.Link;
             var lower = raw.Trim().ToLowerInvariant();

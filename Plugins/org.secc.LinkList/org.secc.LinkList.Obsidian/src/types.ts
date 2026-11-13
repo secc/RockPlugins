@@ -12,6 +12,8 @@ export interface LinkItemBag {
     subtitle?: string; // link rows: secondary line under the text
     description?: string; // section rows: blurb under the heading
     isFeatured?: boolean; // link rows: the (single) featured button, hoisted to the top
+    displayStyle?: string; // ROCK-9361 link rows: "button" (default) | "card"
+    cardImage?: string; // ROCK-9361 card links: optional BinaryFile guid shown at the top of the card
     order?: number;
 }
 
