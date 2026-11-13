@@ -19,14 +19,14 @@
     {% if EventItemOccurrence.Name != '' %}
         <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md g-margin-b-5--xs">{{ Event.Name }}</h3>
     {% endif %}
-    {% if numOccurrences > 1 and multiCampus == true %}
-        <p class="g-font-size-14-xs g-font-weight--300">
-            <i class="fal fa-church"></i> Multiple Campuses
-        </p>
-    {% else %}
-        <p class="g-font-size-14-xs g-font-weight--300">
-            <i class="fal fa-church"></i> {{ EventItemOccurrence.Campus.Name}} Campus
-        </p>
+    {% comment %}
+        Each card is a single occurrence, so it names its own campus. An occurrence with
+        no campus gets no campus line; staff describe the place in its Location text.
+    {% endcomment %}
+    {% if EventItemOccurrence.CampusId != null %}
+    <p class="g-font-size-14-xs g-font-weight--300">
+        <i class="fal fa-church"></i> {{ EventItemOccurrence.Campus.Name }} Campus
+    </p>
     {% endif %}
     {% assign childcare = EventItemOccurrence | Attribute: 'ChildcareAvailable' %}
     {% assign list_regs_horiz = EventItemOccurrence | Attribute: 'ListRegistrationHorizontally' %}
@@ -63,17 +63,15 @@
         {% endif %}
     </p>
 
+    {% if EventItemOccurrence.Location != null and EventItemOccurrence.Location != '' %}
     <p class="g-font-size-14-xs g-font-weight--300">
-        <i class="fal fa-map-marker-alt"></i> {% if EventItemOccurrence.Location != '' %}
-            {{ EventItemOccurrence.Location }}
-            {% else %}
-            {% if numOccurrences > 1 and multiCampus == true %}
-                Multiple <br />Campuses
-                {% else %}
-                {{EventItemOccurrence.Campus.Name}} <br />Campus
-            {% endif %}
-        {% endif %}
+        <i class="fal fa-map-marker-alt"></i> {{ EventItemOccurrence.Location }}
     </p>
+    {% elseif EventItemOccurrence.CampusId != null %}
+    <p class="g-font-size-14-xs g-font-weight--300">
+        <i class="fal fa-map-marker-alt"></i> {{ EventItemOccurrence.Campus.Name }} <br />Campus
+    </p>
+    {% endif %}
 
     {% if childcare == 'Yes' %}
         <p class="g-font-size-14-xs g-font-weight--300">

@@ -150,14 +150,28 @@
                 {% if eventOccurencesCount > 1 %}
                     {% if eventOccurencesCount > 1 %}
                         {% assign campusesAvail = '' %}
+                        {% assign campusSlugsSeen = '|' %}
                         {% assign campusesCount = 0 %}
                         {% for EventItemOccurrence in Event.EventItemOccurrences %}
-                            {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
-                            {% if campusesAvail contains campus_slug %}
-                                {% comment %} Great – Skip this since it already conatains the Campus {% endcomment %}
-                            {% else %}
-                                {% assign campusesCount = campusesCount | Plus: 1 %}
-                                {% assign campusesAvail = campusesAvail | Append: '<option value="' | Append: campus_slug | Append: '" data-shortcode="' | Append: EventItemOccurrence.Campus.ShortCode | Append: '">' | Append: EventItemOccurrence.Campus.Name | Append: '</option>' %}
+                            {% comment %}
+                                All-campus occurrences get no option; their cards carry allcampuses_filter
+                                and stay visible whichever campus is picked. Matching on |slug| rather than
+                                the option HTML keeps one slug from matching inside another, and keeps a
+                                blank slug from matching everything.
+                            {% endcomment %}
+                            {% if EventItemOccurrence.CampusId != null %}
+                                {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' | Default:'' | Trim %}
+                                {% if campus_slug == '' %}
+                                    {% capture campus_slug %}campus{{ EventItemOccurrence.CampusId }}{% endcapture %}
+                                {% endif %}
+                                {% assign campusSlugKey = '|' | Append:campus_slug | Append:'|' %}
+                                {% if campusSlugsSeen contains campusSlugKey %}
+                                    {% comment %} Skip – this campus already has an option {% endcomment %}
+                                {% else %}
+                                    {% assign campusSlugsSeen = campusSlugsSeen | Append:campus_slug | Append:'|' %}
+                                    {% assign campusesCount = campusesCount | Plus: 1 %}
+                                    {% assign campusesAvail = campusesAvail | Append: '<option value="' | Append: campus_slug | Append: '" data-shortcode="' | Append: EventItemOccurrence.Campus.ShortCode | Append: '">' | Append: EventItemOccurrence.Campus.Name | Append: '</option>' %}
+                                {% endif %}
                             {% endif %}
                         {% endfor %}
 
@@ -180,7 +194,14 @@
             <div class="isotope_wrap g-margin-b-80--xs">
                 {% for EventItemOccurrence in Event.EventItemOccurrences %}
 
-                {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+                {% if EventItemOccurrence.CampusId == null %}
+                    {% assign campus_slug = 'allcampuses' %}
+                {% else %}
+                    {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' | Default:'' | Trim %}
+                    {% if campus_slug == '' %}
+                        {% capture campus_slug %}campus{{ EventItemOccurrence.CampusId }}{% endcapture %}
+                    {% endif %}
+                {% endif %}
                 <div class="isotope_item col-xs-12 col-md-6 col-lg-4 {{campus_slug}}_filter event-calendar">
                     <div class="clearfix card g-margin-b-20--xs" >
 
@@ -237,7 +258,8 @@
                 // pull in lava ID
                 var data = e.params.data;
                 if (data.id != '*') {
-                    var filterClass = '.' + data.id + '_filter';
+                    // All-campus occurrences apply to every campus, so keep them in view
+                    var filterClass = '.' + data.id + '_filter, .allcampuses_filter';
                 } else {
                     var filterClass = data.id;
                 }
