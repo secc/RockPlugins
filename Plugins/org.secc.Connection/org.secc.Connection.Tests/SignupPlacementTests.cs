@@ -47,7 +47,14 @@ namespace org.secc.Connection.Tests
         private const int SecurityRoleGroupId = 2;
         private const int SecurityTypeGroupId = 14;
         private const int OtherTypeGroupId = 15;
+        private const int UnlistedServingGroupId = 16;
         private const int MissingGroupId = 99;
+
+        private static readonly Guid MemberRoleGuid = new Guid( "6e1b0b3a-2f4d-4a51-9c3e-0d7a1f2b3c40" );
+        private static readonly Guid LeaderRoleGuid = new Guid( "6e1b0b3a-2f4d-4a51-9c3e-0d7a1f2b3c41" );
+
+        private const string NotTakingSignupsMessage = "This opportunity isn't taking signups right now.";
+        private const string DoesNotExistMessage = "The requested opportunity does not exist.";
 
         static SignupPlacementTests()
         {
@@ -113,6 +120,16 @@ namespace org.secc.Connection.Tests
                 return Groups.TryGetValue( groupId, out group ) ? group : null;
             }
 
+            protected override GroupTypeRole LoadGroupTypeRole( Guid groupTypeRoleGuid )
+            {
+                if ( groupTypeRoleGuid == MemberRoleGuid )
+                {
+                    return new GroupTypeRole { Id = MemberRoleId, Guid = MemberRoleGuid };
+                }
+
+                return groupTypeRoleGuid == LeaderRoleGuid ? new GroupTypeRole { Id = LeaderRoleId, Guid = LeaderRoleGuid } : null;
+            }
+
             protected override string GetRoleName( RockContext rockContext, int groupRoleId )
             {
                 return groupRoleId == MemberRoleId ? "Member" : null;
@@ -146,7 +163,7 @@ namespace org.secc.Connection.Tests
                     new Person { Id = 5, FirstName = "Pat", NickName = "Pat", LastName = "Doe" }, "Pat", false, false );
             }
 
-            public bool ErrorShown => nbErrorMessage.Visible && ( nbErrorMessage.Text ?? string.Empty ).Contains( "The requested opportunity does not exist." );
+            public string ErrorText => nbErrorMessage.Visible ? nbErrorMessage.Text : null;
 
             public bool SignupPanelVisible => pnlSignup.Visible;
 
@@ -228,7 +245,8 @@ namespace org.secc.Connection.Tests
                 NewGroup( ArchivedGroupId, ServingTeamTypeId, isArchived: true ),
                 NewGroup( SecurityRoleGroupId, ServingTeamTypeId, isSecurityRole: true ),
                 NewGroup( SecurityTypeGroupId, SecurityRoleGroupTypeId ),
-                NewGroup( OtherTypeGroupId, OtherTypeId )
+                NewGroup( OtherTypeGroupId, OtherTypeId ),
+                NewGroup( UnlistedServingGroupId, ServingTeamTypeId )
             } )
             {
                 block.Groups.Add( group.Id, group );
@@ -239,7 +257,9 @@ namespace org.secc.Connection.Tests
 
         /// <summary>
         /// An active opportunity of an active connection type, with a Serving Team member config (Pending)
-        /// and a config for the security role group type, so only the group checks keep those groups out.
+        /// and a config for the security role group type, neither using all groups of its type. Every test
+        /// group except the unlisted Serving Team group is on its group list, so only the group checks keep
+        /// those groups out. Each list entry's Id differs from its group's Id.
         /// </summary>
         private static ConnectionOpportunity NewOpportunity()
         {
@@ -261,7 +281,16 @@ namespace org.secc.Connection.Tests
                 GroupMemberRoleId = MemberRoleId,
                 GroupMemberStatus = GroupMemberStatus.Active
             } );
+            foreach ( var groupId in new[] { ServingGroupId, OtherServingGroupId, InactiveGroupId, ArchivedGroupId, SecurityRoleGroupId, SecurityTypeGroupId, OtherTypeGroupId } )
+            {
+                opportunity.ConnectionOpportunityGroups.Add( new ConnectionOpportunityGroup { Id = 500 + groupId, GroupId = groupId } );
+            }
             return opportunity;
+        }
+
+        private static ConnectionOpportunityGroupConfig ServingTeamConfig( ConnectionOpportunity opportunity )
+        {
+            return opportunity.ConnectionOpportunityGroupConfigs.First( gc => gc.GroupTypeId == ServingTeamTypeId );
         }
 
         private static ConnectionRequest ApplyFromUrl( TestBlock block, int groupId, int roleId )
@@ -289,11 +318,99 @@ namespace org.secc.Connection.Tests
         }
 
         [Fact]
-        public void UrlGroupAndRole_AnyActiveGroupOfConfiguredTypeAndRole_IsPlaced()
+        public void UrlGroupAndRole_OtherListedGroupOfConfiguredTypeAndRole_IsPlaced()
         {
             var request = ApplyFromUrl( NewBlock(), OtherServingGroupId, MemberRoleId );
 
             Assert.Equal( OtherServingGroupId, request.AssignedGroupId );
+        }
+
+        [Fact]
+        public void UrlGroupAndRole_GroupNotOnTheOpportunitysList_IsNotPlaced()
+        {
+            AssertNoPlacement( ApplyFromUrl( NewBlock(), UnlistedServingGroupId, MemberRoleId ) );
+        }
+
+        [Fact]
+        public void GroupNotOnTheList_IsPlaced_WhenTheMatchingConfigUsesAllGroupsOfType()
+        {
+            var opportunity = NewOpportunity();
+            ServingTeamConfig( opportunity ).UseAllGroupsOfType = true;
+
+            var placement = NewBlock().Resolve( opportunity, new VolunteerSignupFormConnections.ConnectionRoleRequest { GroupId = UnlistedServingGroupId, GroupTypeRoleId = MemberRoleId } );
+
+            Assert.True( placement.HasValue );
+            Assert.Equal( UnlistedServingGroupId, placement.Value.GroupId );
+            Assert.Equal( MemberRoleId, placement.Value.GroupMemberRoleId );
+            Assert.Equal( GroupMemberStatus.Pending, placement.Value.GroupMemberStatus );
+        }
+
+        [Fact]
+        public void GroupNotOnTheList_IsNotPlaced_WhenOnlyAnotherConfigUsesAllGroupsOfType()
+        {
+            var opportunity = NewOpportunity();
+            foreach ( var config in opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupTypeId != ServingTeamTypeId ) )
+            {
+                config.UseAllGroupsOfType = true;
+            }
+            opportunity.ConnectionOpportunityGroupConfigs.Add( new ConnectionOpportunityGroupConfig
+            {
+                GroupTypeId = ServingTeamTypeId,
+                GroupMemberRoleId = LeaderRoleId,
+                GroupMemberStatus = GroupMemberStatus.Active,
+                UseAllGroupsOfType = true
+            } );
+
+            var placement = NewBlock().Resolve( opportunity, new VolunteerSignupFormConnections.ConnectionRoleRequest { GroupId = UnlistedServingGroupId, GroupTypeRoleId = MemberRoleId } );
+
+            Assert.Null( placement );
+        }
+
+        [Fact]
+        public void InactiveGroup_IsNotPlaced_WhenTheMatchingConfigUsesAllGroupsOfType()
+        {
+            var opportunity = NewOpportunity();
+            ServingTeamConfig( opportunity ).UseAllGroupsOfType = true;
+
+            Assert.Null( NewBlock().Resolve( opportunity, new VolunteerSignupFormConnections.ConnectionRoleRequest { GroupId = InactiveGroupId, GroupTypeRoleId = MemberRoleId } ) );
+        }
+
+        [Fact]
+        public void UrlGroupAndRoleGuid_IsPlacedWithThatRole()
+        {
+            var block = NewBlock();
+            block.TestPageParameters["GroupId"] = ServingGroupId.ToString();
+            block.TestPageParameters["GroupTypeRole"] = MemberRoleGuid.ToString();
+
+            var request = block.Apply( NewOpportunity(), 0 );
+
+            Assert.Equal( ServingGroupId, request.AssignedGroupId );
+            Assert.Equal( MemberRoleId, request.AssignedGroupMemberRoleId );
+            Assert.Equal( GroupMemberStatus.Pending, request.AssignedGroupMemberStatus );
+        }
+
+        /// <summary>
+        /// The shape the CardWizard template sends: group Id as a string and the role as a Guid, no role Id.
+        /// </summary>
+        [Fact]
+        public void RoleRequestsJson_RoleGuid_IsResolvedAndChecked()
+        {
+            var block = NewBlock();
+            block.TestPageParameters["RoleRequests"] = new[]
+            {
+                new { GroupId = ServingGroupId.ToString(), GroupTypeRole = MemberRoleGuid.ToString() },
+                new { GroupId = OtherServingGroupId.ToString(), GroupTypeRole = LeaderRoleGuid.ToString() },
+                new { GroupId = UnlistedServingGroupId.ToString(), GroupTypeRole = MemberRoleGuid.ToString() }
+            }.ToJson();
+            var opportunity = NewOpportunity();
+
+            var first = block.Apply( opportunity, 0 );
+            Assert.Equal( ServingGroupId, first.AssignedGroupId );
+            Assert.Equal( MemberRoleId, first.AssignedGroupMemberRoleId );
+            Assert.Equal( GroupMemberStatus.Pending, first.AssignedGroupMemberStatus );
+
+            AssertNoPlacement( block.Apply( opportunity, 1 ) );
+            AssertNoPlacement( block.Apply( opportunity, 2 ) );
         }
 
         [Fact]
@@ -487,7 +604,7 @@ namespace org.secc.Connection.Tests
         }
 
         [Fact]
-        public void Connect_InactiveOpportunity_ShowsDoesNotExistAndStops()
+        public void Connect_InactiveOpportunity_ShowsNotTakingSignupsAndStops()
         {
             var opportunity = NewOpportunity();
             opportunity.IsActive = false;
@@ -496,12 +613,12 @@ namespace org.secc.Connection.Tests
             block.Connect();
 
             Assert.Equal( new[] { 1 }, block.LoadedOpportunityIds );
-            Assert.True( block.ErrorShown );
+            Assert.Contains( NotTakingSignupsMessage, block.ErrorText );
             Assert.False( block.SignupPanelVisible );
         }
 
         [Fact]
-        public void Connect_OpportunityOfInactiveConnectionType_ShowsDoesNotExistAndStops()
+        public void Connect_OpportunityOfInactiveConnectionType_ShowsNotTakingSignupsAndStops()
         {
             var opportunity = NewOpportunity();
             opportunity.ConnectionType.IsActive = false;
@@ -509,7 +626,7 @@ namespace org.secc.Connection.Tests
 
             block.Connect();
 
-            Assert.True( block.ErrorShown );
+            Assert.Contains( NotTakingSignupsMessage, block.ErrorText );
             Assert.False( block.SignupPanelVisible );
         }
 
@@ -520,7 +637,7 @@ namespace org.secc.Connection.Tests
 
             block.Connect();
 
-            Assert.True( block.ErrorShown );
+            Assert.Contains( DoesNotExistMessage, block.ErrorText );
         }
 
         /// <summary>
@@ -535,12 +652,12 @@ namespace org.secc.Connection.Tests
             block.Connect();
 
             Assert.Equal( new[] { 1 }, block.LoadedOpportunityIds );
-            Assert.False( block.ErrorShown );
+            Assert.Null( block.ErrorText );
             Assert.True( block.SignupPanelVisible );
         }
 
         [Fact]
-        public void ShowDetail_InactiveOpportunity_ShowsDoesNotExist()
+        public void ShowDetail_InactiveOpportunity_ShowsNotTakingSignups()
         {
             var opportunity = NewOpportunity();
             opportunity.IsActive = false;
@@ -549,12 +666,12 @@ namespace org.secc.Connection.Tests
             block.Show( 1 );
 
             Assert.Equal( new[] { 1 }, block.LoadedOpportunityIds );
-            Assert.True( block.ErrorShown );
+            Assert.Contains( NotTakingSignupsMessage, block.ErrorText );
             Assert.False( block.SignupPanelVisible );
         }
 
         [Fact]
-        public void ShowDetail_OpportunityOfInactiveConnectionType_ShowsDoesNotExist()
+        public void ShowDetail_OpportunityOfInactiveConnectionType_ShowsNotTakingSignups()
         {
             var opportunity = NewOpportunity();
             opportunity.ConnectionType.IsActive = false;
@@ -562,7 +679,18 @@ namespace org.secc.Connection.Tests
 
             block.Show( 1 );
 
-            Assert.True( block.ErrorShown );
+            Assert.Contains( NotTakingSignupsMessage, block.ErrorText );
+            Assert.False( block.SignupPanelVisible );
+        }
+
+        [Fact]
+        public void ShowDetail_MissingOpportunity_ShowsDoesNotExist()
+        {
+            var block = BlockWithOpportunity( null );
+
+            block.Show( 1 );
+
+            Assert.Contains( DoesNotExistMessage, block.ErrorText );
             Assert.False( block.SignupPanelVisible );
         }
 

@@ -111,8 +111,7 @@ namespace org.secc.Connection
                         roleRequest.GroupTypeRoleId = PageParameter( "GroupTypeRoleId" ).AsInteger();
                         if ( roleRequest.GroupTypeRoleId == 0 && PageParameter( "GroupTypeRole" ).AsGuidOrNull().HasValue )
                         {
-                            GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
-                            roleRequest.GroupTypeRoleId = groupTypeRoleService.Get( PageParameter( "GroupTypeRole" ).AsGuid() ).Id;
+                            roleRequest.GroupTypeRoleId = LoadGroupTypeRole( PageParameter( "GroupTypeRole" ).AsGuid() ).Id;
                         }
                         _roleRequests.Add( roleRequest );
                     }
@@ -171,8 +170,7 @@ namespace org.secc.Connection
 
                         if ( roleRequest.GroupId > 0 && roleRequest.GroupTypeRole.AsGuidOrNull().HasValue )
                         {
-                            GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
-                            roleRequest.GroupTypeRoleId = groupTypeRoleService.Get( roleRequest.GroupTypeRole.AsGuid() ).Id;
+                            roleRequest.GroupTypeRoleId = LoadGroupTypeRole( roleRequest.GroupTypeRole.AsGuid() ).Id;
                         }
 
                         // Get the Default role from this group
@@ -300,7 +298,7 @@ namespace org.secc.Connection
                 if ( !IsOpenForSignup( opportunity ) )
                 {
                     pnlSignup.Visible = false;
-                    ShowError( "Incorrect Opportunity Type", "The requested opportunity does not exist." );
+                    ShowError( "Incorrect Opportunity Type", opportunity == null ? "The requested opportunity does not exist." : "This opportunity isn't taking signups right now." );
                     return;
                 }
 
@@ -601,7 +599,7 @@ namespace org.secc.Connection
                 if ( !IsOpenForSignup( opportunity ) )
                 {
                     pnlSignup.Visible = false;
-                    ShowError( "Incorrect Opportunity Type", "The requested opportunity does not exist." );
+                    ShowError( "Incorrect Opportunity Type", opportunity == null ? "The requested opportunity does not exist." : "This opportunity isn't taking signups right now." );
                     return;
                 }
 
@@ -1215,7 +1213,8 @@ namespace org.secc.Connection
         /// <summary>
         /// The group, role and member status a role request places the person with on this opportunity: the
         /// group must exist, be active, not be archived and not be a security role, and the opportunity must
-        /// have a group config for the group's type and the requested role (its member status is used).
+        /// have a group config for the group's type and the requested role (its member status is used). The
+        /// group must also be on the opportunity's group list unless that config uses all groups of its type.
         /// Returns null otherwise.
         /// </summary>
         protected (int GroupId, int GroupMemberRoleId, GroupMemberStatus GroupMemberStatus)? ResolvePlacement( ConnectionOpportunity opportunity, ConnectionRoleRequest roleRequest )
@@ -1238,7 +1237,20 @@ namespace org.secc.Connection
                 return null;
             }
 
+            if ( !groupConfig.UseAllGroupsOfType && !opportunity.ConnectionOpportunityGroups.Any( og => og.GroupId == group.Id ) )
+            {
+                return null;
+            }
+
             return (group.Id, roleRequest.GroupTypeRoleId, groupConfig.GroupMemberStatus);
+        }
+
+        /// <summary>
+        /// Loads a group type role by Guid.
+        /// </summary>
+        protected virtual GroupTypeRole LoadGroupTypeRole( Guid groupTypeRoleGuid )
+        {
+            return new GroupTypeRoleService( new RockContext() ).Get( groupTypeRoleGuid );
         }
 
         /// <summary>
