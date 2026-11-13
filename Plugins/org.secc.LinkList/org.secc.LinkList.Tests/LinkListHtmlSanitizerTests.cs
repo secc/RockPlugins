@@ -317,10 +317,10 @@ namespace org.secc.LinkList.Tests
             }
         }
 
-        // Cases: an allowlisted attribute whose
-        // UNQUOTED source smuggles an embedded quote + handler. HAP parses the
-        // handler INSIDE the allowlisted attribute's value; the fix must ensure
-        // the emitted string cannot re-tokenize into a live handler.
+        // Cases: an allowlisted attribute whose unquoted source contains an
+        // embedded quote followed by more attribute text. HAP parses that text as
+        // part of the allowlisted attribute's value; the emitted string keeps it
+        // inside that one double-quoted value.
         public static IEnumerable<object[]> Blocker1Payloads()
         {
             yield return new object[] { "<img src=x alt=a\"onerror=\"alert(1)>" };                 // img / alt
@@ -742,11 +742,11 @@ namespace org.secc.LinkList.Tests
         // must be incapable of DECODING, in the browser, into more declarations
         // than were validated.
         //
-        // Each payload is an ALLOWED property (`color` / `width`) whose value, in
+        // Each case is an ALLOWED property (`color` / `width`) whose value, in
         // raw form, clears the property allowlist, yet decodes in the browser into
-        // a declaration separator + a second live declaration (external url()
-        // fetch, position:fixed clickjacking overlay, expression()). The fix must
-        // drop the whole declaration. Assertions run on the browser-DECODED form of
+        // a declaration separator + a second declaration (url(), position:fixed,
+        // expression()). The sanitizer drops the whole declaration. Assertions
+        // run on the browser-DECODED form of
         // the emitted output, not a raw substring.
         // ----------------------------------------------------------------------
 
@@ -1021,9 +1021,9 @@ namespace org.secc.LinkList.Tests
         }
 
         // GROUP 4 — a CSS-escaped url( in an allowlisted, non-url property passes
-        // through byte-faithfully. The property allowlist is what keeps url values
-        // out; DangerousCssValue does not canonicalize CSS escapes (see the note on
-        // the field).
+        // through byte-faithfully. No allowlisted property accepts a url value, so
+        // the browser ignores it; DangerousCssValue does not canonicalize CSS
+        // escapes (see the note on the field).
 
         [Fact]
         public void Style_CssEscaped_Url_Survives_Filter_Accepted_Because_Inert_Not_Safe()
@@ -1036,7 +1036,7 @@ namespace org.secc.LinkList.Tests
         }
 
         // ----------------------------------------------------------------------
-        // ROCK-8880 fix round 5 — reverse tabnabbing (`target` kept, `rel` stripped).
+        // ROCK-8880 fix round 5 — reverse tabnabbing.
         //
         // `target` is allowlisted on <a> and `rel` is on no allowlist, so the
         // sanitizer adds `rel="noopener noreferrer"` whenever `target` survives.

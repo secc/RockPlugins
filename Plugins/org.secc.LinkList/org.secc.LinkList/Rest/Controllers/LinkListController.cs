@@ -219,7 +219,9 @@ namespace org.secc.LinkList.Rest.Controllers
         // ROCK-8881: X-Forwarded-For-aware client IP. Web API exposes the
         // ambient request via the MS_HttpContext property; the server variables
         // go to ClientIpResolver, which makes no DNS lookups and returns only
-        // values that parse as an IP address.
+        // values that parse as an IP address. The value can come from the
+        // client-supplied X-Forwarded-For header, so use it only for analytics
+        // and rate limiting, not for access decisions.
         //
         // Don't use WebRequestHelper.GetClientIpAddress here: it does a
         // synchronous DNS lookup and an ExceptionLog write when the address is

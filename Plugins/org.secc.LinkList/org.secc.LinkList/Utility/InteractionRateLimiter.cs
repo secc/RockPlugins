@@ -378,7 +378,9 @@ namespace org.secc.LinkList.Utility
     /// enabled (Rock's web.config does not enable it). The salt changes on
     /// app-pool recycle, which does not matter for a 60-second window.
     ///
-    /// <b>Client IP.</b> The key comes from <see cref="ClientIpResolver"/>.
+    /// <b>Client IP.</b> Callers pass the client IP: the REST controller
+    /// resolves it with <see cref="ClientIpResolver"/>, and the viewer block
+    /// uses <c>RequestContext.ClientInformation</c>.
     /// </summary>
     public static class LinkListRateLimitPolicy
     {

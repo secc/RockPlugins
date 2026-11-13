@@ -28,6 +28,10 @@ namespace org.secc.LinkList.Utility
     /// parse as an IP address are returned. The value is stored in
     /// <c>Interaction.IpAddress</c> (45 characters) and later read by Rock's
     /// <c>PopulateInteractionSessionData</c> job.
+    ///
+    /// The value can come from the client-supplied <c>X-Forwarded-For</c>
+    /// header, so use it only for analytics and rate limiting, not for access
+    /// decisions.
     /// </summary>
     public static class ClientIpResolver
     {

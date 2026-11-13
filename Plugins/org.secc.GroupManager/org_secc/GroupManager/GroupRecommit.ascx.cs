@@ -403,8 +403,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             // Only people with block EDIT may load a person by the PersonId / PersonAliasId
             // parameters (ROCK-8780). Members reach the public instances via an rckipid
-            // impersonation link or their own login, which never pass these ids. Everyone
-            // else gets the CurrentPerson (self only) fallback below.
+            // impersonation link or their own login, which never pass these ids. If no
+            // person is loaded from those, the UrlEncodedKey parameter is tried next, then
+            // CurrentPerson.
             bool canLoadArbitraryPerson = this.IsUserAuthorized( Rock.Security.Authorization.EDIT );
 
             if ( canLoadArbitraryPerson && personId != 0 )
@@ -444,8 +445,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            // With the tighter authorization gate the person may no longer resolve on this
-            // postback; bail before dereferencing _person for any mutation (ROCK-8780).
+            // The person may not resolve on this postback; bail before dereferencing
+            // _person for any mutation (ROCK-8780).
             if ( _person == null )
             {
                 ShowMessage( GetAttributeValue( "LoginText" ), "Information" );

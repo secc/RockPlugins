@@ -128,8 +128,8 @@ namespace org.secc.LinkList.Utility
         // Non-allowlisted tags removed wholesale (with their subtree) rather than
         // unwrapped, because for these the child content is script or foreign
         // content that browsers parse under different rules.
-        // Superset of the old blacklist: Rock's defaults + svg/style/base/noscript/
-        // applet + math/template/frame/frameset.
+        // Rock's defaults + svg/style/base/noscript/applet + math/template/frame/
+        // frameset.
         private static readonly HashSet<string> DangerousTags = new HashSet<string>( StringComparer.OrdinalIgnoreCase )
         {
             "script", "iframe", "form", "object", "embed", "link", "head", "meta",
@@ -217,8 +217,8 @@ namespace org.secc.LinkList.Utility
         // even when the property itself is on the allowlist. CultureInvariant for
         // the same Turkish-i reason as DangerousScheme above.
         //
-        // The property allowlist (AllowedCssProperties) is what keeps url()/image
-        // values out: none of its properties accepts one. This regex does not
+        // No property in AllowedCssProperties accepts a url()/image value, so the
+        // browser ignores such a value on an allowed property. This regex does not
         // canonicalize CSS escapes. Before adding a URL- or image-bearing property
         // (`background`, `background-image`, `list-style-image`, `cursor`,
         // `content`) to AllowedCssProperties, make DangerousCssValue canonicalize
@@ -457,15 +457,13 @@ namespace org.secc.LinkList.Utility
                     continue;
                 }
 
-                // KNOWN, DELIBERATELY UNFIXED: HAP 1.4.9.5 mis-tokenizes
-                // slash-separated attributes - `<img/src="x"/alt="y">` yields
-                // attributes literally named `rc` and `lt` (it eats the `/s` and
-                // `/a`), where a browser would read `src` and `alt`. Neither name
-                // is allowlisted, so both are dropped here. That is fail-CLOSED and
-                // no worse than the old blacklist, which kept the same bogus `rc`/
-                // `lt` names and so produced an equally src-less broken image.
-                // Normalizing the separators would mean rewriting raw attribute soup
-                // ahead of the parser - new mXSS surface for no visual gain.
+                // HAP 1.4.9.5 tokenizes slash-separated attributes differently from
+                // a browser - `<img/src="x"/alt="y">` yields attributes literally
+                // named `rc` and `lt` (it eats the `/s` and `/a`), where a browser
+                // would read `src` and `alt`. Neither name is allowlisted, so both
+                // are dropped here and the image has no src. The separators are
+                // deliberately not normalized: that would mean rewriting raw
+                // attribute text ahead of the parser for no visual gain.
                 if ( !IsAttributeAllowed( tag, name ) )
                 {
                     attr.Remove();
@@ -670,7 +668,7 @@ namespace org.secc.LinkList.Utility
                 {
                     continue;
                 }
-                // The property allowlist above keeps url()/image values out;
+                // No allowlisted property accepts a url()/image value;
                 // DangerousCssValue does not canonicalize CSS escapes (see the note
                 // on the field).
                 if ( DangerousCssValue.IsMatch( decodedValue ) )
@@ -768,8 +766,8 @@ namespace org.secc.LinkList.Utility
         // property:value) it cannot form a new live declaration, and single-level
         // decoding of legitimate DOUBLE-encoded font stacks (`&amp;quot;` -> the
         // literal `&quot;`, `&amp;#59;` -> `&#59;`) yields inert ';' that must stay
-        // byte-faithful. Keying on the ':' (and braces) catches every confirmed
-        // smuggling payload while leaving those intact.
+        // byte-faithful. Keying on the ':' (and braces) rejects a second
+        // declaration while leaving those intact.
         private static bool DecodedValueSmugglesDeclaration( string decodedValue )
         {
             if ( string.IsNullOrEmpty( decodedValue ) )
