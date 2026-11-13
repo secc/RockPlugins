@@ -128,16 +128,15 @@ namespace RockWeb.Plugins.org_secc.Communication
                 var param = PageParameter( "p" );
                 if ( param.IsNotNullOrWhiteSpace() )
                 {
-                    // Resolve via a Rock impersonation token, not a guessable GUID suffix (the old
-                    // Guid.EndsWith match used the GUID tail as a bearer credential -> leak/replay
-                    // account takeover). Same API ContactGroupLeaders uses.
+                    // Resolve the person from a Rock impersonation token (same API
+                    // ContactGroupLeaders uses).
                     // Coordinated: WT 250 (and /connect/ WT 361) SMS link must emit a PersonTokenCreate
                     // token too -- deploy together.
                     RockContext rockContext = new RockContext();
                     PersonService personService = new PersonService( rockContext );
                     // incrementUsage:false (ContactGroupLeaders passes true, but resolves once): this runs
                     // in OnInit on every postback, so true would burn a use-limited token mid-session.
-                    // Tokens are minted expiry-only -- replay is bounded by a short expiry, not a use count.
+                    // Tokens are minted with an expiry and no use limit.
                     Person = personService.GetByImpersonationToken( param, false, null );
                 }
             }
@@ -602,8 +601,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
                 // Affordance only: the button greys out until the box is ticked, so the
                 // requirement is visible before the click instead of as a validation error
-                // after it. Real enforcement stays server-side in HasSmsConsent -- a disabled
-                // anchor is trivially re-enabled in devtools or bypassed by replaying the postback.
+                // after it. Consent is enforced server-side in HasSmsConsent.
                 if ( consentBox != null )
                 {
                     on.Attributes["data-requires-consent"] = consentBox.ClientID;

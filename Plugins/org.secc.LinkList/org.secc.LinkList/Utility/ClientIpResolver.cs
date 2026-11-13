@@ -18,32 +18,16 @@ namespace org.secc.LinkList.Utility
 {
     /// <summary>
     /// ROCK-8881: resolves the client IP for the anonymous LinkList endpoints.
-    /// Pure (two strings in, one string out) so it is unit-testable without an
+    /// Pure (two strings in, one string out), so it is unit-testable without an
     /// HttpContext.
     ///
-    /// <b>DNS-free by design.</b> Rock's
-    /// <c>WebRequestHelper.GetClientIpAddress</c> blanks the address when it is
-    /// empty or exactly <c>::1</c> and then performs a synchronous
-    /// <c>Dns.GetHostName</c> + <c>Dns.GetHostEntry</c> on the request thread,
-    /// logging any SocketException to the ExceptionLog table. Because that
-    /// helper also returns the first <c>X-Forwarded-For</c> token verbatim, an
-    /// anonymous caller sending <c>X-Forwarded-For: ::1</c> in a loop turns
-    /// every request into a blocking DNS round trip plus a database insert -
-    /// an amplification primitive on the exact endpoints this ticket set out to
-    /// protect, and one the rate limiter cannot stop because the IP has to be
-    /// resolved before the limiter can be consulted. This mirrors the formula
-    /// Rock itself uses in <c>Net/ClientInformation.cs</c>, which has no such
-    /// fallback.
-    ///
-    /// <b>The parse guard matters beyond the limiter.</b> The value returned
-    /// here is persisted to <c>Interaction.IpAddress</c> (truncated to 45
-    /// characters, so corruption would be silent) and later consumed by Rock's
-    /// <c>PopulateInteractionSessionData</c> job, which feeds it to a configured
-    /// IP-geolocation component. Rejecting anything that is not a parseable
-    /// address keeps attacker-authored strings out of the analytics tables and
-    /// out of a metered lookup quota. It does NOT make the value trustworthy -
-    /// a well-formed spoofed address still passes; see
-    /// <see cref="LinkListRateLimitPolicy"/> for that accepted residual risk.
+    /// It makes no DNS lookups (unlike Rock's
+    /// <c>WebRequestHelper.GetClientIpAddress</c>, which falls back to
+    /// <c>Dns.GetHostEntry</c> for a blank or <c>::1</c> address) and mirrors
+    /// the formula in Rock's <c>Net/ClientInformation.cs</c>. Only values that
+    /// parse as an IP address are returned. The value is stored in
+    /// <c>Interaction.IpAddress</c> (45 characters) and later read by Rock's
+    /// <c>PopulateInteractionSessionData</c> job.
     /// </summary>
     public static class ClientIpResolver
     {

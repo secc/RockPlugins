@@ -69,8 +69,8 @@ namespace org.secc.LinkList.Tests
         {
             // The resolved value is written to Interaction.IpAddress (truncated
             // to 45 chars, so corruption would be silent) and later fed to
-            // Rock's IP-geolocation job. An attacker-authored string must never
-            // reach either.
+            // Rock's IP-geolocation job. Only parseable addresses may reach
+            // either.
             Assert.Equal( "10.0.0.1", ClientIpResolver.Resolve( header, "10.0.0.1" ) );
         }
 

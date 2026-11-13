@@ -290,8 +290,8 @@ namespace org.secc.LinkList.Tests
         // CAVEAT: this re-parses with HtmlAgilityPack - the SAME parser that
         // produced the output - so it CANNOT detect a HAP-vs-browser tokenizer
         // differential; it proves the output is self-consistent under HAP, not
-        // that it is browser-equivalent. The blocker-1 closure does not rest on
-        // this test: it holds on HTML-spec grounds (a forced double-quote
+        // that it is browser-equivalent. The attribute-quoting guarantee does
+        // not rest on this test: it holds on HTML-spec grounds (a forced double-quote
         // delimiter around a value from which literal " < > have been encoded out
         // cannot be re-tokenized by any conformant parser), which this check
         // corroborates but does not by itself establish. It still catches the
@@ -317,7 +317,7 @@ namespace org.secc.LinkList.Tests
             }
         }
 
-        // Every confirmed blocker-1 payload: an allowlisted attribute whose
+        // Cases: an allowlisted attribute whose
         // UNQUOTED source smuggles an embedded quote + handler. HAP parses the
         // handler INSIDE the allowlisted attribute's value; the fix must ensure
         // the emitted string cannot re-tokenize into a live handler.
@@ -355,7 +355,7 @@ namespace org.secc.LinkList.Tests
         [Fact]
         public void Smuggled_Handler_Does_Not_Produce_A_Live_Onerror_Attribute()
         {
-            // Concrete replay of the headline payload. The literal text
+            // Single-attribute case. The literal text
             // "onerror" may survive ENCODED inside the alt value (that is inert);
             // what must never happen is a real onerror ATTRIBUTE on the element.
             var once = LinkListHtmlSanitizer.Sanitize( "<img src=x alt=a\"onerror=\"alert(1)>" );
@@ -548,8 +548,7 @@ namespace org.secc.LinkList.Tests
         {
             // &colon; decodes to ':' in a browser, completing "javascript:". The
             // safe decoder must decode it so the scheme check still neutralizes
-            // the href. (A best-effort decoder that left it literal would ship
-            // this XSS.)
+            // the href.
             var result = LinkListHtmlSanitizer.Sanitize(
                 "<a href=\"javascript&colon;alert(1)\">x</a>" );
 
@@ -650,13 +649,9 @@ namespace org.secc.LinkList.Tests
         // ROCK-8880 fix round 4 — BLOCKER A: SafeDeEntitize must decode at least
         // as aggressively as a browser.
         //
-        // Browsers decode a numeric character reference in an attribute value even
-        // WITHOUT the terminating ';' (an HTML5 parse error, but the reference is
-        // still consumed and decoded). The round-3 decoder required the ';', so a
-        // scheme colon written as `&#58` (no ';'), `&#x3a` (no ';'), or a tab as
-        // `&#9` (no ';') slipped past the scheme check and executed on click.
-        // These assert the SECURITY OUTCOME (the url-bearing attribute is stripped),
-        // not the decoder internals.
+        // SafeDeEntitize decodes numeric references without a trailing ';', as
+        // browsers do. These assert the outcome (the url-bearing attribute is
+        // stripped), not the decoder internals.
         // ----------------------------------------------------------------------
 
         public static IEnumerable<object[]> BlockerA_SemicolonlessSchemePayloads()
@@ -666,10 +661,9 @@ namespace org.secc.LinkList.Tests
             yield return new object[] { "javascript&#58alert(1)" };
             // scheme colon as a hex ref with NO ';'. The hex-digit run must be
             // terminated by a NON-hex char for the colon to materialize — here the
-            // 'w' of "window" (a real attack payload `javascript:window...`). NB:
-            // `&#x3aalert` is NOT used: 'a' is a hex digit, so a browser AND this
-            // decoder both fold it into `&#x3aa` (U+03AA) and no colon appears —
-            // that spelling is a non-exploit at parity, not a bypass.
+            // 'w' of "window". NB: `&#x3aalert` is NOT used: 'a' is a hex digit, so
+            // a browser AND this decoder both fold it into `&#x3aa` (U+03AA) and no
+            // colon appears.
             yield return new object[] { "javascript&#x3awindow.alert(1)" };
             // tab as a decimal ref with NO ';' — URL parser strips it, leaving
             // "javascript:"
@@ -753,8 +747,7 @@ namespace org.secc.LinkList.Tests
         // a declaration separator + a second live declaration (external url()
         // fetch, position:fixed clickjacking overlay, expression()). The fix must
         // drop the whole declaration. Assertions run on the browser-DECODED form of
-        // the emitted output, not a raw substring — the round-3 mistake was a raw
-        // substring check that missed the entity-encoded form.
+        // the emitted output, not a raw substring.
         // ----------------------------------------------------------------------
 
         // Browser-equivalent HTML decode of the emitted markup, so the assertion
@@ -861,8 +854,8 @@ namespace org.secc.LinkList.Tests
         // ROCK-8880 final polish — CSS-escape attack class (documentation/coverage).
         //
         // WHY these tests exist and WHY the expected results are correct — do NOT
-        // "fix" a passing test here without re-reading this. The security-review
-        // established the ACTUAL mechanism by which the CSS declaration gate holds:
+        // "fix" a passing test here without re-reading this. How the CSS
+        // declaration gate holds:
         //
         //   A new CSS declaration requires a bare <colon-token> emitted by the CSS
         //   tokenizer. A CSS backslash escape (`\3a`) produces a colon CODE POINT
@@ -1027,25 +1020,16 @@ namespace org.secc.LinkList.Tests
             Assert.DoesNotContain( "width", result, System.StringComparison.OrdinalIgnoreCase );
         }
 
-        // GROUP 4 — the LATENT DangerousCssValue escape gap, pinned as a test so the
-        // behavior is visible and documented rather than surprising. This value is
-        // ACCEPTED-BECAUSE-INERT, not accepted-because-safe: `\75 rl(` is a CSS
-        // escape of the `u` in `url`, so DangerousCssValue's `url\(` regex never
-        // matches and the value survives sanitization unchanged. It is harmless
-        // ONLY because `background-color` (and every other allowlisted property)
-        // does not accept a url()/image value, so the browser — which DOES fold
-        // `\75 rl(` back into a real `url(` function token — drops the declaration.
-        // The PROPERTY ALLOWLIST is the guarantee here, not DangerousCssValue. If a
-        // URL-/image-bearing property is ever allowlisted, this test's payload
-        // becomes a live external fetch and DangerousCssValue must be made
-        // escape-aware first (see the LIMITATION note on the field).
+        // GROUP 4 — a CSS-escaped url( in an allowlisted, non-url property passes
+        // through byte-faithfully. The property allowlist is what keeps url values
+        // out; DangerousCssValue does not canonicalize CSS escapes (see the note on
+        // the field).
 
         [Fact]
         public void Style_CssEscaped_Url_Survives_Filter_Accepted_Because_Inert_Not_Safe()
         {
-            // Survives sanitization byte-faithfully because `\75 rl(` is not a
-            // literal `url(`; inert only because no allowlisted property accepts a
-            // url() value. NOT a guarantee provided by DangerousCssValue.
+            // Passes through byte-faithfully; no allowlisted property accepts a
+            // url() value.
             var result = LinkListHtmlSanitizer.Sanitize(
                 "<p style=\"background-color: \\75 rl(//evil/x)\">y</p>" );
             Assert.Contains( "background-color: \\75 rl(//evil/x)", result );
@@ -1054,11 +1038,8 @@ namespace org.secc.LinkList.Tests
         // ----------------------------------------------------------------------
         // ROCK-8880 fix round 5 — reverse tabnabbing (`target` kept, `rel` stripped).
         //
-        // `target` is allowlisted on <a> but `rel` is on NO allowlist, so before this
-        // fix the sanitizer kept `target="_blank"` while actively STRIPPING an
-        // author's `rel="noopener noreferrer"` — removing the mitigation and leaving
-        // no way for an editor to add it back, since this sanitizer is the single
-        // chokepoint. `rel` is now force-injected whenever `target` survives.
+        // `target` is allowlisted on <a> and `rel` is on no allowlist, so the
+        // sanitizer adds `rel="noopener noreferrer"` whenever `target` survives.
         // ----------------------------------------------------------------------
 
         [Fact]
@@ -1250,8 +1231,8 @@ namespace org.secc.LinkList.Tests
         [Fact]
         public void LessThan_Escape_Does_Not_Reopen_The_Mxss_Breakout()
         {
-            // A bare '<' alongside the smuggled-quote payload must not produce a live
-            // handler; the escape runs before parsing, so the mXSS gate still applies.
+            // A bare '<' alongside a quoted-attribute case still yields no
+            // event-handler attribute; the escape runs before parsing.
             var result = LinkListHtmlSanitizer.Sanitize(
                 "<p>3 < 4</p><img src=x alt=a\"onerror=\"alert(1)>" );
 

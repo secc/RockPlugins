@@ -69,10 +69,8 @@ namespace org.secc.LinkList.Rest.Controllers
                 // ROCK-7164: external page view. Referer = the embedding page
                 // (far more useful than the API URL). Anonymous by design.
                 // ROCK-8881: the per-IP rate limit lives inside RecordView, so
-                // every caller is covered. Note it gates the analytics write
-                // only - the bag above has already been built, so this endpoint
-                // sheds no database work under a flood. See
-                // LinkListRateLimitPolicy.
+                // every caller is covered. It applies to the analytics write;
+                // the bag above is built first. See LinkListRateLimitPolicy.
                 if ( bag.Id.HasValue )
                 {
                     LinkListInteractionService.RecordView(
@@ -125,12 +123,10 @@ namespace org.secc.LinkList.Rest.Controllers
             // once the copy exceeds the cap. Peak memory is the cap plus one
             // 4 KB copy chunk either way.
             //
-            // This replaces a Content-Length gate that could not work on
-            // WebHost: System.Web.Http.WebHost wraps the body in
-            // SeekableBufferedRequestStream, which hardcodes CanSeek to true
-            // while leaving Length to fall through to HttpRequest.ContentLength
-            // (0 for chunked). So the header always computed to a value - and
-            // for the attack case, always to 0, which sailed past the cap.
+            // On WebHost, System.Web.Http.WebHost wraps the body in
+            // SeekableBufferedRequestStream, which reports CanSeek=true while
+            // Length falls through to HttpRequest.ContentLength (0 for chunked),
+            // so Content-Length cannot be used to enforce the cap.
             //
             // Call this exactly once, and never mix in a separate
             // ReadAsStreamAsync consume: because CanSeek lies, a second
@@ -222,19 +218,12 @@ namespace org.secc.LinkList.Rest.Controllers
 
         // ROCK-8881: X-Forwarded-For-aware client IP. Web API exposes the
         // ambient request via the MS_HttpContext property; the server variables
-        // go to ClientIpResolver, which is DNS-free and rejects anything that
-        // does not parse as an address.
+        // go to ClientIpResolver, which makes no DNS lookups and returns only
+        // values that parse as an IP address.
         //
-        // Deliberately NOT WebRequestHelper.GetClientIpAddress: that wrapper
-        // does a synchronous DNS lookup plus an ExceptionLog write whenever the
-        // address is blank or "::1", both of which an anonymous caller can
-        // trigger at will on these endpoints. See ClientIpResolver.
-        //
-        // NOTE: a well-formed XFF value is still trusted without a
-        // trusted-proxy allowlist, so this remains client-spoofable. The rate
-        // limiter that consumes it is best-effort by design and bounds its own
-        // keyspace precisely because this input is untrusted; see
-        // LinkListRateLimitPolicy for the accepted residual-risk discussion.
+        // Don't use WebRequestHelper.GetClientIpAddress here: it does a
+        // synchronous DNS lookup and an ExceptionLog write when the address is
+        // blank or "::1". See ClientIpResolver.
         private string GetClientIp()
         {
             try

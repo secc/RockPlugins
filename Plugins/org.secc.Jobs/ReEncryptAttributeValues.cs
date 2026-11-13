@@ -20,7 +20,7 @@
 // that:
 //
 //     DataEncryptionKey      = NEW key
-//     OldDataEncryptionKey   = OLD (leaked) key   (and OldDataEncryptionKey1, 2, ... if needed)
+//     OldDataEncryptionKey   = OLD key   (and OldDataEncryptionKey1, 2, ... if needed)
 //
 // Rock's Encryption.DecryptString automatically falls back through the
 // OldDataEncryptionKey* values, so this job can read old-key data and rewrite

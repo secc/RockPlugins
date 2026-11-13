@@ -289,8 +289,8 @@ namespace org.secc.LinkList.Services
 
             // SLUG BEFORE ID. A slug may be all digits ("2024" is a legal slug) and it
             // is the public contract - the URL people share - whereas resolving by Id is
-            // a convenience for internal callers. Trying the Id first let an item whose
-            // Id happened to equal a numeric slug silently hijack that slug's URL.
+            // a convenience for internal callers, so a numeric slug always resolves to
+            // its own item.
             // Normalized to the canonical lowercase form (stored slugs are always
             // lowercase); the caller owns charset validation, and the length cap here is
             // defense in depth.
