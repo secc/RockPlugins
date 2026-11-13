@@ -1213,7 +1213,8 @@ namespace org.secc.Connection
         /// The group, role and member status a role request places the person with on this opportunity: the
         /// group must exist, be active, not be archived and not be a security role, and the opportunity must
         /// have a group config for the group's type and the requested role (its member status is used). The
-        /// group must also be on the opportunity's group list unless that config uses all groups of its type.
+        /// group must also be on the opportunity's group list unless a group config of the group's type on the
+        /// opportunity uses all groups of that type.
         /// Returns null otherwise.
         /// </summary>
         protected (int GroupId, int GroupMemberRoleId, GroupMemberStatus GroupMemberStatus)? ResolvePlacement( ConnectionOpportunity opportunity, ConnectionRoleRequest roleRequest )
@@ -1236,7 +1237,9 @@ namespace org.secc.Connection
                 return null;
             }
 
-            if ( !groupConfig.UseAllGroupsOfType && !opportunity.ConnectionOpportunityGroups.Any( og => og.GroupId == group.Id ) )
+            var usesAllGroupsOfType = opportunity.ConnectionOpportunityGroupConfigs
+                .Any( gc => gc.GroupTypeId == group.GroupTypeId && gc.UseAllGroupsOfType );
+            if ( !usesAllGroupsOfType && !opportunity.ConnectionOpportunityGroups.Any( og => og.GroupId == group.Id ) )
             {
                 return null;
             }

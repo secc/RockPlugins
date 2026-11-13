@@ -86,7 +86,8 @@ Category in Rock: **SECC > Connection**.
 - A request is placed (`AssignedGroup`, role and member status set) only when the group is active,
   not archived, not a role group, and its group type plus the requested role match one of the
   opportunity's group configs. The member status comes from that config. The group must also be on
-  the opportunity's group list, unless that config has **Use All Groups of This Type** set to Yes.
+  the opportunity's group list, unless any of the opportunity's group configs for that group type
+  (for any role) has **Use All Groups of This Type** set to Yes.
 - Otherwise the request is still created, with no group, role or member status.
 - **Signup-Blocking Requirement Types** and group member attribute values apply only to placed
   requests.

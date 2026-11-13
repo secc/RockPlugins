@@ -346,13 +346,9 @@ namespace org.secc.Connection.Tests
         }
 
         [Fact]
-        public void GroupNotOnTheList_IsNotPlaced_WhenOnlyAnotherConfigUsesAllGroupsOfType()
+        public void GroupNotOnTheList_IsPlacedWithItsRolesStatus_WhenAnotherConfigOfItsTypeUsesAllGroups()
         {
             var opportunity = NewOpportunity();
-            foreach ( var config in opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupTypeId != ServingTeamTypeId ) )
-            {
-                config.UseAllGroupsOfType = true;
-            }
             opportunity.ConnectionOpportunityGroupConfigs.Add( new ConnectionOpportunityGroupConfig
             {
                 GroupTypeId = ServingTeamTypeId,
@@ -363,7 +359,39 @@ namespace org.secc.Connection.Tests
 
             var placement = NewBlock().Resolve( opportunity, new VolunteerSignupFormConnections.ConnectionRoleRequest { GroupId = UnlistedServingGroupId, GroupTypeRoleId = MemberRoleId } );
 
+            Assert.True( placement.HasValue );
+            Assert.Equal( UnlistedServingGroupId, placement.Value.GroupId );
+            Assert.Equal( MemberRoleId, placement.Value.GroupMemberRoleId );
+            Assert.Equal( GroupMemberStatus.Pending, placement.Value.GroupMemberStatus );
+        }
+
+        [Fact]
+        public void GroupNotOnTheList_IsNotPlaced_WhenOnlyConfigsOfOtherTypesUseAllGroups()
+        {
+            var opportunity = NewOpportunity();
+            opportunity.ConnectionOpportunityGroupConfigs.Add( new ConnectionOpportunityGroupConfig
+            {
+                GroupTypeId = OtherTypeId,
+                GroupMemberRoleId = MemberRoleId,
+                GroupMemberStatus = GroupMemberStatus.Active
+            } );
+            foreach ( var config in opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupTypeId != ServingTeamTypeId ) )
+            {
+                config.UseAllGroupsOfType = true;
+            }
+
+            var placement = NewBlock().Resolve( opportunity, new VolunteerSignupFormConnections.ConnectionRoleRequest { GroupId = UnlistedServingGroupId, GroupTypeRoleId = MemberRoleId } );
+
             Assert.Null( placement );
+        }
+
+        [Fact]
+        public void GroupNotOnTheList_IsNotPlaced_ForARoleWithoutAConfig_EvenWhenItsTypeUsesAllGroups()
+        {
+            var opportunity = NewOpportunity();
+            ServingTeamConfig( opportunity ).UseAllGroupsOfType = true;
+
+            Assert.Null( NewBlock().Resolve( opportunity, new VolunteerSignupFormConnections.ConnectionRoleRequest { GroupId = UnlistedServingGroupId, GroupTypeRoleId = LeaderRoleId } ) );
         }
 
         [Fact]
