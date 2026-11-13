@@ -236,21 +236,31 @@ namespace org.secc.Connection
             }
             base.OnLoad( e );
 
-
-            if ( Settings.Entity() == null )
-            {
-                nbConfigurationWarning.Visible = true;
-                nbConfigurationWarning.Text = "The connection opportunities, partitions, and display settings need to be configured in block settings.";
-            }
-
+            // Load the editor before any early return. Settings opens on a postback, and saving writes
+            // ceLava.Text back to the Lava attribute, so an unloaded editor would wipe the template.
             if ( !IsPostBack )
             {
                 ceLava.Text = GetAttributeValue( "Lava" );
             }
 
+            var entity = Settings.Entity();
+            if ( entity == null )
+            {
+                nbConfigurationWarning.Visible = true;
+                if ( Settings.EntityGuid != Guid.Empty )
+                {
+                    // The configured opportunity (or group) was deleted. Rendering would dereference it, so stop here.
+                    var entityName = Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.GROUP.AsGuid() ? "group" : "connection opportunity";
+                    nbConfigurationWarning.Text = string.Format( "This signup isn't configured: its {0} no longer exists.", entityName );
+                    return;
+                }
+                nbConfigurationWarning.Text = "The connection opportunities, partitions, and display settings need to be configured in block settings.";
+            }
+
             if ( Settings.Partitions.Count > 0 )
             {
-                ConnectionOpportunity connection = ( ConnectionOpportunity ) Settings.Entity();
+                // Null when no opportunity is chosen (or the signup is group-based); the tree then renders without requests.
+                ConnectionOpportunity connection = entity as ConnectionOpportunity;
                 if ( connection != null && connectionRequests == null )
                 {
                     connectionRequests = connection.ConnectionRequests;
@@ -276,9 +286,9 @@ namespace org.secc.Connection
                 if ( Settings.SignupPage() != null )
                 {
                     url = new Rock.Web.PageReference( Settings.SignupPage().Id ).BuildUrl();
-                    if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
+                    if ( connection != null )
                     {
-                        url += "?OpportunityId=" + Settings.Entity().Id;
+                        url += "?OpportunityId=" + connection.Id;
                     }
                 }
 
@@ -363,7 +373,8 @@ namespace org.secc.Connection
             rddlConnection.DataValueField = "Value";
             rddlConnection.DataBind();
 
-            if ( Settings.EntityGuid != Guid.Empty )
+            // A deleted opportunity is not in the list; selecting it would throw on postback.
+            if ( Settings.EntityGuid != Guid.Empty && rddlConnection.Items.FindByValue( Settings.EntityGuid.ToString() ) != null )
             {
                 rddlConnection.SelectedValue = Settings.EntityGuid.ToString();
             }
@@ -737,7 +748,25 @@ namespace org.secc.Connection
                 return _groups;
             }
 
-            ConnectionOpportunity opportunity = ( ( ConnectionOpportunity ) Settings.Entity() );
+            ConnectionOpportunity opportunity = Settings.Entity() as ConnectionOpportunity;
+            if ( opportunity == null )
+            {
+                // No opportunity (e.g. it was deleted). UpdateCounts rebuilds the group map from these dropdowns,
+                // so offer the groups already mapped; otherwise every row would save back as "Not Mapped".
+                var mappedGroupIds = Groups.Values
+                    .Concat( Settings.Partitions.Where( p => p.GroupMap != null ).SelectMany( p => p.GroupMap.Values ) )
+                    .Select( v => v.AsIntegerOrNull() )
+                    .Where( id => id.HasValue )
+                    .Select( id => id.Value )
+                    .Distinct()
+                    .ToList();
+                _groups = new GroupService( new RockContext() )
+                    .Queryable().AsNoTracking()
+                    .Include( g => g.Campus )
+                    .Where( g => mappedGroupIds.Contains( g.Id ) )
+                    .ToList();
+                return _groups;
+            }
             int[] campusIds = opportunity.ConnectionOpportunityCampuses.Select( o => o.CampusId ).ToArray();
             // Build list of groups
             var groups = new List<Group>();
@@ -853,7 +882,13 @@ namespace org.secc.Connection
                     case "Role":
                         if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
                         {
+                            // Lock the parameter name before the missing-opportunity exit; the signup form reads "GroupTypeRole".
+                            tbAttributeKey.ReadOnly = true;
                             ConnectionOpportunity connection = ( ConnectionOpportunity ) Settings.Entity();
+                            if ( connection == null )
+                            {
+                                break;
+                            }
                             var roles = connection.ConnectionOpportunityGroupConfigs.Where( cogc => cogc.GroupMemberRole != null ).OrderBy( r => r.GroupTypeId ).ThenBy( r => r.GroupMemberRole.Order ).Select( r => new { Name = r.GroupType.Name + ": " + r.GroupMemberRole.Name, Guid = r.GroupMemberRole.Guid } ).ToList();
 
 
@@ -871,7 +906,6 @@ namespace org.secc.Connection
                                 roleCbl.AutoPostBack = true;
                                 phPartitionControl.Controls.Add( roleCbl );
                             }
-                            tbAttributeKey.ReadOnly = true;
                         }
 
                         break;
