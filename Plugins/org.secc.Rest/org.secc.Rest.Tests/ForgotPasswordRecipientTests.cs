@@ -340,20 +340,116 @@ namespace org.secc.Rest.Tests
         }
 
         [Fact]
-        public void StoredAddressesDifferingOnlyInCase_EachGetsItsOwnEmail()
+        public void StoredAddressesDifferingOnlyInCase_GetOneEmailListingBoth()
         {
             var n = NewNumber();
-            var upper = _controller.AddPerson( 1, "Pat.Sample." + n + "@example.test" );
-            var lower = _controller.AddPerson( 2, "pat.sample." + n + "@example.test" );
+            var upper = _controller.AddPerson( 1, "Pat.Sample.AZ." + n + "@example.test" );
+            var lower = _controller.AddPerson( 2, "pat.sample.az." + n + "@example.test" );
 
-            AssertNeutral( Forgot( "pat.sample." + n + "@example.test" ) );
+            AssertNeutral( Forgot( "pat.sample.az." + n + "@example.test" ) );
 
-            var recipients = SingleSend();
-            Assert.Equal( 2, recipients.Count );
-            Assert.Equal( upper.Email, recipients[0].To );
-            Assert.Equal( new[] { upper }, Listed( recipients[0] ) );
-            Assert.Equal( lower.Email, recipients[1].To );
-            Assert.Equal( new[] { lower }, Listed( recipients[1] ) );
+            var recipient = Assert.Single( SingleSend() );
+            Assert.Equal( upper.Email, recipient.To );
+            Assert.Equal( new[] { upper, lower }, Listed( recipient ) );
+        }
+
+        [Fact]
+        public void StoredAddressesDifferingOnlyInCase_ListTheirPeopleInIdOrder()
+        {
+            var n = NewNumber();
+            var first = _controller.AddPerson( 1, "Pat.Sample." + n + "@example.test" );
+            var second = _controller.AddPerson( 2, "pat.sample." + n + "@example.test" );
+            var third = _controller.AddPerson( 3, first.Email );
+
+            AssertNeutral( Forgot( second.Email ) );
+
+            var recipient = Assert.Single( SingleSend() );
+            Assert.Equal( first.Email, recipient.To );
+            Assert.Equal( new[] { first, second, third }, Listed( recipient ) );
+        }
+
+        [Fact]
+        public void OlderStoredAddressWithoutAResettableLogin_GetsNoEmailAndIsNotListed()
+        {
+            var n = NewNumber();
+            _controller.AddPerson( 1, "Pat.Sample." + n + "@example.test", resettable: false );
+            var resettable = _controller.AddPerson( 2, "pat.sample." + n + "@example.test" );
+
+            AssertNeutral( Forgot( resettable.Email ) );
+
+            var recipient = Assert.Single( SingleSend() );
+            Assert.Equal( resettable.Email, recipient.To );
+            Assert.Equal( new[] { resettable }, Listed( recipient ) );
+        }
+
+        [Fact]
+        public void StoredAddressWithTrailingWhitespace_GetsTheEmailWhenItIsTheFirst()
+        {
+            var n = NewNumber();
+            var padded = _controller.AddPerson( 1, "pat.sample." + n + "@example.test " );
+            var other = _controller.AddPerson( 2, "Pat.Sample." + n + "@example.test" );
+
+            AssertNeutral( Forgot( other.Email ) );
+
+            var recipient = Assert.Single( SingleSend() );
+            Assert.Equal( padded.Email, recipient.To );
+            Assert.Equal( new[] { padded, other }, Listed( recipient ) );
+        }
+
+        /// <summary>
+        /// A zero width space, and a full width letter p, in the second stored address. Both addresses have
+        /// the same budget key.
+        /// </summary>
+        [Theory]
+        [InlineData( "pat\u200B.sample.{0}@example.test" )]
+        [InlineData( "\uFF50at.sample.{0}@example.test" )]
+        public void StoredAddressDifferingByANonAsciiCharacter_GetsNoEmailAndIsNotListed( string variant )
+        {
+            var n = NewNumber();
+            var plain = _controller.AddPerson( 1, "pat.sample." + n + "@example.test" );
+            _controller.AddPerson( 2, string.Format( variant, n ) );
+
+            AssertNeutral( Forgot( plain.Email ) );
+
+            var recipient = Assert.Single( SingleSend() );
+            Assert.Equal( plain.Email, recipient.To );
+            Assert.Equal( new[] { plain }, Listed( recipient ) );
+        }
+
+        /// <summary>
+        /// A zero width space, a delete character, and a space inside the first stored address. Both
+        /// addresses have the same budget key.
+        /// </summary>
+        [Theory]
+        [InlineData( "pat\u200B!~.sample.{0}@example.test" )]
+        [InlineData( "pat\u007F!~.sample.{0}@example.test" )]
+        [InlineData( "pat !~.sample.{0}@example.test" )]
+        public void PrintableAsciiStoredAddress_GetsTheEmail_WhenAnOlderOneIsNot( string older )
+        {
+            var n = NewNumber();
+            _controller.AddPerson( 1, string.Format( older, n ) );
+            var plain = _controller.AddPerson( 2, "pat!~.sample." + n + "@example.test" );
+
+            AssertNeutral( Forgot( plain.Email ) );
+
+            var recipient = Assert.Single( SingleSend() );
+            Assert.Equal( plain.Email, recipient.To );
+            Assert.Equal( new[] { plain }, Listed( recipient ) );
+        }
+
+        [Fact]
+        public void NoPrintableAsciiStoredAddress_EmailGoesToTheFirst_ListingOnlyItsAsciiCaseVariants()
+        {
+            var n = NewNumber();
+            var first = _controller.AddPerson( 1, "jos\u00E9.sample." + n + "@example.test" );
+            var asciiCase = _controller.AddPerson( 2, "JOS\u00E9.Sample." + n + "@example.test" );
+            _controller.AddPerson( 3, "jos\u00C9.sample." + n + "@example.test" );
+
+            AssertNeutral( Forgot( first.Email ) );
+
+            var recipient = Assert.Single( SingleSend() );
+            Assert.Equal( first.Email, recipient.To );
+            Assert.Equal( new[] { first, asciiCase }, Listed( recipient ) );
         }
 
         [Theory]
@@ -533,8 +629,8 @@ namespace org.secc.Rest.Tests
             }
 
             Assert.Equal( 3, SentTo( upper.Email ) );
-            Assert.Equal( 3, SentTo( lower.Email ) );
-            Assert.Equal( new[] { 2, 2, 2 }, _controller.Sends.Select( recipients => recipients.Count ) );
+            Assert.Equal( 0, SentTo( lower.Email ) );
+            Assert.Equal( new[] { 1, 1, 1 }, _controller.Sends.Select( recipients => recipients.Count ) );
 
             // The shared budget is spent: a fourth request sends nothing more.
             AssertNeutral( Forgot( spellings[3] ) );
@@ -543,7 +639,7 @@ namespace org.secc.Rest.Tests
         }
 
         [Fact]
-        public void FourStoredAddressesSharingOneBudget_EachGetsItsEmailEveryRequest()
+        public void FourStoredAddressesSharingOneBudget_GetOneEmailPerRequestListingAllOfThem()
         {
             var spellings = CollationEqualSpellings( NewNumber() );
             var rest = spellings[0].Substring( "pat.strasse.".Length );
@@ -562,12 +658,12 @@ namespace org.secc.Rest.Tests
 
             Assert.Equal( 4, people.Select( p => p.Email ).Distinct().Count() );
             Assert.Equal( 3, _controller.Sends.Count );
-            foreach ( var person in people )
+            Assert.All( _controller.Sends, recipients =>
             {
-                Assert.Equal( 3, SentTo( person.Email ) );
-            }
-
-            Assert.All( _controller.Sends.SelectMany( recipients => recipients ), r => Assert.Equal( people.Where( p => p.Email == r.To ), Listed( r ) ) );
+                var recipient = Assert.Single( recipients );
+                Assert.Equal( people[0].Email, recipient.To );
+                Assert.Equal( people, Listed( recipient ) );
+            } );
 
             // The shared budget is spent: a fourth request sends nothing more.
             AssertNeutral( Forgot( spellings[3] ) );
@@ -591,9 +687,12 @@ namespace org.secc.Rest.Tests
             }
 
             // Three requests spend the budget the two stored addresses share; the fourth sends nothing.
-            Assert.Equal( new[] { 1, 2, 2 }, _controller.Sends.Select( recipients => recipients.Count ) );
+            Assert.Equal( new[] { 1, 1, 1 }, _controller.Sends.Select( recipients => recipients.Count ) );
             Assert.Equal( 3, SentTo( trimmed.Email ) );
-            Assert.Equal( 2, SentTo( padded.Email ) );
+            Assert.Equal( 0, SentTo( padded.Email ) );
+            Assert.Equal( new[] { trimmed }, Listed( _controller.Sends[0][0] ) );
+            Assert.Equal( new[] { trimmed, padded }, Listed( _controller.Sends[1][0] ) );
+            Assert.Equal( new[] { trimmed, padded }, Listed( _controller.Sends[2][0] ) );
         }
 
         [Fact]
@@ -693,7 +792,7 @@ namespace org.secc.Rest.Tests
         }
 
         [Fact]
-        public void EachEmail_HasTheConfirmAccountUrl_AndItsOwnPeoplesPasswordChangeLogins()
+        public void EachEmail_HasTheConfirmAccountUrl_AndEachPersonsOwnPasswordChangeLogins()
         {
             var n = NewNumber();
             var first = _controller.AddPerson( 1, "pat.sample." + n + "@example.test" );
@@ -702,14 +801,15 @@ namespace org.secc.Rest.Tests
             _controller.Logins[1].Add( new UserLogin { Id = 12, UserName = "patsample1-noprovider", PersonId = 1 } );
             _controller.AddPerson( 2, first.Email, resettable: false );
             _controller.AddPerson( 3, "Pat.Sample." + n + "@example.test" );
+            _controller.AddPerson( 4, "pat.other." + n + "@example.test" );
 
             AssertNeutral( Forgot( first.Email ) );
 
             var recipients = SingleSend();
             Assert.Equal( 2, recipients.Count );
             Assert.All( recipients, r => Assert.Equal( "https://www.example.test/ConfirmAccount", r.MergeFields["ConfirmAccountUrl"] ) );
-            Assert.Equal( new[] { new List<string> { "patsample1" }, new List<string>() }, PasswordChangeLogins( recipients[0] ) );
-            Assert.Equal( new[] { new List<string> { "patsample3" } }, PasswordChangeLogins( recipients[1] ) );
+            Assert.Equal( new[] { new List<string> { "patsample1" }, new List<string>(), new List<string> { "patsample3" } }, PasswordChangeLogins( recipients[0] ) );
+            Assert.Equal( new[] { new List<string> { "patsample4" } }, PasswordChangeLogins( recipients[1] ) );
         }
 
         [Fact]
@@ -780,6 +880,25 @@ namespace org.secc.Rest.Tests
         public void ProviderSupportsChangePassword_IsFalseWithoutAProvider()
         {
             Assert.False( AccountController.ProviderSupportsChangePassword( null ) );
+        }
+
+        [Theory]
+        [InlineData( "!~", true )]
+        [InlineData( " pat.sample@example.test \t", true )]
+        [InlineData( "pat sample@example.test", false )]
+        [InlineData( "pat\u007Fsample@example.test", false )]
+        [InlineData( "jos\u00E9@example.test", false )]
+        public void IsPrintableAscii_AllowsOnlyPrintableAsciiInsideSurroundingWhiteSpace( string address, bool expected )
+        {
+            Assert.Equal( expected, AccountController.IsPrintableAscii( address ) );
+        }
+
+        [Theory]
+        [InlineData( " AZ@[`{az ", "az@[`{az" )]
+        [InlineData( "JOS\u00C9\uFF21@Example.test", "jos\u00C9\uFF21@example.test" )]
+        public void FoldAsciiCase_TrimsAndLowersOnlyAToZ( string address, string expected )
+        {
+            Assert.Equal( expected, AccountController.FoldAsciiCase( address ) );
         }
 
         [Theory]

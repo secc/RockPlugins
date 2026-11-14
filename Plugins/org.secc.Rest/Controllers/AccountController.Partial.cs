@@ -311,6 +311,23 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
+        /// Whether every character of the address, apart from surrounding white space, is a printable ASCII character.
+        /// </summary>
+        internal static bool IsPrintableAscii( string address )
+        {
+            return address.Trim().All( c => c >= '!' && c <= '~' );
+        }
+
+        /// <summary>
+        /// The address without surrounding white space and with the letters A to Z in lower case. Every
+        /// other character is unchanged.
+        /// </summary>
+        internal static string FoldAsciiCase( string address )
+        {
+            return new string( address.Trim().Select( c => c >= 'A' && c <= 'Z' ? ( char ) ( c + ( 'a' - 'A' ) ) : c ).ToArray() );
+        }
+
+        /// <summary>
         /// The cached attribute with this Guid, or null when there is none.
         /// </summary>
         protected virtual AttributeCache GetAttributeCache( Guid guid )
@@ -1524,11 +1541,11 @@ namespace org.secc.Rest.Controllers
                 var recipients = new List<RockEmailMessageRecipient>();
                 var confirmAccountUrl = ConfirmAccountUrlFrom( ApplicationRootFrom( GetPublicApplicationRootSetting() ) );
 
-                // Each email goes to the stored address of the people it lists, one email per stored address.
                 var people = GetPeopleByEmail( personService, email ).OrderBy( p => p.Id ).ToList();
 
-                // Stored addresses that share a budget key are counted once per request and share the outcome.
-                var storedAddressAllowed = new Dictionary<string, bool>();
+                // The stored addresses that have a person with a resettable login, in the Id order of their
+                // first person, each with the results of its people.
+                var resettableAddresses = new List<KeyValuePair<string, List<IDictionary<string, object>>>>();
                 foreach ( var addressGroup in people.GroupBy( p => p.Email, StringComparer.Ordinal ) )
                 {
                     bool hasAccountWithPasswordResetAbility = false;
@@ -1549,26 +1566,30 @@ namespace org.secc.Rest.Controllers
                         results.Add( resultsDictionary );
                     }
 
-                    if ( !hasAccountWithPasswordResetAbility )
+                    if ( hasAccountWithPasswordResetAbility )
                     {
-                        continue;
+                        resettableAddresses.Add( new KeyValuePair<string, List<IDictionary<string, object>>>( addressGroup.Key, results ) );
                     }
+                }
 
-                    var storedKey = StoredRecipientKey( addressGroup.Key );
-                    bool allowed;
-                    if ( !storedAddressAllowed.TryGetValue( storedKey, out allowed ) )
-                    {
-                        allowed = TryRegisterForgotPasswordStoredAddress( clientId, addressGroup.Key );
-                        storedAddressAllowed[storedKey] = allowed;
-                    }
+                // Stored addresses that share a budget key get one email per request, counted once. It goes to
+                // the first of them that is all printable ASCII, or else to the first, and lists the people
+                // whose stored address is the same apart from surrounding white space and the case of A to Z.
+                foreach ( var keyGroup in resettableAddresses.GroupBy( a => StoredRecipientKey( a.Key ) ) )
+                {
+                    var address = keyGroup.Select( a => a.Key ).FirstOrDefault( IsPrintableAscii ) ?? keyGroup.First().Key;
 
                     // A stored address whose budget is spent gets no email; the response stays the same.
-                    if ( allowed )
+                    if ( TryRegisterForgotPasswordStoredAddress( clientId, address ) )
                     {
                         var mergeFields = new Dictionary<string, object>();
-                        mergeFields.Add( "Results", results.ToArray() );
+                        mergeFields.Add( "Results", keyGroup
+                            .Where( a => FoldAsciiCase( a.Key ) == FoldAsciiCase( address ) )
+                            .SelectMany( a => a.Value )
+                            .OrderBy( r => ( ( Person ) r["Person"] ).Id )
+                            .ToArray() );
                         mergeFields.Add( "ConfirmAccountUrl", confirmAccountUrl );
-                        recipients.Add( RockEmailMessageRecipient.CreateAnonymous( addressGroup.Key, mergeFields ) );
+                        recipients.Add( RockEmailMessageRecipient.CreateAnonymous( address, mergeFields ) );
                     }
                 }
 
