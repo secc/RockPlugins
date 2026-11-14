@@ -369,6 +369,20 @@ namespace org.secc.Rest.Tests
         }
 
         [Fact]
+        public void StoredAddressesDifferingOnlyInCase_EmailGoesToTheLowestPersonIdsAddress_WhenTheLookupReturnsItLast()
+        {
+            var n = NewNumber();
+            var second = _controller.AddPerson( 2, "pat.sample." + n + "@example.test" );
+            var first = _controller.AddPerson( 1, "Pat.Sample." + n + "@example.test" );
+
+            AssertNeutral( Forgot( second.Email ) );
+
+            var recipient = Assert.Single( SingleSend() );
+            Assert.Equal( first.Email, recipient.To );
+            Assert.Equal( new[] { first, second }, Listed( recipient ) );
+        }
+
+        [Fact]
         public void OlderStoredAddressWithoutAResettableLogin_GetsNoEmailAndIsNotListed()
         {
             var n = NewNumber();
@@ -417,13 +431,14 @@ namespace org.secc.Rest.Tests
         }
 
         /// <summary>
-        /// A zero width space, a delete character, and a space inside the first stored address. Both
-        /// addresses have the same budget key.
+        /// A zero width space, a delete character, and a space inside the first stored address, and an
+        /// ideographic space after it. Both addresses have the same budget key.
         /// </summary>
         [Theory]
         [InlineData( "pat\u200B!~.sample.{0}@example.test" )]
         [InlineData( "pat\u007F!~.sample.{0}@example.test" )]
         [InlineData( "pat !~.sample.{0}@example.test" )]
+        [InlineData( "pat!~.sample.{0}@example.test\u3000" )]
         public void PrintableAsciiStoredAddress_GetsTheEmail_WhenAnOlderOneIsNot( string older )
         {
             var n = NewNumber();
@@ -885,6 +900,9 @@ namespace org.secc.Rest.Tests
         [Theory]
         [InlineData( "!~", true )]
         [InlineData( " pat.sample@example.test \t", true )]
+        [InlineData( "\r\npat.sample@example.test\n\r", true )]
+        [InlineData( "pat.sample@example.test\u3000", false )]
+        [InlineData( "\u00A0pat.sample@example.test", false )]
         [InlineData( "pat sample@example.test", false )]
         [InlineData( "pat\u007Fsample@example.test", false )]
         [InlineData( "jos\u00E9@example.test", false )]
@@ -895,6 +913,8 @@ namespace org.secc.Rest.Tests
 
         [Theory]
         [InlineData( " AZ@[`{az ", "az@[`{az" )]
+        [InlineData( "\t\r\nAZ@Example.test\n\r\t", "az@example.test" )]
+        [InlineData( "\u3000AZ@Example.test\u00A0", "\u3000az@example.test\u00A0" )]
         [InlineData( "JOS\u00C9\uFF21@Example.test", "jos\u00C9\uFF21@example.test" )]
         public void FoldAsciiCase_TrimsAndLowersOnlyAToZ( string address, string expected )
         {

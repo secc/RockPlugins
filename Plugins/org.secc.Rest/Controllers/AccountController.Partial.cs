@@ -311,20 +311,27 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
-        /// Whether every character of the address, apart from surrounding white space, is a printable ASCII character.
+        /// The characters <see cref="IsPrintableAscii"/> and <see cref="FoldAsciiCase"/> ignore around an
+        /// address: space, tab, line feed and carriage return.
+        /// </summary>
+        private static readonly char[] AsciiWhiteSpace = { ' ', '\t', '\n', '\r' };
+
+        /// <summary>
+        /// Whether every character of the address, apart from surrounding spaces, tabs and line breaks, is a
+        /// printable ASCII character.
         /// </summary>
         internal static bool IsPrintableAscii( string address )
         {
-            return address.Trim().All( c => c >= '!' && c <= '~' );
+            return address.Trim( AsciiWhiteSpace ).All( c => c >= '!' && c <= '~' );
         }
 
         /// <summary>
-        /// The address without surrounding white space and with the letters A to Z in lower case. Every
-        /// other character is unchanged.
+        /// The address without surrounding spaces, tabs and line breaks and with the letters A to Z in lower
+        /// case. Every other character is unchanged.
         /// </summary>
         internal static string FoldAsciiCase( string address )
         {
-            return new string( address.Trim().Select( c => c >= 'A' && c <= 'Z' ? ( char ) ( c + ( 'a' - 'A' ) ) : c ).ToArray() );
+            return new string( address.Trim( AsciiWhiteSpace ).Select( c => c >= 'A' && c <= 'Z' ? ( char ) ( c + ( 'a' - 'A' ) ) : c ).ToArray() );
         }
 
         /// <summary>
@@ -1574,18 +1581,20 @@ namespace org.secc.Rest.Controllers
 
                 // Stored addresses that share a budget key get one email per request, counted once. It goes to
                 // the first of them that is all printable ASCII, or else to the first, and lists the people
-                // whose stored address is the same apart from surrounding white space and the case of A to Z.
-                foreach ( var keyGroup in resettableAddresses.GroupBy( a => StoredRecipientKey( a.Key ) ) )
+                // whose stored address is the same apart from surrounding spaces, tabs and line breaks and the
+                // case of A to Z.
+                foreach ( var budgetGroup in resettableAddresses.GroupBy( stored => StoredRecipientKey( stored.Key ) ) )
                 {
-                    var address = keyGroup.Select( a => a.Key ).FirstOrDefault( IsPrintableAscii ) ?? keyGroup.First().Key;
+                    var address = budgetGroup.Select( stored => stored.Key ).FirstOrDefault( IsPrintableAscii ) ?? budgetGroup.First().Key;
 
                     // A stored address whose budget is spent gets no email; the response stays the same.
                     if ( TryRegisterForgotPasswordStoredAddress( clientId, address ) )
                     {
+                        var foldedAddress = FoldAsciiCase( address );
                         var mergeFields = new Dictionary<string, object>();
-                        mergeFields.Add( "Results", keyGroup
-                            .Where( a => FoldAsciiCase( a.Key ) == FoldAsciiCase( address ) )
-                            .SelectMany( a => a.Value )
+                        mergeFields.Add( "Results", budgetGroup
+                            .Where( stored => FoldAsciiCase( stored.Key ) == foldedAddress )
+                            .SelectMany( stored => stored.Value )
                             .OrderBy( r => ( ( Person ) r["Person"] ).Id )
                             .ToArray() );
                         mergeFields.Add( "ConfirmAccountUrl", confirmAccountUrl );
