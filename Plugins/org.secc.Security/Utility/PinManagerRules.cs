@@ -47,14 +47,14 @@ namespace org.secc.Security.Utility
         public const string NoPurpose = "[No Purpose]";
 
         /// <summary>
-        /// Returns the HTML the PIN Manager list shows for the purposes of a PIN: the HTML-encoded names of the
-        /// purposes, separated by commas, in the order they are stored. Ids that <paramref name="purposeName"/>
+        /// Returns the HTML-encoded text the PIN Manager list shows for the purposes of a PIN: the HTML-encoded names
+        /// of the purposes, separated by commas, in the order they are stored (a repeated id is shown each time). Ids that <paramref name="purposeName"/>
         /// doesn't know are left out, so the result is empty when it knows none of them. A value with no ids gives
         /// <see cref="NoPurpose"/>.
         /// </summary>
         /// <param name="purposeValue">The PIN's purpose attribute value: defined value ids separated by '|', or null.</param>
         /// <param name="purposeName">Returns the name of the purpose with the given id, or null when there is none.</param>
-        /// <returns></returns>
+        /// <returns>The HTML-encoded purpose text.</returns>
         public static string PurposeText( string purposeValue, Func<int, string> purposeName )
         {
             var purposeIds = ( purposeValue ?? string.Empty ).Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries );
@@ -70,10 +70,10 @@ namespace org.secc.Security.Utility
         }
 
         /// <summary>
-        /// Returns the HTML the PIN Manager shows for a purpose name in its purpose check box list.
+        /// Returns the HTML-encoded text the PIN Manager shows for a purpose name in its purpose check box list.
         /// </summary>
         /// <param name="name">The purpose name.</param>
-        /// <returns></returns>
+        /// <returns>The HTML-encoded name.</returns>
         public static string PurposeItemText( string name )
         {
             return name.EncodeHtml();

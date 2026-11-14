@@ -463,7 +463,8 @@ namespace org.secc.Security.Tests
             { 4541, "Children's Ministry" },
             { 4542, "Sports and Fitness" },
             { 9001, MarkupName },
-            { 9002, "Q&A" }
+            { 9002, "Q&A" },
+            { 9003, "" }
         };
 
         private static string PurposeName( int id )
@@ -494,6 +495,18 @@ namespace org.secc.Security.Tests
         {
             Assert.Equal( "Sports and Fitness, " + EncodedMarkupName + ", Children&#39;s Ministry",
                 PinManagerRules.PurposeText( "4542|9001|4541", PurposeName ) );
+        }
+
+        [Fact]
+        public void PurposeText_RepeatedId_IsShownEachTime()
+        {
+            Assert.Equal( "Sports and Fitness, Sports and Fitness", PinManagerRules.PurposeText( "4542|4542", PurposeName ) );
+        }
+
+        [Fact]
+        public void PurposeText_EmptyName_IsKeptAsAnEmptyEntry()
+        {
+            Assert.Equal( "Sports and Fitness, , Q&amp;A", PinManagerRules.PurposeText( "4542|9003|9002", PurposeName ) );
         }
 
         [Fact]
