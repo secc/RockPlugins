@@ -111,36 +111,10 @@ namespace RockWeb.Plugins.org_secc.Security
                 rowPanel.Controls.Add( secondPanel );
 
                 pin.LoadAttributes();
-                List<string> purpose = new List<string>();
-                if ( pin.GetAttributeValue( "PINPurpose" ) != null )
-                {
-                    var purposeIds = pin.GetAttributeValue( "PINPurpose" )
-                        .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
-                        .ToList();
-                    if ( purposeIds.Any() )
-                    {
-                        foreach ( var purposeId in purposeIds )
-                        {
-                            var dvPurpose = DefinedValueCache.Get( purposeId.AsInteger() );
-                            if ( dvPurpose != null )
-                            {
-                                purpose.Add( dvPurpose.Value );
-                            }
-                        }
-                    }
-                    else
-                    {
-                        purpose.Add( "[No Purpose]" );
-                    }
-                }
-                else
-                {
-                    purpose.Add( "[No Purpose]" );
-                }
 
                 RockLiteral rockLiteral = new RockLiteral();
                 rockLiteral.Label = PinManagerRules.DisplayPin( pin.UserName, userAuthorized ).EncodeHtml();
-                rockLiteral.Text = string.Join( ", ", purpose );
+                rockLiteral.Text = PinManagerRules.PurposeText( pin.GetAttributeValue( "PINPurpose" ), id => DefinedValueCache.Get( id )?.Value );
                 secondPanel.Controls.Add( rockLiteral );
 
                 var thirdPanel = new Panel();
@@ -162,10 +136,11 @@ namespace RockWeb.Plugins.org_secc.Security
         {
             var definedTypeGuid = GetAttributeValue( "PurposeDefinedType" ).AsGuid();
             var definedType = DefinedTypeCache.Get( definedTypeGuid );
-            cblPurpose.DataSource = definedType.DefinedValues;
-            cblPurpose.DataTextField = "Value";
-            cblPurpose.DataValueField = "Id";
-            cblPurpose.DataBind();
+            cblPurpose.Items.Clear();
+            foreach ( var definedValue in definedType.DefinedValues )
+            {
+                cblPurpose.Items.Add( new ListItem( PinManagerRules.PurposeItemText( definedValue.Value ), definedValue.Id.ToString() ) );
+            }
 
         }
 

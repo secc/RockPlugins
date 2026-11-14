@@ -23,7 +23,8 @@ namespace org.secc.Security.Tests
 {
     /// <summary>
     /// PinManagerRules.DisplayPin for users who can and can't administrate PINs, PinManagerRules.IsPersonPin for
-    /// each kind of login, and PinManagerRules.CheckPin for new, changed and unchanged PINs.
+    /// each kind of login, PinManagerRules.CheckPin for new, changed and unchanged PINs, and PinManagerRules.PurposeText
+    /// and PurposeItemText for purpose names.
     /// </summary>
     public class PinManagerRulesTests
     {
@@ -448,6 +449,117 @@ namespace org.secc.Security.Tests
 
             Assert.Equal( "Error: Requested PIN must be 6 digits or greater.", Check( "12345", "1234", logins, out _ ) );
             Assert.Empty( logins.Asked );
+        }
+
+        #endregion
+
+        #region PurposeText and PurposeItemText
+
+        private const string MarkupName = "<b>Sports</b> & <script>x()</script>";
+        private const string EncodedMarkupName = "&lt;b&gt;Sports&lt;/b&gt; &amp; &lt;script&gt;x()&lt;/script&gt;";
+
+        private static readonly Dictionary<int, string> Purposes = new Dictionary<int, string>
+        {
+            { 4541, "Children's Ministry" },
+            { 4542, "Sports and Fitness" },
+            { 9001, MarkupName },
+            { 9002, "Q&A" }
+        };
+
+        private static string PurposeName( int id )
+        {
+            return Purposes.TryGetValue( id, out var name ) ? name : null;
+        }
+
+        [Fact]
+        public void NoPurpose_IsTheBracketedText()
+        {
+            Assert.Equal( "[No Purpose]", PinManagerRules.NoPurpose );
+        }
+
+        [Fact]
+        public void PurposeText_MarkupInAName_IsEncoded()
+        {
+            Assert.Equal( EncodedMarkupName, PinManagerRules.PurposeText( "9001", PurposeName ) );
+        }
+
+        [Fact]
+        public void PurposeText_AmpersandInAName_IsEncodedOnce()
+        {
+            Assert.Equal( "Q&amp;A", PinManagerRules.PurposeText( "9002", PurposeName ) );
+        }
+
+        [Fact]
+        public void PurposeText_SeveralPurposes_AreEncodedAndJoinedInStoredOrder()
+        {
+            Assert.Equal( "Sports and Fitness, " + EncodedMarkupName + ", Children&#39;s Ministry",
+                PinManagerRules.PurposeText( "4542|9001|4541", PurposeName ) );
+        }
+
+        [Fact]
+        public void PurposeText_PlainName_IsUnchanged()
+        {
+            Assert.Equal( "Sports and Fitness", PinManagerRules.PurposeText( "4542", PurposeName ) );
+        }
+
+        [Fact]
+        public void PurposeText_NameWithApostrophe_DisplaysTheSame()
+        {
+            var text = PinManagerRules.PurposeText( "4541", PurposeName );
+
+            Assert.Equal( "Children&#39;s Ministry", text );
+            Assert.Equal( "Children's Ministry", System.Net.WebUtility.HtmlDecode( text ) );
+        }
+
+        [Theory]
+        [InlineData( null )]
+        [InlineData( "" )]
+        [InlineData( "|" )]
+        [InlineData( "||" )]
+        public void PurposeText_NoIds_IsNoPurpose( string value )
+        {
+            Assert.Equal( PinManagerRules.NoPurpose, PinManagerRules.PurposeText( value, PurposeName ) );
+        }
+
+        [Theory]
+        [InlineData( "123" )]
+        [InlineData( "123|456" )]
+        [InlineData( "abc" )]
+        [InlineData( " " )]
+        public void PurposeText_OnlyUnknownIds_IsEmpty( string value )
+        {
+            Assert.Equal( string.Empty, PinManagerRules.PurposeText( value, PurposeName ) );
+        }
+
+        [Fact]
+        public void PurposeText_UnknownIdsAmongKnownOnes_AreLeftOut()
+        {
+            Assert.Equal( "Sports and Fitness, Q&amp;A", PinManagerRules.PurposeText( "123|4542||abc|9002", PurposeName ) );
+        }
+
+        [Fact]
+        public void PurposeText_LooksUpEachIdAsANumber()
+        {
+            var asked = new List<int>();
+
+            PinManagerRules.PurposeText( "4542|x|9001", id => { asked.Add( id ); return PurposeName( id ); } );
+
+            Assert.Equal( new[] { 4542, 0, 9001 }, asked );
+        }
+
+        [Fact]
+        public void PurposeItemText_MarkupInAName_IsEncoded()
+        {
+            Assert.Equal( EncodedMarkupName, PinManagerRules.PurposeItemText( MarkupName ) );
+        }
+
+        [Theory]
+        [InlineData( "Sports and Fitness", "Sports and Fitness" )]
+        [InlineData( "Q&A", "Q&amp;A" )]
+        [InlineData( "Children's Ministry", "Children&#39;s Ministry" )]
+        public void PurposeItemText_EncodesOnce( string name, string expected )
+        {
+            Assert.Equal( expected, PinManagerRules.PurposeItemText( name ) );
         }
 
         #endregion

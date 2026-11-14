@@ -22,7 +22,7 @@ This is Southeast's catch-all **security and identity** plugin. Most of it is Ro
 /                       org.secc.Security.csproj (compiles SAML2/ and Utility/)
 /SAML2/                 SAML 2.0 assertion library: SAML20Assertion (build+sign Response),
                         CertificateUtility (X509 XML signing), SAMLSchema (xsd-generated OASIS types)
-/Utility/               PinManagerRules: the PIN Manager's PIN display and its login and PIN checks
+/Utility/               PinManagerRules: the PIN Manager's PIN and purpose display and its login and PIN checks
                         (DisplayPin, IsPersonPin, CheckPin)
 /org.secc.Security.Tests/ xUnit tests for PinManagerRules (Tools/add-plugins-to-solution.ps1 adds it to
                         Rock.sln with the plugin projects)
