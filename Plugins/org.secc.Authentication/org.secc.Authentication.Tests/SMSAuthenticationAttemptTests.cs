@@ -20,7 +20,7 @@ using Xunit;
 namespace org.secc.Authentication.Tests
 {
     /// <summary>
-    /// Authenticate's per-code attempt limit, with its SQL run against a temporary database.
+    /// Authenticate's per-code attempt limit and single use, with its SQL run against a temporary database.
     /// </summary>
     public class SMSAuthenticationAttemptTests : IClassFixture<UserLoginTestDatabase>
     {
@@ -61,12 +61,124 @@ namespace org.secc.Authentication.Tests
         }
 
         [Fact]
-        public void CorrectCode_AfterFourAttempts_SucceedsAndGivesItsAttemptBack()
+        public void CorrectCode_AfterFourAttempts_Succeeds()
         {
             var id = _database.AddLogin( Hash( Code ), 4 );
 
             Assert.True( _authentication.Authenticate( _database.Load( id ), Code ) );
-            Assert.Equal( 4, _database.GetFailedPasswordAttemptCount( id ) );
+            Assert.Null( _database.GetPassword( id ) );
+        }
+
+        [Fact]
+        public void CorrectCode_SignsInOnce()
+        {
+            var id = _database.AddLogin( Hash( Code ), 0 );
+
+            Assert.True( _authentication.Authenticate( _database.Load( id ), Code ) );
+            Assert.Null( _database.GetPassword( id ) );
+            Assert.False( _authentication.Authenticate( _database.Load( id ), Code ) );
+        }
+
+        [Fact]
+        public void CorrectCode_IsRefused_ForALoginLoadedBeforeItWasUsed()
+        {
+            var id = _database.AddLogin( Hash( Code ), 0 );
+            var first = _database.Load( id );
+            var second = _database.Load( id );
+
+            Assert.True( _authentication.Authenticate( first, Code ) );
+            var countAfterUse = _database.GetFailedPasswordAttemptCount( id );
+
+            Assert.False( _authentication.Authenticate( second, Code ) );
+            Assert.Equal( countAfterUse, _database.GetFailedPasswordAttemptCount( id ) );
+        }
+
+        [Fact]
+        public void ConcurrentCorrectCodes_SignInExactlyOnce()
+        {
+            const int threadCount = 20;
+            var id = _database.AddLogin( Hash( Code ), 0 );
+
+            // Every entry uses the login as it was loaded before any of them was checked.
+            var loaded = _database.Load( id );
+            var accepted = 0;
+            var start = new Barrier( threadCount );
+
+            var threads = Enumerable.Range( 0, threadCount ).Select( t => new Thread( () =>
+            {
+                start.SignalAndWait();
+                if ( _authentication.Authenticate( loaded, Code ) )
+                {
+                    Interlocked.Increment( ref accepted );
+                }
+            } ) ).ToList();
+
+            threads.ForEach( t => t.Start() );
+            threads.ForEach( t => t.Join() );
+
+            Assert.Equal( 1, accepted );
+            Assert.Null( _database.GetPassword( id ) );
+        }
+
+        [Fact]
+        public void CorrectCode_IsRefused_WhenUsingUpTheCodeFails()
+        {
+            var id = _database.AddLogin( Hash( Code ), 0 );
+            var authentication = TestSMSAuthentication.Create( _database );
+            authentication.BeforeStatement = sql =>
+            {
+                if ( sql.Contains( "[Password] = NULL" ) )
+                {
+                    throw new InvalidOperationException();
+                }
+            };
+
+            Assert.False( authentication.Authenticate( _database.Load( id ), Code ) );
+        }
+
+        [Fact]
+        public void CorrectCode_IsRefused_AndLeavesACodeIssuedMeanwhile()
+        {
+            const string newCode = "111111";
+            var newHash = Hash( newCode );
+            var id = _database.AddLogin( Hash( Code ), 0 );
+            var authentication = TestSMSAuthentication.Create( _database );
+            authentication.BeforeStatement = sql =>
+            {
+                // A new code is issued, and has used 3 attempts, between checking this entry and using it up.
+                if ( sql.Contains( "[Password] = NULL" ) )
+                {
+                    _database.SetLogin( id, newHash, 3 );
+                }
+            };
+
+            Assert.False( authentication.Authenticate( _database.Load( id ), Code ) );
+            Assert.Equal( newHash, _database.GetPassword( id ) );
+            Assert.Equal( 3, _database.GetFailedPasswordAttemptCount( id ) );
+
+            Assert.True( _authentication.Authenticate( _database.Load( id ), newCode ) );
+        }
+
+        [Fact]
+        public void WrongCode_DoesNotUseUpTheCode()
+        {
+            var id = _database.AddLogin( Hash( Code ), 0 );
+
+            Assert.False( _authentication.Authenticate( _database.Load( id ), WrongCode ) );
+            Assert.NotNull( _database.GetPassword( id ) );
+            Assert.True( _authentication.Authenticate( _database.Load( id ), Code ) );
+        }
+
+        [Fact]
+        public void NewCode_SignsIn_AfterTheLastOneWasUsed()
+        {
+            const string newCode = "111111";
+            var id = _database.AddLogin( Hash( Code ), 0 );
+
+            Assert.True( _authentication.Authenticate( _database.Load( id ), Code ) );
+            _database.ReplaceCode( id, Hash( newCode ) );
+
+            Assert.True( _authentication.Authenticate( _database.Load( id ), newCode ) );
         }
 
         [Fact]
@@ -99,60 +211,6 @@ namespace org.secc.Authentication.Tests
             Assert.False( _authentication.Authenticate( _database.Load( id ), WrongCode ) );
             Assert.Equal( 1, _database.GetFailedPasswordAttemptCount( id ) );
             Assert.Equal( 0, _database.GetFailedPasswordAttemptCount( otherId ) );
-        }
-
-        [Fact]
-        public void CorrectCode_StillSucceeds_WhenGivingTheAttemptBackFails()
-        {
-            var id = _database.AddLogin( Hash( Code ), 0 );
-            var authentication = TestSMSAuthentication.Create( _database );
-            authentication.BeforeStatement = sql =>
-            {
-                if ( sql.Contains( "- 1" ) )
-                {
-                    throw new InvalidOperationException();
-                }
-            };
-
-            Assert.True( authentication.Authenticate( _database.Load( id ), Code ) );
-            Assert.Equal( 1, _database.GetFailedPasswordAttemptCount( id ) );
-        }
-
-        [Fact]
-        public void CorrectCode_DoesNotGiveAnAttemptBack_ToACodeIssuedMeanwhile()
-        {
-            var id = _database.AddLogin( Hash( Code ), 0 );
-            var authentication = TestSMSAuthentication.Create( _database );
-            authentication.BeforeStatement = sql =>
-            {
-                // A new code is issued, and has used 3 attempts, between counting this entry and giving it back.
-                if ( sql.Contains( "- 1" ) )
-                {
-                    _database.SetLogin( id, Hash( "111111" ), 3 );
-                }
-            };
-
-            Assert.True( authentication.Authenticate( _database.Load( id ), Code ) );
-            Assert.Equal( 3, _database.GetFailedPasswordAttemptCount( id ) );
-        }
-
-        [Fact]
-        public void CorrectCode_NeverTakesTheCountBelowZero()
-        {
-            var hash = Hash( Code );
-            var id = _database.AddLogin( hash, 0 );
-            var authentication = TestSMSAuthentication.Create( _database );
-            authentication.BeforeStatement = sql =>
-            {
-                // The count is reset for the same code between counting this entry and giving it back.
-                if ( sql.Contains( "- 1" ) )
-                {
-                    _database.SetLogin( id, hash, 0 );
-                }
-            };
-
-            Assert.True( authentication.Authenticate( _database.Load( id ), Code ) );
-            Assert.Equal( 0, _database.GetFailedPasswordAttemptCount( id ) );
         }
 
         [Fact]

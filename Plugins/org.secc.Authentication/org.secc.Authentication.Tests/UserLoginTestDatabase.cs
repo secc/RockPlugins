@@ -133,6 +133,17 @@ namespace org.secc.Authentication.Tests
             }
         }
 
+        public string GetPassword( int id )
+        {
+            using ( var connection = Open( ConnectionString ) )
+            using ( var command = new SqlCommand( "SELECT [Password] FROM [UserLogin] WHERE [Id] = @id", connection ) )
+            {
+                command.Parameters.AddWithValue( "@id", id );
+                var value = command.ExecuteScalar();
+                return value == DBNull.Value ? null : ( string ) value;
+            }
+        }
+
         /// <summary>
         /// Runs a statement on its own connection and returns the number of rows it affected.
         /// </summary>

@@ -46,11 +46,17 @@ namespace org.secc.Authentication.Tests
             return authentication;
         }
 
+        /// <summary>
+        /// Enters the login's correct code count times. A code signs in once, so the same code is stored
+        /// again after each entry, including the last, so later refusals come from the address limit.
+        /// </summary>
         private void EnterCorrectCodes( TestSMSAuthentication authentication, int id, int count )
         {
+            var hash = _database.GetPassword( id );
             for ( var entry = 1; entry <= count; entry++ )
             {
                 Assert.True( authentication.Authenticate( _database.Load( id ), Code ) );
+                _database.SetLogin( id, hash, 0 );
             }
         }
 
@@ -102,11 +108,13 @@ namespace org.secc.Authentication.Tests
         [InlineData( "198.51.100.", "192.0.2.25:4431", "192.0.2.25" )]
         public void EntriesWithTheSameLastForwardedEntry_ShareOneBudget( string earlierEntries, string lastEntry, string address )
         {
-            var id = _database.AddLogin( Hash( Code ), 0 );
+            var hash = Hash( Code );
+            var id = _database.AddLogin( hash, 0 );
 
             for ( var entry = 1; entry <= 30; entry++ )
             {
                 Assert.True( From( earlierEntries + entry + ", " + lastEntry ).Authenticate( _database.Load( id ), Code ) );
+                _database.SetLogin( id, hash, 0 );
             }
 
             var refused = From( earlierEntries + "200, " + lastEntry );
@@ -117,11 +125,13 @@ namespace org.secc.Authentication.Tests
         [Fact]
         public void BracketedIpv6Entries_ShareOneBudget_WhateverTheirPort()
         {
-            var id = _database.AddLogin( Hash( Code ), 0 );
+            var hash = Hash( Code );
+            var id = _database.AddLogin( hash, 0 );
 
             for ( var entry = 1; entry <= 30; entry++ )
             {
                 Assert.True( From( "[2001:db8:a::1]:" + ( 1000 + entry ) ).Authenticate( _database.Load( id ), Code ) );
+                _database.SetLogin( id, hash, 0 );
             }
 
             var refused = From( "[2001:db8:a::1]:2222" );
