@@ -23,7 +23,7 @@ Authentication lets a person sign in to Rock with their cell phone instead of a 
 /                              CallerAddress.cs — the caller address the per-caller limits count against
 /org_secc/Authentication/      SMSLogin.ascx (+ .ascx.cs) — the two-step phone-number / code login block
 /Properties/                   AssemblyInfo.cs
-/org.secc.Authentication.Tests/ xUnit tests for SMSRecords, SendSMSAuthentication, SendSMS, CallerAddress, and Authenticate's attempt counting and code entry limit (Tools/add-plugins-to-solution.ps1 adds it to Rock.sln with the plugin projects)
+/org.secc.Authentication.Tests/ xUnit tests for SMSRecords, SendSMSAuthentication, SendSMS, CallerAddress, and Authenticate's attempt counting, single use and code entry limit (Tools/add-plugins-to-solution.ps1 adds it to Rock.sln with the plugin projects)
 ```
 
 ## How SMS Login Works
@@ -108,7 +108,7 @@ Category in Rock: **SECC > Security**. Three panels (phone → code → resolve)
 ## Edge Cases & Constraints
 
 - **Number must map to exactly one living person.** `GetNumberOwner` rejects 0 matches, >1 matches, and deceased people — all with the same generic error (the **Resolve Number Page** is the escape hatch for shared/duplicate numbers).
-- **Code lifetime is 30 minutes, hard-coded.** `Authenticate` rejects any code whose `LastPasswordChangedDateTime` is older than 30 minutes (or null). Not configurable. A code also stops working once it has been used to sign in.
+- **Code lifetime is 30 minutes, hard-coded.** `Authenticate` rejects any code whose `LastPasswordChangedDateTime` is older than 30 minutes (or null). Not configurable. A code also stops working once it has been entered correctly.
 - **Send is fire-and-forget.** The text goes out on a `Task.Run(...)` `async void` (`SendSMS`); failures are logged but never surfaced to the user, who still sees the code-entry panel.
 - **Page is referenced, not created.** The default **SMS Login Page** Guid must already exist in the target Rock instance; this plugin ships no migration to create it.
 
