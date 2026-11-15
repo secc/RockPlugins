@@ -12,6 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -65,12 +66,13 @@ namespace org.secc.RegistrationCart.Services
         /// </summary>
         /// <param name="otherLines">The cart's other lines that will be registered with this one
         /// (their uses of the code count toward its Maximum Usage).</param>
-        public string Check( RegistrationTemplate template, int registrationInstanceId, string code, IEnumerable<CartLineItem> otherLines, out UsableCode usable )
+        /// <param name="cartId">The cart asking (0 when it has none yet), which isn't counted among the carts mid-checkout.</param>
+        public string Check( RegistrationTemplate template, int registrationInstanceId, string code, IEnumerable<CartLineItem> otherLines, int cartId, out UsableCode usable )
         {
             usable = null;
             var typed = ( code ?? "" ).Trim();
             var discount = Find( template.Id, typed );
-            var problem = DiscountRules.Check( ToTerms( discount ), RockDateTime.Today, discount == null ? 0 : TimesUsed( registrationInstanceId, discount.Code, otherLines ) );
+            var problem = DiscountRules.Check( ToTerms( discount ), RockDateTime.Today, discount == null ? 0 : TimesUsed( registrationInstanceId, discount.Code, otherLines, cartId ) );
             if ( problem != DiscountProblem.None )
             {
                 return DiscountRules.Message( problem, typed, Term( template ), discount?.MinRegistrants );
@@ -85,30 +87,37 @@ namespace org.secc.RegistrationCart.Services
         /// null. As Rock's RegistrationEntry, only when the line has no code of its own; the
         /// discount code workflow runs only when none applies.
         /// </summary>
-        public UsableCode FirstAutoApply( RegistrationTemplate template, int registrationInstanceId, IEnumerable<CartLineItem> otherLines )
+        public UsableCode FirstAutoApply( RegistrationTemplate template, int registrationInstanceId, IEnumerable<CartLineItem> otherLines, int cartId )
         {
             var others = otherLines?.ToList() ?? new List<CartLineItem>();
             var discount = Discounts( template.Id )
                 .Where( d => d.AutoApplyDiscount )
                 .OrderBy( d => d.Order )
                 .ToList()
-                .FirstOrDefault( d => DiscountRules.Check( ToTerms( d ), RockDateTime.Today, TimesUsed( registrationInstanceId, d.Code, others ) ) == DiscountProblem.None );
+                .FirstOrDefault( d => DiscountRules.Check( ToTerms( d ), RockDateTime.Today, TimesUsed( registrationInstanceId, d.Code, others, cartId ) ) == DiscountProblem.None );
             return discount != null ? ToUsable( discount ) : null;
         }
 
         /// <summary>
         /// The registrations in the instance that used the code, plus the given cart lines for the
         /// instance with it (Rock counts the instance's registrations; the cart's lines become
-        /// registrations together).
+        /// registrations together), plus the lines of other carts mid-checkout, which are about to
+        /// become registrations (seats and limited fee items count them the same way), so two
+        /// checkouts can't both take a code's last use.
         /// </summary>
-        public int TimesUsed( int registrationInstanceId, string code, IEnumerable<CartLineItem> otherLines )
+        /// <param name="cartId">The cart asking (0 when it has none yet); its own lines come in <paramref name="otherLines"/>.</param>
+        public int TimesUsed( int registrationInstanceId, string code, IEnumerable<CartLineItem> otherLines, int cartId )
         {
-            // As Rock: an equality test in SQL, which ignores case.
+            // Lines first, registrations second (as seats): a checkout that commits in between is
+            // counted twice rather than not at all. As Rock: an equality test in SQL, which ignores case.
+            var processing = new CartLineItemService( _rockContext ).Queryable().AsNoTracking()
+                .Count( l => l.RegistrationInstanceId == registrationInstanceId && l.TemplateDiscountCode == code
+                    && l.CartId != cartId && l.Cart.Status == CartStatus.Processing );
             var registered = new RegistrationService( _rockContext ).Queryable().AsNoTracking()
                 .Count( r => r.RegistrationInstanceId == registrationInstanceId && r.DiscountCode == code );
             var inCart = ( otherLines ?? Enumerable.Empty<CartLineItem>() )
                 .Count( l => l.RegistrationInstanceId == registrationInstanceId && DiscountRules.SameCode( l.TemplateDiscountCode, code ) );
-            return registered + inCart;
+            return registered + inCart + processing;
         }
 
         /// <summary>The template's discount with that code (ignoring case), or null.</summary>
@@ -145,14 +154,23 @@ namespace org.secc.RegistrationCart.Services
         }
 
         /// <summary>
-        /// Deletes the template's discount with that code when no registration and no cart line
-        /// uses it: a code the discount code workflow just made that the line won't use.
+        /// Deletes the template's discount with that code when it was made for this cart and
+        /// nothing uses it: a code the discount code workflow made (financial assistance) that its
+        /// line won't use. Made for this cart means created since <paramref name="madeSince"/> (the
+        /// cart's start), so a code staff set up earlier is never deleted, whatever the workflow
+        /// returned. Used means on a registration, or on (or kept by) a saved line of a cart that
+        /// isn't abandoned. Deleted with the context's next save.
         /// </summary>
-        public void RemoveUnused( int registrationTemplateId, string code )
+        public void RemoveUnused( int registrationTemplateId, string code, DateTime? madeSince )
         {
+            if ( code.IsNullOrWhiteSpace() || madeSince == null )
+            {
+                return;
+            }
+
             var service = new RegistrationTemplateDiscountService( _rockContext );
             var discount = service.Queryable().FirstOrDefault( d => d.RegistrationTemplateId == registrationTemplateId && d.Code == code );
-            if ( discount == null )
+            if ( discount == null || discount.CreatedDateTime == null || discount.CreatedDateTime < madeSince )
             {
                 return;
             }
@@ -161,11 +179,40 @@ namespace org.secc.RegistrationCart.Services
             var used = new RegistrationService( _rockContext ).Queryable().AsNoTracking()
                     .Any( r => r.RegistrationInstance.RegistrationTemplateId == templateId && r.DiscountCode == code )
                 || new CartLineItemService( _rockContext ).Queryable().AsNoTracking()
-                    .Any( l => l.RegistrationTemplateId == templateId && l.TemplateDiscountCode == code );
+                    .Any( l => l.RegistrationTemplateId == templateId && l.Cart.Status != CartStatus.Abandoned
+                        && ( l.TemplateDiscountCode == code || l.WorkflowDiscountCode == code ) );
             if ( !used )
             {
                 service.Delete( discount );
             }
+        }
+
+        /// <summary>
+        /// Removes the codes the discount code workflow made for an abandoned cart's lines that
+        /// nothing else uses (<see cref="RemoveUnused"/>), so a family's unused financial
+        /// assistance code doesn't stay on the template for someone to type later. Saves.
+        /// </summary>
+        public void RemoveUnusedWorkflowCodes( int cartId )
+        {
+            var cart = new CartService( _rockContext ).Queryable().AsNoTracking()
+                .Where( c => c.Id == cartId && c.Status == CartStatus.Abandoned )
+                .Select( c => new
+                {
+                    c.CreatedDateTime,
+                    Codes = c.LineItems.Where( l => l.WorkflowDiscountCode != null ).Select( l => new { l.RegistrationTemplateId, l.WorkflowDiscountCode } )
+                } )
+                .FirstOrDefault();
+            if ( cart == null )
+            {
+                return;
+            }
+
+            foreach ( var line in cart.Codes.Distinct().ToList() )
+            {
+                RemoveUnused( line.RegistrationTemplateId, line.WorkflowDiscountCode, cart.CreatedDateTime );
+            }
+
+            _rockContext.SaveChanges();
         }
 
         private IQueryable<RegistrationTemplateDiscount> Discounts( int registrationTemplateId ) =>

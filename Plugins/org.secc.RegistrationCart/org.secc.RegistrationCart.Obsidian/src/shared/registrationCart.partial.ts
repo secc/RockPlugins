@@ -54,8 +54,8 @@ export function gradeBandFlagsText(flags: number): string {
     return parts.length ? parts.join(", ") : "Nobody";
 }
 
-/** Grades a new child can be created with. */
-export const gradeBandOptions: ListItemBag[] = [
+/** The student grade bands. */
+const gradeBandOptions: ListItemBag[] = [
     { value: String(GradeBand.Elementary), text: "Elementary (K–5)" },
     { value: String(GradeBand.MiddleSchool), text: "Middle School (6–8)" },
     { value: String(GradeBand.HighSchool), text: "High School (9–12)" }

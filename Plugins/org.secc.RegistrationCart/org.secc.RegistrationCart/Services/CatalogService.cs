@@ -265,6 +265,17 @@ namespace org.secc.RegistrationCart.Services
                     ( i.EndDateTime == null || i.EndDateTime >= now ) );
             }
 
+            if ( !includeHidden )
+            {
+                // The catalog is opt-in, so only a few of Rock's open instances belong to it: ask
+                // the database for those templates only, rather than loading every open instance
+                // (with its fees, seat counts and event links) and dropping most of them below.
+                var settings = new TemplateSettingService( _rockContext ).Queryable();
+                instanceQuery = CartSettings.DefaultVisibility
+                    ? instanceQuery.Where( i => !settings.Any( s => s.RegistrationTemplateId == i.RegistrationTemplateId && !s.IsVisible ) )
+                    : instanceQuery.Where( i => settings.Any( s => s.RegistrationTemplateId == i.RegistrationTemplateId && s.IsVisible ) );
+            }
+
             var instances = instanceQuery.OrderBy( i => i.RegistrationTemplate.Name ).ThenBy( i => i.Name ).ToList();
             if ( !instances.Any() )
             {

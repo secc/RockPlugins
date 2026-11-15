@@ -124,6 +124,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public OfferingBag Offering { get; set; }
         public List<RegistrantOptionBag> People { get; set; } = new List<RegistrantOptionBag>();
         public bool CanAddFamilyMembers { get; set; }
+        /// <summary>Grades a new child can be given (value = Rock's grade offset).</summary>
+        public List<Rock.ViewModels.Utility.ListItemBag> GradeOptions { get; set; } = new List<Rock.ViewModels.Utility.ListItemBag>();
         public string ErrorMessage { get; set; }
         /// <summary>Set when the page edits a line already in the cart (LineId page parameter).</summary>
         public EditLineBag EditLine { get; set; }
@@ -313,7 +315,10 @@ namespace org.secc.RegistrationCart.ViewModels
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public int GradeBand { get; set; }
+        /// <summary>yyyy-MM-dd.</summary>
+        public string BirthDate { get; set; }
+        /// <summary>Rock's grade offset (a School Grades value), or null when not in school yet.</summary>
+        public int? GradeOffset { get; set; }
     }
 
     #endregion
@@ -344,7 +349,6 @@ namespace org.secc.RegistrationCart.ViewModels
         /// <summary>Fallback: direct gotnpgateway/My Well tokenizer settings.</summary>
         public TokenizerSettingsBag Tokenizer { get; set; }
 
-        public bool IsGatewayConfigured { get; set; }
         public string PayerName { get; set; }
         public string PayerEmail { get; set; }
         public List<string> Problems { get; set; } = new List<string>();

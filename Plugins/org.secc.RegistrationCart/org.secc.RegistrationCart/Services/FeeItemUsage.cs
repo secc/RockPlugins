@@ -62,6 +62,7 @@ namespace org.secc.RegistrationCart.Services
                 .Where( a => itemIds.Contains( a.RegistrationTemplateFeeItemId )
                     && instanceIds.Contains( a.CartLineItem.RegistrationInstanceId )
                     && a.CartLineItem.CartId != otherCartId
+                    && !a.CartLineItem.IsWaitList // a wait-listed registrant gets no fees
                     && a.CartLineItem.Cart.Status == CartStatus.Processing )
                 .GroupBy( a => new { a.CartLineItem.RegistrationInstanceId, a.RegistrationTemplateFeeItemId } )
                 .Select( g => new { g.Key.RegistrationInstanceId, g.Key.RegistrationTemplateFeeItemId, Count = g.Count() } )

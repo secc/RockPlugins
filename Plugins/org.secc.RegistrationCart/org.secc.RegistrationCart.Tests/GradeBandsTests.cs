@@ -63,13 +63,6 @@ public class GradeBandsTests
     public void Adult_without_grade_is_Adults() =>
         Assert.Equal( GradeBand.Adults, GradeBands.FromGradeOffset( null, isChild: false ) );
 
-    [Theory]
-    [InlineData( GradeBand.HighSchool )]
-    [InlineData( GradeBand.MiddleSchool )]
-    [InlineData( GradeBand.Elementary )]
-    public void New_child_grade_offset_round_trips_to_its_band( GradeBand band ) =>
-        Assert.Equal( band, GradeBands.FromGradeOffset( GradeBands.GradeOffsetFor( band ), isChild: true ) );
-
     [Fact]
     public void Derived_band_feeds_the_eligibility_check()
     {

@@ -27,10 +27,10 @@ namespace org.secc.RegistrationCart.Migrations
         {
             Sql( $@"
                 IF NOT EXISTS (SELECT 1 FROM [ServiceJob] WHERE [Guid] = '{SystemGuid.ServiceJob.CART_MAINTENANCE}')
-                    INSERT INTO [ServiceJob] ([IsSystem], [IsActive], [Name], [Description], [Class], [CronExpression], [NotificationStatus], [Guid])
+                    INSERT INTO [ServiceJob] ([IsSystem], [IsActive], [Name], [Description], [Class], [CronExpression], [NotificationStatus], [EnableHistory], [HistoryCount], [Guid])
                     VALUES (0, 1, 'Registration Cart Maintenance',
                         'Abandons idle Registration Cart carts, finishes signed documents whose PDF failed, and reports checkouts whose payment outcome is unknown.',
-                        'org.secc.RegistrationCart.Jobs.CartMaintenance', '0 0/15 * 1/1 * ? *', 3, '{SystemGuid.ServiceJob.CART_MAINTENANCE}');" );
+                        'org.secc.RegistrationCart.Jobs.CartMaintenance', '0 0/15 * 1/1 * ? *', 3, 0, 500, '{SystemGuid.ServiceJob.CART_MAINTENANCE}');" );
         }
 
         public override void Down()

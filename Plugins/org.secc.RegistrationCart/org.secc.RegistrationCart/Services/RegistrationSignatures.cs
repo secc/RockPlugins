@@ -36,7 +36,7 @@ namespace org.secc.RegistrationCart.Services
     /// way Rock's Obsidian RegistrationEntry handles it: the document is rendered from the
     /// registrant's answers, signed in the browser with Rock's electronic signature control, and
     /// the signed data comes back encrypted, bound by a hash to the camper, the answers and the
-    /// HTML that was signed. At checkout the document is rendered and checked before the card is
+    /// HTML that was signed. At checkout the signed document is checked before the card is
     /// charged (<see cref="Prepare"/>), saved with the registration in the same transaction
     /// (<see cref="Attach"/>), and its PDF made once the registrations commit
     /// (<see cref="Complete"/>), so a PDF failure never undoes a registration someone paid for
@@ -111,6 +111,7 @@ namespace org.secc.RegistrationCart.Services
             return Encryption.EncryptString( new SignedData
             {
                 SignedFor = Hash( SignedFor( person, instance, answers ) ),
+                DocumentVersion = DocumentVersion( RequiredDocument( instance.RegistrationTemplate ) ),
                 DocumentHtml = documentHtml,
                 SignatureData = signature.SignatureData,
                 SignedByName = signature.SignedByName,
@@ -127,7 +128,8 @@ namespace org.secc.RegistrationCart.Services
         /// <summary>
         /// Whether the cart line's signature value is usable: it names a still-valid earlier
         /// document, or it was signed for exactly this camper, option and answers (so changed
-        /// answers need a new signature).
+        /// answers need a new signature) on the document as staff have it now (so a document
+        /// staff edited after it was signed, days before checkout, is signed again).
         /// </summary>
         public bool IsUsable( RegistrationTemplate template, Person person, string signatureData, int registrationInstanceId, Dictionary<Guid, object> answers )
         {
@@ -136,13 +138,17 @@ namespace org.secc.RegistrationCart.Services
                 return false;
             }
 
+            var documentTemplate = RequiredDocument( template );
             if ( signatureData.StartsWith( ExistingPrefix ) )
             {
-                return ExistingValidDocumentGuid( RequiredDocument( template ), person ) == signatureData.Substring( ExistingPrefix.Length ).AsGuidOrNull();
+                return ExistingValidDocumentGuid( documentTemplate, person ) == signatureData.Substring( ExistingPrefix.Length ).AsGuidOrNull();
             }
 
             var signed = Encryption.DecryptString( signatureData ).FromJsonOrNull<SignedData>();
-            return signed != null && signed.SignedFor == Hash( SignedFor( person.Id, registrationInstanceId, template, answers ) );
+            return signed != null
+                && signed.DocumentHtml.IsNotNullOrWhiteSpace()
+                && signed.SignedFor == Hash( SignedFor( person.Id, registrationInstanceId, template, answers ) )
+                && signed.DocumentVersion == DocumentVersion( documentTemplate );
         }
 
         /// <summary>A cart line's signed document, ready to save with its registration.</summary>
@@ -159,10 +165,9 @@ namespace org.secc.RegistrationCart.Services
         }
 
         /// <summary>
-        /// Before the charge: the line's signed document, rendered again from the saved answers
-        /// (rather than trusting what the browser sent, as Rock does) and checked against Rock's
-        /// rules, so saving it with the paid registration can't fail. Null when the template has
-        /// no inline document.
+        /// Before the charge: the line's signed document, built from exactly the HTML the parent
+        /// signed and checked against Rock's rules, so saving it with the paid registration can't
+        /// fail. Null when the template has no inline document.
         /// </summary>
         public PreparedDocument Prepare( RegistrationInstance instance, Person registrar, Person person, string signatureData, Dictionary<Guid, object> answers )
         {
@@ -186,12 +191,17 @@ namespace org.secc.RegistrationCart.Services
             }
 
             var signed = Encryption.DecryptString( signatureData ).FromJsonOrNull<SignedData>();
-            if ( signed == null )
+            if ( signed == null || signed.DocumentHtml.IsNullOrWhiteSpace() )
             {
                 return new PreparedDocument { Error = "The signature can't be read. Please sign the document again." };
             }
 
-            var document = CreateDocument( template, signed, instance, registrar, person, answers );
+            if ( signed.DocumentVersion != DocumentVersion( template ) )
+            {
+                return new PreparedDocument { Error = "The document has changed since it was signed. Please sign it again." };
+            }
+
+            var document = CreateDocument( template, signed, instance, registrar, person );
             var results = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
             if ( !System.ComponentModel.DataAnnotations.Validator.TryValidateObject( document, new System.ComponentModel.DataAnnotations.ValidationContext( document ), results, true ) )
             {
@@ -326,11 +336,19 @@ namespace org.secc.RegistrationCart.Services
             }
         }
 
-        /// <summary>What Rock's RegistrationEntry builds, without the PDF (<see cref="Complete"/> makes it once the registration is saved).</summary>
-        private SignatureDocument CreateDocument( SignatureDocumentTemplate template, SignedData signed, RegistrationInstance instance, Person registrar, Person person, Dictionary<Guid, object> answers )
+        /// <summary>
+        /// What Rock's RegistrationEntry builds, without the PDF (<see cref="Complete"/> makes it
+        /// once the registration is saved). The document text is the HTML the parent signed.
+        /// Rock's block renders the Lava again when it saves, but it saves moments after the
+        /// signature; a cart line can wait days, and a fresh render would then put text the parent
+        /// never saw (a changed document, changed person details, today's date) over their
+        /// signature and signed date. The signed HTML can be trusted: <see cref="Sign"/> only
+        /// accepted it when it matched the token issued for the server's own render, and it has
+        /// been kept encrypted on the cart line since.
+        /// </summary>
+        private static SignatureDocument CreateDocument( SignatureDocumentTemplate template, SignedData signed, RegistrationInstance instance, Person registrar, Person person )
         {
-            // Encode what the browser sent, and don't trust its HTML: render it again from the saved answers.
-            var documentHtml = RenderDocument( instance, template, person, answers );
+            var documentHtml = signed.DocumentHtml;
             var document = new SignatureDocument
             {
                 SignatureDocumentTemplateId = template.Id,
@@ -363,6 +381,10 @@ namespace org.secc.RegistrationCart.Services
         private static string SignedFor( int personId, int registrationInstanceId, RegistrationTemplate template, Dictionary<Guid, object> answers ) =>
             personId + "|" + registrationInstanceId + "|" + RegistrationForms.AnswersKey( template, answers );
 
+        /// <summary>The document's Lava as staff have it now, hashed: a signature is for one version of it.</summary>
+        private static string DocumentVersion( SignatureDocumentTemplate template ) =>
+            template == null ? null : Hash( template.LavaTemplate ?? string.Empty );
+
         private static string Hash( string source )
         {
             using ( var sha256 = SHA256.Create() )
@@ -380,6 +402,10 @@ namespace org.secc.RegistrationCart.Services
             /// <summary>Hash of the option and answers the document was rendered for.</summary>
             public string SignedFor { get; set; }
 
+            /// <summary>Hash of the document's Lava when it was signed (<see cref="DocumentVersion"/>).</summary>
+            public string DocumentVersion { get; set; }
+
+            /// <summary>The HTML the parent was shown and signed; it becomes the document's text.</summary>
             public string DocumentHtml { get; set; }
             public string SignatureData { get; set; }
             public string SignedByName { get; set; }

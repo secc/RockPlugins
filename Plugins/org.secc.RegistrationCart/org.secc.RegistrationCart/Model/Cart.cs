@@ -45,7 +45,10 @@ namespace org.secc.RegistrationCart.Model
         [DataMember]
         public DateTime? CheckedOutDateTime { get; set; }
 
-        /// <summary>Set when checkout succeeds. Links the cart to the Rock payment.</summary>
+        /// <summary>
+        /// The Rock payment, saved as soon as the gateway has charged the card (before the
+        /// registrations), so a charge always has its record in Rock.
+        /// </summary>
         [DataMember]
         public int? FinancialTransactionId { get; set; }
 
@@ -54,8 +57,34 @@ namespace org.secc.RegistrationCart.Model
         [DataMember]
         public string LastCheckoutError { get; set; }
 
+        /// <summary>
+        /// When the claimed cart's charge was sent to the gateway. A cart still Processing without
+        /// it never reached the gateway, so nothing was charged and it can be reopened.
+        /// </summary>
+        [DataMember]
+        public DateTime? PaymentSentDateTime { get; set; }
+
+        /// <summary>When staff closed this unconfirmed checkout (settings page), having checked the gateway.</summary>
+        [DataMember]
+        public DateTime? ResolvedDateTime { get; set; }
+
+        [DataMember]
+        public int? ResolvedByPersonAliasId { get; set; }
+
+        /// <summary>What staff found and did when they closed it.</summary>
+        [MaxLength( 1000 )]
+        [DataMember]
+        public string ResolutionNote { get; set; }
+
+        /// <summary>When the maintenance job last warned about this unconfirmed checkout.</summary>
+        [DataMember]
+        public DateTime? PendingReportedDateTime { get; set; }
+
         [LavaVisible]
         public virtual PersonAlias OwnerPersonAlias { get; set; }
+
+        [LavaVisible]
+        public virtual PersonAlias ResolvedByPersonAlias { get; set; }
 
         [LavaVisible]
         public virtual FinancialTransaction FinancialTransaction { get; set; }
@@ -73,6 +102,7 @@ namespace org.secc.RegistrationCart.Model
         {
             this.HasRequired( c => c.OwnerPersonAlias ).WithMany().HasForeignKey( c => c.OwnerPersonAliasId ).WillCascadeOnDelete( false );
             this.HasOptional( c => c.FinancialTransaction ).WithMany().HasForeignKey( c => c.FinancialTransactionId ).WillCascadeOnDelete( false );
+            this.HasOptional( c => c.ResolvedByPersonAlias ).WithMany().HasForeignKey( c => c.ResolvedByPersonAliasId ).WillCascadeOnDelete( false );
             this.HasEntitySetName( "RegistrationCartCart" );
         }
     }

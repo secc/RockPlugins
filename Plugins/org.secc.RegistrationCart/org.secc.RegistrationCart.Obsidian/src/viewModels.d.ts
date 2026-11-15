@@ -12,6 +12,8 @@ export type CatalogSettingsInitializationBox = {
 
     defaultsText?: string | null;
 
+    pendingCheckouts?: PendingCheckoutBag[] | null;
+
     templates?: AdminTemplateBag[] | null;
 };
 
@@ -89,6 +91,38 @@ export type AdminFeeItemBag = {
     id: number;
 
     name?: string | null;
+};
+
+export type PendingCheckoutBag = {
+    canReopen: boolean;
+
+    cartId: number;
+
+    detail?: string | null;
+
+    isTooRecent: boolean;
+
+    lines?: string[] | null;
+
+    payerName?: string | null;
+
+    payerPersonId?: number | null;
+
+    stateText?: string | null;
+
+    stoppedText?: string | null;
+
+    total: number;
+
+    transactionCode?: string | null;
+
+    transactionId?: number | null;
+};
+
+export type PendingCheckoutResultBag = {
+    errorMessage?: string | null;
+
+    pendingCheckouts?: PendingCheckoutBag[] | null;
 };
 
 export type SaveTemplateResultBag = {
@@ -207,6 +241,8 @@ export type OfferingDetailInitializationBox = {
     editLine?: EditLineBag | null;
 
     errorMessage?: string | null;
+
+    gradeOptions?: ListItemBag[] | null;
 
     navigation?: NavigationBag | null;
 
@@ -408,9 +444,11 @@ export type SignatureRequestBag = {
 };
 
 export type AddFamilyMemberRequestBag = {
+    birthDate?: string | null;
+
     firstName?: string | null;
 
-    gradeBand: number;
+    gradeOffset?: number | null;
 
     lastName?: string | null;
 };
@@ -431,8 +469,6 @@ export type CheckoutInitializationBox = {
     cart?: PricedCartBag | null;
 
     gatewayControl?: GatewayControlBag | null;
-
-    isGatewayConfigured: boolean;
 
     navigation?: NavigationBag | null;
 

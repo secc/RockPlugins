@@ -102,7 +102,6 @@ namespace org.secc.RegistrationCart.Blocks
             var gateway = GetFinancialGateway();
             if ( gateway != null )
             {
-                box.IsGatewayConfigured = true;
                 if ( gateway.GetGatewayComponent() is IObsidianHostedGatewayComponent hosted )
                 {
                     // Rock-internal API (RK1000), but it is how Rock's own Obsidian
@@ -129,8 +128,9 @@ namespace org.secc.RegistrationCart.Blocks
                     {
                         box.Tokenizer = tokenizer;
                     }
-                    else
+                    else if ( box.Cart.Total > 0m )
                     {
+                        // Only something to pay needs the payment form (a free cart checks out without one).
                         box.Problems.Add( "The payment gateway does not provide a hosted payment form and the tokenizer settings on this block (script URL, gateway URL and public key) are not all set." );
                     }
                 }

@@ -134,8 +134,8 @@ public class PricingEngineTests
     {
         // A staff code typed on two campers' registrations: 50% of each, never pooled.
         var priced = _engine.Price(CartWith(
-            WithCode(Line(1, 360m), "26CAMPSTAFF50", 0m, 0.5m),
-            WithCode(Line(2, 320m), "26CAMPSTAFF50", 0m, 0.5m),
+            WithCode(Line(1, 360m), "STAFF50", 0m, 0.5m),
+            WithCode(Line(2, 320m), "STAFF50", 0m, 0.5m),
             Line(3, 305m)));
 
         Assert.Equal(180m, priced.DiscountFor(1));

@@ -48,17 +48,6 @@ namespace org.secc.RegistrationCart.Services
             return FromGradeOffset( person.GradeOffset, person.AgeClassification == AgeClassification.Child );
         }
 
-        /// <summary>A representative grade offset for a band, used when creating a new child.</summary>
-        public static int GradeOffsetFor( GradeBand band )
-        {
-            switch ( band )
-            {
-                case GradeBand.HighSchool: return 2;
-                case GradeBand.MiddleSchool: return 5;
-                default: return 9;
-            }
-        }
-
         /// <summary>A set of bands in words: "all students", "everyone", or the bands listed.</summary>
         public static string Describe( GradeBand bands )
         {

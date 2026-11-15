@@ -37,6 +37,8 @@ namespace org.secc.RegistrationCart.Blocks
         Description = "Let the signed-in person add a new child to their family from this page.", Order = 2 )]
     [WorkflowTypeField( "Discount Code Workflow", Key = AttributeKey.DiscountCodeWorkflow, AllowMultiple = false, IsRequired = false,
         Description = "Runs when a camper is added to the cart, when the template has no automatic discount that applies, to apply a registration template discount code, e.g. financial assistance. Passes an entity which is a Dictionary containing \"RegistrationInstance\" and \"RegistrationInfo\" keys, as SECC's RegistrationEntry did. The code is that camper's registration's code and the family can't change it.", Order = 3 )]
+    [IntegerField( "Maximum Family Members Added Per Day", Key = AttributeKey.MaxFamilyMembersPerDay, IsRequired = false, DefaultIntegerValue = 5,
+        Description = "How many new people a family can gain in a day before this page stops adding more (they are told to contact the office). 0 for no limit.", Order = 4 )]
 
     [Rock.SystemGuid.EntityTypeGuid( SystemGuid.EntityType.BLOCK_OFFERING_DETAIL )]
     [Rock.SystemGuid.BlockTypeGuid( SystemGuid.BlockType.OFFERING_DETAIL )]
@@ -46,6 +48,7 @@ namespace org.secc.RegistrationCart.Blocks
         {
             public const string AllowAddFamilyMember = "AllowAddFamilyMember";
             public const string DiscountCodeWorkflow = "DiscountCodeWorkflow";
+            public const string MaxFamilyMembersPerDay = "MaxFamilyMembersPerDay";
         }
 
         public override string ObsidianFileUrl => ObsidianBlockUrl( "offeringDetail" );
@@ -57,7 +60,12 @@ namespace org.secc.RegistrationCart.Blocks
             var box = new OfferingDetailInitializationBox
             {
                 Navigation = BuildNavigation( cart ),
-                CanAddFamilyMembers = GetAttributeValue( AttributeKey.AllowAddFamilyMember ).AsBoolean( true )
+                CanAddFamilyMembers = GetAttributeValue( AttributeKey.AllowAddFamilyMember ).AsBoolean( true ),
+                // Rock's school grades (value = grade offset), youngest first, for a new child.
+                GradeOptions = Rock.Web.Cache.DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.SCHOOL_GRADES.AsGuid() ).DefinedValues
+                    .OrderByDescending( v => v.Value.AsInteger() )
+                    .Select( v => new Rock.ViewModels.Utility.ListItemBag { Value = v.Value, Text = v.Description } )
+                    .ToList()
             };
 
             var key = PageParameter( OfferingKeyParameter );
@@ -308,7 +316,11 @@ namespace org.secc.RegistrationCart.Blocks
                 return ActionForbidden( "Adding family members is turned off." );
             }
 
-            var person = manager.AddChildToFamily( request?.FirstName, request?.LastName, ( GradeBand ) ( request?.GradeBand ?? 0 ), out var error );
+            // The registration the child is being added for decides their connection status, as in Rock.
+            var key = PageParameter( OfferingKeyParameter );
+            var template = key.IsNotNullOrWhiteSpace() ? new RegistrationTemplateService( RockContext ).Get( key, AllowIntegerIds ) : null;
+            var person = manager.AddChildToFamily( request?.FirstName, request?.LastName, request?.BirthDate.AsDateTime(), request?.GradeOffset, template,
+                GetAttributeValue( AttributeKey.MaxFamilyMembersPerDay ).AsIntegerOrNull() ?? 5, out var error );
             if ( person == null )
             {
                 return ActionBadRequest( error ?? "The person could not be added." );

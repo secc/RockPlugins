@@ -53,8 +53,65 @@ namespace org.secc.RegistrationCart.Blocks
                 Templates = new CatalogService( RockContext ).GetAdminCatalog().Select( ToBag ).ToList(),
                 DefaultsText = $"A template shows in the catalog only once it is turned on here{( CartSettings.DefaultVisibility ? " (new templates currently show by default)" : "" )}. "
                     + $"Instances and extras not saved here are open to {GradeBands.Describe( CartSettings.DefaultGradeBands )}. "
-                    + "The defaults are the \"Registration Cart:\" global attributes."
+                    + "The defaults are the \"Registration Cart:\" global attributes.",
+                PendingCheckouts = GetPendingCheckouts()
             };
+        }
+
+        /// <summary>
+        /// Staff checked the gateway and the card was not charged: the cart opens again so the
+        /// family can pay.
+        /// </summary>
+        [BlockAction]
+        public BlockActionResult ReopenCheckout( int cartId, string note )
+        {
+            var denied = RequireEdit();
+            if ( denied != null ) return denied;
+
+            var error = new PendingCheckouts( RockContext ).Reopen( cartId, GetCurrentPerson(), note );
+            return ActionOk( new PendingCheckoutResultBag { ErrorMessage = error, PendingCheckouts = GetPendingCheckouts() } );
+        }
+
+        /// <summary>
+        /// Staff dealt with the payment (refunded it, or registered the campers by hand): the
+        /// checkout is closed, which frees its seats and lets its campers be registered again.
+        /// </summary>
+        [BlockAction]
+        public BlockActionResult CloseCheckout( int cartId, string note )
+        {
+            var denied = RequireEdit();
+            if ( denied != null ) return denied;
+
+            var error = new PendingCheckouts( RockContext ).Close( cartId, GetCurrentPerson(), note );
+            return ActionOk( new PendingCheckoutResultBag { ErrorMessage = error, PendingCheckouts = GetPendingCheckouts() } );
+        }
+
+        private List<PendingCheckoutBag> GetPendingCheckouts()
+        {
+            var now = RockDateTime.Now;
+            return new PendingCheckouts( RockContext ).List().Select( c =>
+            {
+                var stopped = c.ModifiedDateTime ?? c.CreatedDateTime;
+                var isProcessing = c.Status == CartStatus.Processing;
+                return new PendingCheckoutBag
+                {
+                    CartId = c.Id,
+                    PayerName = c.OwnerPersonAlias?.Person?.FullName,
+                    PayerPersonId = c.OwnerPersonAlias?.PersonId,
+                    StoppedText = stopped?.ToString( "g" ) ?? "",
+                    Total = CartPricing.Price( c ).Total,
+                    StateText = !isProcessing ? "Charged, but the registrations were not created"
+                        : c.FinancialTransactionId.HasValue ? "Charged; the checkout stopped before the registrations were created"
+                        : c.PaymentSentDateTime.HasValue ? "Payment sent to the gateway; outcome unknown"
+                        : "Stopped before the payment was sent (nothing charged)",
+                    Detail = c.LastCheckoutError,
+                    TransactionId = c.FinancialTransactionId,
+                    TransactionCode = c.FinancialTransaction?.TransactionCode,
+                    Lines = c.LineItems.OrderBy( l => l.Id ).Select( l => $"{l.CartRegistrant?.DisplayName}: {l.RegistrationInstance?.Name}{( l.IsWaitList ? " (wait list)" : "" )}" ).ToList(),
+                    CanReopen = isProcessing && !c.FinancialTransactionId.HasValue,
+                    IsTooRecent = isProcessing && !CheckoutRules.IsQuiet( stopped, now )
+                };
+            } ).ToList();
         }
 
         /// <summary>Saves the overlay rows for one template (template, its instances, its fee items).</summary>

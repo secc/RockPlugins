@@ -23,11 +23,7 @@ namespace org.secc.RegistrationCart.Blocks
     /// <summary>Shared plumbing for the Registration Cart administration blocks.</summary>
     public abstract class AdminBlockBase : RockBlockType
     {
-        protected const string OfferingKeyParameter = "OfferingKey";
-
         protected string ObsidianBlockUrl( string fileName ) => "~/Plugins/org_secc/RegistrationCart/blocks/" + fileName + ".obs";
-
-        protected bool AllowIntegerIds => !( PageCache?.Layout?.Site?.DisablePredictableIds ?? false );
 
         /// <summary>Edit rights come from the block's security settings (inherits from the page).</summary>
         protected bool CanEdit => BlockCache?.IsAuthorized( Authorization.EDIT, GetCurrentPerson() ) ?? false;
@@ -52,7 +48,5 @@ namespace org.secc.RegistrationCart.Blocks
 
             return value.AsDateTime()?.Date;
         }
-
-        protected static int? ParseInt( string value ) => value.IsNullOrWhiteSpace() ? ( int? ) null : value.AsIntegerOrNull();
     }
 }

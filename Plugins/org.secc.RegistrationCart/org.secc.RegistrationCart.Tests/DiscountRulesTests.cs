@@ -25,7 +25,7 @@ public class DiscountRulesTests
     private static readonly DateTime Today = new(2026, 11, 6);
 
     private static TemplateDiscountTerms Terms(int? maxUsage = null, int? minRegistrants = null, int? maxRegistrants = null, DateTime? start = null, DateTime? end = null) =>
-        new("26CAMPSTAFF50", 0.5m, 0m, maxUsage, minRegistrants, maxRegistrants, start, end);
+        new("STAFF50", 0.5m, 0m, maxUsage, minRegistrants, maxRegistrants, start, end);
 
     [Fact]
     public void Unknown_code_is_not_valid()
@@ -81,8 +81,8 @@ public class DiscountRulesTests
     [Fact]
     public void Codes_match_ignoring_case_and_spaces()
     {
-        Assert.True(DiscountRules.SameCode(" 26campstaff50 ", "26CAMPSTAFF50"));
-        Assert.False(DiscountRules.SameCode("26CAMPSTAFF50", "26CAMPSTAFF5"));
+        Assert.True(DiscountRules.SameCode(" staff50 ", "STAFF50"));
+        Assert.False(DiscountRules.SameCode("STAFF50", "STAFF5"));
         Assert.False(DiscountRules.SameCode(null, "X"));
     }
 

@@ -171,18 +171,23 @@
                 <div class="col-sm-6"><TextBox v-model="newFirstName" label="First name" rules="required" /></div>
                 <div class="col-sm-6"><TextBox v-model="newLastName" label="Last name" rules="required" /></div>
             </div>
-            <DropDownList v-model="newGradeBand" label="Grade" :items="gradeBandOptions" :showBlankItem="false" />
+            <div class="row">
+                <div class="col-sm-6"><BirthdayPicker v-model="newBirthDate" label="Birthday" rules="required" /></div>
+                <div class="col-sm-6"><DropDownList v-model="newGradeOffset" label="Grade" :items="gradeOptions" blankValue="Not in school yet" help="The grade they are in this school year." /></div>
+            </div>
         </Modal>
     </div>
 </template>
 
 <script setup lang="ts">
     import { computed, nextTick, onMounted, ref, watch } from "vue";
+    import BirthdayPicker from "@Obsidian/Controls/birthdayPicker.obs";
     import DropDownList from "@Obsidian/Controls/dropDownList.obs";
     import Modal from "@Obsidian/Controls/modal.obs";
     import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
     import ElectronicSignature from "@Obsidian/Controls/electronicSignature.obs";
     import RockForm from "@Obsidian/Controls/rockForm.obs";
+    import { BirthdayPickerBag } from "@Obsidian/ViewModels/Controls/birthdayPickerBag";
     import { ElectronicSignatureValue } from "@Obsidian/ViewModels/Controls/electronicSignatureValue";
     import { RegistrationEntrySignatureDocumentBag } from "@Obsidian/ViewModels/Blocks/Event/RegistrationEntry/registrationEntrySignatureDocumentBag";
     import TextBox from "@Obsidian/Controls/textBox.obs";
@@ -193,7 +198,7 @@
     import CartNav from "../shared/cartNav.partial.obs";
     import PendingCheckoutNotice from "../shared/pendingCheckoutNotice.partial.obs";
     import SignInNotice from "../shared/signInNotice.partial.obs";
-    import { GradeBand, SelectionMode, gradeBandOptions, gradeBandText, goTo, initials, isEligible, money } from "../shared/registrationCart.partial";
+    import { GradeBand, SelectionMode, gradeBandText, goTo, initials, isEligible, money } from "../shared/registrationCart.partial";
     import { AddOnGroupBag, AddOnItemBag, AddToCartResultBag, NavigationBag, OfferingDetailInitializationBox, RegistrantOptionBag, StartingValuesBag, UpdateCartLineResultBag, VariantBag } from "../viewModels";
 
     const config = useConfigurationValues<OfferingDetailInitializationBox>();
@@ -253,7 +258,10 @@
     const addPersonError = ref("");
     const newFirstName = ref("");
     const newLastName = ref("");
-    const newGradeBand = ref(String(GradeBand.Elementary));
+    // A new child's real birthday and grade (Rock's school grades), not a guess from a band.
+    const newBirthDate = ref<BirthdayPickerBag | undefined>(undefined);
+    const newGradeOffset = ref("");
+    const gradeOptions = config.gradeOptions ?? [];
 
     const selectedPerson = computed(() => people.value.find(p => p.personAliasId === selectedPersonAliasId.value) ?? null);
     const band = computed<number>(() => selectedPerson.value?.gradeBand ?? GradeBand.None);
@@ -648,16 +656,29 @@
             addPersonError.value = "First and last name are required.";
             return;
         }
+        const born = newBirthDate.value;
+        if (!born || !born.year || !born.month || !born.day) {
+            addPersonError.value = "Please enter the child's birthday.";
+            return;
+        }
         isAddingPerson.value = true;
         try {
+            const pad = (n: number): string => String(n).padStart(2, "0");
             const result = await invokeBlockAction<{ people: RegistrantOptionBag[]; newPersonAliasId: number | null }>("AddFamilyMember", {
-                request: { firstName: newFirstName.value, lastName: newLastName.value, gradeBand: parseInt(newGradeBand.value, 10) }
+                request: {
+                    firstName: newFirstName.value,
+                    lastName: newLastName.value,
+                    birthDate: `${born.year}-${pad(born.month)}-${pad(born.day)}`,
+                    gradeOffset: newGradeOffset.value === "" ? null : parseInt(newGradeOffset.value, 10)
+                }
             });
             if (result.isSuccess && result.data) {
                 people.value = result.data.people ?? [];
                 if (result.data.newPersonAliasId) selectPerson(result.data.newPersonAliasId);
                 newFirstName.value = "";
                 newLastName.value = "";
+                newBirthDate.value = undefined;
+                newGradeOffset.value = "";
                 isAddPersonOpen.value = false;
             }
             else {

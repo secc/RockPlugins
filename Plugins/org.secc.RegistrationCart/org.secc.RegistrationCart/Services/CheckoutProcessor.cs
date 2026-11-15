@@ -36,15 +36,17 @@ namespace org.secc.RegistrationCart.Services
     ///      checks everything that could stop the registrations saving (answers, signed
     ///      documents),
     ///   1. charges the gateway token once,
-    ///   2. in one transaction: creates one Rock Registration (+ registrant, fees, registrant
-    ///      answers and signed document) per line item, records one FinancialTransaction
-    ///      (batched) with a detail line per registration, and closes the cart,
-    ///   3. then, each step on its own: the signed documents' PDFs, the answers written to the
+    ///   2. saves the payment by itself: one FinancialTransaction (batched) with a detail line
+    ///      per paying line item, so the money is in Rock whatever happens next,
+    ///   3. in one transaction: creates one Rock Registration (+ registrant, fees, registrant
+    ///      answers and signed document) per line item, ties each payment detail to its
+    ///      registration, and closes the cart,
+    ///   4. then, each step on its own: the signed documents' PDFs, the answers written to the
     ///      people, and what Rock does after a registration is saved.
     /// The cart row is the idempotency record: only the request that claims the cart can
     /// charge it, and the cart goes back to Open only when nothing was charged
-    /// (<see cref="CheckoutRules.StatusAfterStop"/>). Only what must stand with the payment is
-    /// in the transaction, so a failure after the charge can't leave money with nothing in Rock.
+    /// (<see cref="CheckoutRules.StatusAfterStop"/>). A checkout that stops in between is an
+    /// unconfirmed checkout (<see cref="PendingCheckouts"/>) for staff to reopen or close.
     /// </summary>
     public class CheckoutProcessor
     {
@@ -170,7 +172,8 @@ namespace org.secc.RegistrationCart.Services
             {
                 foreach ( var item in feeItemsRemaining[instanceLines.Key] )
                 {
-                    var holding = instanceLines.Where( l => l.AddOns.Any( a => a.RegistrationTemplateFeeItemId == item.Key ) ).ToList();
+                    // Wait-listed campers get no fees at checkout, so they take none of what's left.
+                    var holding = instanceLines.Where( l => !l.IsWaitList && l.AddOns.Any( a => a.RegistrationTemplateFeeItemId == item.Key ) ).ToList();
                     if ( holding.Count <= item.Value )
                     {
                         continue;
@@ -193,7 +196,7 @@ namespace org.secc.RegistrationCart.Services
             {
                 if ( line.TemplateDiscountCode.IsNotNullOrWhiteSpace() && instances.TryGetValue( line.RegistrationInstanceId, out var instance ) )
                 {
-                    var problem = templateDiscounts.Check( instance.RegistrationTemplate, instance.Id, line.TemplateDiscountCode, checkedLines, out _ );
+                    var problem = templateDiscounts.Check( instance.RegistrationTemplate, instance.Id, line.TemplateDiscountCode, checkedLines, cart.Id, out _ );
                     if ( problem != null )
                     {
                         problems.Add( new CheckoutProblem( $"{Possessive( line.CartRegistrant?.FirstName )} registration for \"{instance.Name}\": {problem} Please edit the registration.", new[] { line.Id } ) );
@@ -209,7 +212,8 @@ namespace org.secc.RegistrationCart.Services
             var forms = new RegistrationForms( _rockContext );
             var catalog = new CatalogService( _rockContext );
             var personAliasService = new PersonAliasService( _rockContext );
-            foreach ( var line in cart.LineItems )
+            var camperOptions = new HashSet<string>();
+            foreach ( var line in cart.LineItems.OrderBy( l => l.Id ) )
             {
                 if ( !instances.TryGetValue( line.RegistrationInstanceId, out var instance ) || line.CartRegistrant == null )
                 {
@@ -218,6 +222,14 @@ namespace org.secc.RegistrationCart.Services
 
                 var person = personAliasService.GetPerson( line.CartRegistrant.PersonAliasId );
                 var duplicate = person != null ? CartManager.DuplicateRegistration( _rockContext, person.Id, instance.Id, instance.Name, line.CartRegistrant.DisplayName, cart.Id ) : null;
+
+                // The same camper twice for one option in this cart (two adds at the same moment
+                // can get past the check made when a line is added).
+                if ( duplicate == null && person != null && !camperOptions.Add( person.Id + "|" + instance.Id ) )
+                {
+                    duplicate = $"{line.CartRegistrant.DisplayName} is in your cart twice for {instance.Name}. Please remove one.";
+                }
+
                 if ( duplicate != null )
                 {
                     problems.Add( new CheckoutProblem( duplicate, new[] { line.Id } ) );
@@ -416,32 +428,88 @@ namespace org.secc.RegistrationCart.Services
             FinancialTransaction transaction = null;
             if ( priced.Total > 0m )
             {
+                // The customer record an Obsidian-hosted gateway wants before a tokenized charge.
+                // It charges nothing, so whatever goes wrong here hands the cart back.
+                try
+                {
+                    var accountError = CreateCustomerAccount( gateway, financialGateway, paymentInfo );
+                    if ( accountError != null )
+                    {
+                        result.IsDeclined = true;
+                        return Stop( cart, ChargeOutcome.Declined, result, accountError );
+                    }
+
+                    // From here the card may be charged. Say so on the cart first: a cart left
+                    // Processing without this never reached the gateway and can simply reopen.
+                    cart.PaymentSentDateTime = RockDateTime.Now;
+                    _rockContext.SaveChanges();
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( new Exception( $"Registration Cart: checkout of cart {cartId} failed before the payment was sent to the gateway.", ex ) );
+                    StopOnFreshContext( cartId, ChargeOutcome.NotAttempted, "Checkout failed before the payment was sent: " + ex.Message );
+                    result.ErrorMessage = "We couldn't reach the payment processor. You have not been charged. Please try again.";
+                    return result;
+                }
+
                 string errorMessage;
                 try
                 {
-                    transaction = Charge( gateway, financialGateway, paymentInfo, out errorMessage );
+                    transaction = gateway.Charge( financialGateway, paymentInfo, out errorMessage );
                 }
                 catch ( Exception ex )
                 {
                     // No answer from the gateway, so the card may have been charged. The cart
                     // stays claimed so a retry can't charge it again before someone checks.
                     ExceptionLogService.LogException( new Exception( $"Registration Cart: the gateway charge for cart {cart.Id} failed without an answer; the payment outcome is unknown.", ex ) );
-                    return Stop( cart, ChargeOutcome.Unknown, result,
-                        "We couldn't confirm whether your payment went through. Please contact the office before trying again.",
-                        "Payment outcome unknown (gateway error): " + ex.Message );
+                    return Stop( cart, ChargeOutcome.Unknown, result, PaymentUnconfirmedMessage, "Payment outcome unknown (gateway error): " + ex.Message );
                 }
 
-                if ( transaction == null )
+                var outcome = CheckoutRules.OutcomeOfCharge( transaction != null, errorMessage );
+                if ( outcome == ChargeOutcome.Unknown )
+                {
+                    // Neither a payment nor a reason: some gateways answer a timeout or an
+                    // unreadable response this way, after the card may have been charged.
+                    ExceptionLogService.LogException( new Exception( $"Registration Cart: the gateway gave neither a payment nor an error for cart {cart.Id}; the payment outcome is unknown." ) );
+                    return Stop( cart, ChargeOutcome.Unknown, result, PaymentUnconfirmedMessage, "Payment outcome unknown: the gateway returned neither a payment nor an error." );
+                }
+
+                if ( outcome == ChargeOutcome.Declined )
                 {
                     result.IsDeclined = true;
-                    return Stop( cart, ChargeOutcome.Declined, result,
-                        errorMessage.IsNullOrWhiteSpace() ? "Payment was declined. Please try a different card." : errorMessage );
+                    return Stop( cart, ChargeOutcome.Declined, result, errorMessage );
                 }
             }
 
-            // ---- 2 + 3. Registrations, transaction, close cart ---------------------
-            // Once money has been taken the cart must close whatever happens: a retry must
-            // never charge twice.
+            // ---- 2. The payment's record -------------------------------------------
+            // Saved by itself as soon as the card is charged, so whatever happens to the
+            // registrations the money has its transaction (and batch) in Rock for finance to
+            // find, refund or reconcile. Once money has been taken the cart must also close
+            // whatever happens: a retry must never charge twice.
+            var paymentDetails = new Dictionary<int, FinancialTransactionDetail>();
+            if ( transaction != null )
+            {
+                try
+                {
+                    _rockContext.WrapTransaction( () =>
+                    {
+                        paymentDetails = SavePayment( transaction, cart, payer, priced, financialGateway, gateway, paymentInfo, batchNamePrefix );
+                        cart.FinancialTransactionId = transaction.Id;
+                        _rockContext.SaveChanges();
+                    } );
+
+                    result.TransactionId = transaction.Id;
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( new Exception( $"Registration Cart: payment {transaction.TransactionCode} succeeded for cart {cart.Id} but its record could not be saved in Rock.", ex ) );
+                    StopOnFreshContext( cart.Id, ChargeOutcome.Charged, $"Payment {transaction.TransactionCode} ({priced.Total:0.00}) succeeded but neither its record nor the registrations could be saved: {ex.Message}" );
+                    result.ErrorMessage = PaidButNotRegisteredMessage;
+                    return result;
+                }
+            }
+
+            // ---- 3. Registrations, close cart --------------------------------------
             try
             {
                 _rockContext.WrapTransaction( () =>
@@ -449,11 +517,13 @@ namespace org.secc.RegistrationCart.Services
                     var registrationIds = CreateRegistrations( cart, payer, priced, documents );
                     result.RegistrationIds = registrationIds.Values.ToList();
 
-                    if ( transaction != null )
+                    // Each payment detail now belongs to its line's registration (Rock reads a
+                    // registration's payments from these).
+                    var registrationEntityTypeId = EntityTypeCache.Get<Registration>().Id;
+                    foreach ( var detail in paymentDetails )
                     {
-                        SaveTransaction( transaction, cart, payer, priced, registrationIds, financialGateway, gateway, paymentInfo, batchNamePrefix );
-                        cart.FinancialTransactionId = transaction.Id;
-                        result.TransactionId = transaction.Id;
+                        detail.Value.EntityTypeId = registrationEntityTypeId;
+                        detail.Value.EntityId = registrationIds[detail.Key];
                     }
 
                     cart.Status = CartStatus.CheckedOut;
@@ -468,13 +538,13 @@ namespace org.secc.RegistrationCart.Services
             {
                 var outcome = transaction != null ? ChargeOutcome.Charged : ChargeOutcome.NotAttempted;
                 ExceptionLogService.LogException( new Exception( transaction != null
-                    ? $"Registration Cart: payment {transaction.TransactionCode} succeeded for cart {cart.Id} but registration creation failed."
+                    ? $"Registration Cart: payment {transaction.TransactionCode} (transaction {transaction.Id}) succeeded for cart {cart.Id} but registration creation failed."
                     : $"Registration Cart: registration creation failed for cart {cart.Id}; nothing was charged.", ex ) );
 
-                // A charged cart closes with the error kept so support can reconcile; a cart that
-                // cost nothing opens again.
+                // A charged cart closes with the error kept, and its payment is in Rock, so staff
+                // can refund it or register the campers; a cart that cost nothing opens again.
                 StopOnFreshContext( cart.Id, outcome, ( transaction != null
-                    ? "Payment " + transaction.TransactionCode + " succeeded but registrations could not be created: "
+                    ? $"Payment {transaction.TransactionCode} (transaction {transaction.Id}) succeeded but registrations could not be created: "
                     : "Registrations could not be created (nothing was charged): " ) + ex.Message );
 
                 result.ErrorMessage = transaction != null
@@ -653,6 +723,7 @@ namespace org.secc.RegistrationCart.Services
             name.IsNullOrWhiteSpace() ? "the camper's" : name.EndsWith( "s" ) ? name + "'" : name + "'s";
 
         private const string PaidButNotRegisteredMessage = "Your payment was received but we could not finish creating the registrations. Please contact the office — do not pay again.";
+        private const string PaymentUnconfirmedMessage = "We couldn't confirm whether your payment went through. Please contact the office before trying again.";
         private const string CartUnavailableMessage = "Your cart is no longer available. Please reload the page.";
 
         /// <summary>
@@ -691,7 +762,7 @@ namespace org.secc.RegistrationCart.Services
             switch ( state?.Status )
             {
                 case CartStatus.CheckedOut:
-                    result.Success = state.FinancialTransactionId.HasValue || state.LastCheckoutError.IsNullOrWhiteSpace();
+                    result.Success = state.LastCheckoutError.IsNullOrWhiteSpace();
                     result.TransactionId = state.FinancialTransactionId;
                     result.Total = state.Total ?? 0m;
                     result.ErrorMessage = result.Success ? null : PaidButNotRegisteredMessage;
@@ -726,6 +797,11 @@ namespace org.secc.RegistrationCart.Services
         {
             cart.Status = CheckoutRules.StatusAfterStop( outcome );
             cart.LastCheckoutError = ( detail ?? message ).Truncate( 2000 );
+            if ( cart.Status == CartStatus.Open )
+            {
+                cart.PaymentSentDateTime = null;
+            }
+
             _rockContext.SaveChanges();
 
             result.ErrorMessage = message;
@@ -751,6 +827,10 @@ namespace org.secc.RegistrationCart.Services
                 {
                     cart.CheckedOutDateTime = RockDateTime.Now;
                 }
+                else if ( cart.Status == CartStatus.Open )
+                {
+                    cart.PaymentSentDateTime = null;
+                }
 
                 cart.LastCheckoutError = detail.Truncate( 2000 );
                 fresh.SaveChanges();
@@ -760,31 +840,29 @@ namespace org.secc.RegistrationCart.Services
         private static string Summary( PricedCart priced ) =>
             $"Registration Cart registration — {priced.Lines.Count} item{( priced.Lines.Count == 1 ? "" : "s" )}";
 
-        private static FinancialTransaction Charge( IGatewayComponent gateway, FinancialGateway financialGateway, ReferencePaymentInfo paymentInfo, out string errorMessage )
+        /// <summary>
+        /// Mirrors Rock's own RegistrationEntry block: Obsidian-hosted gateways want a customer
+        /// vault record before a tokenized charge. Returns the gateway's error, or null. Nothing
+        /// is charged here. CreateCustomerAccount is a Rock-internal API (RK1000) with no public
+        /// equivalent.
+        /// </summary>
+        private static string CreateCustomerAccount( IGatewayComponent gateway, FinancialGateway financialGateway, ReferencePaymentInfo paymentInfo )
         {
-            errorMessage = null;
-
-            // Mirrors Rock's own RegistrationEntry block: Obsidian-hosted gateways want a
-            // customer vault record before a tokenized charge. CreateCustomerAccount is a
-            // Rock-internal API (RK1000) with no public equivalent.
-            if ( gateway is IObsidianHostedGatewayComponent obsidianGateway )
+            if ( !( gateway is IObsidianHostedGatewayComponent obsidianGateway ) || paymentInfo.GatewayPersonIdentifier.IsNotNullOrWhiteSpace() )
             {
-                if ( paymentInfo.GatewayPersonIdentifier.IsNullOrWhiteSpace() )
-                {
-#pragma warning disable RK1000
-                    var customerToken = obsidianGateway.CreateCustomerAccount( financialGateway, paymentInfo, out errorMessage );
-#pragma warning restore RK1000
-                    if ( errorMessage.IsNotNullOrWhiteSpace() )
-                    {
-                        return null;
-                    }
-
-                    paymentInfo.GatewayPersonIdentifier = customerToken;
-                }
+                return null;
             }
 
-            var transaction = gateway.Charge( financialGateway, paymentInfo, out errorMessage );
-            return errorMessage.IsNotNullOrWhiteSpace() ? null : transaction;
+#pragma warning disable RK1000
+            var customerToken = obsidianGateway.CreateCustomerAccount( financialGateway, paymentInfo, out var errorMessage );
+#pragma warning restore RK1000
+            if ( errorMessage.IsNotNullOrWhiteSpace() )
+            {
+                return errorMessage;
+            }
+
+            paymentInfo.GatewayPersonIdentifier = customerToken;
+            return null;
         }
 
         /// <summary>
@@ -862,7 +940,9 @@ namespace org.secc.RegistrationCart.Services
                 };
                 registration.Registrants.Add( registrant );
 
-                foreach ( var addOn in line.AddOns )
+                // As Rock's RegistrationEntry: a wait-listed registrant gets no fees (so they don't
+                // use up a limited fee item); they choose and pay for them when they come off the list.
+                foreach ( var addOn in line.IsWaitList ? Enumerable.Empty<CartLineItemAddOn>() : line.AddOns )
                 {
                     var feeItem = feeItemService.Get( addOn.RegistrationTemplateFeeItemId );
                     if ( feeItem == null || !feeItem.RegistrationTemplateFeeId.HasValue )
@@ -902,10 +982,16 @@ namespace org.secc.RegistrationCart.Services
             return map;
         }
 
-        private void SaveTransaction( FinancialTransaction transaction, Cart cart, Person payer, PricedCart priced,
-            Dictionary<int, int> registrationIds, FinancialGateway financialGateway, IGatewayComponent gateway, ReferencePaymentInfo paymentInfo, string batchNamePrefix )
+        /// <summary>
+        /// Saves the gateway's transaction in a batch, with a detail per paying line on its
+        /// instance's account. Returns the details by line item id; they are tied to their
+        /// registrations once those exist.
+        /// </summary>
+        private Dictionary<int, FinancialTransactionDetail> SavePayment( FinancialTransaction transaction, Cart cart, Person payer, PricedCart priced,
+            FinancialGateway financialGateway, IGatewayComponent gateway, ReferencePaymentInfo paymentInfo, string batchNamePrefix )
         {
             var instanceService = new RegistrationInstanceService( _rockContext );
+            var details = new Dictionary<int, FinancialTransactionDetail>();
 
             transaction.AuthorizedPersonAliasId = payer.PrimaryAliasId;
             transaction.TransactionDateTime = RockDateTime.Now;
@@ -925,7 +1011,6 @@ namespace org.secc.RegistrationCart.Services
                 transaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway as GatewayComponent, _rockContext );
             }
 
-            var registrationEntityTypeId = EntityTypeCache.Get<Registration>().Id;
             // Wait-listed campers pay nothing now; Rock bills them when they come off the list.
             foreach ( var line in cart.LineItems.Where( l => !l.IsWaitList ) )
             {
@@ -940,14 +1025,9 @@ namespace org.secc.RegistrationCart.Services
                 }
 
                 var accountId = instanceService.Get( line.RegistrationInstanceId ).AccountId;
-
-                transaction.TransactionDetails.Add( new FinancialTransactionDetail
-                {
-                    Amount = amount,
-                    AccountId = accountId.Value,
-                    EntityTypeId = registrationEntityTypeId,
-                    EntityId = registrationIds[line.Id]
-                } );
+                var detail = new FinancialTransactionDetail { Amount = amount, AccountId = accountId.Value };
+                transaction.TransactionDetails.Add( detail );
+                details[line.Id] = detail;
             }
 
             var batchService = new FinancialBatchService( _rockContext );
@@ -968,6 +1048,7 @@ namespace org.secc.RegistrationCart.Services
 
             HistoryService.SaveChanges( _rockContext, typeof( FinancialBatch ),
                 Rock.SystemGuid.Category.HISTORY_FINANCIAL_BATCH.AsGuid(), batch.Id, batchChanges, true );
+            return details;
         }
     }
 }

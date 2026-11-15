@@ -37,14 +37,47 @@ public static class CheckoutRules
     };
 
     /// <summary>
-    /// A checkout that took, or may have taken, a payment without finishing: still claimed
-    /// (the gateway didn't answer), or closed with an error and no payment record (charged but
-    /// the registrations failed). Support reconciles it with the gateway; until then the payer
-    /// is warned and its campers can't be registered again.
+    /// What a gateway's answer to a charge means. An error message is the gateway saying no:
+    /// nothing was charged. A payment with no error is a charge. Neither is no answer at all
+    /// (some gateways report a timeout or an unreadable response this way), so the card may or
+    /// may not have been charged and the cart must not reopen until someone has checked.
     /// </summary>
-    public static bool IsPendingCheckout(CartStatus status, bool hasTransaction, string? lastCheckoutError) =>
+    public static ChargeOutcome OutcomeOfCharge(bool hasPayment, string? errorMessage) =>
+        !string.IsNullOrWhiteSpace(errorMessage) ? ChargeOutcome.Declined
+        : hasPayment ? ChargeOutcome.Charged
+        : ChargeOutcome.Unknown;
+
+    /// <summary>
+    /// A checkout that took, or may have taken, a payment without finishing: still claimed
+    /// (the gateway didn't answer, or the request died), or closed with an error (charged but
+    /// the registrations failed). Staff check the gateway and reopen or close it on the settings
+    /// page; until then the payer is warned and its campers can't be registered again.
+    /// </summary>
+    /// <param name="isResolved">Staff closed it.</param>
+    public static bool IsPendingCheckout(CartStatus status, string? lastCheckoutError, bool isResolved) =>
         status == CartStatus.Processing
-        || (status == CartStatus.CheckedOut && !hasTransaction && !string.IsNullOrWhiteSpace(lastCheckoutError));
+        || (status == CartStatus.CheckedOut && !isResolved && !string.IsNullOrWhiteSpace(lastCheckoutError));
+
+    /// <summary>
+    /// How long a claimed checkout is left alone before anyone (staff or the maintenance job) may
+    /// reopen or close it: the request that claimed it may still be waiting on the gateway.
+    /// </summary>
+    public const int MinutesBeforeResolving = 5;
+
+    /// <summary>
+    /// Whether a claimed checkout has been quiet long enough to be reopened or closed
+    /// (<see cref="MinutesBeforeResolving"/>, or <paramref name="minutes"/> when longer).
+    /// </summary>
+    public static bool IsQuiet(DateTime? lastChanged, DateTime now, int minutes = MinutesBeforeResolving) =>
+        lastChanged is null || lastChanged.Value <= now.AddMinutes(-Math.Max(minutes, MinutesBeforeResolving));
+
+    /// <summary>
+    /// A checkout the maintenance job may reopen by itself: still claimed, quiet for
+    /// <paramref name="minutes"/>, and its charge was never sent to the gateway (the request
+    /// died first), so nothing can have been charged.
+    /// </summary>
+    public static bool CanReopenUnsent(CartStatus status, DateTime? paymentSent, DateTime? lastChanged, DateTime now, int minutes) =>
+        status == CartStatus.Processing && paymentSent is null && IsQuiet(lastChanged, now, minutes);
 
     /// <summary>
     /// Whether the cart still prices to the total the shopper was shown. Compared in cents, so

@@ -26,6 +26,38 @@ namespace org.secc.RegistrationCart.ViewModels
         public string CatalogUrl { get; set; }
         /// <summary>How templates and instances without saved settings behave (the Registration Cart global attributes), to explain the page.</summary>
         public string DefaultsText { get; set; }
+        /// <summary>Checkouts that took, or may have taken, a payment without finishing, for staff to reopen or close.</summary>
+        public List<PendingCheckoutBag> PendingCheckouts { get; set; } = new List<PendingCheckoutBag>();
+    }
+
+    /// <summary>A checkout whose payment needs checking against the gateway.</summary>
+    public class PendingCheckoutBag
+    {
+        public int CartId { get; set; }
+        public string PayerName { get; set; }
+        public int? PayerPersonId { get; set; }
+        /// <summary>When the checkout stopped.</summary>
+        public string StoppedText { get; set; }
+        public decimal Total { get; set; }
+        /// <summary>What is known: "Payment outcome unknown", "Charged, not registered", ...</summary>
+        public string StateText { get; set; }
+        /// <summary>The error kept on the cart.</summary>
+        public string Detail { get; set; }
+        /// <summary>The payment's record in Rock, when the charge got that far.</summary>
+        public int? TransactionId { get; set; }
+        public string TransactionCode { get; set; }
+        /// <summary>"Camper: option" per line.</summary>
+        public List<string> Lines { get; set; } = new List<string>();
+        /// <summary>Nothing recorded as charged, so it can be reopened once the gateway has been checked.</summary>
+        public bool CanReopen { get; set; }
+        /// <summary>Still inside the minutes a running checkout is left alone; no action yet.</summary>
+        public bool IsTooRecent { get; set; }
+    }
+
+    public class PendingCheckoutResultBag
+    {
+        public string ErrorMessage { get; set; }
+        public List<PendingCheckoutBag> PendingCheckouts { get; set; } = new List<PendingCheckoutBag>();
     }
 
     public class AdminTemplateBag

@@ -385,7 +385,59 @@ namespace org.secc.RegistrationCart.Services
                 }
             }
 
+            // An uploaded file must still be there (Rock Cleanup removes temporary files).
+            var files = FileAnswers( template, answers ).ToList();
+            if ( files.Any() )
+            {
+                var fileGuids = files.Select( f => f.FileGuid ).Distinct().ToList();
+                var found = new BinaryFileService( _rockContext ).Queryable().Where( f => fileGuids.Contains( f.Guid ) ).Select( f => f.Guid ).ToList();
+                problems.AddRange( files.Where( f => !found.Contains( f.FileGuid ) )
+                    .Select( f => $"{FieldLabel( f.Field )}: the uploaded file is no longer available. Please upload it again." ) );
+            }
+
             return problems;
+        }
+
+        /// <summary>
+        /// Makes the files uploaded for the answers permanent. Rock only does that when an attribute
+        /// value pointing at the file is saved, which is at checkout; until then Rock Cleanup would
+        /// delete them after a day. Saved with the context.
+        /// </summary>
+        public void KeepUploadedFiles( RegistrationTemplate template, Dictionary<Guid, object> answers )
+        {
+            var fileGuids = FileAnswers( template, answers ).Select( f => f.FileGuid ).Distinct().ToList();
+            if ( !fileGuids.Any() )
+            {
+                return;
+            }
+
+            foreach ( var file in new BinaryFileService( _rockContext ).Queryable().Where( f => fileGuids.Contains( f.Guid ) && f.IsTemporary ).ToList() )
+            {
+                file.IsTemporary = false;
+            }
+        }
+
+        /// <summary>
+        /// The answers that are uploaded files: File and Image attribute fields (the field types
+        /// whose temporary file Rock makes permanent when the value is saved), with the file's Guid.
+        /// </summary>
+        private static IEnumerable<(RegistrationTemplateFormField Field, Guid FileGuid)> FileAnswers( RegistrationTemplate template, Dictionary<Guid, object> answers )
+        {
+            foreach ( var field in template.Forms.SelectMany( VisibleFields ).Where( f => f.AttributeId.HasValue ) )
+            {
+                var attribute = AttributeCache.Get( field.AttributeId.Value );
+                var fieldType = attribute?.FieldType?.Field;
+                if ( !( fieldType is Rock.Field.Types.FileFieldType || fieldType is Rock.Field.Types.ImageFieldType ) )
+                {
+                    continue;
+                }
+
+                var fileGuid = PrivateValue( attribute, answers?.GetValueOrNull( field.Guid ).ToStringSafe() ).AsGuidOrNull();
+                if ( fileGuid.HasValue )
+                {
+                    yield return (field, fileGuid.Value);
+                }
+            }
         }
 
         /// <summary>
@@ -571,8 +623,14 @@ namespace org.secc.RegistrationCart.Services
 
         #region Storing answers
 
-        /// <summary>Answers as stored on the cart line.</summary>
-        public static string ToJson( Dictionary<Guid, object> values ) => ( values ?? new Dictionary<Guid, object>() ).ToJson();
+        /// <summary>
+        /// Answers as stored on the cart line, in the shape the browser sends and reads them
+        /// (camelCase members). A locked field's value comes from the person as one of Rock's bags
+        /// (birthday, address), not from the browser, and the edit page sends the stored value
+        /// back to Rock's controls, which read year/month/day and street1/city: PascalCase would
+        /// show them blank. The field Guid keys are left as they are.
+        /// </summary>
+        public static string ToJson( Dictionary<Guid, object> values ) => ( values ?? new Dictionary<Guid, object>() ).ToCamelCaseJson( false, false );
 
         /// <summary>
         /// Answers read back from the cart line exactly as the browser sent them (objects stay

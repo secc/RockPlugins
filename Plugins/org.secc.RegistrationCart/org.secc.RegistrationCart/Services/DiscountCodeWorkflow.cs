@@ -98,7 +98,7 @@ namespace org.secc.RegistrationCart.Services
                     new WorkflowService( rockContext ).Process( workflow, entity, out var errors );
                     if ( errors.Any() )
                     {
-                        ExceptionLogService.LogException( new Exception( $"Registration Cart: the discount code workflow for {registrant.FullName} ({instance.Name}) reported: {errors.AsDelimited( "; " )}" ) );
+                        ExceptionLogService.LogException( new Exception( $"Registration Cart: the discount code workflow for person {registrant.Id} (instance {instance.Id}) reported: {errors.AsDelimited( "; " )}" ) );
                     }
 
                     var code = registrationInfo.DiscountCode;
@@ -125,7 +125,7 @@ namespace org.secc.RegistrationCart.Services
             }
             catch ( Exception ex )
             {
-                ExceptionLogService.LogException( new Exception( $"Registration Cart: the discount code workflow failed for {registrant.FullName}.", ex ) );
+                ExceptionLogService.LogException( new Exception( $"Registration Cart: the discount code workflow failed for person {registrant.Id} (instance {registrationInstanceId}).", ex ) );
                 return null;
             }
         }

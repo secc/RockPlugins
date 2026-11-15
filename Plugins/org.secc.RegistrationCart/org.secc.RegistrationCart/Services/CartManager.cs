@@ -76,12 +76,11 @@ namespace org.secc.RegistrationCart.Services
         public List<Cart> GetPendingCheckouts()
         {
             var aliasIds = AliasIds();
-            return new CartService( _rockContext ).Queryable().AsNoTracking()
-                .Where( c => aliasIds.Contains( c.OwnerPersonAliasId )
-                    && ( c.Status == CartStatus.Processing || ( c.Status == CartStatus.CheckedOut && c.FinancialTransactionId == null ) ) )
+            return PendingCheckouts.Candidates( new CartService( _rockContext ).Queryable().AsNoTracking() )
+                .Where( c => aliasIds.Contains( c.OwnerPersonAliasId ) )
                 .OrderByDescending( c => c.Id )
                 .ToList()
-                .Where( c => CheckoutRules.IsPendingCheckout( c.Status, c.FinancialTransactionId.HasValue, c.LastCheckoutError ) )
+                .Where( PendingCheckouts.IsPending )
                 .ToList();
         }
 
@@ -114,10 +113,11 @@ namespace org.secc.RegistrationCart.Services
                 .Where( l => l.RegistrationInstanceId == registrationInstanceId
                     && l.CartId != cartId
                     && l.CartRegistrant.PersonAlias.PersonId == personId
-                    && ( l.Cart.Status == CartStatus.Processing || ( l.Cart.Status == CartStatus.CheckedOut && l.Cart.FinancialTransactionId == null ) ) )
-                .Select( l => new { l.Cart.Status, l.Cart.FinancialTransactionId, l.Cart.LastCheckoutError } )
+                    && ( l.Cart.Status == CartStatus.Processing
+                        || ( l.Cart.Status == CartStatus.CheckedOut && l.Cart.ResolvedDateTime == null && l.Cart.LastCheckoutError != null ) ) )
+                .Select( l => new { l.Cart.Status, l.Cart.LastCheckoutError, l.Cart.ResolvedDateTime } )
                 .ToList();
-            if ( pendingLines.Any( c => CheckoutRules.IsPendingCheckout( c.Status, c.FinancialTransactionId.HasValue, c.LastCheckoutError ) ) )
+            if ( pendingLines.Any( c => CheckoutRules.IsPendingCheckout( c.Status, c.LastCheckoutError, c.ResolvedDateTime.HasValue ) ) )
             {
                 return $"{camperName} is on an earlier checkout for {instanceName} whose payment hasn't been confirmed. Please contact the office before registering them again.";
             }
@@ -202,9 +202,15 @@ namespace org.secc.RegistrationCart.Services
         }
 
         /// <summary>
-        /// Creates a new child in the current person's family. Returns the new person.
+        /// Creates a new child in the current person's family, with the birthdate and grade the
+        /// parent gave. Refuses a name the family already has (so the same child can't be added
+        /// twice and then registered twice) and more than <paramref name="maxPerDay"/> new people
+        /// in a day. The record is Pending, with the template's connection status (else Prospect),
+        /// as Rock's registration creates people. Returns the new person.
         /// </summary>
-        public Person AddChildToFamily( string firstName, string lastName, GradeBand band, out string errorMessage )
+        /// <param name="gradeOffset">Rock's grade offset (years to graduation), or null when not in school yet.</param>
+        /// <param name="template">The registration the child is being added for.</param>
+        public Person AddChildToFamily( string firstName, string lastName, DateTime? birthDate, int? gradeOffset, RegistrationTemplate template, int maxPerDay, out string errorMessage )
         {
             errorMessage = null;
             firstName = ( firstName ?? "" ).Trim();
@@ -215,10 +221,39 @@ namespace org.secc.RegistrationCart.Services
                 return null;
             }
 
+            if ( birthDate == null || birthDate.Value.Date > RockDateTime.Today )
+            {
+                errorMessage = "Please enter the child's birthdate.";
+                return null;
+            }
+
+            if ( gradeOffset.HasValue && !DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.SCHOOL_GRADES.AsGuid() ).DefinedValues.Any( v => v.Value.AsIntegerOrNull() == gradeOffset ) )
+            {
+                errorMessage = "Please choose a grade from the list.";
+                return null;
+            }
+
             var family = _person.GetFamily( _rockContext );
             if ( family == null )
             {
                 errorMessage = "You are not in a family in Rock, so a child cannot be added.";
+                return null;
+            }
+
+            var familyMembers = new GroupMemberService( _rockContext ).Queryable().AsNoTracking()
+                .Where( m => m.GroupId == family.Id )
+                .Select( m => new { m.Person.FirstName, m.Person.NickName, m.Person.LastName, m.Person.CreatedDateTime } )
+                .ToList();
+            if ( familyMembers.Any( m => SameName( m.LastName, lastName ) && ( SameName( m.FirstName, firstName ) || SameName( m.NickName, firstName ) ) ) )
+            {
+                errorMessage = $"{firstName} {lastName} is already in your family. Choose them from the list instead.";
+                return null;
+            }
+
+            var since = RockDateTime.Now.AddDays( -1 );
+            if ( maxPerDay > 0 && familyMembers.Count( m => m.CreatedDateTime >= since ) >= maxPerDay )
+            {
+                errorMessage = "No more people can be added to your family today. Please contact the office for help.";
                 return null;
             }
 
@@ -236,19 +271,24 @@ namespace org.secc.RegistrationCart.Services
                 LastName = lastName,
                 RecordTypeValueId = DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ),
                 RecordStatusValueId = DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ),
-                ConnectionStatusValueId = _person.ConnectionStatusValueId,
+                ConnectionStatusValueId = template?.ConnectionStatusValueId
+                    ?? DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() ),
                 IsEmailActive = true,
                 Gender = Gender.Unknown
             };
-            if ( band != GradeBand.None )
+            child.SetBirthDate( birthDate.Value.Date );
+            if ( gradeOffset.HasValue )
             {
-                child.GradeOffset = GradeBands.GradeOffsetFor( band );
+                child.GradeOffset = gradeOffset;
             }
 
             PersonService.AddPersonToFamily( child, true, family.Id, childRole.Id, _rockContext );
             _rockContext.SaveChanges();
             return child;
         }
+
+        private static bool SameName( string a, string b ) =>
+            a.IsNotNullOrWhiteSpace() && string.Equals( a.Trim(), b, StringComparison.OrdinalIgnoreCase );
 
         #endregion
 
@@ -489,7 +529,7 @@ namespace org.secc.RegistrationCart.Services
             }
             else if ( typedCode.IsNotNullOrWhiteSpace() )
             {
-                var problem = discounts.Check( template.Template, option.Instance.Id, typedCode, otherCartLines, out typed );
+                var problem = discounts.Check( template.Template, option.Instance.Id, typedCode, otherCartLines, cart?.Id ?? 0, out typed );
                 if ( problem != null )
                 {
                     return Refuse( result, problem );
@@ -542,6 +582,11 @@ namespace org.secc.RegistrationCart.Services
             line.FieldValuesJson = RegistrationForms.ToJson( answers );
             line.SignatureData = signature;
 
+            // Uploaded files are temporary until an attribute value points at them, which is not
+            // until checkout; Rock Cleanup deletes temporary files after a day, and a line can
+            // wait in the cart far longer.
+            forms.KeepUploadedFiles( template.Template, RegistrationForms.FromJson( line.FieldValuesJson ) );
+
             // The cart's other campers for the option, and for the option this line left, take
             // their places again (one behind it on the wait list may move up).
             ApplyPlan( seatPlan, optionLines );
@@ -568,7 +613,7 @@ namespace org.secc.RegistrationCart.Services
                 // line's code; otherwise a typed code replaces an automatic one.
                 TemplateDiscounts.UsableCode applied = null;
                 var locked = false;
-                var auto = discounts.FirstAutoApply( template.Template, option.Instance.Id, otherCartLines );
+                var auto = discounts.FirstAutoApply( template.Template, option.Instance.Id, otherCartLines, cart.Id );
                 if ( auto == null && answersChanged )
                 {
                     var made = DiscountCodeWorkflow.Run( discountCodeWorkflowGuid, option.Instance.Id, _person, registrantPerson, answers, line.SnapshotBasePrice + addOns.Sum( a => a.SnapshotPrice ) );
@@ -582,12 +627,12 @@ namespace org.secc.RegistrationCart.Services
                         // the workflow just worked out (a new "how much" answer), and the code just
                         // made (unused) is removed.
                         if ( line.WorkflowDiscountCode.IsNotNullOrWhiteSpace() && !DiscountRules.SameCode( line.WorkflowDiscountCode, made.Code )
-                            && discounts.Check( template.Template, option.Instance.Id, line.WorkflowDiscountCode, otherCartLines, out var original ) == null )
+                            && discounts.Check( template.Template, option.Instance.Id, line.WorkflowDiscountCode, otherCartLines, cart.Id, out var original ) == null )
                         {
                             var revalued = discounts.SetValue( template.Template.Id, original.Code, made.Amount, made.Percentage );
                             if ( revalued != null )
                             {
-                                discounts.RemoveUnused( template.Template.Id, made.Code );
+                                discounts.RemoveUnused( template.Template.Id, made.Code, cart.CreatedDateTime );
                                 applied = revalued;
                             }
                         }
@@ -641,9 +686,19 @@ namespace org.secc.RegistrationCart.Services
 
             var registrantId = line.CartRegistrantId;
             var instanceId = line.RegistrationInstanceId;
+            var templateId = line.RegistrationTemplateId;
+            var workflowCode = line.WorkflowDiscountCode;
             new CartLineItemService( _rockContext ).Delete( line );
             Replace( cart, instanceId, lineItemId );
             _rockContext.SaveChanges();
+
+            // The financial assistance code made for the line goes with it, so it can't be typed
+            // on a later registration.
+            if ( workflowCode.IsNotNullOrWhiteSpace() )
+            {
+                new TemplateDiscounts( _rockContext ).RemoveUnused( templateId, workflowCode, cart.CreatedDateTime );
+                _rockContext.SaveChanges();
+            }
 
             if ( !new CartLineItemService( _rockContext ).Queryable().Any( l => l.CartRegistrantId == registrantId ) )
             {

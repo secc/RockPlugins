@@ -53,15 +53,66 @@ public class CheckoutRulesTests
     }
 
     [Theory]
-    [InlineData(CartStatus.Processing, false, null, true)]               // the gateway didn't answer
-    [InlineData(CartStatus.CheckedOut, false, "Payment X succeeded but registrations could not be created", true)]
-    [InlineData(CartStatus.CheckedOut, true, null, false)]               // paid and registered
-    [InlineData(CartStatus.CheckedOut, false, null, false)]              // a free cart
-    [InlineData(CartStatus.CheckedOut, true, "an old error", false)]     // support recorded the payment
-    [InlineData(CartStatus.Open, false, "Payment was declined.", false)] // declined: nothing charged
-    public void Unconfirmed_checkouts_are_the_ones_that_may_have_been_charged(CartStatus status, bool hasTransaction, string? error, bool pending)
+    [InlineData(CartStatus.Processing, null, false, true)]                // the gateway didn't answer, or the request died
+    [InlineData(CartStatus.CheckedOut, "Payment X succeeded but registrations could not be created", false, true)]
+    [InlineData(CartStatus.CheckedOut, "Payment X succeeded but registrations could not be created", true, false)] // staff closed it
+    [InlineData(CartStatus.CheckedOut, null, false, false)]               // paid and registered, or a free cart
+    [InlineData(CartStatus.CheckedOut, "  ", false, false)]
+    [InlineData(CartStatus.Open, "Payment was declined.", false, false)]  // declined: nothing charged
+    [InlineData(CartStatus.Abandoned, "Payment outcome unknown", true, false)] // a claimed cart staff closed
+    public void Unconfirmed_checkouts_are_the_ones_that_may_have_been_charged(CartStatus status, string? error, bool resolved, bool pending)
     {
-        Assert.Equal(pending, CheckoutRules.IsPendingCheckout(status, hasTransaction, error));
+        Assert.Equal(pending, CheckoutRules.IsPendingCheckout(status, error, resolved));
+    }
+
+    [Fact]
+    public void A_charged_cart_with_its_payment_recorded_is_still_unconfirmed_until_it_registers()
+    {
+        // The payment is saved before the registrations, so having one no longer means "done".
+        Assert.True(CheckoutRules.IsPendingCheckout(CartStatus.CheckedOut, "Payment X (transaction 12) succeeded but registrations could not be created", isResolved: false));
+    }
+
+    [Theory]
+    [InlineData(true, null, ChargeOutcome.Charged)]
+    [InlineData(true, "", ChargeOutcome.Charged)]
+    [InlineData(false, "Card declined", ChargeOutcome.Declined)]
+    [InlineData(true, "Card declined", ChargeOutcome.Declined)]   // an error wins, as Rock treats it
+    [InlineData(false, null, ChargeOutcome.Unknown)]              // a timeout some gateways report as "nothing"
+    [InlineData(false, "   ", ChargeOutcome.Unknown)]
+    public void A_gateway_answer_with_neither_a_payment_nor_an_error_is_not_a_decline(bool hasPayment, string? error, ChargeOutcome outcome)
+    {
+        Assert.Equal(outcome, CheckoutRules.OutcomeOfCharge(hasPayment, error));
+        if (outcome == ChargeOutcome.Unknown)
+            Assert.NotEqual(CartStatus.Open, CheckoutRules.StatusAfterStop(outcome));
+    }
+
+    [Fact]
+    public void A_claimed_checkout_is_left_alone_while_it_may_still_be_running()
+    {
+        var now = new DateTime(2026, 11, 15, 12, 0, 0);
+
+        Assert.False(CheckoutRules.IsQuiet(now.AddMinutes(-1), now));
+        Assert.False(CheckoutRules.IsQuiet(now.AddMinutes(-CheckoutRules.MinutesBeforeResolving).AddSeconds(1), now));
+        Assert.True(CheckoutRules.IsQuiet(now.AddMinutes(-CheckoutRules.MinutesBeforeResolving), now));
+        Assert.True(CheckoutRules.IsQuiet(null, now));
+
+        // A shorter wait than the minimum is raised to it; a longer one is honoured.
+        Assert.False(CheckoutRules.IsQuiet(now.AddMinutes(-2), now, minutes: 1));
+        Assert.False(CheckoutRules.IsQuiet(now.AddMinutes(-20), now, minutes: 30));
+        Assert.True(CheckoutRules.IsQuiet(now.AddMinutes(-31), now, minutes: 30));
+    }
+
+    [Fact]
+    public void Only_a_checkout_that_never_reached_the_gateway_reopens_by_itself()
+    {
+        var now = new DateTime(2026, 11, 15, 12, 0, 0);
+        var claimed = now.AddMinutes(-20);
+
+        Assert.True(CheckoutRules.CanReopenUnsent(CartStatus.Processing, paymentSent: null, claimed, now, minutes: 15));
+        Assert.False(CheckoutRules.CanReopenUnsent(CartStatus.Processing, paymentSent: claimed, claimed, now, minutes: 15)); // may have been charged
+        Assert.False(CheckoutRules.CanReopenUnsent(CartStatus.Processing, paymentSent: null, now.AddMinutes(-10), now, minutes: 15)); // too soon
+        Assert.False(CheckoutRules.CanReopenUnsent(CartStatus.CheckedOut, paymentSent: null, claimed, now, minutes: 15));
+        Assert.False(CheckoutRules.CanReopenUnsent(CartStatus.Open, paymentSent: null, claimed, now, minutes: 15));
     }
 
     [Theory]
