@@ -11,8 +11,11 @@ plugin. Read the plugin's README before changing it.
 ## Workspace layout
 
 - This repo sits next to a Rock checkout at `../Rock` (secc/Rock, branch `hotfix-1.16.12`).
-  The folder names matter: `Rock.sln` references `..\RockPlugins-16\Plugins\*.csproj`, and
-  `../Rock/RockWeb/Plugins/org_secc/*` are symlinks back into this repo.
+  `Tools/build-plugin.ps1` looks for Rock there (`-RockPath` overrides).
+- Plugin projects are in `Rock.sln` only locally, added by `Tools/add-plugins-to-solution.ps1`.
+  Don't commit that `Rock.sln` change to secc/Rock.
+- `../Rock/RockWeb/Plugins/org_secc/*` are symlinks to absolute paths in this checkout. Moving
+  or renaming this folder breaks them.
 - Read Rock platform source from `../Rock` when you need an API or pattern. Don't edit it from
   here; core fixes go to secc/Rock as their own branch.
 - Do parallel work in git worktrees of this repo (`.claude/worktrees/`), not in a second clone.
@@ -36,10 +39,10 @@ deploy.
   copies nothing and doesn't recycle a running site.
 - If the stale-Rock warning appears and the change matters, rebuild Rock once in Visual Studio.
 - Plugins whose folder has no `.csproj` are `.ascx`/`.ascx.cs` blocks compiled by RockWeb at
-  runtime. There is nothing to build; errors show up only when the page
-  loads, so type-check carefully.
-- Obsidian UI (`*.Obsidian` folders in LinkList and RegistrationCart): a solution build does not
-  refresh the JS bundle. Run `npm run deploy` in the `.Obsidian` folder, then hard-refresh.
+  runtime. There is nothing to build; errors show up only when the page loads, so type-check
+  carefully.
+- Obsidian UI (a plugin's `*.Obsidian` folder): a solution build does not refresh the JS bundle.
+  Run `npm run deploy` in the `.Obsidian` folder, then hard-refresh.
 - Run MSBuild from PowerShell, not Git Bash: Bash mangles `/p:` arguments.
 
 ## Git and PRs
