@@ -1,7 +1,9 @@
+{%- comment -%} PageRedirect stops the render with an interrupt; inside an entity block Fluid logs that as an error, so redirect after the block. {%- endcomment -%}
+{%- assign redirectUrl = '' -%}
 {%- contentchannelitem where:'ContentChannelId == 76 && Status == 2' sort:'StartDateTime Desc' -%}
-    {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
+    {% assign currentDateTime = 'Now' | Date:'yyMMdd.HHmm' | AsDouble %}
     {%- for item in contentchannelitemItems -%}
-        {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
+        {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMdd.HHmm' | AsDouble %}
         {% if itemStartDateTime <= currentDateTime %}
             {%- assign campuses = item | Attribute:'Campuses','RawValue' | Split: ',' -%}
             {%- assign ministries = item | Attribute:'Audiences' -%}
@@ -9,10 +11,11 @@
                 {%- if CurrentPersonCanEdit -%}
                     <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="https://www.southeastchristian.org/familyresources/{{ item.PrimarySlug }}">https://www.southeastchristian.org/familyresources/{{ item.PrimarySlug }}</a>.</p>
                 {%- else -%}
-                    {{- 'https://www.southeastchristian.org/familyresources/' | Append: item.PrimarySlug | PageRedirect -}}
+                    {%- assign redirectUrl = 'https://www.southeastchristian.org/familyresources/' | Append: item.PrimarySlug -%}
                 {%- endif -%}
                 {%- break -%}
             {%- endif -%}
         {%- endif -%}
     {%- endfor -%}
 {%- endcontentchannelitem -%}
+{%- if redirectUrl != '' -%}{{- redirectUrl | PageRedirect -}}{%- endif -%}

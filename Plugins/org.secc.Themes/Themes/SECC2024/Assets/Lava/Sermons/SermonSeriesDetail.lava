@@ -245,7 +245,7 @@
                             <div class="embed-responsive embed-responsive-16by9 media-border-only">
 							{% if youtubeMessageVideoId != null and youtubeMessageVideoId != '' %}
 								{% assign startTime =  currentMessage | Attribute:'YoutubeSermonStartTime' %}
-								<iframe width="640" height="360" src="https://www.youtube.com/embed/{{youtubeMessageVideoId}}?start={{startTime}}" title="{{currentMessage.Title}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+								<iframe width="640" height="360" src="https://www.youtube.com/embed{% raw %}{{ '/' }}{% endraw %}{{youtubeMessageVideoId}}?start={{startTime}}" title="{{currentMessage.Title}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 							{% else %}
                                 <iframe src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
 							{% endif %}
@@ -302,7 +302,7 @@
 
 						<div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
 							<div class="embed-responsive embed-responsive-16by9 media-border-only">
-								{{ embedCode }}
+								{{ embedCode | Replace:'youtu.be/','www.youtube.com/watch?v=' }}
 							</div>
 						</div>
 

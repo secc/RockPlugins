@@ -1,6 +1,6 @@
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.countdown/2.2.0/jquery.countdown.min.js" type="text/javascript"></script> - -->
 
-{% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
+{% assign currentDate = 'Now' | Date:'yyyyMMdd.HHmm' | AsDouble %}
 
 {% comment %}
 <div style="padding: 10px; color: white; background-color: #201e1d;">
@@ -11,7 +11,7 @@
                     <h4>THIRD DAY FAREWELL TOUR <br />
                         <small style="color: orange;">
 
-                        {% assign releaseRegistration = '201803071200' | AsDouble %}
+                        {% assign releaseRegistration = '20180307.1200' | AsDouble %}
                         {% if releaseRegistration <= currentDate %}
                              TICKETS AVAILABLE FOR SALE!
                         {% else %}
@@ -22,7 +22,7 @@
                         </small>
                     </h4>
                 </a>
-                {% assign expireMovieNotice = '201803111400' | AsDouble %}
+                {% assign expireMovieNotice = '20180311.1400' | AsDouble %}
                 {% if expireMovieNotice > currentDate %}
 
                      <hr style="margin: 5px auto;width: 60%;border-color: gray;">

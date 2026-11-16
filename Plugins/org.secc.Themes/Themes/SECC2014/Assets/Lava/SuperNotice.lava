@@ -1,7 +1,7 @@
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.countdown/2.2.0/jquery.countdown.min.js" type="text/javascript"></script> - -->
 
 {% comment %}
-{% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
+{% assign currentDate = 'Now' | Date:'yyyyMMdd.HHmm' | AsDouble %}
 
 
 <div style="padding: 20px; color: white; background-color: #201e1d;">

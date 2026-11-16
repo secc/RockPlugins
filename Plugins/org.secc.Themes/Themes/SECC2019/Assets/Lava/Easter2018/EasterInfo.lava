@@ -1,4 +1,4 @@
-{% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
+{% assign currentDate = 'Now' | Date:'yyyyMMdd.HHmm' | AsDouble %}
 
 <script src="/Themes/SECC2014/Scripts/modernizr.js"></script>
 <script src="https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js"></script>

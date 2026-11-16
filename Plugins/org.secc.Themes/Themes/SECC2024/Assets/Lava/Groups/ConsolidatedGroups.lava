@@ -1,3 +1,4 @@
+{%- capture bsapos -%}\'{%- endcapture -%}
 <style>
     .filterbox{
         display: block;
@@ -400,7 +401,7 @@
                                     </div>
 
                                     <div class="mobile-only" style="position:absolute;top:1rem;right:1rem;">
-                                        <a onclick="shareMessage('{{ publishGroup.Title | Replace:"'","\'"}}','Join me at {{ publishGroup.Title | Replace:"'","\'"}}!','{{registrationLink}}')">
+                                        <a onclick="shareMessage('{{ publishGroup.Title | Replace:"'",bsapos}}','Join me at {{ publishGroup.Title | Replace:"'",bsapos}}!','{{registrationLink}}')">
                                             <i class="fas fa-share-alt" style="color:#1D1F21"></i>
                                         </a>
                                     </div>
