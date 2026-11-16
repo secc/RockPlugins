@@ -211,4 +211,4 @@ There is no MEF/registration step — these are Rock blocks, placed on a page vi
 - `SignNowTest` is test scaffolding — don't extend it for production; build a proper block instead. It writes its temp PDF into a per-request directory and deletes it in a `finally`.
 - Building `org.secc.Security.Tests` with MSBuild from the command line builds the plugin with `CopyToRockWeb=false` and without its `PostBuildEvent`, so nothing is copied into RockWeb. In Visual Studio, a solution that also contains the plugin builds the plugin as its own project, with its copy into RockWeb, whenever Visual Studio finds the plugin out of date. The tests don't use a database.
 
-Last updated: 2026-10-28
+Last updated: 2026-11-16
