@@ -88,3 +88,5 @@ RockWeb blocks under `org_secc/Crm/`. Categories below are taken from each block
   should match.
 - Apple-Pass generation is driven by the workflow configured on the `GenerateApplePass` block, not by
   code here — change the pass output by editing that workflow type.
+
+Last updated: 2026-11-16
