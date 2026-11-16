@@ -433,8 +433,8 @@ namespace org.secc.Rest.Tests
         [Theory]
         [InlineData( "pat.sample.{0}@example.test\r\n" )]
         [InlineData( "\npat.sample.{0}@example.test" )]
-        [InlineData( "pat.sample.{0}@example.test　" )]
-        [InlineData( " pat.sample.{0}@example.test" )]
+        [InlineData( "pat.sample.{0}@example.test\u3000" )]
+        [InlineData( "\u00A0pat.sample.{0}@example.test" )]
         [InlineData( "pat.sample.{0}@example.test\u000B" )]
         public void StoredAddressWithOtherSurroundingCharacters_GetsTheEmailAsStored( string stored )
         {
