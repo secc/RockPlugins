@@ -312,26 +312,26 @@ namespace org.secc.Rest.Controllers
 
         /// <summary>
         /// The characters <see cref="IsPrintableAscii"/> and <see cref="FoldAsciiCase"/> ignore around an
-        /// address: space, tab, line feed and carriage return.
+        /// address: space and tab.
         /// </summary>
-        private static readonly char[] AsciiWhiteSpace = { ' ', '\t', '\n', '\r' };
+        private static readonly char[] SpaceAndTab = { ' ', '\t' };
 
         /// <summary>
-        /// Whether every character of the address, apart from surrounding spaces, tabs and line breaks, is a
-        /// printable ASCII character.
+        /// Whether every character of the address, apart from surrounding spaces and tabs, is one of the
+        /// visible ASCII characters, <c>!</c> through <c>~</c>.
         /// </summary>
         internal static bool IsPrintableAscii( string address )
         {
-            return address.Trim( AsciiWhiteSpace ).All( c => c >= '!' && c <= '~' );
+            return address.Trim( SpaceAndTab ).All( c => c >= '!' && c <= '~' );
         }
 
         /// <summary>
-        /// The address without surrounding spaces, tabs and line breaks and with the letters A to Z in lower
-        /// case. Every other character is unchanged.
+        /// The address without surrounding spaces and tabs and with the letters A to Z in lower case. Every
+        /// other character is unchanged.
         /// </summary>
         internal static string FoldAsciiCase( string address )
         {
-            return new string( address.Trim( AsciiWhiteSpace ).Select( c => c >= 'A' && c <= 'Z' ? ( char ) ( c + ( 'a' - 'A' ) ) : c ).ToArray() );
+            return new string( address.Trim( SpaceAndTab ).Select( c => c >= 'A' && c <= 'Z' ? ( char ) ( c + ( 'a' - 'A' ) ) : c ).ToArray() );
         }
 
         /// <summary>
@@ -1580,9 +1580,9 @@ namespace org.secc.Rest.Controllers
                 }
 
                 // Stored addresses that share a budget key get one email per request, counted once. It goes to
-                // the first of them that is all printable ASCII, or else to the first, and lists the people
-                // whose stored address is the same apart from surrounding spaces, tabs and line breaks and the
-                // case of A to Z.
+                // the first of them that is all printable ASCII, or else to the first, without its surrounding
+                // spaces and tabs, and lists the people whose stored address is the same apart from surrounding
+                // spaces and tabs and the case of A to Z.
                 foreach ( var budgetGroup in resettableAddresses.GroupBy( stored => StoredRecipientKey( stored.Key ) ) )
                 {
                     var address = budgetGroup.Select( stored => stored.Key ).FirstOrDefault( IsPrintableAscii ) ?? budgetGroup.First().Key;
@@ -1598,7 +1598,7 @@ namespace org.secc.Rest.Controllers
                             .OrderBy( r => ( ( Person ) r["Person"] ).Id )
                             .ToArray() );
                         mergeFields.Add( "ConfirmAccountUrl", confirmAccountUrl );
-                        recipients.Add( RockEmailMessageRecipient.CreateAnonymous( address, mergeFields ) );
+                        recipients.Add( RockEmailMessageRecipient.CreateAnonymous( address.Trim( SpaceAndTab ), mergeFields ) );
                     }
                 }
 

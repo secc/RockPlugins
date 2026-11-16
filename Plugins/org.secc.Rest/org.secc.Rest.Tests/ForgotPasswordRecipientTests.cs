@@ -397,7 +397,7 @@ namespace org.secc.Rest.Tests
         }
 
         [Fact]
-        public void StoredAddressWithTrailingWhitespace_GetsTheEmailWhenItIsTheFirst()
+        public void StoredAddressWithTrailingSpace_GetsTheEmailWithoutTheSpaceWhenItIsTheFirst()
         {
             var n = NewNumber();
             var padded = _controller.AddPerson( 1, "pat.sample." + n + "@example.test " );
@@ -406,8 +406,47 @@ namespace org.secc.Rest.Tests
             AssertNeutral( Forgot( other.Email ) );
 
             var recipient = Assert.Single( SingleSend() );
-            Assert.Equal( padded.Email, recipient.To );
+            Assert.Equal( "pat.sample." + n + "@example.test", recipient.To );
             Assert.Equal( new[] { padded, other }, Listed( recipient ) );
+        }
+
+        [Theory]
+        [InlineData( " pat.sample.{0}@example.test" )]
+        [InlineData( "pat.sample.{0}@example.test\t" )]
+        [InlineData( "\t pat.sample.{0}@example.test \t" )]
+        public void StoredAddressWithSurroundingSpacesOrTabs_GetsTheEmailWithoutThem( string stored )
+        {
+            var n = NewNumber();
+            var person = _controller.AddPerson( 1, string.Format( stored, n ) );
+
+            AssertNeutral( Forgot( "pat.sample." + n + "@example.test" ) );
+
+            var recipient = Assert.Single( SingleSend() );
+            Assert.Equal( "pat.sample." + n + "@example.test", recipient.To );
+            Assert.Equal( new[] { person }, Listed( recipient ) );
+        }
+
+        /// <summary>
+        /// A line break, an ideographic space, a no-break space, and a vertical tab around the only stored
+        /// address.
+        /// </summary>
+        [Theory]
+        [InlineData( "pat.sample.{0}@example.test\r\n" )]
+        [InlineData( "\npat.sample.{0}@example.test" )]
+        [InlineData( "pat.sample.{0}@example.test　" )]
+        [InlineData( " pat.sample.{0}@example.test" )]
+        [InlineData( "pat.sample.{0}@example.test\u000B" )]
+        public void StoredAddressWithOtherSurroundingCharacters_GetsTheEmailAsStored( string stored )
+        {
+            var n = NewNumber();
+            var person = _controller.AddPerson( 1, string.Format( stored, n ) );
+
+            AssertNeutral( Forgot( "pat.sample." + n + "@example.test" ) );
+
+            var recipient = Assert.Single( SingleSend() );
+            Assert.Equal( person.Email, recipient.To );
+            Assert.Equal( string.Format( stored, n ), recipient.To );
+            Assert.Equal( new[] { person }, Listed( recipient ) );
         }
 
         /// <summary>
@@ -431,14 +470,17 @@ namespace org.secc.Rest.Tests
         }
 
         /// <summary>
-        /// A zero width space, a delete character, and a space inside the first stored address, and an
-        /// ideographic space after it. Both addresses have the same budget key.
+        /// A zero width space, a delete character, and a space inside the first stored address, an
+        /// ideographic space after it, and a line break after or before it. Both addresses have the same
+        /// budget key.
         /// </summary>
         [Theory]
         [InlineData( "pat\u200B!~.sample.{0}@example.test" )]
         [InlineData( "pat\u007F!~.sample.{0}@example.test" )]
         [InlineData( "pat !~.sample.{0}@example.test" )]
         [InlineData( "pat!~.sample.{0}@example.test\u3000" )]
+        [InlineData( "pat!~.sample.{0}@example.test\r\n" )]
+        [InlineData( "\npat!~.sample.{0}@example.test" )]
         public void PrintableAsciiStoredAddress_GetsTheEmail_WhenAnOlderOneIsNot( string older )
         {
             var n = NewNumber();
@@ -687,7 +729,7 @@ namespace org.secc.Rest.Tests
         }
 
         [Fact]
-        public void StoredAddressesDifferingOnlyInTrailingWhitespace_ShareOneBudget()
+        public void StoredAddressesDifferingOnlyInATrailingSpace_ShareOneBudget()
         {
             var spellings = CollationEqualSpellings( NewNumber() );
             var trimmed = _controller.AddPerson( 1, spellings[0] );
@@ -900,25 +942,61 @@ namespace org.secc.Rest.Tests
         [Theory]
         [InlineData( "!~", true )]
         [InlineData( " pat.sample@example.test \t", true )]
-        [InlineData( "\r\npat.sample@example.test\n\r", true )]
+        [InlineData( "\r\npat.sample@example.test\n\r", false )]
+        [InlineData( "pat.sample@example.test\n", false )]
+        [InlineData( "\rpat.sample@example.test", false )]
+        [InlineData( "pat.sample@example.test\u000B", false )]
+        [InlineData( "pat.sample@example.test\u000C", false )]
+        [InlineData( "pat.sample@example.test\u0085", false )]
+        [InlineData( "pat.sample@example.test\u2003", false )]
         [InlineData( "pat.sample@example.test\u3000", false )]
         [InlineData( "\u00A0pat.sample@example.test", false )]
         [InlineData( "pat sample@example.test", false )]
         [InlineData( "pat\u007Fsample@example.test", false )]
         [InlineData( "jos\u00E9@example.test", false )]
-        public void IsPrintableAscii_AllowsOnlyPrintableAsciiInsideSurroundingWhiteSpace( string address, bool expected )
+        public void IsPrintableAscii_AllowsOnlyPrintableAsciiInsideSurroundingSpacesAndTabs( string address, bool expected )
         {
             Assert.Equal( expected, AccountController.IsPrintableAscii( address ) );
         }
 
         [Theory]
         [InlineData( " AZ@[`{az ", "az@[`{az" )]
-        [InlineData( "\t\r\nAZ@Example.test\n\r\t", "az@example.test" )]
+        [InlineData( "\t\r\nAZ@Example.test\n\r\t", "\r\naz@example.test\n\r" )]
+        [InlineData( " \tAZ@Example.test\t ", "az@example.test" )]
+        [InlineData( "\u000BAZ@Example.test\u000C", "\u000Baz@example.test\u000C" )]
+        [InlineData( "\u0085AZ@Example.test\u2003", "\u0085az@example.test\u2003" )]
         [InlineData( "\u3000AZ@Example.test\u00A0", "\u3000az@example.test\u00A0" )]
         [InlineData( "JOS\u00C9\uFF21@Example.test", "jos\u00C9\uFF21@example.test" )]
-        public void FoldAsciiCase_TrimsAndLowersOnlyAToZ( string address, string expected )
+        public void FoldAsciiCase_TrimsSpacesAndTabsAndLowersOnlyAToZ( string address, string expected )
         {
             Assert.Equal( expected, AccountController.FoldAsciiCase( address ) );
+        }
+
+        /// <summary>
+        /// Every character other than space and tab, put before and after an address.
+        /// </summary>
+        [Fact]
+        public void IsPrintableAsciiAndFoldAsciiCase_KeepEverySurroundingCharacterOtherThanSpaceAndTab()
+        {
+            var wrong = new List<string>();
+            for ( var i = 0; i <= 0xFFFF; i++ )
+            {
+                var c = ( char ) i;
+                if ( c == ' ' || c == '\t' )
+                {
+                    continue;
+                }
+
+                var address = c + "Az@b.test" + c;
+                var folded = c >= 'A' && c <= 'Z' ? ( char ) ( c + 32 ) : c;
+                if ( AccountController.IsPrintableAscii( address ) != ( c >= '!' && c <= '~' )
+                    || AccountController.FoldAsciiCase( address ) != folded + "az@b.test" + folded )
+                {
+                    wrong.Add( "U+" + i.ToString( "X4" ) );
+                }
+            }
+
+            Assert.Empty( wrong );
         }
 
         [Theory]
