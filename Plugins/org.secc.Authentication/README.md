@@ -147,4 +147,4 @@ No registration step is needed for the component — MEF discovers `[Export(type
 - org.secc.OAuth's resource-owner grant accepts this provider by type name (`Startup.cs`) — coordinate changes to the `Rock.Security.ExternalAuthentication.SMSAuthentication` type name with that plugin.
 - Building `org.secc.Authentication.Tests` with MSBuild from the command line builds the plugin without its `PostBuildEvent`, so nothing is copied into RockWeb. In Visual Studio, a solution that also contains the plugin builds the plugin as its own project, with its copy into RockWeb, whenever Visual Studio finds the plugin out of date; after a command-line build of the tests, Visual Studio can find the plugin up to date and skip the copy until the plugin changes or is rebuilt. The `Authenticate` tests create a temporary database on `(localdb)\MSSQLLocalDB`, or on the SQL Server named by the `ORG_SECC_TEST_SQLSERVER` environment variable, and drop it when they finish.
 
-_Last updated: 2026-10-23_
+_Last updated: 2026-11-16_
