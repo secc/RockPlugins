@@ -15,21 +15,23 @@ param(
 
 $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
-Push-Location $dir
 
-# Locate RockWeb. An explicit -RockWebPath wins. Otherwise the first candidate
+# Locate RockWeb. An explicit -RockWebPath wins, resolved against the caller's
+# directory (before Push-Location below). Otherwise the first candidate
 # matches the Azure DevOps pipeline layout (RockWeb at the root of
 # Build.SourcesDirectory, plugins repo as a sibling) and the second matches a
 # local rock-dev-tool environment layout.
 $rockWeb = $null
 if ($RockWebPath) {
     if (-not (Test-Path $RockWebPath)) {
-        Pop-Location
         throw "LinkList: RockWebPath '$RockWebPath' does not exist!"
     }
     $rockWeb = (Resolve-Path $RockWebPath).Path
 }
-else {
+
+Push-Location $dir
+
+if (-not $rockWeb) {
     ForEach ($candidate in @("..\..\..\RockWeb", "..\Rock\RockWeb")) {
         if (Test-Path $candidate) {
             $rockWeb = (Resolve-Path $candidate).Path
@@ -72,17 +74,36 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # --- 2. Obsidian (Vue) frontend ---
-# npm run build = vue-tsc typecheck + obsidian-build + web component bundle.
-# obsidian-build's own copy phase is skipped automatically in CI (no local
-# dev environment is present), so we copy dist to RockWeb ourselves below.
+# Same steps as `npm run build` (vue-tsc typecheck + obsidian-build + web
+# component bundle), except obsidian-build runs with its copy phase off.
+# obsidian.config.json copies to $(Environment)/Rock/RockWeb whenever a
+# rock-dev-tool environment.json sits above this folder, which would deploy
+# the frontend to that site instead of (or as well as) $rockWeb. Step 3 copies
+# dist to $rockWeb itself. The no-copy config is written next to
+# obsidian.config.json because obsidian-build resolves paths from the
+# config file's folder.
 Push-Location "org.secc.LinkList.Obsidian"
 & npm ci --no-audit --no-fund
 if ($LASTEXITCODE -ne 0) {
     Pop-Location; Pop-Location
     throw "org.secc.LinkList: npm ci failed!"
 }
-& npm run build
-if ($LASTEXITCODE -ne 0) {
+$noCopyConfig = "obsidian.nocopy.config.json"
+$buildExit = 1
+try {
+    $obsidianConfig = Get-Content "obsidian.config.json" -Raw | ConvertFrom-Json
+    foreach ($entry in @($obsidianConfig)) { $entry | Add-Member -NotePropertyName copy -NotePropertyValue $false -Force }
+    ConvertTo-Json -InputObject @($obsidianConfig) -Depth 10 | Set-Content $noCopyConfig -Encoding Ascii
+
+    & npm run typecheck
+    if ($LASTEXITCODE -eq 0) { & npx --no-install obsidian-build --config $noCopyConfig }
+    if ($LASTEXITCODE -eq 0) { & npm run build:webcomponent }
+    $buildExit = $LASTEXITCODE
+}
+finally {
+    Remove-Item $noCopyConfig -ErrorAction SilentlyContinue
+}
+if ($buildExit -ne 0) {
     Pop-Location; Pop-Location
     throw "org.secc.LinkList: Obsidian build failed!"
 }
