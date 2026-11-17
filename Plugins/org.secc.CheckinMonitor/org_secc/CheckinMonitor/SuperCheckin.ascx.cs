@@ -17,10 +17,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
@@ -1132,7 +1129,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void ProcessLabels()
         {
-            var printQueue = new Dictionary<string, StringBuilder>();
             foreach ( var selectedFamily in CurrentCheckInState.CheckIn.Families.Where( p => p.Selected ) )
             {
                 List<CheckInLabel> labels = new List<CheckInLabel>();
@@ -1197,98 +1193,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
 
                 // Print server labels
-                if ( labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Server ) )
-                {
-                    string delayCut = @"^XB";
-                    string endingTag = @"^XZ";
-                    var printerIp = string.Empty;
-                    var labelContent = new StringBuilder();
-
-                    // make sure labels have a valid ip
-                    var lastLabel = labels.Last();
-                    foreach ( var label in labels.Where( l => l.PrintFrom == PrintFrom.Server && !string.IsNullOrEmpty( l.PrinterAddress ) ) )
-                    {
-                        var labelCache = KioskLabel.Get( label.FileGuid );
-                        if ( labelCache != null )
-                        {
-                            if ( printerIp != label.PrinterAddress )
-                            {
-                                printQueue.AddOrReplace( label.PrinterAddress, labelContent );
-                                printerIp = label.PrinterAddress;
-                                labelContent = new StringBuilder();
-                            }
-
-                            var printContent = labelCache.FileContent;
-                            foreach ( var mergeField in label.MergeFields )
-                            {
-                                if ( !string.IsNullOrWhiteSpace( mergeField.Value ) )
-                                {
-                                    printContent = Regex.Replace( printContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), ZebraFormatString( mergeField.Value ) );
-                                }
-                                else
-                                {
-                                    printContent = Regex.Replace( printContent, string.Format( @"\^FO.*\^FS\s*(?=\^FT.*\^FD{0}\^FS)", mergeField.Key ), string.Empty );
-                                    printContent = Regex.Replace( printContent, string.Format( @"\^FD{0}\^FS", mergeField.Key ), "^FD^FS" );
-                                }
-                            }
-
-                            // send a Delay Cut command at the end to prevent cutting intermediary labels
-                            if ( label != lastLabel )
-                            {
-                                printContent = Regex.Replace( printContent.Trim(), @"\" + endingTag + @"$", delayCut + endingTag );
-                            }
-
-                            labelContent.Append( printContent );
-                        }
-                    }
-
-                    printQueue.AddOrReplace( printerIp, labelContent );
-                }
-
-                if ( printQueue.Any() )
-                {
-                    PrintLabels( printQueue );
-                    printQueue.Clear();
-                }
+                new LabelPrinter { Labels = labels }.PrintNetworkLabels();
             }
             ClearCheckin();
-        }
-
-        /// <summary>
-        /// Prints the labels.
-        /// </summary>
-        /// <param name="families">The families.</param>
-        private void PrintLabels( Dictionary<string, StringBuilder> printerContent )
-        {
-            foreach ( var printerIp in printerContent.Keys.Where( k => !string.IsNullOrEmpty( k ) ) )
-            {
-                StringBuilder labelContent;
-                if ( printerContent.TryGetValue( printerIp, out labelContent ) )
-                {
-                    var socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
-                    var printerIpEndPoint = new IPEndPoint( IPAddress.Parse( printerIp ), 9100 );
-                    var result = socket.BeginConnect( printerIpEndPoint, null, null );
-                    bool success = result.AsyncWaitHandle.WaitOne( 5000, true );
-
-                    if ( socket.Connected )
-                    {
-                        var ns = new NetworkStream( socket );
-                        byte[] toSend = System.Text.Encoding.ASCII.GetBytes( labelContent.ToString() );
-                        ns.Write( toSend, 0, toSend.Length );
-                    }
-                    else
-                    {
-                        //phPrinterStatus.Controls.Add(new LiteralControl(string.Format("Can't connect to printer: {0}", printerIp)));
-                    }
-
-                    if ( socket != null && socket.Connected )
-                    {
-                        socket.Shutdown( SocketShutdown.Both );
-                        socket.Close();
-                    }
-                }
-            }
-
         }
 
         private void ClearCheckin()
@@ -1349,18 +1256,6 @@ try{{
 }} catch(e){{}}
             ", jsonObject, btnBack.UniqueID );
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
-        }
-
-        private static string ZebraFormatString( string input, bool isJson = false )
-        {
-            if ( isJson )
-            {
-                return input.Replace( "é", @"\\82" );  // fix acute e
-            }
-            else
-            {
-                return input.Replace( "é", @"\82" );  // fix acute e
-            }
         }
 
         protected void btnNewFamily_Click( object sender, EventArgs e )

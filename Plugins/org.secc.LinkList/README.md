@@ -192,7 +192,8 @@ Interaction medium/channel for analytics.
 ## Making Changes
 
 - **Backend:** edit the C# project and rebuild — the shared `CopyRockPluginToRockWeb` target drops
-  the DLL into `RockWeb\Bin`. New schema/attributes belong in a **new numbered migration**; never
+  the DLL into `RockWeb\Bin`. Pass `/p:CopyToRockWeb=false` to build without copying (what
+  `Tools/build-plugin.ps1 -NoCopy` does). New schema/attributes belong in a **new numbered migration**; never
   change the GUIDs in `LinkListGuids` (many match production data that predates the plugin).
 - **Frontend:** edit `src/**` in `org.secc.LinkList.Obsidian`, then `npm run deploy` (builds
   via `obsidian-build` + rollup and copies `dist` into RockWeb; hard-refresh the browser).
@@ -214,4 +215,4 @@ Interaction medium/channel for analytics.
 - Related: [org.secc.Cms](../org.secc.Cms/README.md) (legacy `LinkListEditUsers` block over the
   same security groups).
 
-Last updated: 2026-11-03
+Last updated: 2026-11-17

@@ -21,6 +21,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
+using org.secc.Authentication;
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
@@ -96,6 +97,18 @@ namespace Rock.Security.ExternalAuthentication
                 var loadedHash = user.Password;
                 if ( string.IsNullOrWhiteSpace( loadedHash ) )
                 {
+                    return false;
+                }
+
+                // Limit code entries per caller address. Counted before the login's attempt, and not given back.
+                var callerAddress = GetIpAddress();
+                bool logRefusal;
+                if ( !SMSRecords.TryRegisterCodeEntry( callerAddress, out logRefusal ) )
+                {
+                    if ( logRefusal )
+                    {
+                        Log( string.Format( "SMS login code entry limit reached. IP: {0}", callerAddress ) );
+                    }
                     return false;
                 }
 
@@ -488,26 +501,31 @@ namespace Rock.Security.ExternalAuthentication
         }
 
         /// <summary>
-        /// Method for getting the user's IP address.
-        /// Used in rate limiting.
+        /// The caller's address (see <see cref="CallerAddress.ForRequest"/>), used to limit code requests and code entries.
         /// </summary>
         /// <returns></returns>
         protected virtual string GetIpAddress()
         {
-            System.Web.HttpContext context = System.Web.HttpContext.Current;
-            string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            return CallerAddress.ForRequest( GetCurrentRequest() );
+        }
 
-            if ( !string.IsNullOrEmpty( ipAddress ) )
-            {
-                string[] addresses = ipAddress.Split( ',' );
-                if ( addresses.Length != 0 )
-                {
-                    var forwardedIp = addresses[0];
-                    var splitAddresss = forwardedIp.Split( ':' ); //Remove the occasional port
-                    return splitAddresss[0];
-                }
-            }
-            return context.Request.ServerVariables["REMOTE_ADDR"];
+        /// <summary>
+        /// The current request, or null when there is none.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual HttpRequestBase GetCurrentRequest()
+        {
+            var context = HttpContext.Current;
+            return context == null ? null : new HttpRequestWrapper( context.Request );
+        }
+
+        /// <summary>
+        /// Writes a message to the Exception Log.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        protected virtual void Log( string message )
+        {
+            ExceptionLogService.LogException( new Exception( message ) );
         }
 
         /// <summary>
@@ -728,6 +746,92 @@ namespace Rock.Security.ExternalAuthentication
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Code entries allowed per caller address in a window that starts at its first counted entry.
+        /// </summary>
+        internal const int MaxCodeEntriesPerClient = 30;
+        internal const int CodeEntryWindowMinutes = 15;
+        internal const int MaxTrackedCodeEntryKeys = 20000;
+
+        private class CodeEntryWindow
+        {
+            public DateTime StartedAt;
+            public int Count;
+            public bool RefusalLogged;
+        }
+
+        private static readonly Dictionary<string, CodeEntryWindow> CodeEntryWindows = new Dictionary<string, CodeEntryWindow>();
+
+        /// <summary>
+        /// Counts a code entry for the caller address if its window has room, in one locked step. Entries are not
+        /// given back. A refused entry isn't counted; <paramref name="logRefusal"/> is true for the first refusal
+        /// in the window. Windows are timed in UTC, unlike the request budget above, so a daylight-saving change
+        /// doesn't lengthen or shorten one.
+        /// </summary>
+        internal static bool TryRegisterCodeEntry( string key, out bool logRefusal )
+        {
+            return TryRegisterCodeEntry( key, DateTime.UtcNow, out logRefusal );
+        }
+
+        /// <summary>
+        /// Counts a code entry at <paramref name="now"/>, a UTC time.
+        /// </summary>
+        internal static bool TryRegisterCodeEntry( string key, DateTime now, out bool logRefusal )
+        {
+            lock ( _lock )
+            {
+                logRefusal = false;
+                CodeEntryWindow window;
+                if ( !CodeEntryWindows.TryGetValue( key, out window ) || window.StartedAt < now.AddMinutes( -CodeEntryWindowMinutes ) )
+                {
+                    if ( window == null && CodeEntryWindows.Count >= MaxTrackedCodeEntryKeys )
+                    {
+                        // Keep memory bounded: drop the oldest tenth of the windows. This only discards counts.
+                        foreach ( var oldKey in CodeEntryWindows.OrderBy( w => w.Value.StartedAt ).Take( MaxTrackedCodeEntryKeys / 10 ).Select( w => w.Key ).ToList() )
+                        {
+                            CodeEntryWindows.Remove( oldKey );
+                        }
+                    }
+
+                    CodeEntryWindows[key] = new CodeEntryWindow { StartedAt = now, Count = 1 };
+                    return true;
+                }
+
+                if ( window.Count >= MaxCodeEntriesPerClient )
+                {
+                    logRefusal = !window.RefusalLogged;
+                    window.RefusalLogged = true;
+                    return false;
+                }
+
+                window.Count++;
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Removes every code-entry window. For tests.
+        /// </summary>
+        internal static void ClearCodeEntryWindows()
+        {
+            lock ( _lock )
+            {
+                CodeEntryWindows.Clear();
+            }
+        }
+
+        /// <summary>
+        /// When the caller address's code-entry window started, or null if it has none. For tests.
+        /// </summary>
+        internal static DateTime? GetCodeEntryWindowStart( string key )
+        {
+            lock ( _lock )
+            {
+                CodeEntryWindow window;
+                return CodeEntryWindows.TryGetValue( key, out window ) ? window.StartedAt : ( DateTime? ) null;
+            }
         }
     }
 

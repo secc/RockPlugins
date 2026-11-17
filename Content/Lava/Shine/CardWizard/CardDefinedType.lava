@@ -1,8 +1,10 @@
                 {%- assign definedType = partition -%}
 				{% assign partitionSize = partition.Partitions | Size %}
 				{%- assign spotsLeft = definedType.Limit | Minus: definedType.Filled -%}
+				{%- assign canSelect = false -%}
+				{%- if definedType.Limit == null or spotsLeft > 0 -%}{%- assign canSelect = true -%}{%- endif -%}
 				<div class="col-xs-12 col-md-6 event-calendar" style="margin-bottom: 20px;">
-					{% if spotsLeft > 0 and definedType.Limit > 0 %}
+					{% if canSelect %}
 						{% if partitionSize > 0 %}
 							<a href="#" onclick="doSlide('#{{divId}}_{{definedType.Value}}'); return false;">
 						{% else %}
@@ -18,7 +20,7 @@
 								<span>{{ definedType.Entity.Description }}</span>
 							</div>
 						</div>
-					{% if spotsLeft > 0 and definedType.Limit > 0 %}
+					{% if canSelect %}
 						</a>
 					{% endif %}
                 </div>

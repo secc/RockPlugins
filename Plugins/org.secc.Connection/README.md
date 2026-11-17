@@ -57,6 +57,10 @@ Category in Rock: **SECC > Connection**.
 | **Lava** | code | Output template; defaults to a switch that `include`s `VolunteerGenius`, `CardPage`, or `CardWizard`. |
 | **Enable Debug** | bool (default false) | Show available Lava merge fields. |
 
+If the connection opportunity (or group) chosen in **Settings** is later deleted, the wizard shows a
+warning ("This signup isn't configured: its connection opportunity no longer exists.") instead of
+rendering, and the settings panel still opens so an admin can pick a new one (issue #57).
+
 **Volunteer Signup Form - Connections** — standard block attributes:
 
 | Setting | Type | Notes |
@@ -106,6 +110,14 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
 | `VolunteerGenius.lava` | Structured table, similar to common signup-genius tools. |
 | `CardPage.lava` | Single page of card panels (best for 1–2 partitions). |
 | `CardWizard.lava` | Animated left-to-right cards; `CardWizardMode` `Single` or `Multiple` (default `Single`). |
+
+In the `CardWizard/` card partials, a card is a link when its partition is unlimited (its count is
+blank or `!`, so `Limit` is null) or still has spots left. A full card shows "Full" and is not a
+link.
+
+Some prod wizards include their own copies of these partials from `Content/Lava/Shine`,
+`Content/Lava/24HoursofPrayer` and `Content/Lava/18DaysofPrayer` (`CardWizard/`). Those live on the
+Content share and are copied there by hand, so a change to the partials here has to be made there too.
 
 ## Dependencies & Integrations
 
@@ -157,4 +169,4 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
 - If a URL-supplied attribute value isn't landing on the connection request, check the merge in the
   `RoleRequests` getter and the apply step in `AddGroupMemberAttributes` — a key has to survive both.
 
-Last updated: 2026-09-29
+Last updated: 2026-11-06

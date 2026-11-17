@@ -86,6 +86,9 @@ namespace org.secc.Microframe.Utilities
         {
             try
             {
+                // Close the previous connection, if any, before reconnecting or giving up
+                state.socket?.Close();
+
                 //Watchdog counter
                 if ( state.resets == 10 )
                 {
@@ -186,7 +189,8 @@ namespace org.secc.Microframe.Utilities
                 {
                     state.sb.Append( Encoding.ASCII.GetString( state.buffer, 0, bytesRead ) );
 
-                    if ( state.buffer.Last() != '\0' )
+                    // A GLA reply ends with a zero byte and may arrive in several reads; other replies are complete after one read
+                    if ( state.messages[0] == "GLA" && Array.IndexOf( state.buffer, ( byte ) 0, 0, bytesRead ) < 0 )
                     {
                         client.BeginReceive( state.buffer, 0, StateObject.BufferSize, 0,
                             new AsyncCallback( RecvCallback ), state );

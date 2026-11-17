@@ -42,6 +42,8 @@
     <Reference Include="BCrypt.Net">
       <HintPath>$(RockWebPath)\Bin\BCrypt.Net.dll</HintPath>
     </Reference>
+    <!-- The caller address is read from an HttpRequestBase. -->
+    <Reference Include="System.Web" />
   </ItemGroup>
 
 </Project>

@@ -26,7 +26,7 @@ ministry leaders for operational reporting and data entry.
 /org_secc/Reporting/      Report blocks (.ascx + .ascx.cs), grouped by ministry:
                             (root)        DecisionAnalytics, AttendanceQuickEntry, FinancialAidFamilyProfile,
                                           GroupAttendanceAnalytics, MetricsEntry, ServiceMetricsEntry,
-                                          BirthdayListFetchingData, MedReportTest
+                                          MedReportTest
                             Children/     BreakoutGroup* , ChildrenAudit, WithoutBreakoutGroupAttendance
                             NextGen/      Believe(+Leader), BibleAndBeach, FallRetreat, Mix, SignatureAudit,
                                           MedicationDispense, MedicationInformation
@@ -55,7 +55,6 @@ All are `RockBlock`s; categories shown are the Rock block-type categories. Rough
 | `GroupAttendanceAnalytics` | SECC > Reporting | Attendance graph configurable by group, date range, etc. Config: **DataViewCategories**. |
 | `MetricsEntry` | SECC > Reporting | Add/edit metric values for metrics partitioned by campus & service time. Config: **Schedule Categories**. |
 | `ServiceMetricsEntry` | SECC > Reporting | As above, service-metrics variant. Config: **Schedule Categories**. |
-| `BirthdayListFetchingData` | SECC2 > Project | Simple sample/data-fetch block (`ICustomGridColumns`). |
 | `MedReportTest` | SECC > Report | Test/scratch block (`[Description("Test Application")]`). |
 | `Children/BreakoutGroupAttendance` | SECC > Reporting > Children | Filterable/sortable list of breakout groups. |
 | `Children/BreakoutGroupAttendanceSummary` | SECC > Reporting > Children | Summary variant of the breakout-group list. |
@@ -129,8 +128,7 @@ Ships Rock plugin migrations under `/Migrations/` (all compiled per the `.csproj
   idempotent; large data views will repeatedly churn the cache table. The orphan cleanup runs as a queued
   transaction enqueued from `GetSelection` (i.e. when the filter is saved), which is a reasonable place,
   but the two paths together make the cache lifecycle non-obvious.
-- **Improvement:** Several blocks look like leftovers/scratch: `MedReportTest` ("Test Application"),
-  `BirthdayListFetchingData` ("A simple block to fetch some data", category `SECC2 > Project`), and
+- **Improvement:** Several blocks look like leftovers/scratch: `MedReportTest` ("Test Application") and
   `NextGen/MedicationInformation` whose description is just `"T"`. Worth confirming which are still in use.
 - **Improvement:** Several NextGen trip blocks (`Believe`, `BelieveLeader`, `FallRetreat`) carry the
   copy-pasted description "A report for managing the trip attendeeds for NextGen's Bible & Beach Trip"
@@ -153,3 +151,7 @@ Ships Rock plugin migrations under `/Migrations/` (all compiled per the `.csproj
   is what orders them (file names like `DecisionReportView.cs` carry number 3).
 - Related medication/camp logic lives in the camp-management plugins; decision-form data is produced by the
   migration view/table here and consumed by `DecisionAnalytics`.
+
+---
+
+**Last updated:** 2026-10-29

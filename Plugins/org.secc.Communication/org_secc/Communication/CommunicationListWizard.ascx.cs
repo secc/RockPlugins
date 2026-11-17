@@ -257,33 +257,20 @@ namespace RockWeb.Plugins.org_secc.Communication
                             .Where( g => g != null )
                             .ToList();
 
-                        // Get the entity type ID for GroupMember
-                        int entityTypeId = EntityTypeCache.GetId( typeof( GroupMember ) ) ?? 0;
-
                         var attributeValueService = new AttributeValueService( rockContext );
 
-                        // Build patterns for SQL LIKE matching (exact GUID boundaries)
-                        // Pattern: value equals guid, starts with "guid,", ends with ",guid", or contains ",guid,"
-                        var patterns = selectedCampusGuids.SelectMany( guid => new[]
-                        {
-                            guid,                    // Exact match
-                            guid + ",%",             // First in comma-separated list
-                            "%," + guid,             // Last in comma-separated list
-                            "%," + guid + ",%"       // Middle of comma-separated list
-                        } ).ToList();
-
-                        // Single query using OR logic with LINQ string methods
+                        // Match on this group's attribute only (other groups reuse the "Campus" key) and keep
+                        // it as a subquery: a materialized id list becomes an IN clause too large to plan.
+                        var attributeId = attribute.Id;
                         var matchingEntityIds = attributeValueService.Queryable()
-                            .Where( av => av.Attribute.EntityTypeId == entityTypeId
-                                && av.Attribute.Key == attribute.Key
+                            .Where( av => av.AttributeId == attributeId
                                 && av.EntityId.HasValue
                                 && selectedCampusGuids.Any( guid =>
                                     av.Value == guid ||
                                     av.Value.StartsWith( guid + "," ) ||
                                     av.Value.EndsWith( "," + guid ) ||
                                     av.Value.Contains( "," + guid + "," ) ) )
-                            .Select( av => av.EntityId.Value )
-                            .ToList();
+                            .Select( av => av.EntityId.Value );
 
                         qry = qry.Where( gm => matchingEntityIds.Contains( gm.Id ) );
                     }

@@ -45,7 +45,7 @@ All blocks are RockWeb-compiled `.ascx` controls. Categories vary (`SECC > Check
 | `ControlCenter/Search` | Sports and Fitness > Control Center | Search participants by PIN and/or phone number. | Search By PIN, Search By Phone Number, Search Result Page |
 | `ControlCenter/SearchResults` | Sports and Fitness > Control Center | Renders the participant result list via Lava. | Person Detail (linked page), Sports and Fitness PIN Purpose (defined value), Results Lava, Lava Commands, Show Debug Panel |
 | `ControlCenter/PersonActions` | Sports and Fitness > Control Center | Per-person action panel with links to Sports/Group-Fitness/Childcare history. | Sports & Fitness / Group Fitness / Childcare History pages, Group Fitness Group |
-| `ControlCenter/ManageSportsPINs` | Sports and Fitness > Control Center | Manage a person's sign-in PINs (used alongside Person Actions). | (none) |
+| `ControlCenter/ManageSportsPINs` | Sports and Fitness > Control Center | Manage a person's sign-in PINs (used alongside Person Actions). A new PIN must contain only the numbers 0-9, be at least 4 digits long (leading zeros count), not be all zeros, and not match the user name of any existing login; the Person Actions Manage PINs dialog applies the same rules. | (none) |
 
 #### GuestRegistration attribute keys
 
@@ -99,5 +99,7 @@ and is not wired into any build or `Rock.Plugin.Migration`.
 - Theme/layout/styling changes go in `Themes/SportsAndFitness/`.
 - This project is RockWeb-compiled — editing a `.cs` here changes behavior only after the markup is deployed to `RockWeb/Plugins/org_secc/`; the `.csproj` itself only compiles `AssemblyInfo.cs`.
 - Label printing relies on [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md)'s `LabelPrinter`.
-</content>
-</invoke>
+
+---
+
+**Last updated:** 2026-10-28

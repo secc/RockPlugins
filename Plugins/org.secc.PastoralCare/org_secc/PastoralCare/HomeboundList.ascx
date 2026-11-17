@@ -20,13 +20,13 @@
                 
                 <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results" DataKeyNames="Id" OnRowSelected="gReport_RowSelected">
                     <Columns>
-                        <Rock:PersonField DataField="HomeboundPerson" HeaderText="Person" SortExpression="HomeboundPerson.LastName" />
+                        <Rock:PersonField DataField="HomeboundPerson" HeaderText="Person" SortExpression="PersonLastName" />
                         <Rock:RockBoundField DataField="Age" HeaderText="Age" SortExpression="Age"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Birthday" HeaderText="Birthday" SortExpression="Birthday" Visible="false"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="PhoneNumber" HtmlEncode="false" HeaderText="Phone Number" SortExpression="PhoneNumber"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="StartDate" DataFormatString="{0:MM/dd/yyyy}" HeaderText="Start Date" SortExpression="StartDate"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Description" HeaderText="Description" SortExpression="Description"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Visits" HeaderText="Visits" SortExpression="visits"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="Visits" HeaderText="Visits" SortExpression="Visits"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="LastVisitor" HeaderText="Last Visitor" SortExpression="LastVisitor"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="LastVisitDate" HeaderText="Last Visit Date" SortExpression="LastVisitDate"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="LastVisitNotes" HeaderText="Last Visit Notes" SortExpression="LastVisitNotes"></Rock:RockBoundField>
