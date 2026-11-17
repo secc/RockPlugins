@@ -17,7 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\org.secc.LinkList\org.secc.LinkList.csproj" />
+    <!-- Building the tests must not deploy the plugin into RockWeb (it would recycle a running site). -->
+    <ProjectReference Include="..\org.secc.LinkList\org.secc.LinkList.csproj" AdditionalProperties="CopyToRockWeb=false" />
     <Reference Include="System.Net.Http" />
     <!-- Everything the plugin references beyond the shared defaults, so the
          test host has the same assemblies the old NuGet packages provided. -->

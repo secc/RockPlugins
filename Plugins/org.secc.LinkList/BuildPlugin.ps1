@@ -9,8 +9,15 @@
 # Locally, pass -RockWebPath to build into a specific RockWeb (for example a
 # private copy, so a running site's Bin isn't touched).
 
+# -RockWebPath binds by name only. Any positional arguments the pipeline hook
+# passes land in $Remaining and are ignored, as they were before this script
+# took parameters.
+[CmdletBinding(PositionalBinding = $false)]
 param(
-    [string]$RockWebPath
+    [string]$RockWebPath,
+
+    [Parameter(ValueFromRemainingArguments = $true)]
+    $Remaining
 )
 
 $scriptpath = $MyInvocation.MyCommand.Path
