@@ -28,7 +28,7 @@
 
             <SignInNotice v-if="!navigation.isSignedIn" :loginUrl="navigation.loginUrl" />
 
-            <div v-else class="rc-layout">
+            <div v-else v-show="!isSigning" class="rc-layout">
                 <div>
                     <!-- 1. Who -->
                     <section class="rc-step">
@@ -74,10 +74,10 @@
                     </section>
 
                     <!-- 3. The template's registration forms (Rock's order: forms, fees, signature) -->
-                    <section v-if="selectedVariant && selectedPerson && hasForms" class="rc-step">
+                    <section v-if="selectedVariant && selectedPerson && hasForms" ref="formsSection" class="rc-step">
                         <div class="rc-step-title"><span class="rc-step-num">3</span><h2>About {{ firstName(selectedPerson.fullName) }}</h2></div>
                         <p v-if="isLoadingValues" class="rc-muted">Loading…</p>
-                        <RockForm v-else v-model:submit="submitForms" @submit="proceed">
+                        <RockForm v-else v-model:submit="submitForms" @submit="proceed" @visibleValidationChanged="onValidationShown">
                             <RegistrantForms :forms="offering?.forms ?? []"
                                              :fieldValues="fieldValues"
                                              :lists="offering?.formLists ?? {}"
@@ -112,14 +112,6 @@
                             </div>
                         </div>
                     </section>
-
-                    <!-- The template's signature document -->
-                    <section v-if="signatureDocument?.documentHtml" class="rc-step">
-                        <div class="rc-step-title"><span class="rc-step-num">{{ feesStep + 1 }}</span><h2>Sign the {{ documentTerm }}</h2></div>
-                        <iframe class="rc-signature-doc" :srcdoc="signatureDocument.documentHtml" title="Document to sign" style="width: 100%; height: 420px; border: 1px solid var(--rc-line, #d8d2c4); background: #fff;"></iframe>
-                        <ElectronicSignature v-model="signatureValue" :isDrawn="offering?.isSignatureDrawn ?? false" :documentTerm="documentTerm" @signed="onSigned" />
-                        <p v-if="signError" class="rc-error" role="alert">{{ signError }}</p>
-                    </section>
                 </div>
 
                 <!-- Summary rail -->
@@ -139,7 +131,7 @@
                             <div class="rc-grand"><dt>{{ joiningWaitList ? "Due now" : "Line total" }}</dt><dd>{{ money(joiningWaitList ? 0 : lineTotal) }}</dd></div>
                         </dl>
                         <div v-if="offering.hasDiscountCodes">
-                            <label for="regcart-discount" class="rc-small" style="display: block; margin-bottom: 6px; font-weight: 600;">{{ discountCodeTerm }}</label>
+                            <label for="regcart-discount" class="rc-field-label">{{ discountCodeTerm }}</label>
                             <p v-if="isDiscountCodeLocked" class="rc-small" style="margin: 0;">
                                 <b>{{ editLine?.discountCode }}</b> is applied to this registration.
                             </p>
@@ -162,6 +154,25 @@
                     <p class="rc-muted rc-small" v-if="otherPeople.length && !editLine">You can add {{ otherPeople.join(" and ") }} next, then pay for everyone at once.</p>
                 </aside>
             </div>
+
+            <!-- The template's signature document, on its own: the last thing before the cart. -->
+            <section v-if="navigation.isSignedIn && isSigning && signatureDocument && selectedPerson" ref="signSection" class="rc-sign">
+                <button type="button" class="rc-back" @click="leaveSigning">
+                    <svg class="rc-ico" style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                    Back to {{ possessive(firstName(selectedPerson.fullName)) }} answers
+                </button>
+                <span class="rc-eyebrow">Last step</span>
+                <h2>Sign the {{ documentTerm }} for {{ firstName(selectedPerson.fullName) }}</h2>
+                <p class="rc-muted">{{ signingIntro }}</p>
+                <iframe class="rc-signature-doc" :srcdoc="signatureDocument.documentHtml ?? ''" title="Document to sign"></iframe>
+                <ElectronicSignature v-model="signatureValue" :isDrawn="offering?.isSignatureDrawn ?? false" :documentTerm="documentTerm" @signed="onSigned" />
+                <p v-if="isAdding" class="rc-muted rc-small" role="status">{{ editLine ? "Saving…" : "Adding to your cart…" }}</p>
+                <p v-if="signError" class="rc-error" role="alert">{{ signError }}</p>
+                <p v-if="cartError" class="rc-error" role="alert">{{ cartError }}</p>
+                <div v-if="savedNotice" class="rc-notice" role="status">
+                    <span>{{ savedNotice }} <a v-if="navigation.cartUrl" :href="navigation.cartUrl">Go to your cart</a></span>
+                </div>
+            </section>
         </template>
 
         <Modal v-model="isAddPersonOpen" title="Add a child to your family" saveText="Add" :isSaveButtonDisabled="isAddingPerson" @save="addFamilyMember">
@@ -180,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-    import { computed, nextTick, onMounted, ref, watch } from "vue";
+    import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
     import BirthdayPicker from "@Obsidian/Controls/birthdayPicker.obs";
     import DropDownList from "@Obsidian/Controls/dropDownList.obs";
     import Modal from "@Obsidian/Controls/modal.obs";
@@ -212,7 +223,13 @@
     const editLine = config.editLine ?? null;
     const shownPeople = computed<RegistrantOptionBag[]>(() => editLine ? people.value.filter(p => p.personAliasId === editLine.personAliasId) : people.value);
 
-    const selectedPersonAliasId = ref<number | null>(editLine?.personAliasId ?? (people.value.length === 1 ? people.value[0].personAliasId : null));
+    // The catalog links here with the person and option a family already chose ("Person", "Option").
+    const linkParameters = new URLSearchParams(window.location.search);
+    const linkedPersonAliasId = parseInt(linkParameters.get("Person") ?? "", 10);
+    const linkedVariantId = parseInt(linkParameters.get("Option") ?? "", 10);
+    const linkedPerson = editLine ? null : people.value.find(p => p.personAliasId === linkedPersonAliasId) ?? null;
+
+    const selectedPersonAliasId = ref<number | null>(editLine?.personAliasId ?? linkedPerson?.personAliasId ?? (people.value.length === 1 ? people.value[0].personAliasId : null));
     const selectedVariantId = ref<number | null>(editLine?.registrationInstanceId ?? null);
     const selections = ref<Record<number, number[]>>(editLine ? selectionsFor(editLine.feeItemIds ?? []) : {});
     const cartError = ref("");
@@ -250,6 +267,19 @@
     const lockedFieldGuids = ref<Guid[]>(editLine?.lockedFieldGuids ?? []);
     const isLoadingValues = ref(false);
     const submitForms = ref(false);
+    const formsSection = ref<HTMLElement | null>(null);
+
+    /**
+     * The add button sits below the questions, so a family that misses a required answer is
+     * taken back up to the list of what's missing instead of seeing nothing happen.
+     */
+    function onValidationShown(errors: unknown[]): void {
+        if (!errors.length) return;
+        void nextTick(() => {
+            // The section, not the list itself, so its heading stays in view above the list.
+            formsSection.value?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+    }
     const hasForms = computed<boolean>(() => (offering.value?.forms ?? []).some(f => (f.fields ?? []).length > 0));
     const feesStep = computed<number>(() => hasForms.value ? 4 : 3);
 
@@ -299,13 +329,16 @@
     });
 
     const addButtonText = computed<string>(() => {
+        if (isPreparing.value) return "One moment…";
         if (editLine) return isAdding.value ? "Saving…" : "Save changes";
         if (isAdding.value) return "Adding…";
+        // Say what comes next when the document still has to be signed.
+        if (offering.value?.requiresSignature && !signedData.value && !existingSignatureGuid.value) return `Continue to ${documentTerm.value.toLowerCase()}`;
         return joiningWaitList.value ? "Add to wait list" : "Add to cart";
     });
 
     const canAddToCart = computed<boolean>(() => {
-        if (!selectedVariant.value || !selectedPerson.value || isAdding.value || isLoadingValues.value) return false;
+        if (!selectedVariant.value || !selectedPerson.value || isAdding.value || isPreparing.value || isLoadingValues.value) return false;
         // As Rock: a required fee whose items are all sold out stops being required.
         return visibleGroups.value.filter(g => g.group.isRequired)
             .every(g => (selections.value[g.group.id] ?? []).length > 0 || g.items.every(isSoldOut));
@@ -359,6 +392,13 @@
         if (g.isLocked) return "included with every registration";
         return `${g.isRequired ? "required" : "optional"} · ${g.selectionMode === SelectionMode.Single ? "choose one" : "choose any"}`;
     }
+
+    // Chosen after mounting so the option's watchers (default extras, starting answers) run as for a click.
+    onMounted(() => {
+        if (linkedPerson && eligibleVariants.value.some(v => v.id === linkedVariantId)) {
+            selectedVariantId.value = linkedVariantId;
+        }
+    });
 
     function selectPerson(personAliasId: number): void {
         if (editLine) return;
@@ -414,6 +454,43 @@
     const signError = ref("");
     const documentTerm = computed<string>(() => offering.value?.signatureDocumentTerm || "Release");
 
+    // While the document is being signed it is the only thing on the page.
+    const isSigning = computed<boolean>(() => !!signatureDocument.value?.documentHtml);
+    const isPreparing = ref(false);
+    const signSection = ref<HTMLElement | null>(null);
+    const signingIntro = computed<string>(() => {
+        const name = firstName(selectedPerson.value?.fullName);
+        if (editLine) return `Your changes need the ${documentTerm.value.toLowerCase()} signed again. Signing saves them.`;
+        return joiningWaitList.value
+            ? `Read the ${documentTerm.value.toLowerCase()} and sign below. Signing adds ${name} to the wait list in your cart.`
+            : `Read the ${documentTerm.value.toLowerCase()} and sign below. Signing adds ${possessive(name)} registration to your cart.`;
+    });
+
+    // The browser's Back button returns to the answers instead of leaving the page.
+    const signingHistoryKey = "regcartSigning";
+    watch(isSigning, signing => {
+        if (signing) {
+            window.history.pushState({ ...(window.history.state ?? {}), [signingHistoryKey]: true }, "");
+        }
+        void nextTick(() => {
+            const target = signing ? signSection.value : formsSection.value;
+            if (target) target.scrollIntoView({ block: "start" });
+            else window.scrollTo({ top: 0 });
+        });
+    });
+
+    /** Back to the answers, which are kept. The document is rendered again next time. */
+    function leaveSigning(): void {
+        if (window.history.state?.[signingHistoryKey]) window.history.back();
+        else signatureDocument.value = null;
+    }
+
+    function onPopState(): void {
+        if (isSigning.value) signatureDocument.value = null;
+    }
+    onMounted(() => window.addEventListener("popstate", onPopState));
+    onBeforeUnmount(() => window.removeEventListener("popstate", onPopState));
+
     /** The answers changed (or the camper or option did): any signature no longer applies. */
     function clearSignature(): void {
         signatureDocument.value = null;
@@ -438,6 +515,8 @@
         let message = errorMessage || fallback;
         if (isWaitList !== null && isWaitList !== undefined && isWaitList !== joiningWaitList.value) {
             serverWaitList.value = isWaitList;
+            // The questions may have changed with the placement, so the family goes back to them.
+            if (isSigning.value) leaveSigning();
             const name = firstName(selectedPerson.value?.fullName);
             message = isWaitList
                 ? `This option just filled up, so ${name} will go on the wait list. ${message}`
@@ -458,8 +537,14 @@
         }
 
         // Check the line before the family signs, so a signature isn't spent on answers the cart refuses.
-        if (!(await checkLine())) return;
-        await requestSignature();
+        isPreparing.value = true;
+        try {
+            if (!(await checkLine())) return;
+            await requestSignature();
+        }
+        finally {
+            isPreparing.value = false;
+        }
     }
 
     /** True when the server would take the line as it is (everything but the signature). */

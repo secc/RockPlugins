@@ -1,10 +1,10 @@
 <!-- Adapted from Rock's RegistrationEntry registrantAttributeField.partial.obs (Spark Development Network, Rock Community License). -->
 <template>
     <template v-if="isVisible">
-        <div v-if="field.preHtml" v-html="field.preHtml"></div>
+        <div v-if="field.preHtml" class="rc-form-html" v-html="field.preHtml"></div>
         <RockField v-if="modifiedAttribute" v-model="value" :isEditMode="!disabled" :attribute="modifiedAttribute" :disabled="disabled" />
         <NotificationBox v-else alertType="danger">Could not resolve attribute field</NotificationBox>
-        <div v-if="field.postHtml" v-html="field.postHtml"></div>
+        <div v-if="field.postHtml" class="rc-form-html" v-html="field.postHtml"></div>
     </template>
 </template>
 

@@ -103,7 +103,7 @@
                 <aside class="rc-rail" aria-label="Order summary">
                     <span class="rc-eyebrow">Summary</span>
                     <OrderSummary :cart="cart" />
-                    <p v-if="paymentError" class="rc-error" role="alert" style="color: #ffb4a8;">{{ paymentError }}</p>
+                    <p v-if="paymentError" class="rc-error" role="alert">{{ paymentError }}</p>
                     <button type="button" class="rc-btn rc-btn-primary rc-btn-block" :disabled="!canPay" @click="placeOrder">
                         {{ isPlacing ? "Processing…" : (cart.total > 0 ? `Pay ${money(cart.total)}` : "Complete registration") }}
                     </button>

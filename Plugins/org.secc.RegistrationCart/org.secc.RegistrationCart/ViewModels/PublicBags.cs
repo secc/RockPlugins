@@ -96,6 +96,88 @@ namespace org.secc.RegistrationCart.ViewModels
         public string Heading { get; set; }
         public string Intro { get; set; }
         public List<OfferingSummaryBag> Offerings { get; set; } = new List<OfferingSummaryBag>();
+        /// <summary>The catalog's cards: one per camp (several templates), or per template that is not a camp.</summary>
+        public List<CampBag> Camps { get; set; } = new List<CampBag>();
+        /// <summary>The signed-in person's family, to offer each one what they may register for.</summary>
+        public List<CampPersonBag> People { get; set; } = new List<CampPersonBag>();
+        /// <summary>The signed-in person's campus, preselected on a camp.</summary>
+        public int? FamilyCampusId { get; set; }
+        /// <summary>The global setting: a camper already registered for an option can't be added for it again.</summary>
+        public bool PreventDuplicateRegistrations { get; set; }
+        public bool CanAddFamilyMembers { get; set; }
+        /// <summary>Rock's school grades (value = grade offset), for a new child.</summary>
+        public List<Rock.ViewModels.Utility.ListItemBag> GradeOptions { get; set; } = new List<Rock.ViewModels.Utility.ListItemBag>();
+    }
+
+    /// <summary>One catalog card: a camp read from the registration names, or a single template.</summary>
+    public class CampBag
+    {
+        public string Key { get; set; }
+        public string Title { get; set; }
+        /// <summary>The season, e.g. "2026" (empty for a template that is not a camp).</summary>
+        public string Year { get; set; }
+        /// <summary>Rock category name, for a template that is not a camp.</summary>
+        public string TypeText { get; set; }
+        /// <summary>Leader and ops-team registrations, listed apart from camper registrations.</summary>
+        public bool IsServing { get; set; }
+        public string Description { get; set; }
+        public string ImageUrl { get; set; }
+        public decimal MinPrice { get; set; }
+        /// <summary>The campuses this camp has an option for (options with no campus are for every campus).</summary>
+        public List<CampCampusBag> Campuses { get; set; } = new List<CampCampusBag>();
+        public List<CampOptionBag> Options { get; set; } = new List<CampOptionBag>();
+    }
+
+    public class CampCampusBag
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    /// <summary>One open registration instance of a camp, with what decides who it is for.</summary>
+    public class CampOptionBag
+    {
+        /// <summary>RegistrationInstance id.</summary>
+        public int InstanceId { get; set; }
+        /// <summary>The offering page of the instance's template.</summary>
+        public string DetailUrl { get; set; }
+        public string Name { get; set; }
+        /// <summary>Who the template is for, e.g. "Student Under 18".</summary>
+        public string RoleText { get; set; }
+        /// <summary>Null = every campus.</summary>
+        public int? CampusId { get; set; }
+        public string CampusName { get; set; }
+        public decimal Price { get; set; }
+        public string SessionText { get; set; }
+        public int EligibleGradeBands { get; set; }
+        public int? MinAge { get; set; }
+        public int? MaxAge { get; set; }
+        public int? SpotsRemaining { get; set; }
+        public bool WaitListEnabled { get; set; }
+    }
+
+    public class CampPersonBag
+    {
+        public int PersonAliasId { get; set; }
+        public string FullName { get; set; }
+        public int GradeBand { get; set; }
+        public string GradeText { get; set; }
+        public int? Age { get; set; }
+        public bool IsSelf { get; set; }
+        /// <summary>What this person is already registered for among the catalog's camps.</summary>
+        public List<CampRegistrationBag> Registrations { get; set; } = new List<CampRegistrationBag>();
+        /// <summary>RegistrationInstance ids this person has in the open cart.</summary>
+        public List<int> InCartInstanceIds { get; set; } = new List<int>();
+    }
+
+    /// <summary>A registration a family member already has for one of the catalog's camps.</summary>
+    public class CampRegistrationBag
+    {
+        public string CampKey { get; set; }
+        /// <summary>RegistrationInstance id (it may be closed, so not among the camp's options).</summary>
+        public int InstanceId { get; set; }
+        public string CampusName { get; set; }
+        public bool IsWaitList { get; set; }
     }
 
     /// <summary>A Rock RegistrationTemplate as a catalog card.</summary>

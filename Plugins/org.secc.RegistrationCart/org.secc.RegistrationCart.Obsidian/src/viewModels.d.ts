@@ -211,6 +211,102 @@ export type CatalogInitializationBox = {
     navigation?: NavigationBag | null;
 
     offerings?: OfferingSummaryBag[] | null;
+
+    camps?: CampBag[] | null;
+
+    people?: CampPersonBag[] | null;
+
+    familyCampusId?: number | null;
+
+    preventDuplicateRegistrations: boolean;
+
+    canAddFamilyMembers: boolean;
+
+    gradeOptions?: ListItemBag[] | null;
+};
+
+export type CampBag = {
+    key?: string | null;
+
+    title?: string | null;
+
+    year?: string | null;
+
+    typeText?: string | null;
+
+    isServing: boolean;
+
+    description?: string | null;
+
+    imageUrl?: string | null;
+
+    minPrice: number;
+
+    campuses?: CampCampusBag[] | null;
+
+    options?: CampOptionBag[] | null;
+};
+
+export type CampCampusBag = {
+    id: number;
+
+    name?: string | null;
+};
+
+export type CampOptionBag = {
+    instanceId: number;
+
+    detailUrl?: string | null;
+
+    name?: string | null;
+
+    roleText?: string | null;
+
+    campusId?: number | null;
+
+    campusName?: string | null;
+
+    price: number;
+
+    sessionText?: string | null;
+
+    eligibleGradeBands: number;
+
+    minAge?: number | null;
+
+    maxAge?: number | null;
+
+    spotsRemaining?: number | null;
+
+    waitListEnabled: boolean;
+};
+
+export type CampPersonBag = {
+    personAliasId: number;
+
+    fullName?: string | null;
+
+    gradeBand: number;
+
+    gradeText?: string | null;
+
+    age?: number | null;
+
+    isSelf: boolean;
+
+    registrations?: CampRegistrationBag[] | null;
+
+    inCartInstanceIds?: number[] | null;
+};
+
+export type CampRegistrationBag = {
+    campKey?: string | null;
+
+    instanceId: number;
+
+    campusName?: string | null;
+
+    isWaitList: boolean;
 };
 
 export type OfferingSummaryBag = {

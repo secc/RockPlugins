@@ -58,7 +58,7 @@
 
             <aside class="rc-rail" aria-label="Order summary">
                 <span class="rc-eyebrow">Summary</span>
-                <p v-if="cartError" class="rc-error" role="alert" style="color: #ffb4a8;">{{ cartError }}</p>
+                <p v-if="cartError" class="rc-error" role="alert">{{ cartError }}</p>
                 <OrderSummary :cart="cart" />
                 <p class="rc-small" style="margin: 0;">Discount codes go on each registration: use Edit to add or change one.</p>
                 <a v-if="navigation.checkoutUrl" class="rc-btn rc-btn-primary rc-btn-block" :href="navigation.checkoutUrl">

@@ -1,9 +1,9 @@
 <!-- Adapted from Rock's RegistrationEntry registrantPersonField.partial.obs (Spark Development Network, Rock Community License). -->
 <template>
-    <div v-if="field.preHtml" v-html="field.preHtml"></div>
+    <div v-if="field.preHtml" class="rc-form-html" v-html="field.preHtml"></div>
     <component v-if="component" :is="component" v-bind="controlProps" v-model="fieldValues[field.guid]" />
     <NotificationBox v-else alertType="danger">Could not load the control for person field {{ field.personFieldType }}.</NotificationBox>
-    <div v-if="field.postHtml" v-html="field.postHtml"></div>
+    <div v-if="field.postHtml" class="rc-form-html" v-html="field.postHtml"></div>
 </template>
 
 <script setup lang="ts">
@@ -12,7 +12,6 @@
     import BirthdayPicker from "@Obsidian/Controls/birthdayPicker.obs";
     import DropDownList from "@Obsidian/Controls/dropDownList.obs";
     import EmailBox from "@Obsidian/Controls/emailBox.obs";
-    import GenderDropDownList from "@Obsidian/Controls/genderDropDownList.obs";
     import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
     import PhoneNumberBox from "@Obsidian/Controls/phoneNumberBox.obs";
     import TextBox from "@Obsidian/Controls/textBox.obs";
@@ -53,8 +52,6 @@
                 return TextBox;
             case RegistrationPersonFieldType.Email:
                 return EmailBox;
-            case RegistrationPersonFieldType.Gender:
-                return GenderDropDownList;
             case RegistrationPersonFieldType.Birthdate:
             case RegistrationPersonFieldType.AnniversaryDate:
                 return BirthdayPicker;
@@ -64,6 +61,7 @@
             case RegistrationPersonFieldType.WorkPhone:
             case RegistrationPersonFieldType.MobilePhone:
                 return PhoneNumberBox;
+            case RegistrationPersonFieldType.Gender:
             case RegistrationPersonFieldType.Campus:
             case RegistrationPersonFieldType.MaritalStatus:
             case RegistrationPersonFieldType.ConnectionStatus:
@@ -76,6 +74,13 @@
         }
     });
 
+    /** Rock's Gender values; 0 is "unknown", shown as a blank choice. */
+    const genderItems = [
+        { text: " ", value: "0" },
+        { text: "Male", value: "1" },
+        { text: "Female", value: "2" }
+    ];
+
     const controlProps = computed<Record<string, unknown>>(() => {
         const result: Record<string, unknown> = {
             rules: props.field.isRequired ? "required" : "",
@@ -87,6 +92,13 @@
             case RegistrationPersonFieldType.LastName: result.label = "Last Name"; break;
             case RegistrationPersonFieldType.MiddleName: result.label = "Middle Name"; break;
             case RegistrationPersonFieldType.Email: result.label = "Email"; break;
+            case RegistrationPersonFieldType.Gender:
+                // Rock's own gender control reports a missing answer as "must not equal 0".
+                result.label = "Gender";
+                result.items = genderItems;
+                result.showBlankItem = false;
+                if (props.field.isRequired) result.rules = ["required", (value: unknown): string | boolean => value === "1" || value === "2" || "is required"];
+                break;
             case RegistrationPersonFieldType.Birthdate: result.label = "Birthday"; break;
             case RegistrationPersonFieldType.AnniversaryDate: result.label = "Anniversary Date"; break;
             case RegistrationPersonFieldType.Address: result.label = "Address"; break;
