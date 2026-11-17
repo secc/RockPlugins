@@ -376,6 +376,20 @@ describe("ROCK-9361 — card display style", () => {
         expect(card!.className).toBe("link-card in-section");
     });
 
+    it("sizes an open section to its content, with no fixed height cap", async () => {
+        const el = await mount(baseBag({
+            items: [
+                { guid: "s", itemType: "section", text: "Explore", order: 0 },
+                { guid: "c", itemType: "link", text: "Child", url: "https://c.test", indentLevel: 1, displayStyle: "card", cardImage: "11111111-1111-1111-1111-111111111111", order: 1 }
+            ]
+        }));
+        // The clip wrapper is the single grid row that collapses to 0fr.
+        expect(el.shadowRoot!.querySelector(".accord-body > .accord-clip .accord-links a.link-card")).not.toBeNull();
+        const css = el.shadowRoot!.querySelector("style")!.textContent!;
+        expect(css).toContain(".accordion.open .accord-body { grid-template-rows:1fr; }");
+        expect(css).not.toMatch(/\.accord-body\s*\{[^}]*max-height/);
+    });
+
     it("escapes card title/description and blocks unsafe urls", async () => {
         const el = await mount(baseBag({
             items: [{

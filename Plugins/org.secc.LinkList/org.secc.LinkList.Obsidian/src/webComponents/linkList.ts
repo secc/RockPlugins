@@ -375,8 +375,8 @@ ${this.styles()}
             + `<button class="accord-trigger" type="button" aria-expanded="${open}" aria-controls="${bodyId}">`
             + `<span class="accord-heading">${heading}</span>`
             + `<span class="accord-chevron">${CHEVRON_SVG}</span></button>`
-            + `<div class="accord-body" id="${bodyId}"><div class="accord-divider"></div>`
-            + `<div class="accord-inner">${desc}<div class="accord-links">${links}</div></div></div></div>`;
+            + `<div class="accord-body" id="${bodyId}"><div class="accord-clip"><div class="accord-divider"></div>`
+            + `<div class="accord-inner">${desc}<div class="accord-links">${links}</div></div></div></div></div>`;
     }
 
     private renderAccordChild( item: LinkItemBag ): string {
@@ -547,8 +547,11 @@ ${this.styles()}
 .accord-chevron { width:20px; height:20px; color:inherit; opacity:.6; transition:transform .26s ease,opacity .18s; flex-shrink:0; }
 .accord-chevron svg { width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
 .accordion.open .accord-chevron { transform:rotate(180deg); opacity:.95; }
-.accord-body { max-height:0; overflow:hidden; transition:max-height .32s cubic-bezier(.4,0,.2,1); }
-.accordion.open .accord-body { max-height:1600px; }
+/* ROCK-9361: the open height follows the content (grid 0fr -> 1fr) instead of a
+   fixed max-height cap, which clipped sections holding several image cards. */
+.accord-body { display:grid; grid-template-rows:0fr; transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1); }
+.accordion.open .accord-body { grid-template-rows:1fr; }
+.accord-clip { min-height:0; overflow:hidden; }
 .accord-divider { height:1px; background:currentColor; opacity:.18; margin:0 22px; }
 .accord-inner { padding:16px 22px 20px; }
 .accord-desc { font-weight:400; font-size:.95rem; color:inherit; opacity:.8; line-height:1.6; margin-bottom:12px; text-align:center; }
