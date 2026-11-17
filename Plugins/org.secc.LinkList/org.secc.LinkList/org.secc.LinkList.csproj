@@ -41,7 +41,7 @@
        only registers block types from assemblies in Bin. Runs wherever
        RockWebPath resolves (VS via SolutionDir, CLI/pipeline via
        /p:RockWebPath). -->
-  <Target Name="CopyPluginToRockWebBin" AfterTargets="Build" Condition="'$(RockWebPath)' != ''">
+  <Target Name="CopyPluginToRockWebBin" AfterTargets="Build" Condition="'$(RockWebPath)' != '' And '$(CopyToRockWeb)' != 'false'">
     <ItemGroup>
       <PluginOutput Include="$(TargetPath)" />
       <PluginOutput Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
