@@ -131,6 +131,51 @@ namespace org.secc.LinkList.Tests
             Assert.Contains( FileGuid, result );
         }
 
+        [Fact]
+        public void FillBlankFileLinkText_Labels_Only_Blank_File_Links()
+        {
+            var fileUrl = LinkListFiles.BuildFileUrl( ListGuid, FileGuid );
+            var rows = new[]
+            {
+                new LinkItemBag { ItemType = "link", Text = "", FileGuid = FileGuid.ToString() },
+                new LinkItemBag { ItemType = "link", Text = "  ", Url = fileUrl },
+                new LinkItemBag { ItemType = "link", Text = "Keep me", FileGuid = FileGuid.ToString() },
+                new LinkItemBag { ItemType = "link", Text = "", Url = "https://example.org" },
+                new LinkItemBag { ItemType = "section", Text = "", Url = fileUrl },
+                null
+            };
+
+            LinkListService.FillBlankFileLinkText( rows, ListGuid,
+                new System.Collections.Generic.Dictionary<Guid, string> { [FileGuid] = "Spring Flyer.pdf" } );
+
+            Assert.Equal( "Spring Flyer", rows[0].Text );
+            Assert.Equal( "Spring Flyer", rows[1].Text );
+            Assert.Equal( "Keep me", rows[2].Text );
+            Assert.Equal( "", rows[3].Text );
+            Assert.Equal( "", rows[4].Text );
+        }
+
+        [Fact]
+        public void FileUrlPrefix_Is_BuildFileUrl_Without_The_Lowercase_File_Guid()
+        {
+            // The stored-row SQL matches prefix + LOWER(guid); BuildFileUrl must agree.
+            var url = LinkListFiles.BuildFileUrl( ListGuid, FileGuid );
+            Assert.Equal( LinkListFiles.FileUrlPrefix( ListGuid ) + FileGuid.ToString().ToLowerInvariant(), url );
+        }
+
+        [Theory]
+        [InlineData( "Spring Retreat Flyer.pdf", "Spring Retreat Flyer" )]
+        [InlineData( "photo.final.JPG", "photo.final" )]
+        [InlineData( "  logo.png ", "logo" )]
+        [InlineData( "noext", "noext" )]
+        [InlineData( ".pdf", ".pdf" )]
+        [InlineData( "", "" )]
+        [InlineData( null, "" )]
+        public void DefaultLinkText_Drops_The_Extension( string fileName, string expected )
+        {
+            Assert.Equal( expected, LinkListFiles.DefaultLinkText( fileName ) );
+        }
+
         // ---- metadata ----
 
         [Theory]
@@ -141,6 +186,10 @@ namespace org.secc.LinkList.Tests
         [InlineData( "logo.png", "image/png", "image/png" )]
         [InlineData( "logo.png", "", "image/png" )]
         [InlineData( "flyer.pdf", "application/pdf; charset=binary", "application/pdf" )]
+        // A browser on a machine with no type registered for the extension sends the
+        // generic type; the magic-byte check is what decides.
+        [InlineData( "flyer.pdf", "application/octet-stream", "application/pdf" )]
+        [InlineData( "photo.JPG", "Application/Octet-Stream", "image/jpeg" )]
         public void ValidateMetadata_Accepts_Allowed_Types( string name, string mime, string expectedContentType )
         {
             Assert.Null( LinkListFiles.ValidateMetadata( name, mime, 1024 ) );

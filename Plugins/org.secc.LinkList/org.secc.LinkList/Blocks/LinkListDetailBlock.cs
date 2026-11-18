@@ -92,26 +92,12 @@ namespace org.secc.LinkList.Blocks
                 ItemKey = isAdd ? null : key,
                 IsAddMode = isAdd,
                 DefaultDesignGuid = defaultDesign.ToString(),
-                CanUploadFiles = CanUploadFiles(),
+                CanUploadFiles = LinkListService.CanUploadLinkFiles( RequestContext.CurrentPerson ),
                 NavigationUrls = new Dictionary<string, string>
                 {
                     [NavigationUrlKey.ListPage] = this.GetLinkedPageUrl( AttributeKey.ListPage, new Dictionary<string, string>() )
                 }
             };
-        }
-
-        /// <summary>ROCK-9362: EDIT on the Link List File type = may upload (see PostUpload).</summary>
-        private bool CanUploadFiles()
-        {
-            if ( RequestContext.CurrentPerson == null )
-            {
-                return false;
-            }
-            using ( var rockContext = new RockContext() )
-            {
-                var type = new BinaryFileTypeService( rockContext ).Get( LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
-                return type != null && type.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson );
-            }
         }
 
         [BlockAction]
@@ -139,7 +125,8 @@ namespace org.secc.LinkList.Blocks
                     return ActionForbidden();
                 }
 
-                var bag = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true );
+                var bag = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false,
+                    includeMembers: true, includeSlugs: true, includeFileNames: true );
                 if ( bag == null )
                 {
                     return ActionNotFound();
@@ -325,16 +312,18 @@ namespace org.secc.LinkList.Blocks
 
                 // ROCK-9362: validate uploaded link files (type allow-list, size, magic
                 // bytes, uploader) BEFORE any write, like the slug checks above. The set
-                // of files the list references right now is captured here too: it is
-                // what lets the lifetime sync after the rows are written orphan the
-                // files this save removes. A new item's Guid is already assigned (Rock
-                // entities mint one on construction), and it can't have saved files.
+                // of files the list references right now is captured here too (one
+                // query over the stored URLs): it is what lets the lifetime sync after
+                // the rows are written orphan the files this save removes. A new item's
+                // Guid is already assigned (Rock entities mint one on construction), and
+                // it can't have saved files. A list with no files costs nothing more.
                 HashSet<Guid> savedFileGuids;
+                Dictionary<Guid, string> fileNames;
                 var incomingFileGuids = LinkListService.ReferencedFileGuids( bag.Items, item.Guid );
                 try
                 {
                     savedFileGuids = isNew ? new HashSet<Guid>() : service.GetSavedFileGuids( item );
-                    var fileError = service.ValidateLinkFiles( item.Guid, savedFileGuids, bag.Items, RequestContext.CurrentPerson );
+                    var fileError = service.ValidateLinkFiles( item.Guid, savedFileGuids, bag.Items, RequestContext.CurrentPerson, out fileNames );
                     if ( fileError != null )
                     {
                         return ActionBadRequest( fileError );
@@ -345,6 +334,10 @@ namespace org.secc.LinkList.Blocks
                     ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
                     return ActionBadRequest( "Could not check the attached files. The error has been logged." );
                 }
+
+                // A file link saved without text is labelled with the file's name, since
+                // the public renderer never receives the name itself.
+                LinkListService.FillBlankFileLinkText( bag.Items, item.Guid, fileNames );
 
                 item.Title = bag.Title.Trim();
                 // Intro content lives in the native Content field (legacy parity).
@@ -690,7 +683,8 @@ namespace org.secc.LinkList.Blocks
         /// </summary>
         private LinkListBag BuildSavedBag( LinkListService service, ContentChannelItem item )
         {
-            return service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true )
+            return service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false,
+                    includeMembers: true, includeSlugs: true, includeFileNames: true )
                 ?? new LinkListBag
                 {
                     Id = item.Id,
@@ -730,23 +724,8 @@ namespace org.secc.LinkList.Blocks
                     return ActionBadRequest( error );
                 }
 
-                // ROCK-9362: captured before the delete (the rows go with the item).
-                var fileGuids = service.GetSavedFileGuids( item );
-
-                itemService.Delete( item );
-                rockContext.SaveChanges();
-
-                // Uploaded link files now belong to nothing: let Rock's cleanup job
-                // remove them. Best-effort - the list is already gone, and an orphan
-                // left permanent is only wasted storage (nothing serves it any more).
-                try
-                {
-                    service.MarkLinkFilesTemporary( fileGuids, isTemporary: true );
-                }
-                catch ( Exception ex )
-                {
-                    ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
-                }
+                // ROCK-9362: also releases the list's uploaded files (best-effort).
+                service.DeleteList( item );
 
                 return ActionOk();
             }
@@ -1013,9 +992,11 @@ namespace org.secc.LinkList.Blocks
 
         /// <summary>
         /// ROCK-9362: <see cref="LinkListService.ReconcileLinkFiles"/> over every file the
-        /// list referenced before this save or meant to reference after it. Logged, never
-        /// thrown: by now the save's outcome is decided, and a missed reconcile only
-        /// leaves an unlinked file uncollected.
+        /// list referenced before this save or meant to reference after it (no queries
+        /// when that is none). Logged, never thrown: by now the save's outcome is
+        /// decided. A failed reconcile can leave an unlinked file uncollected or, when an
+        /// overlapping save of the same list marked it temporary first, a linked file
+        /// temporary; saving the list again within a day repairs both.
         /// </summary>
         private static void ReconcileLinkFilesSafely( Guid listGuid, HashSet<Guid> savedFileGuids, HashSet<Guid> incomingFileGuids )
         {

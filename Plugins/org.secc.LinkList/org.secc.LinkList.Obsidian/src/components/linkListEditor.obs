@@ -13,7 +13,7 @@
                 <button type="button" class="btn btn-link p-0" @click="$emit('back')">
                     <i class="fa fa-chevron-left"></i> Back to lists
                 </button>
-                <EditorActions class="ms-auto" :isSaving="isSaving" :canDelete="canDelete" @save="save" @cancel="$emit('back')" @delete="onDelete" />
+                <EditorActions class="ms-auto" :isSaving="isSaving" :isUploading="pendingUploads > 0" :canDelete="canDelete" @save="save" @cancel="$emit('back')" @delete="onDelete" />
             </div>
 
             <Panel title="Details" :hasCollapse="true" v-model="detailsExpanded">
@@ -120,6 +120,8 @@
                         :isChild="nestMeta[index]?.isChild"
                         :canNest="nestMeta[index]?.canNest"
                         :canUpload="!!canUploadFiles"
+                        :uploadsBlocked="isSaving"
+                        @uploading="onRowUploading"
                         @update:modelValue="updateRow(index, $event)"
                         @moveUp="moveRow(index, -1)"
                         @moveDown="moveRow(index, 1)"
@@ -271,7 +273,7 @@
             </Panel>
 
             <div class="d-flex mt-3">
-                <EditorActions class="ms-auto" :isSaving="isSaving" :canDelete="canDelete" @save="save" @cancel="$emit('back')" @delete="onDelete" />
+                <EditorActions class="ms-auto" :isSaving="isSaving" :isUploading="pendingUploads > 0" :canDelete="canDelete" @save="save" @cancel="$emit('back')" @delete="onDelete" />
             </div>
         </div>
     </div>
@@ -332,6 +334,8 @@ const autoDerivedSlug = ref("");
 const loadedSlugIds = ref<number[]>([]);
 const slugListEl = ref<HTMLElement | null>(null);
 const isSaving = ref(false);
+// ROCK-9362: link-file uploads still in flight. Save waits for them (see save()).
+const pendingUploads = ref(0);
 const isAddingMember = ref(false);
 const removingMemberId = ref<number | null>(null);
 const memberToAdd = ref<{ value: string; text: string } | null>(null);
@@ -605,6 +609,12 @@ function updateRow(index: number, value: LinkItemBag): void {
     }
 }
 
+// ROCK-9362: rows report each upload's start and end (and end one if they are
+// removed mid-upload), so this count is exact.
+function onRowUploading(isUploading: boolean): void {
+    pendingUploads.value = Math.max(0, pendingUploads.value + (isUploading ? 1 : -1));
+}
+
 function removeRow(index: number): void {
     bag.value.items?.splice(index, 1);
 }
@@ -644,6 +654,13 @@ function moveRow(index: number, delta: number): void {
 
 async function save(): Promise<void> {
     errorMessage.value = "";
+    // ROCK-9362: a save sent mid-upload would store the row without its file, and the
+    // response replaces these rows, so the finished upload would be lost. Both Save
+    // buttons are disabled meanwhile; this guards anything else that calls save().
+    if (pendingUploads.value > 0) {
+        errorMessage.value = "Wait for the file upload to finish, then save.";
+        return;
+    }
     // Commit a slug still sitting unadded in the add box, so typing one and
     // hitting Save can't silently drop it. addSlug always empties the box and
     // never refuses, so this can't turn into a save that won't go through.

@@ -32,6 +32,11 @@ namespace org.secc.LinkList.Migrations
     ///   the Azure provider's EntityType row doesn't exist. The row is INSERT-ONLY so
     ///   an admin's later storage change survives. A local dev box without Azure
     ///   credentials must switch the type to Database under File Types to upload.
+    ///   The default container must stay PRIVATE (no anonymous blob access): blob
+    ///   names are {folder}/{file guid}_{file name}, so a public container would serve
+    ///   these files around the list gate. Verified 2026-11-06: rockblobstorage has
+    ///   public access "None" on prod and dev, and 52 secured file types (background
+    ///   checks, W-9s, ...) already rely on it.
     /// - Uploads: through the plugin's own api/secc/linklist/upload, which enforces the
     ///   PDF/JPG/PNG allow-list, magic bytes and size cap, records the uploader, and
     ///   requires EDIT on this type. EDIT is granted to Rock admins, Rock Edit Access
@@ -126,19 +131,20 @@ END
 
         public override void Down()
         {
-            RockMigrationHelper.DeleteSecurityAuth( LinkListGuids.AuthLinkListFileEditDenyAll );
-            RockMigrationHelper.DeleteSecurityAuth( LinkListGuids.AuthLinkListFileEditStaffLike );
-            RockMigrationHelper.DeleteSecurityAuth( LinkListGuids.AuthLinkListFileEditStaff );
-            RockMigrationHelper.DeleteSecurityAuth( LinkListGuids.AuthLinkListFileEditAdmins );
-            RockMigrationHelper.DeleteSecurityAuth( LinkListGuids.AuthLinkListFileViewDenyAll );
-            RockMigrationHelper.DeleteSecurityAuth( LinkListGuids.AuthLinkListFileViewAdmins );
-
-            // Only drop the type when nothing references it; uploaded files are content,
-            // not schema, and must not disappear with a rollback.
+            // The type and its security go together. Only drop the type when nothing
+            // references it: uploaded files are content, not schema, and must not
+            // disappear with a rollback. A type that is kept keeps its Auth rows too -
+            // without the VIEW deny its files would fall back to Rock's default VIEW
+            // (allow), and GetFile.ashx would serve a private list's files to anyone
+            // holding a file guid.
             Sql( $@"
 DECLARE @TypeId INT = (SELECT TOP 1 [Id] FROM [BinaryFileType] WHERE [Guid] = '{LinkListGuids.BinaryFileTypeLinkListFile}');
 IF @TypeId IS NOT NULL AND NOT EXISTS ( SELECT 1 FROM [BinaryFile] WHERE [BinaryFileTypeId] = @TypeId )
 BEGIN
+    -- Every rule on the type: the six Up() added and any an admin added since.
+    DELETE FROM [Auth]
+        WHERE [EntityTypeId] = (SELECT TOP 1 [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.BinaryFileType')
+          AND [EntityId] = @TypeId;
     DELETE av FROM [AttributeValue] av
         JOIN [Attribute] a ON a.[Id] = av.[AttributeId]
         WHERE av.[EntityId] = @TypeId

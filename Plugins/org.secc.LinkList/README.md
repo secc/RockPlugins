@@ -52,12 +52,16 @@ Three subsystems deserve special mention:
 Editors who may upload (see *Upload permission*) click the paperclip on a link row to upload
 a file; the row then shows the file name
 (with **Replace** / **Use a URL**) in place of the URL box. The upload defaults the link text
-to the file name and the target to a new window.
+to the file name and the target to a new window. While an upload is running, both **Save**
+buttons wait for it ("Waiting for upload…"), and no upload can start while a save is in
+flight: a save sent mid-upload would store the row without its file.
 
 - **Upload.** The row uses Rock's Obsidian `uploadBinaryFile` helper pointed at the plugin's
   own `POST api/secc/linklist/upload`, not `FileUploader.ashx`. That endpoint requires
   upload permission, pre-checks Content-Length, and rejects anything that isn't an allowed
-  extension (`pdf`, `jpg`, `jpeg`, `png`) with a consistent reported MIME type, at most
+  extension (`pdf`, `jpg`, `jpeg`, `png`) with a consistent reported MIME type (blank or the
+  generic `application/octet-stream` is accepted, since browsers send that when the OS has no
+  type registered for the extension; the magic bytes decide), at most
   50 MB (`LinkListFiles.MaxFileSizeBytes`), and with a matching magic-byte signature. It
   cleans the file name, stores the allow-listed MIME type (not the client's), copies the
   content to a MemoryStream before handing it to the provider (never the request stream; the
@@ -75,7 +79,12 @@ to the file name and the target to a new window.
   and the legacy `ContainerFolderPath` key. It falls back to the Database provider only where
   the Azure provider isn't registered. A local dev box without Azure credentials has to switch
   the type to Database under *Admin Tools > General Settings > File Types* to upload. The row
-  is insert-only, so an admin's later change survives.
+  is insert-only, so an admin's later change survives. The default container must stay
+  **private**: blob names are `{folder}/{guid}_{file name}`, so anonymous blob access would
+  serve these files around the list gate. Checked 2026-11-06 with `az storage container-rm
+  show`: `rockblobstorage` has public access `None` on prod (`seccrockrmsstorage`) and dev
+  (`seccrockdevblob`, which also disallows public access account-wide), and 52 secured file
+  types already rely on it.
 - **Stored URL.** The matrix row's existing `URL` attribute holds the **relative** path
   `/api/secc/linklist/{listGuid}/file/{fileGuid}` (`LinkListFiles.BuildFileUrl`), so no new
   matrix attribute or migration was needed and a database copied between environments keeps
@@ -85,33 +94,47 @@ to the file name and the target to a new window.
   prefixes its `base-url` onto file URLs (`resolveLinkHref` in `linkListFiles.ts`) so
   external embeds point at Rock.
 - **Validation on save (in `SaveList`, before any write).** For every *newly attached* file
-  (`LinkListService.ValidateLinkFiles`): Link List File type; still temporary **and uploaded
-  by the person saving** (stops attaching another list's file by guid and serving it under
-  this list's visibility); and the upload rules above again, since saving is where a file
-  becomes publicly reachable. The editor's checks in `linkListFiles.ts` are early feedback
-  only.
+  (`LinkListService.ValidateLinkFiles`): it exists; Link List File type; still temporary
+  **and uploaded by the person saving** (stops attaching another list's file by guid and
+  serving it under this list's visibility); and the upload rules above again, since saving is
+  where a file becomes publicly reachable and staff with EDIT on the type can also create
+  files through `FileUploader.ashx` without those checks. A file the list *already* links
+  isn't re-checked, and if it has since been deleted the save still goes through (the editor
+  shows that row as "File no longer available"). A file link saved with blank text gets the
+  file's name without its extension. The editor's checks in `linkListFiles.ts` are early
+  feedback only.
 - **Lifetime.** `SaveList` marks every file the save will link permanent *before* writing the
   rows (`MarkLinkFilesPermanent`), so no outcome — including a part-way failure — leaves a
-  linked file temporary. Afterwards (on success or failure) `ReconcileLinkFiles` re-reads the
-  rows as actually stored and marks every other candidate (files the save removed, or meant
-  to attach but didn't store) temporary; Rock Cleanup deletes temporary files after a day.
-  Both list deletes (detail block `DeleteList`, grid `Delete`) release the list's files the
-  same way. A save also refuses a link whose file no longer exists.
+  linked file temporary. Afterwards (on success or failure) `ReconcileLinkFiles` judges each
+  candidate (files the list linked before the save, plus the ones it meant to link) against
+  the rows as actually stored: linked → permanent, otherwise temporary; Rock Cleanup deletes
+  temporary files a day after their `ModifiedDateTime`. That check-and-write is one
+  set-based `UPDATE` run under a per-list `sp_getapplock`, so overlapping saves of the same
+  list can't leave a linked file temporary. All lifetime writes are SQL, not BinaryFile
+  entity saves: Rock's BinaryFile save hook would download and decode every image just to
+  re-measure it. The saved-file lookup reads the stored `URL` values directly (one query), so
+  saving a list with no files costs nothing extra. Both list deletes (detail block
+  `DeleteList`, grid `Delete`) go through `LinkListService.DeleteList`, which releases the
+  list's files best-effort (a failure there never fails the delete).
 - **Visibility.** The type requires view security with VIEW allowed only to Rock admins, so
   `GetFile.ashx` refuses these files. They are served only by
   `GET api/secc/linklist/{listGuid}/file/{fileGuid}`, which applies the owning list's gate: a
   public list's files are public (5-minute shared cache; streamed, not buffered); a private list's files go only to
   people who can edit it (in-Rock preview, `no-store`); a file no longer linked from the list
   is not served; every refusal is a 404. The response Content-Type comes from the extension
-  allow-list, never the stored MIME type, with `X-Content-Type-Options: nosniff`.
+  allow-list, never the stored MIME type, with `X-Content-Type-Options: nosniff`. The public
+  list REST response carries each file link's `fileGuid` (it is in the URL anyway) but never
+  the uploader's original file name; only the editor's bag has `fileName`.
 - **Upload permission.** EDIT on the Link List File type. Migration 013 grants it to *RSR -
   Rock Administration*, *RSR - Rock Edit Access* (the renamed core staff group) and *RSR -
   Staff Like Workers*, and denies everyone else; change it on the type's security in Rock.
   The upload endpoint checks it before reading the body, and the editor hides the paperclip
   (`LinkListDetailConfigBox.CanUploadFiles`) for everyone else. Those editors still see
   existing files and can switch a row back to a URL. `FileUploader.ashx` also honors EDIT,
-  but a file uploaded there carries no uploader, so `SaveList` refuses to attach it. An
-  abandoned upload stays temporary and is cleaned up.
+  so those staff can create Link List Files there, but such a file carries no uploader and
+  skipped the content checks, so `SaveList` refuses to attach it. An abandoned upload stays
+  temporary and is cleaned up. Migration 013's `Down()` keeps the type, and its security
+  rules, whenever uploaded files exist.
 
 ## Project Info
 
@@ -209,8 +232,9 @@ not yet recorded, so the gap is harmless.
 - **Rock:** `RockBlockType` (Obsidian blocks), ContentChannel/Item/Slug services, Attribute
   Matrix, `Authorization`/`AuthService` (per-list `Auth` rules), Group/GroupMember services
   (security role groups), Interactions (`InteractionTransaction`, channel/component caches),
-  Defined Types/Values, `Rock.Plugin` migrations, BinaryFile (header images; uploaded link
-  files via `FileUploader.ashx`).
+  Defined Types/Values, `Rock.Plugin` migrations, BinaryFile (header images via
+  `FileUploader.ashx`; uploaded link files via the plugin's own upload endpoint, on Rock's
+  Azure Blob Storage provider).
 - **NuGet:** `RockRMS.Rock` / `Rock.Blocks` / `Rock.Rest` `1.16.9-rc.1`,
   `Microsoft.AspNet.WebApi.Core`; `DotLiquid` and `HtmlAgilityPack` referenced from
   `RockWeb\Bin` with `Private=false` (compile against Rock's copy, never ship it).

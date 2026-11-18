@@ -11,10 +11,10 @@
                         <TextBox :modelValue="modelValue.text" @update:modelValue="update('text', $event)" label="" placeholder="Text" />
                     </div>
                     <div class="li-field li-url">
-                        <div v-if="hasFile" class="li-file" :title="fileLabel">
+                        <div v-if="hasFile" class="li-file" :class="{ 'is-missing': isFileMissing }" :title="fileLabel">
                             <i :class="fileIconClass" aria-hidden="true"></i>
                             <span class="li-file-name">{{ fileLabel }}</span>
-                            <button v-if="canUpload" type="button" class="btn btn-link btn-xs" :disabled="isUploading" @click="pickFile" aria-label="Replace the uploaded file">Replace</button>
+                            <button v-if="canUpload" type="button" class="btn btn-link btn-xs" :disabled="!canStartUpload" @click="pickFile" aria-label="Replace the uploaded file">Replace</button>
                             <button type="button" class="btn btn-link btn-xs" :disabled="isUploading" @click="removeFile" aria-label="Remove the uploaded file and enter a URL instead">Use a URL</button>
                         </div>
                         <TextBox v-else :modelValue="modelValue.url" @update:modelValue="update('url', $event)" label="" placeholder="https://..." />
@@ -28,7 +28,7 @@
                 <input ref="fileInput" type="file" class="li-file-input" :accept="fileAccept" @change="onFilePicked" tabindex="-1" aria-hidden="true" />
             </div>
             <div class="li-actions">
-                <button v-if="canUpload && !hasFile" type="button" class="btn btn-default btn-xs" :disabled="isUploading" @click="pickFile" title="Upload a PDF, JPG, or PNG instead of a URL" aria-label="Upload a file instead of a URL"><i :class="isUploading ? 'fa fa-spinner fa-spin' : 'fa fa-paperclip'"></i></button>
+                <button v-if="canUpload && !hasFile" type="button" class="btn btn-default btn-xs" :disabled="!canStartUpload" @click="pickFile" title="Upload a PDF, JPG, or PNG instead of a URL" aria-label="Upload a file instead of a URL"><i :class="isUploading ? 'fa fa-spinner fa-spin' : 'fa fa-paperclip'"></i></button>
                 <button type="button" class="btn btn-default btn-xs li-feature" :class="{ 'is-featured': modelValue.isFeatured }" :aria-pressed="!!modelValue.isFeatured" @click="toggleFeatured" title="Featured button (one per list)" aria-label="Featured button"><i class="fa fa-star"></i></button>
                 <button v-if="canNest || isNested" type="button" class="btn btn-default btn-xs" :class="{ 'is-nested': isNested }" @click="toggleNest" :title="isNested ? 'Move out of the section' : 'Nest under the section above'" :aria-label="isNested ? 'Un-nest link' : 'Nest link'"><i :class="isNested ? 'fa fa-outdent' : 'fa fa-indent'"></i></button>
                 <button type="button" class="btn btn-default btn-xs" @click="$emit('moveUp')" title="Move up" aria-label="Move up"><i class="fa fa-chevron-up"></i></button>
@@ -80,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import TextBox from "@Obsidian/Controls/textBox.obs";
 import { uploadBinaryFile } from "@Obsidian/Utility/http";
 import DropDownList from "@Obsidian/Controls/dropDownList.obs";
@@ -96,9 +96,13 @@ const props = defineProps<{
     canNest?: boolean;
     /** ROCK-9362: the person may upload link files (hides the upload controls only). */
     canUpload?: boolean;
+    /** ROCK-9362: a save is in flight - no upload may start (its result would be lost). */
+    uploadsBlocked?: boolean;
 }>();
 const emit = defineEmits<{
     (e: "update:modelValue", value: LinkItemBag): void;
+    /** ROCK-9362: an upload started (true) or ended (false); the editor holds Save meanwhile. */
+    (e: "uploading", value: boolean): void;
     (e: "remove"): void;
     (e: "moveUp"): void;
     (e: "moveDown"): void;
@@ -147,11 +151,32 @@ const uploadProgress = ref("");
 const uploadError = ref("");
 
 const hasFile = computed(() => !!props.modelValue.fileGuid);
-const fileLabel = computed(() => props.modelValue.fileName || "Uploaded file");
-const fileIconClass = computed(() => fileExtension(props.modelValue.fileName) === "pdf" ? "fa fa-file-pdf" : "fa fa-file-image");
+// The editor bag carries the file's name whenever the file exists, and an upload
+// fills it in, so a file link with no name is one whose file is gone (deleted, or
+// cleaned up). It no longer blocks saving the list; flag it so it can be fixed.
+const isFileMissing = computed(() => hasFile.value && !props.modelValue.fileName);
+const fileLabel = computed(() => isFileMissing.value
+    ? "File no longer available - replace it or use a URL"
+    : props.modelValue.fileName || "Uploaded file");
+const fileIconClass = computed(() => isFileMissing.value
+    ? "fa fa-exclamation-triangle"
+    : fileExtension(props.modelValue.fileName) === "pdf" ? "fa fa-file-pdf" : "fa fa-file-image");
+const canStartUpload = computed(() => !isUploading.value && !props.uploadsBlocked);
+
+// The editor counts uploads in flight and holds Save until they finish: a save sent
+// mid-upload would store the row without its file, and the save response replaces
+// the editor's rows, so the finished upload would have nowhere to land.
+let isUnmounted = false;
+watch(isUploading, value => emit("uploading", value));
+onBeforeUnmount(() => {
+    isUnmounted = true;
+    if (isUploading.value) {
+        emit("uploading", false);
+    }
+});
 
 function pickFile(): void {
-    if (!isUploading.value) {
+    if (canStartUpload.value) {
         fileInput.value?.click();
     }
 }
@@ -183,7 +208,7 @@ async function onFilePicked(event: Event): Promise<void> {
     const file = input.files?.[0];
     // Clear so picking the same file again still fires change.
     input.value = "";
-    if (!file || isUploading.value) {
+    if (!file || !canStartUpload.value) {
         return;
     }
 
@@ -204,6 +229,10 @@ async function onFilePicked(event: Event): Promise<void> {
         });
         if (!result?.value) {
             throw new Error("No file was returned.");
+        }
+        if (isUnmounted) {
+            // The row was removed mid-upload; the unattached file is cleaned up server-side.
+            return;
         }
         const name = result.text || file.name;
         const target = props.modelValue.target;
@@ -267,6 +296,8 @@ function toggleFeatured(): void {
 /* ROCK-9362: uploaded-file chip shown in place of the URL box. */
 .li-file { display: flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 8px; border: 1px solid #d5d7d9; border-radius: 4px; background: #f8fafc; color: #5b6770; }
 .li-file-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #2b3138; }
+.li-file.is-missing { border-color: #e4a2a2; background: #fdf3f3; }
+.li-file.is-missing .li-file-name, .li-file.is-missing .fa { color: #a94442; }
 .li-file .btn-link { padding: 0 2px; }
 .li-file-input { display: none; }
 .li-upload-status { padding-left: 2px; }

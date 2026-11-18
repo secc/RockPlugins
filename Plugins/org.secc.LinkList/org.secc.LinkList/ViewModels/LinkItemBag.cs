@@ -49,7 +49,12 @@ namespace org.secc.LinkList.ViewModels
         /// </summary>
         public string FileGuid { get; set; }
 
-        /// <summary>ROCK-9362: display name of the uploaded file (read-only; ignored on save).</summary>
+        /// <summary>
+        /// ROCK-9362: original name of the uploaded file, for the editor's file chip.
+        /// Editor bags only (BuildBag includeFileNames) - never sent by the public REST
+        /// endpoint, since an uploader's file name can say more than the link text. Null
+        /// in an editor bag when the file no longer exists. Read-only; ignored on save.
+        /// </summary>
         public string FileName { get; set; }
 
         public int Order { get; set; }

@@ -231,9 +231,12 @@ namespace org.secc.LinkList.Rest.Controllers
         /// Why not FileUploader.ashx: it enforces neither an extension allow-list nor
         /// magic bytes, and it does not record who uploaded the file
         /// (CreatedByPersonAliasId is NULL for its uploads in production), which
-        /// SaveList needs to stop an editor attaching someone else's file by guid. The
-        /// Link List File type grants no EDIT to regular users, so FileUploader.ashx
-        /// refuses them for this type - this endpoint is the only way in.
+        /// SaveList needs to stop an editor attaching someone else's file by guid.
+        /// FileUploader.ashx is NOT closed off, though: it accepts anyone with EDIT on
+        /// the type, i.e. the same staff who may upload here, and stores whatever they
+        /// send. Such a file can never be attached, only because
+        /// LinkListService.ValidateLinkFiles re-checks the uploader stamp and the
+        /// content on save - keep those re-checks.
         ///
         /// Rules (all server-side): signed in; EDIT on the Link List File type (admins,
         /// Rock Edit Access, Staff Like Workers by default - checked before the body is
@@ -257,22 +260,17 @@ namespace org.secc.LinkList.Rest.Controllers
             }
 
             // Who may upload is the file type's EDIT permission, so it is managed on the
-            // type's security in Rock rather than in code. Checked before the body is
-            // parsed, so a refused caller costs no upload processing.
-            using ( var authContext = new RockContext() )
+            // type's security in Rock rather than in code. Checked (from the cache)
+            // before the body is parsed, so a refused caller costs no upload processing.
+            if ( Rock.Web.Cache.BinaryFileTypeCache.Get( SystemGuids.LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() ) == null )
             {
-                var type = new BinaryFileTypeService( authContext )
-                    .Get( SystemGuids.LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
-                if ( type == null )
-                {
-                    return UploadError( HttpStatusCode.InternalServerError,
-                        "File uploads are not set up on this server (the Link List File type is missing)." );
-                }
-                if ( !type.IsAuthorized( Rock.Security.Authorization.EDIT, person ) )
-                {
-                    return UploadError( HttpStatusCode.Forbidden,
-                        "You don't have permission to upload files. Link to the file's URL instead." );
-                }
+                return UploadError( HttpStatusCode.InternalServerError,
+                    "File uploads are not set up on this server (the Link List File type is missing)." );
+            }
+            if ( !LinkListService.CanUploadLinkFiles( person ) )
+            {
+                return UploadError( HttpStatusCode.Forbidden,
+                    "You don't have permission to upload files. Link to the file's URL instead." );
             }
 
             var httpRequest = System.Web.HttpContext.Current?.Request;
@@ -315,6 +313,8 @@ namespace org.secc.LinkList.Rest.Controllers
 
                 using ( var rockContext = new RockContext() )
                 {
+                    // The tracked entity (not the cache), which Rock's BinaryFile save
+                    // hook uses for the storage provider and its settings.
                     var fileType = new BinaryFileTypeService( rockContext )
                         .Get( SystemGuids.LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
                     if ( fileType == null )
@@ -386,14 +386,14 @@ namespace org.secc.LinkList.Rest.Controllers
         [System.Web.Http.Route( "{listGuid:guid}/file/{fileGuid:guid}" )]
         public HttpResponseMessage GetFile( Guid listGuid, Guid fileGuid )
         {
-            // The forms-auth cookie still identifies a signed-in editor on this
-            // anonymous endpoint; only needed for a private list's preview.
-            var person = UserLoginService.GetCurrentUser( false )?.Person;
-
             using ( var rockContext = new RockContext() )
             {
                 var service = new LinkListService( rockContext );
-                var binaryFile = service.GetServableLinkFile( listGuid, fileGuid, person, out var isPublic );
+                // The forms-auth cookie still identifies a signed-in editor on this
+                // anonymous endpoint. Only a private list's preview needs it, so the
+                // lookup is deferred: a public file costs no login query.
+                var binaryFile = service.GetServableLinkFile( listGuid, fileGuid,
+                    () => UserLoginService.GetCurrentUser( false )?.Person, out var isPublic );
                 if ( binaryFile == null )
                 {
                     return new HttpResponseMessage( HttpStatusCode.NotFound );

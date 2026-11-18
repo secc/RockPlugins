@@ -78,7 +78,34 @@ namespace org.secc.LinkList.Utility
         /// <summary>The relative URL a file link is stored (and rendered) under.</summary>
         public static string BuildFileUrl( Guid listGuid, Guid fileGuid )
         {
-            return $"/api/secc/linklist/{listGuid:D}/file/{fileGuid:D}";
+            return FileUrlPrefix( listGuid ) + fileGuid.ToString( "D" );
+        }
+
+        /// <summary>
+        /// Everything in <see cref="BuildFileUrl"/> before the file guid. The stored-row
+        /// SQL in LinkListService matches a row to a file as prefix + lowercase guid, so
+        /// this must stay byte-identical to BuildFileUrl's output.
+        /// </summary>
+        public static string FileUrlPrefix( Guid listGuid )
+        {
+            return $"/api/secc/linklist/{listGuid:D}/file/";
+        }
+
+        /// <summary>
+        /// Link text for a file link saved with none: the file name without its
+        /// extension ("Spring Retreat Flyer.pdf" -> "Spring Retreat Flyer"), the same
+        /// default the editor fills in on upload. Empty for a blank name.
+        /// </summary>
+        public static string DefaultLinkText( string fileName )
+        {
+            if ( string.IsNullOrWhiteSpace( fileName ) )
+            {
+                return string.Empty;
+            }
+            var name = fileName.Trim();
+            var ext = DottedExtension( name );
+            var text = ext.Length > 0 ? name.Substring( 0, name.Length - ext.Length ).Trim() : name;
+            return text.Length > 0 ? text : name;
         }
 
         /// <summary>
@@ -181,10 +208,19 @@ namespace org.secc.LinkList.Utility
         }
 
         /// <summary>
+        /// The generic type a browser reports when the OS has no type registered for
+        /// the extension (an empty File.type is sent as this in multipart bodies).
+        /// </summary>
+        private const string UnknownMimeType = "application/octet-stream";
+
+        /// <summary>
         /// Validates an uploaded file's metadata: allowed extension, a reported MIME
         /// type consistent with it, and the size cap. Returns an error message, or
-        /// null when the file is acceptable. A blank reported MIME type is tolerated
-        /// (some clients send none); the magic-byte check still applies.
+        /// null when the file is acceptable. A blank or generic
+        /// (application/octet-stream) reported MIME type is tolerated: browsers send
+        /// that for a real PDF/JPG/PNG on a machine with no type registered for the
+        /// extension. The magic-byte check still applies, and the file is always
+        /// served as the allow-listed type with nosniff.
         /// </summary>
         public static string ValidateMetadata( string fileName, string mimeType, long? fileSize )
         {
@@ -194,10 +230,10 @@ namespace org.secc.LinkList.Utility
                 return $"'{fileName}' is not an allowed file type. Upload a {AllowedTypesDescription} file.";
             }
 
-            if ( !string.IsNullOrWhiteSpace( mimeType ) )
+            var reported = ( mimeType ?? string.Empty ).Split( ';' )[0].Trim().ToLowerInvariant();
+            if ( reported.Length > 0 && reported != UnknownMimeType )
             {
-                var reported = mimeType.Split( ';' )[0].Trim();
-                if ( Array.IndexOf( AcceptedMimeTypesByContentType[contentType], reported.ToLowerInvariant() ) < 0 )
+                if ( Array.IndexOf( AcceptedMimeTypesByContentType[contentType], reported ) < 0 )
                 {
                     return $"'{fileName}' does not look like a {AllowedTypesDescription} file.";
                 }
