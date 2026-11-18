@@ -1,0 +1,40 @@
+<Project>
+
+  <!--
+    Shared build settings for RockPlugins. MSBuild imports this file into EVERY
+    project under this folder, legacy (old-style) projects included, so it must
+    not change anything for a project that hasn't opted in. It only:
+      1. re-imports any Directory.Build.props from a folder above us, and
+      2. works out where RockWeb is (RockWebPath / RockBin).
+    Everything that changes how a project builds lives in Directory.Build.targets
+    and only applies to SDK-style projects that set IsRockPlugin or
+    IsRockPluginTest. See Plugins/README-SdkStyle.md.
+  -->
+
+  <!-- In the pipeline layout this repo is checked out inside the Rock repo,
+       whose root Directory.Build.props sets PathMap (normalized stack-trace
+       paths). MSBuild stops at the first Directory.Build.props it finds, so
+       chain to the parent explicitly to keep that behavior. -->
+  <PropertyGroup>
+    <_RockPluginsParentProps>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))</_RockPluginsParentProps>
+  </PropertyGroup>
+  <Import Project="$(_RockPluginsParentProps)" Condition="'$(_RockPluginsParentProps)' != ''" />
+
+  <!--
+    Locate RockWeb. First match wins:
+      1. /p:RockWebPath=... passed explicitly (BuildPlugin.ps1, CLI, CI)
+      2. $(SolutionDir)RockWeb - building from a solution in the Rock folder
+      3. ..\RockWeb           - pipeline layout (RockPlugins inside the Rock checkout)
+      4. ..\Rock\RockWeb      - local layout (Rock and RockPlugins side by side)
+    Rock.dll only exists after Rock has been built, which is what we need. The
+    plugins compile against the Rock you actually build and deploy, not a NuGet
+    package (Spark doesn't publish one for every hotfix release).
+  -->
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And '$(SolutionDir)' != '' And '$(SolutionDir)' != '*Undefined*' And Exists('$(SolutionDir)RockWeb\Bin\Rock.dll')">$(SolutionDir)RockWeb</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(MSBuildThisFileDirectory)..\RockWeb\Bin\Rock.dll')">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\RockWeb'))</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(MSBuildThisFileDirectory)..\Rock\RockWeb\Bin\Rock.dll')">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\Rock\RockWeb'))</RockWebPath>
+    <RockBin Condition="'$(RockWebPath)' != ''">$([MSBuild]::EnsureTrailingSlash('$(RockWebPath)'))Bin</RockBin>
+  </PropertyGroup>
+
+</Project>
