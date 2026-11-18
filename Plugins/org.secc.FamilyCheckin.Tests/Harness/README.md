@@ -16,7 +16,8 @@ the test project compiles only `*.cs`, and this folder is not linked into RockWe
 2. Load the fixture into the local database:
    `sqlcmd -S "(localdb)\MSSQLLocalDB" -d <RockDb> -i fixture.sql`
    - Defaults: 8,615 rows (a Sunday-sized key list) on Group 24 / Schedule 6 at Locations 11, 4, 5, 6, 7,
-     plus 3 rows with no PersonAlias. Change the variables at the top for other data. The group must be a
+     plus 3 rows with no PersonAlias and 4 rows created today but dated yesterday or tomorrow (ROCK-9442),
+     which the cache must leave out. Change the variables at the top for other data. The group must be a
      check-in group whose group locations have that schedule, so the rows map to an `OccurrenceCache` entry.
    - Every row is tagged `ForeignKey = 'attendance-cache-harness'`.
 3. Copy `AttendanceCacheHarness.ashx` into the RockWeb root and call it with `mode=<mode>`, e.g.
@@ -26,7 +27,7 @@ the test project compiles only `*.cs`, and this folder is not linked into RockWe
 | Mode | What it checks |
 |---|---|
 | `flush` | `AttendanceCache.Clear()`. |
-| `all` | Cold then warm `All()`: count vs today's DB rows, state breakdown, access keys, no-person rows. |
+| `all` | Cold then warm `All()`: count vs today's DB rows (`AttendanceCache.TodayFilter`), state breakdown, access keys, no-person rows. `out_of_day_cached` must be 0. |
 | `verify` | `AttendanceCache.Verify` (no exceptions; error count). |
 | `par&threads=8` | Concurrent cold `All()` callers: all get every row and share one load (similar times). |
 | `badkey` | Injects `AttendanceCache:0`, `:abc` and `: <id>` into the key list; one `All()` must remove them. |

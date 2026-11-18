@@ -2,7 +2,7 @@
 
 > Southeast's custom event/registration blocks — calendar Lava, a heavily-customized registration entry/detail pair, QR event passes, SignNow signing, camp-placement import, and the Community Gives Back program.
 
-Last updated: 2026-09-21
+Last updated: 2026-11-05
 
 ## Overview
 
@@ -55,6 +55,18 @@ Category in Rock: **SECC > Event** (Community Gives Back blocks: **SECC > Commun
 
 `RegistrationEntry` (6,091 lines) and `RegistrationDetail` (2,799 lines) are large SECC-maintained
 copies of the corresponding stock Rock blocks; treat them as forks kept in sync with upstream.
+
+### Community Gives Back registration behavior
+
+- The School Selection step requires a school and sibling-group choice. If either is missing, the
+  visitor stays on that step with a warning instead of seeing an error. Schools with no sponsorships
+  left are not listed.
+- The school list and seat counts are loaded once when the visitor opens the page and kept for that
+  visit. Finish checks the school and sibling answer again against that list, but it does not re-count
+  seats, so a school can still be oversubscribed if several visitors register at the same time.
+- If the registration workflow reports an error, it is written to the Rock exception log. The visitor
+  still sees the Complete step when the workflow was saved, because a saved workflow already counts as
+  a registration. If nothing was saved, the visitor stays on the Confirmation step with an error.
 
 ### Camp Placement Import behavior
 
