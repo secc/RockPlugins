@@ -173,6 +173,8 @@
 
                 {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
 
+                {% comment %}Fluid: assigns inside an include do not leak to the parent, so re-derive scheduledDates here.{% endcomment %}
+                {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
                 {% if scheduledDates != empty %}
                 <!-- START: Social Media - Shareables -->
                 <div class="socialbox clearfix text-center" style="display: inline-block;">

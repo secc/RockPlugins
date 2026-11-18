@@ -2,7 +2,7 @@
 
 namespace org.secc.Trak1.Helpers
 {
-    class Trak1Applicant
+    public class Trak1Applicant
     {
         public string SSN { get; set; }
         public string FirstName { get; set; }

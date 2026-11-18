@@ -195,7 +195,7 @@ namespace org.secc.FamilyCheckin.Cache
             var cachedKeys = AllKeys( () => KeyFactory() );
 
             var allValues = new List<MobileCheckinRecordCache>();
-            foreach ( var key in cachedKeys.ToList() )
+            foreach ( var key in cachedKeys )
             {
                 var value = GetFromQualifiedKey( key );
                 if ( value != null )

@@ -45,22 +45,9 @@ Note: This requires the WOW animations shortcode, make sure you have included in
 ************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
 {% endcomment %}
 
-{%- if sharingguid != empty -%}
-    {%- contentchannelitem where:'Guid == "{{sharingguid}}"' -%}
-    {%- assign guidItem = contentchannelitemItems | First -%}
-    {%- assign guidItemImageGuid = guidItem | Attribute:'Image','RawValue' -%}
-    {%- endcontentchannelitem -%}
-    {% if facebookog == "true" %}
-        {%- assign facebooktitle = guidItem.Title -%}
-        {%- assign facebooksummary = guidItem.Content | UnescapeDataString | HtmlDecode | StripHtml -%}
-        {%- assign facebookimage = 'https://www.southeastchristian.org/GetImage.ashx?Guid=' | Append:guidItemImageGuid -%}
-    {% endif %}
-{%- endif -%}
-
 {%- if url == empty -%}
-    {% assign host = 'Global' | Page:'Host' %}
-	{% assign url = 'Global' | Page:'Url' %}
-	{% assign social_url = url | Replace:host, 'www.southeastchristian.org' | Escape %}
+    {% assign path = 'Global' | Page:'Path' %}
+	{% assign social_url = 'Global' | Attribute:'PublicApplicationRoot' | ReplaceLast:'/', '' | Append:path | Escape %}
 {%- else -%}
     {% assign social_url = url | Escape %}
 {%- endif -%}
@@ -83,7 +70,7 @@ Note: This requires the WOW animations shortcode, make sure you have included in
                 {{ facebooktitle | AddMetaTagToHead:'property','og:title' }}
             {% endif %}
             {% if facebooksummary != "" %}
-                {{ facebooksummary | UnescapeDataString | HtmlDecode | StripHtml | AddMetaTagToHead:'property','og:description' }}
+                {{ facebooksummary | AddMetaTagToHead:'property','og:description' }}
             {% endif %}
             {% if facebookimage != "" %}
                 {{ facebookimage | Escape | AddMetaTagToHead:'property','og:image' }}
@@ -161,4 +148,3 @@ facebooktitle   -
 facebooksummary -
 facebookimage   -
 facebookog      - true
-sharingguid     -

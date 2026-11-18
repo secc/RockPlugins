@@ -1,15 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using Rock;
-using Rock.Data;
-using Rock.Lava;
 
 namespace org.secc.FamilyCheckin.Model
 {
-    public class SFChildcareParticipant : ILiquidizable
+    /// <summary>
+    /// One participant on a Sports &amp; Fitness childcare receipt.
+    /// </summary>
+    /// <remarks>
+    /// This type is persisted as JSON in the "CheckoutReceiptData" workflow attribute
+    /// (see <c>SportsAndFitnessChildcareCredits</c>) and read back with <c>FromJsonOrNull</c>,
+    /// so it must stay a plain POCO. Do not derive from <c>LavaDataObject</c>: that type is an
+    /// <c>IDictionary</c> whose <c>Add</c> throws, so Json.NET cannot deserialize it. When the
+    /// receipt is merged into the label template, <c>SportsAndFitnessChidcareReceipt</c> wraps
+    /// each participant in <c>new LavaDataObject( participant )</c> for the Lava engines.
+    /// </remarks>
+    public class SFChildcareParticipant
     {
-        
-
         public int PersonId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -23,60 +28,6 @@ namespace org.secc.FamilyCheckin.Model
             {
                 return CheckoutTime - CheckinTime;
             }
-        }
-
-
-        [LavaHidden]
-        public object this[object key]
-        {
-            get
-            {
-                switch ( key.ToStringSafe() )
-                {
-                    case "PersonId": return PersonId;
-                    case "FirstName": return FirstName;
-                    case "LastName": return LastName;
-                    case "CheckinTime": return CheckinTime;
-                    case "CheckoutTime": return CheckoutTime;
-                    case "CreditsUsed": return CreditsUsed;
-                    default: return String.Empty;
-                }
-            }
-        }
-
-        [LavaHidden]
-        public List<string> AvailableKeys
-        {
-            get
-            {
-                return new List<string> {
-                "PersonId",
-                "FirstName",
-                "LastName",
-                "CheckinTime",
-                "CheckoutTime",
-                "CreditsUsed",
-                "TotalTimeCheckedIn" };
-            }
-        }
-
-    public bool ContainsKey( object key )
-        {
-            var keys = new List<string> { 
-                "PersonId", 
-                "FirstName", 
-                "LastName", 
-                "CheckinTime", 
-                "CheckoutTime", 
-                "CreditsUsed", 
-                "TotalTimeCheckedIn" };
-
-            return keys.Contains( key.ToStringSafe() );
-        }
-
-        public object ToLiquid()
-        {
-            return this;
         }
     }
 }

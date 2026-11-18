@@ -271,8 +271,9 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             var mergeObjects = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson );
             mergeObjects.Add( "ConfirmAccountUrl", RootPath + url.TrimStart( new char[] { '/' } ) );
 
-            var personDictionary = userLogin.Person.ToLiquid() as Dictionary<string, object>;
-            mergeObjects.Add( "Person", personDictionary );
+            // Person.ToLiquid() is obsolete (removed in Rock v17) and returned the entity itself, so the
+            // "as Dictionary" cast always yielded null. Pass the entity directly; Lava resolves it on both engines.
+            mergeObjects.Add( "Person", userLogin.Person );
             mergeObjects.Add( "User", userLogin );
 
             var recipients = new List<RockMessageRecipient>();

@@ -19,8 +19,17 @@ namespace org.secc.Communication.Messaging.Model
         [Obsolete]
         [JsonProperty( "MessageToMatch" )]
         public string MessageToMatch { get; set; } = string.Empty;
+        private List<string> _phrasesToMatch = new List<string>();
+        /// <summary>
+        /// Never null. The Messaging API can omit the property or send an explicit null;
+        /// both normalise to an empty list so callers can enumerate without guarding.
+        /// </summary>
         [JsonProperty("PhrasesToMatch")]
-        public List<string> PhrasesToMatch { get; set; }
+        public List<string> PhrasesToMatch
+        {
+            get { return _phrasesToMatch; }
+            set { _phrasesToMatch = value ?? new List<string>(); }
+        }
         [JsonProperty( "CampaignCode" )]
         public string CampaignCode { get; set; }
         [JsonProperty("ResponseMessage")]

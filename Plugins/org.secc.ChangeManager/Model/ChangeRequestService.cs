@@ -12,13 +12,12 @@
 // limitations under the License.
 // </copyright>
 using org.secc.ChangeManager.Data;
-using Rock.Data;
 
 namespace org.secc.ChangeManager.Model
 {
     public class ChangeRequestService : ChangeManagerService<ChangeRequest>
     {
-        public ChangeRequestService( RockContext context ) : base( context )
+        public ChangeRequestService( Rock.Data.DbContext context ) : base( context )
         {
         }
     }

@@ -57,7 +57,7 @@ namespace org.secc.Migrations
 </div>
 
 <div class='margin-v-sm'>
-{% if Location.FormattedHtmlAddress && Location.FormattedHtmlAddress != '' %}
+{% if Location.FormattedHtmlAddress and Location.FormattedHtmlAddress != '' %}
 	{{ Location.FormattedHtmlAddress }}
 {% endif %}
 </div>
@@ -143,7 +143,7 @@ namespace org.secc.Migrations
 </div>
 
 <div class='margin-v-sm'>
-{% if Location.FormattedHtmlAddress && Location.FormattedHtmlAddress != '' %}
+{% if Location.FormattedHtmlAddress and Location.FormattedHtmlAddress != '' %}
 	{{ Location.FormattedHtmlAddress }}
 {% endif %}
 </div>

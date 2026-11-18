@@ -56,20 +56,20 @@ Ships Rock plugin migrations that stand up the plugin's data and pages:
 - `004`–`006` — fixes and additions (nursing-home fix, visit-cancel, legacy-Lava fix,
   show-name-in-visit).
 
-## Observations
-
-*Noticed while documenting — not a full audit.*
-
-- **Security (medium):** These blocks surface sensitive health/PII — hospitalizations, homebound
-  status, nursing-home residency. Make sure the Rock **page/block security** for these is locked to
-  Pastoral Care staff roles and not inadvertently viewable by broader admin/staff groups.
-
 ## Making Changes
 
 - To change what a list shows, edit the matching `*.ascx.cs` in `org_secc/PastoralCare/`; the
   block's behavior keys off its configured workflow/defined-type settings.
 - New pages, workflows, or defined-type values belong in a new numbered migration under
   `/Migrations/` (don't hand-edit existing migrations that have already run).
+- A grid column's `SortExpression` must name a real property on the row class, and that property
+  must be comparable (for example `PersonToVisit.LastName`, not `PersonToVisit` or `Person`). The
+  name is case-sensitive. Rock's `Sort()` skips names it can't find and then sorts by the whole row,
+  which throws "At least one object must implement IComparable".
+- Homebound List keeps a workflow whose Homebound Person is blank or no longer exists. The row shows
+  blank person columns so staff can open the workflow and fix it.
 - Related: [org.secc.Workflow](../org.secc.Workflow/README.md) (the `DeleteVisitActivity` action and
   pastoral workflow helpers) and the `CloseDeseasedPastoralWorkflows` job in
   [org.secc.Jobs](../org.secc.Jobs/README.md).
+
+Last updated: 2026-10-29

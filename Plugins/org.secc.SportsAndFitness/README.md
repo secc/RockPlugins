@@ -45,7 +45,7 @@ All blocks are RockWeb-compiled `.ascx` controls. Categories vary (`SECC > Check
 | `ControlCenter/Search` | Sports and Fitness > Control Center | Search participants by PIN and/or phone number. | Search By PIN, Search By Phone Number, Search Result Page |
 | `ControlCenter/SearchResults` | Sports and Fitness > Control Center | Renders the participant result list via Lava. | Person Detail (linked page), Sports and Fitness PIN Purpose (defined value), Results Lava, Lava Commands, Show Debug Panel |
 | `ControlCenter/PersonActions` | Sports and Fitness > Control Center | Per-person action panel with links to Sports/Group-Fitness/Childcare history. | Sports & Fitness / Group Fitness / Childcare History pages, Group Fitness Group |
-| `ControlCenter/ManageSportsPINs` | Sports and Fitness > Control Center | Manage a person's sign-in PINs (used alongside Person Actions). | (none) |
+| `ControlCenter/ManageSportsPINs` | Sports and Fitness > Control Center | Manage a person's sign-in PINs (used alongside Person Actions). A new PIN must contain only the numbers 0-9, be at least 4 digits long (leading zeros count), not be all zeros, and not match the user name of any existing login; the Person Actions Manage PINs dialog applies the same rules. | (none) |
 
 #### GuestRegistration attribute keys
 
@@ -88,7 +88,6 @@ and is not wired into any build or `Rock.Plugin.Migration`.
 *Noticed while documenting — not a full audit.*
 
 - **Improvement:** `Migrations/sf stored proc.sql` hard-codes database **Ids** (group Ids, attribute Ids) and the `RockDBStaging` database name. It's a point-in-time data move that will not be correct against any other environment — keep it as historical reference, not something to re-run.
-- **Security (low):** `GuestRegistration` is a public-facing self-service kiosk block that **creates Person/Family records** and writes a liability-waiver acceptance (with the client IP read from `HTTP_X_FORWARDED_FOR`). It records a `Pending` record status and dedupes against existing people, but confirm the page hosting it is locked to the kiosk and that the trusted-proxy assumption behind `X_FORWARDED_FOR` holds (otherwise the stored "accepted from" IP is client-spoofable).
 - **Improvement:** Several blocks `new RockContext()` repeatedly within a single request/handler (e.g. `GuestRegistration` opens many short-lived contexts), and `GetEmergencyContactMatrixTypeId()` dereferences the looked-up attribute without a null check. Works in practice but is fragile if the expected attribute/matrix template is missing.
 - **Improvement:** `ActivitiesCheckin`'s membership/notes logic keys off a `ConnectionStatusValueId == Member` or `Person.GetAttributeValue("Employer") == "Southeast Christian Church"` string check (`ActivitiesCheckin.ascx.cs` lines 172 and 329) — brittle business rules embedded in code rather than configuration.
 
@@ -100,5 +99,7 @@ and is not wired into any build or `Rock.Plugin.Migration`.
 - Theme/layout/styling changes go in `Themes/SportsAndFitness/`.
 - This project is RockWeb-compiled — editing a `.cs` here changes behavior only after the markup is deployed to `RockWeb/Plugins/org_secc/`; the `.csproj` itself only compiles `AssemblyInfo.cs`.
 - Label printing relies on [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md)'s `LabelPrinter`.
-</content>
-</invoke>
+
+---
+
+**Last updated:** 2026-10-28

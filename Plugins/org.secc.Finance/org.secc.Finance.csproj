@@ -201,7 +201,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 	<PropertyGroup>
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Finance.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)org.secc.Finance.dll" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R "$(ProjectDir)Handlers\GetStatement.ashx" "$(SolutionDir)RockWeb"
 xcopy /Y "$(SolutionDir)packages\BouncyCastle.Cryptography.2.6.2\lib\net461\BouncyCastle.Cryptography.dll" "$(SolutionDir)RockWeb\bin\"</PostBuildEvent>
   </PropertyGroup>

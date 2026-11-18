@@ -45,6 +45,18 @@ Statement content is assembled by `Utility/Statement.AddMergeFields`, which pull
 for the person's `GivingId` (whole giving family), groups them into account/fund summaries, and adds
 pledge progress. With no Accounts selected it defaults to tax-deductible accounts.
 
+When **Excluded Currency Types** are set, the household's gifts are loaded in one query (with their
+payment detail and currency type) and split in memory: gifts in an excluded type go to
+`ExcludedTransactionDetails`, everything else to `TransactionDetails`, which also drives
+`AccountSummary`. The split is done in memory because filtering on currency type in SQL made SQL
+Server plan from the currency types instead of the household, and the QCD statement timed out. A
+gift with no currency type stays in `TransactionDetails`, as it did with the SQL filter, and is
+logged to the Exception List as a `MissingCurrencyTypeException` naming the `GivingId`, so Finance
+can set the type and regenerate the statement. An excluded currency type guid that no longer
+resolves to a defined value (the type was deleted or merged) is ignored and logged the same way,
+once per guid until the app restarts rather than once per statement, so the stale setting can be
+updated.
+
 `AddMergeFields` also adds a **`MoveSummary`** object (populated from the `_org_secc_Commitment_GetTotalsByPersonId` stored proc) that exposes the giving family's MOVE
 commitment to the statement Lava. Available merge fields: `MoveSummary.AmountPledged`,
 `MoveSummary.AmountGiven`, `MoveSummary.SecondYearAmountGiven`, `MoveSummary.PledgeDuration`
@@ -105,12 +117,6 @@ Ships Rock plugin migrations (SQL only — `Down()` is intentionally empty):
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** Giving statements are sensitive financial PII. `GetStatement.ashx` only
-  enforces authorization when the binary file's *type* has `RequiresViewSecurity` set — otherwise
-  any file id/guid streams without a person check. The custom fallback (matching `GivingId` or
-  `PersonIds` file attributes) is reasonable, but worth confirming the statement binary-file type is
-  actually flagged `RequiresViewSecurity` and that those attributes are populated on every generated
-  file; otherwise statements could be retrieved by guessing/iterating ids.
 - **Improvement:** The DELETE endpoint runs a raw `DELETE FROM dbo.[Document]` via
   `ExecuteSqlCommand` (parameterized, so not injection-prone) alongside the EF `Delete` of the
   binary file. Review that this leaves no orphaned references and consider doing the cleanup through
@@ -124,13 +130,32 @@ Ships Rock plugin migrations (SQL only — `Down()` is intentionally empty):
 
 - To change what a statement contains (transactions, fund summary, pledges), edit
   `Utility/Statement.cs`; to change the action's inputs/output, edit `Workflow/GenerateStatement.cs`.
-- The default on-screen statement markup lives in the **Lava Template** block setting of
-  Contribution Statement Lava (and in `org_secc/Finance/Lava/ContributionStatement.lava`); the
-  generation run is configured on the Contribution Statement Generator block.
+- The statements the Generate Statements page produces render from the **LavaTemplate** attribute
+  on two actions of the "Generate Contribution Statement" workflow type, stored in the database:
+  "Generate the Giving Statement" and "Generate the QCD Statement". In the Giving template, ACH rows
+  handle a null `AccountNumberMasked` by rendering a fully masked fallback (`••••••••`) instead of
+  attempting to split a null value.
+- `org_secc/Finance/Lava/ContributionStatement.lava` and `org_secc/Finance/Lava/QCDContributionStatement.lava`
+  are exact reference copies of those two templates (synced from PROD 2026-09-29, ROCK-9037). The
+  live statements don't read them, so editing a file changes nothing on those statements until the
+  same change is made in the database; keep both in step by hand. The Giving copy keeps the 5 CRLF
+  line endings the database value has, and `.gitattributes` marks both files `-text` so git never
+  rewrites them.
+- The post-build copies `ContributionStatement.lava` to `RockWeb/Plugins/org_secc/Finance/Lava/`, and
+  one workflow type still includes it from there: "OLD: Generate Contribution Statement", action
+  "Generate the Giving Statement" (`{% include '~\Plugins\org_secc\Finance\Lava\ContributionStatement.lava' %}`).
+  That workflow type is still active but has run no statements in the last year; a deploy changes
+  what it renders.
+- The on-screen **Contribution Statement Lava** block (pages "Contribution Statement" and
+  "Contribution Statement V1") is separate: its Lava Template setting is
+  `{% include '~\Assets\Lava\ContributionStatement.lava' %}`, a file on the web server that this
+  repo does not deploy (the post-build copies `org_secc/` to `RockWeb/Plugins/org_secc/`). The
+  2019-era markup that `ContributionStatement.lava` held before ROCK-9037 is in git history
+  (`git show c07d8666:Plugins/org.secc.Finance/org_secc/Finance/Lava/ContributionStatement.lava`).
 - The batch driver is `Jobs/ProcessGivingStatements.cs` — it keys off the configured generator
   workflow type and activity name, so adding a new generation step is a workflow change, not a code
   change.
 - File access/serving rules live in `Handlers/GetStatement.ashx.cs`; deletion in
   `Rest/Controllers/FinancialStatementsController.cs`.
 
-**Last updated:** 2026-07-15
+**Last updated:** 2026-10-07

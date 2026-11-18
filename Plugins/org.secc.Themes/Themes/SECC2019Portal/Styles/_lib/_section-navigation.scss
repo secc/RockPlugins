@@ -1,0 +1,72 @@
+@import 'expandable-menu';
+
+$SectionNavHeight: 100% !default;
+
+nav.section-nav {
+	@include ExpandableStyles($indentation: 10%, $vertical-padding: .5em, $divider: 1px solid lighten($DarkGrayColor, 40%)) {
+		font-size: .8em;
+		font-family: $Proxima-Bold;
+		font-weight: 700;
+		@include FontSmoothing;
+		@include hd-displays { font-size: 1em; }
+	}
+
+	position: absolute;
+	width: $SectionNavWidth;
+	@include tablets { width: $SectionNavTabletWidth; }
+	height: $SectionNavHeight;
+	right: 0;
+	top: 0;
+	//z-index: 0;
+	overflow: scroll;
+	background: rgba($NavItemColor, .8);
+
+
+	> ul > li {
+		&:hover, &.active {background: rgba($NavItemColor, .9);}
+		.toggle:hover, a:hover { text-decoration: none;}
+		&.dropdown li {
+			& > a { color: $GrayColor !important; }
+			&.active > a { color: inherit !important; }
+		}
+
+
+		li {
+			font-size: .9em;
+
+			& > *:first-child {
+				padding-top: .25em;
+				padding-bottom: .5em;
+			}
+		}
+	}
+
+	.se-logo {
+		font-size: 26px;
+		margin: 14px auto;
+		display: block;
+		@include hd-displays {
+			font-size: 35px;
+			margin-top: 30px;
+			margin-bottom: 30px;
+		}
+		@include small-desktops {
+			font-size: 16px;
+			margin-top: 16px;
+			margin-bottom: 8px;
+		}
+		@include tablets {
+			font-size: 14px;
+			margin-top: 20px;
+			margin-bottom: 10px;
+		}
+
+		@include large-phones {font-size: 28px;}
+		@include small-phones {font-size: 20px; margin: 14px;}
+
+		&.visible-sm-block {
+			float: left;
+			margin: 0 5px 0 0;
+		}
+	}
+}

@@ -37,6 +37,8 @@
    {% endif %}
 
    <div class="isotope_wrap">
+       {%- comment -%}Fluid: an unassigned limit: variable yields zero iterations (DotLiquid ignores it){%- endcomment -%}
+       {%- if limitPartners == null or limitPartners == '' -%}{%- assign limitPartners = 1000000 -%}{%- endif -%}
        {% for Item in Items limit:limitPartners %}
           {%- assign filterCampus = Item | Attribute: 'PartnerCampus' | Split:',' -%}
           {%- assign filterCause = Item | Attribute: 'PartnerCause' | Split:',' -%}

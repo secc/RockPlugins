@@ -57,6 +57,10 @@ Category in Rock: **SECC > Connection**.
 | **Lava** | code | Output template; defaults to a switch that `include`s `VolunteerGenius`, `CardPage`, or `CardWizard`. |
 | **Enable Debug** | bool (default false) | Show available Lava merge fields. |
 
+If the connection opportunity (or group) chosen in **Settings** is later deleted, the wizard shows a
+warning ("This signup isn't configured: its connection opportunity no longer exists.") instead of
+rendering, and the settings panel still opens so an admin can pick a new one (issue #57).
+
 **Volunteer Signup Form - Connections** — standard block attributes:
 
 | Setting | Type | Notes |
@@ -107,34 +111,28 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
 | `CardPage.lava` | Single page of card panels (best for 1–2 partitions). |
 | `CardWizard.lava` | Animated left-to-right cards; `CardWizardMode` `Single` or `Multiple` (default `Single`). |
 
+In the `CardWizard/` card partials, a card is a link when its partition is unlimited (its count is
+blank or `!`, so `Limit` is null) or still has spots left. A full card shows "Full" and is not a
+link.
+
+Some prod wizards include their own copies of these partials from `Content/Lava/Shine`,
+`Content/Lava/24HoursofPrayer` and `Content/Lava/18DaysofPrayer` (`CardWizard/`). Those live on the
+Content share and are copied there by hand, so a change to the partials here has to be made there too.
+
 ## Dependencies & Integrations
 
 - **Rock:** `RockContext`, connection model (`ConnectionRequest`, `ConnectionOpportunity`,
-  `ConnectionType`), `PersonService` (`FindPersons`, `SaveNewPerson`), `GroupService`,
-  `GroupTypeRoleService`, `ScheduleService`, defined types/values, `HistoryService`, the Rock
-  block/Lava framework, campus context.
-- **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) — the form loads it
-  **reflectively** (`org.secc.PersonMatch.Extension.GetByMatch`) for person matching, falling back
-  to `PersonService.FindPersons` when the assembly isn't present.
-- No third-party APIs.
+  `ConnectionType`), `PersonService` (`FindPersons`, `SaveNewPerson`, `AddPersonToFamily`),
+  `GroupMemberService`, `GroupService`, `GroupTypeRoleService`, `ScheduleService`,
+  `SecuritySettingsService` (account protection profiles ignored for duplicate matching), defined
+  types/values, `HistoryService`, the Rock block/Lava framework, campus context.
+- No cross-plugin dependencies (an earlier reflective call into `org.secc.PersonMatch` never ran and
+  was removed) and no third-party APIs.
 
 ## Observations
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** *Volunteer Signup Form - Connections* is a public-facing block that, on
-  submit, will **create a new `Person` and a `ConnectionRequest`** when no match is found
-  (`PersonService.SaveNewPerson` at `VolunteerSignupFormConnections.ascx.cs:405`). Person matching
-  uses name + email/birthdate, so unauthenticated form posts can both enumerate-by-side-effect and
-  add records. Confirm the page is intended for anonymous use, and consider spam/rate protection
-  (e.g. CAPTCHA) — worth confirming.
-- **Security (low):** The form sets group-member attributes from URL parameters via the `UrlKeys`
-  setting (`PageParameter(urlKey)`). Only keys the admin lists are honored, but those values are
-  attacker-controllable in the link; review which attributes are exposed this way. Note this applies
-  to `CardWizard` JSON signups too, not only to plain-URL links — the merge described under
-  [How `UrlKeys` values reach a connection request](#how-urlkeys-values-reach-a-connection-request)
-  runs on every request. The JSON in the same link is equally attacker-editable, so this widens no
-  trust boundary, but it does mean a listed key can be supplied on any signup URL.
 - **Improvement:** Several services are constructed with their own `new RockContext()` inline
   (e.g. `GroupTypeRoleService`, `ScheduleService`, `DefinedTypeService`) rather than reusing one
   per request, so a single render/bind can spin up multiple contexts. Acceptable, but tidy-able.
@@ -149,11 +147,26 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
   rather than editing the defaults, as the in-code default comment advises.
 - To change registrant capture, person matching, or `ConnectionRequest` creation, edit
   `VolunteerSignupFormConnections.ascx.cs` (`btnConnect_Click`).
-- Person-matching behavior lives in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md); this
-  plugin only calls into it reflectively.
+- Person matching runs in two steps. `PersonService.FindPersons` (name + email, filtered to the
+  entered birthdate when the picker is shown) reuses a person only when there is exactly one match
+  with the entered email. When that fails — typically a parent signing up a child with the parent's
+  own email — `FindHouseholdMember` looks in the families of whoever owns the entered email
+  (email only; a phone number is not private enough for an anonymous form) for the entered name,
+  preferring an exact birthdate, then none on file, then a likely typo (identical copies on the
+  exact tier reuse the oldest); people whose account protection profile Rock ignores for duplicate
+  detection are never reused, and High/Extreme never are whatever that setting says. With no hit, a minor is
+  added to the owning adults' family with the child role when the adults share one family, someone
+  there has the last name, nobody has the first name, and no one anywhere in Rock has that name and
+  birthdate; otherwise a new family is created as before. A minor entered with someone else's email
+  never gets that email or phone (the parent's phone on the child is what makes family check-in
+  show a second family); the parent's contact info goes into the request comments instead. For a
+  person matched by name and email, `SavePhone` adds a number only when none of that type is on
+  file and never replaces one (only the signed-in person may change their own) — SECC keeps the
+  account-protection duplicate-ignore list empty on purpose, so this is the guard against an
+  anonymous post redirecting someone's mobile.
 - Re-package with `BuildPlugin.ps1` (Windows + 7-Zip) — note it intentionally excludes
   `ConnectionOpportunitySearch.ascx*` from the `.plugin`.
 - If a URL-supplied attribute value isn't landing on the connection request, check the merge in the
   `RoleRequests` getter and the apply step in `AddGroupMemberAttributes` — a key has to survive both.
 
-Last updated: 2026-08-21
+Last updated: 2026-11-06

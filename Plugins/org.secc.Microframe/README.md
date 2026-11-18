@@ -90,10 +90,6 @@ to `MicroframeConnection`, which speaks the board's TCP protocol via async `Sock
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** The sign `PIN` is stored as plaintext in `_org_secc_Microframe_Sign.PIN` and
-  transmitted over an unencrypted TCP socket. This appears to match the device's native protocol
-  (the boards only support a 4-digit numeric PIN), so it's likely a hardware constraint rather than a
-  fixable defect — worth confirming these signs sit on a trusted internal VLAN.
 - **Improvement:** `MicroframeConnection`'s socket callbacks swallow exceptions into empty `catch {}`
   blocks and `Console.WriteLine`, with no Rock logging. A sign that is offline or misconfigured fails
   silently — there's no surfaced error for an operator. Worth routing failures to `ExceptionLogService`.

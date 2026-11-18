@@ -1,5 +1,5 @@
 {%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
-    {%- assign item = contentchannelitemItems | First - %}
+    {%- assign item = contentchannelitemItems | First -%}
     {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
     {%- assign sermonsCount = 0 -%}
 	{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
@@ -22,8 +22,8 @@
 {%- endcontentchannelitem -%}
 <html>
     <head>
-        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
-        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css?v=637171650775243506"/>
+        <link rel="stylesheet" href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
+        <link rel="stylesheet" href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}Themes/SECC2019/Styles/main.css?v=637171650775243506"/>
         <style>
             html, body {
               margin: 0px;

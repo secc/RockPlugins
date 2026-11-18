@@ -23,9 +23,24 @@ namespace org.secc.Purchasing
     [Serializable]
     public class PurchasingBase
     {
-        private static RockContext _rockContext = new RockContext();
-        protected PersonAliasService personAliasService = new PersonAliasService( new Rock.Data.RockContext() );
-        protected UserLoginService userLoginService = new UserLoginService( new Rock.Data.RockContext() );
+        private RockContext _rockContext;
+        private PersonAliasService _personAliasService;
+        private UserLoginService _userLoginService;
+
+        private RockContext RockDataContext
+        {
+            get { return _rockContext ?? ( _rockContext = new RockContext() ); }
+        }
+
+        protected PersonAliasService personAliasService
+        {
+            get { return _personAliasService ?? ( _personAliasService = new PersonAliasService( RockDataContext ) ); }
+        }
+
+        protected UserLoginService userLoginService
+        {
+            get { return _userLoginService ?? ( _userLoginService = new UserLoginService( RockDataContext ) ); }
+        }
 
         private Person mCurrentPerson;
         [XmlIgnore]

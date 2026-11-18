@@ -73,6 +73,7 @@
               var co_seconds_till;
 			  var now = new Date();
 			  try {
+                  console.log(data);
 			      var startTimeString = data.data.currentOrganization.servicesConnection.services[0].startTime;
 			      var startTime = new Date(startTimeString);
 			      var endTime = new Date(data.data.currentOrganization.servicesConnection.services[0].endTime);
@@ -138,6 +139,7 @@
                 dataType: "json",
                 crossDomain: true,
                 success: function(data) {
+                    console.log(data);
                   co_loadCountdown(data);
                 },
                 error: function(xhr, ajaxOptions, thrownError) {

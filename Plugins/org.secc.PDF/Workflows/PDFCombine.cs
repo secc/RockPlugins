@@ -1,5 +1,6 @@
 ﻿using iText.Kernel.Pdf;
 using iText.Kernel.Utils;
+using org.secc.DevLib.Extensions;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -90,8 +91,13 @@ namespace org.secc.PDF.Workflows
 
             PdfMerger merger = new PdfMerger(pdfDocument);
 
-            PdfDocument pdfDoc1 = new PdfDocument(new PdfReader(pdf1.ContentStream));
-            PdfDocument pdfDoc2 = new PdfDocument(new PdfReader(pdf2.ContentStream));
+            // ROCK-9041: Read each file into memory through a fresh provider stream (disposed) rather than
+            // handing iText a provider stream it never closes; see BinaryFileExtensions.ReadContentBytes.
+            byte[] pdf1Bytes = pdf1.ReadContentBytes( "First PDF" );
+            byte[] pdf2Bytes = pdf2.ReadContentBytes( "Second PDF" );
+
+            PdfDocument pdfDoc1 = new PdfDocument(new PdfReader(new MemoryStream(pdf1Bytes)));
+            PdfDocument pdfDoc2 = new PdfDocument(new PdfReader(new MemoryStream(pdf2Bytes)));
 
             merger.Merge(pdfDoc1, 1, pdfDoc1.GetNumberOfPages());
             merger.Merge(pdfDoc2, 1, pdfDoc2.GetNumberOfPages());

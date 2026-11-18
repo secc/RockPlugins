@@ -121,10 +121,13 @@
     <Compile Include="Cache\CheckinCache.cs" />
     <Compile Include="Cache\CheckinCacheConsumer.cs" />
     <Compile Include="Cache\CheckinCacheMessage.cs" />
+    <Compile Include="Cache\CheckinKeyList.cs" />
+    <Compile Include="Cache\CheckinWriteGuard.cs" />
     <Compile Include="Cache\CheckinKioskTypeCache.cs" />
     <Compile Include="Cache\MobileCheckinRecordCache.cs" />
     <Compile Include="Cache\AttendanceCache.cs" />
     <Compile Include="Cache\OccurrenceCache.cs" />
+    <Compile Include="Cache\SingleFlight.cs" />
     <Compile Include="Data\FamilyCheckinContext.cs" />
     <Compile Include="Data\FamilyCheckinService.cs" />
     <Compile Include="Exceptions\CheckInStateLost.cs" />
@@ -222,11 +225,12 @@
     <Content Include="Scripts\ZebraPrint.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
+  <!-- The post-build event copies the plugin into RockWeb. Builds that set CopyToRockWeb to false (test builds) skip it. -->
+  <PropertyGroup Condition="'$(CopyToRockWeb)' != 'false'">
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
 xcopy /Y /R /E /I "$(ProjectDir)Themes\*" "$(SolutionDir)RockWeb\Themes\"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.FamilyCheckin.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.FamilyCheckin.pdb" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)org.secc.FamilyCheckin.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)org.secc.FamilyCheckin.pdb" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R /E /I "$(ProjectDir)Scripts\*" "$(SolutionDir)RockWeb\Scripts\CheckinClient"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

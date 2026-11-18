@@ -148,8 +148,8 @@
                     </div>
                     <div class="col-xs-12 col-md-6 g-padding-x-0--xs">
                         <a href="~/ChangePassword">Change Password</a><br>
-                        <a href="~/Subscribe">Subscribe to Communication Lists</a><br>
-                        <a href="~/Unsubscribe">Unsubscribe from Lists</a>
+                        <a href="~/Subscribe">Communication Lists: Subscribe/Unsubscribe</a><br>
+                        <a href="~/Unsubscribe">Update Email Preference</a>
     				</div>
                 </div>
             </div>

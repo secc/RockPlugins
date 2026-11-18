@@ -19,14 +19,14 @@
     {% if EventItemOccurrence.Name != '' %}
         <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md g-margin-b-5--xs">{{ Event.Name }}</h3>
     {% endif %}
-    {% if numOccurrences > 1 and multiCampus == true %}
-        <p class="g-font-size-14-xs g-font-weight--300">
-            <i class="fal fa-church"></i> Multiple Campuses
-        </p>
-    {% else %}
-        <p class="g-font-size-14-xs g-font-weight--300">
-            <i class="fal fa-church"></i> {{ EventItemOccurrence.Campus.Name}} Campus
-        </p>
+    {% comment %}
+        Each card is a single occurrence, so it names its own campus. An occurrence with
+        no campus gets no campus line; staff describe the place in its Location text.
+    {% endcomment %}
+    {% if EventItemOccurrence.CampusId != null %}
+    <p class="g-font-size-14-xs g-font-weight--300">
+        <i class="fal fa-church"></i> {{ EventItemOccurrence.Campus.Name }} Campus
+    </p>
     {% endif %}
     {% assign childcare = EventItemOccurrence | Attribute: 'ChildcareAvailable' %}
     {% assign list_regs_horiz = EventItemOccurrence | Attribute: 'ListRegistrationHorizontally' %}
@@ -46,7 +46,8 @@
                 {% endfor %}
             {% else %}
                 {% if scheduleText == empty %}
-                    {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                    {% assign contactName = EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim %}
+                    {% if contactName != '' %}
                         <i class="fal fa-calendar"></i> Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.
                         {% else %}
                         <i class="fal fa-calendar"></i> Date and/or time has not been set yet. Please contact for more details.
@@ -62,17 +63,15 @@
         {% endif %}
     </p>
 
+    {% if EventItemOccurrence.Location != null and EventItemOccurrence.Location != '' %}
     <p class="g-font-size-14-xs g-font-weight--300">
-        <i class="fal fa-map-marker-alt"></i> {% if EventItemOccurrence.Location != '' %}
-            {{ EventItemOccurrence.Location }}
-            {% else %}
-            {% if numOccurrences > 1 and multiCampus == true %}
-                Multiple <br />Campuses
-                {% else %}
-                {{EventItemOccurrence.Campus.Name}} <br />Campus
-            {% endif %}
-        {% endif %}
+        <i class="fal fa-map-marker-alt"></i> {{ EventItemOccurrence.Location }}
     </p>
+    {% elseif EventItemOccurrence.CampusId != null %}
+    <p class="g-font-size-14-xs g-font-weight--300">
+        <i class="fal fa-map-marker-alt"></i> {{ EventItemOccurrence.Campus.Name }} <br />Campus
+    </p>
+    {% endif %}
 
     {% if childcare == 'Yes' %}
         <p class="g-font-size-14-xs g-font-weight--300">
@@ -81,9 +80,9 @@
     {% endif %}
 
 
-    {% if (EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '') or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
+    {% if contactName != '' or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
         <p class="g-font-size-14-xs g-font-weight--300">
-            <i class="fal fa-address-book"></i> Contact: {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}{{ EventItemOccurrence.ContactPersonAlias.Person.FullName }}&emsp;{% endif %}{% if EventItemOccurrence.ContactEmail != '' %}<a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a>&emsp;{% endif %}{{ EventItemOccurrence.ContactPhone }}
+            <i class="fal fa-address-book"></i> Contact: {% if contactName != '' %}{{ EventItemOccurrence.ContactPersonAlias.Person.FullName }}&emsp;{% endif %}{% if EventItemOccurrence.ContactEmail != '' %}<a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a>&emsp;{% endif %}{{ EventItemOccurrence.ContactPhone }}
         </p>
         {%comment%}
             <!--Removing notes because no one uses them-->
@@ -94,7 +93,7 @@
 
                 <h6 class="g-padding-t-40--xs">
                     <span class="g-font-weight--800 uppercase">Contact</span><br />
-                    {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                    {% if contactName != '' %}
                         {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
                     {% endif %}
                     {% if EventItemOccurrence.ContactEmail != '' %}
@@ -148,7 +147,7 @@
 
             {% else %}
             {% for linkage in EventItemOccurrence.Linkages %}
-                {% if linkage.RegistrationInstanceId > 0 ) %}
+                {% if linkage.RegistrationInstanceId > 0 %}
 
                     {% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
                     {% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}

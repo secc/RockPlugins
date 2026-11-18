@@ -72,7 +72,7 @@ namespace RockWeb.Plugins.GroupManager
 
     [GroupTypesField(
         "Home Group Types",
-        Description = "Groups of these types get the Home Group treatment: location shown as postal code only, registration forced on, childcare disabled, and the confirmation email fields locked to the Home Group values below. Leave blank to disable.",
+        Description = "Groups of these types get the Home Group treatment: location shown as postal code only, registration forced on, childcare disabled, and the confirmation From Name, Subject, and Body locked to the Home Group values below. Leave blank to disable.",
         IsRequired = false,
         Key = AttributeKeys.HomeGroupTypes,
         Category = "Home Groups",
@@ -87,16 +87,6 @@ namespace RockWeb.Plugins.GroupManager
         DefaultValue = "Southeast Christian Church",
         Category = "Home Groups",
         Order = 11
-        )]
-
-    [EmailField(
-        "Home Group Confirmation From Email",
-        Description = "From email used on the confirmation email for Home Groups.",
-        IsRequired = false,
-        Key = AttributeKeys.HomeGroupConfirmationFromEmail,
-        DefaultValue = "noreply@secc.org",
-        Category = "Home Groups",
-        Order = 12
         )]
 
     [TextField(
@@ -133,7 +123,6 @@ namespace RockWeb.Plugins.GroupManager
             public const string GroupRegistrationUrl = "GroupRegistrationUrl";
             public const string HomeGroupTypes = "HomeGroupTypes";
             public const string HomeGroupConfirmationFromName = "HomeGroupConfirmationFromName";
-            public const string HomeGroupConfirmationFromEmail = "HomeGroupConfirmationFromEmail";
             public const string HomeGroupConfirmationSubject = "HomeGroupConfirmationSubject";
             public const string HomeGroupConfirmationBody = "HomeGroupConfirmationBody";
         }
@@ -333,8 +322,14 @@ namespace RockWeb.Plugins.GroupManager
                 var groupName = publishGroup.Group.Name;
                 tbConfirmationFromName.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationFromName );
                 tbConfirmationFromName.ReadOnly = true;
-                tbConfirmationFromEmail.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationFromEmail );
-                tbConfirmationFromEmail.ReadOnly = true;
+                // ROCK-8991: this field is now the Reply-To, so let the leader supply an address. Pre-fill from the contact
+                // email only when nothing usable is stored (blank, or the legacy forced noreply@secc.org value).
+                if ( publishGroup.ContactEmail.IsNotNullOrWhiteSpace()
+                    && ( tbConfirmationFromEmail.Text.IsNullOrWhiteSpace()
+                        || tbConfirmationFromEmail.Text.Trim().Equals( "noreply@secc.org", StringComparison.OrdinalIgnoreCase ) ) )
+                {
+                    tbConfirmationFromEmail.Text = publishGroup.ContactEmail;
+                }
                 tbConfirmationSubject.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationSubject ).Replace( "{{ GroupName }}", groupName );
                 tbConfirmationSubject.ReadOnly = true;
                 ceConfirmationBody.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationBody ).Replace( "{{ GroupName }}", groupName );
@@ -490,6 +485,12 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="publishGroupStatus">The publish group status.</param>
         private void Save( PublishGroupStatus publishGroupStatus )
         {
+            // All callers (Publish, Save Draft, confirmation modal) post back with CausesValidation, so IsValid is already populated.
+            if ( !Page.IsValid )
+            {
+                return;
+            }
+
             RockContext rockContext = new RockContext();
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
             PublishGroup publishGroup = GetPublishGroup( rockContext, publishGroupService );
@@ -532,7 +533,12 @@ namespace RockWeb.Plugins.GroupManager
                 }
             }
 
-            if (publishGroup.PublishGroupStatus == PublishGroupStatus.Approved)
+            // Editing a live (Approved) listing used to clone it with a new Guid and delete the original
+            // row below, which killed every contact link already rendered, cached, bookmarked or indexed
+            // (ROCK-9153). The clone only has a purpose when the result is a Draft, so the live row can
+            // stay published alongside it. Every other outcome deletes the original in the same save, so
+            // edit in place and keep the Guid stable.
+            if (publishGroup.PublishGroupStatus == PublishGroupStatus.Approved && publishGroupStatus == PublishGroupStatus.Draft)
             {
                 var tempGroup = publishGroup.Group;
                 publishGroup = (PublishGroup) publishGroup.Clone();
@@ -562,13 +568,19 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.ChildcareOptions = (ChildcareOptions) ddlChildcareOptions.SelectedValue.AsInteger();
             publishGroup.ChildcareAvailable = ddlChildcareOptions.SelectedValue.AsInteger() > 0;
             publishGroup.ChildcareRegistrationLink = publishGroup.ChildcareAvailable ? tbChildcareRegistrationLink.Text : "";
-            publishGroup.AudienceValues = GetSelectedAudience( rockContext );
+            // Update the existing collection rather than replacing it: reading it first loads the current
+            // links, so EF deletes the deselected ones instead of re-inserting rows that already exist.
+            publishGroup.AudienceValues.Clear();
+            foreach (var audienceValue in GetSelectedAudience( rockContext ))
+            {
+                publishGroup.AudienceValues.Add( audienceValue );
+            }
             publishGroup.ContactPersonAliasId = pContactPerson.PersonAliasId.Value;
             publishGroup.RequestorAliasId = CurrentPersonAliasId.Value;
             publishGroup.ContactEmail = tbContactEmail.Text;
             publishGroup.ContactPhoneNumber = tbContactPhoneNumber.Text;
             publishGroup.ConfirmationFromName = tbConfirmationFromName.Text;
-            publishGroup.ConfirmationEmail = tbConfirmationFromEmail.Text;
+            publishGroup.ConfirmationEmail = tbConfirmationFromEmail.Text.Trim();
             publishGroup.ConfirmationSubject = tbConfirmationSubject.Text;
             publishGroup.ConfirmationBody = ceConfirmationBody.Text;
 

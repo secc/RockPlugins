@@ -13,16 +13,14 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.Communication.Data
 {
     public class CommunicationDataService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FamilyCheckinService{T}"/> class.
+        /// Initializes a new instance of the <see cref="CommunicationDataService{T}"/> class.
         /// </summary>
-        public CommunicationDataService( RockContext context )
+        public CommunicationDataService( Rock.Data.DbContext context )
             : base( context )
         {
         }

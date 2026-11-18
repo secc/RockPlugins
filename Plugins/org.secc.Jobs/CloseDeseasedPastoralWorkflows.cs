@@ -12,8 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using Rock;
@@ -30,84 +30,151 @@ namespace org.secc.Jobs
 
     public class CloseDeseasedPastoralWorkflows : RockJob
     {
+        /// <summary>
+        /// Written (forced, regardless of the workflow type's logging level) to every workflow this job
+        /// closes. It records what the job closed, and a workflow that already has it was closed by this
+        /// job and then reopened by staff, so it is not closed again.
+        /// </summary>
+        private const string ClosedLogText = "Closed by CloseDeseasedPastoralWorkflows: person is deceased.";
+
+        private static readonly string[] PersonAttributeKeys = { "PersonToVisit", "HomeboundPerson" };
+
         public override void Execute()
         {
-            var rockContext = new RockContext();
-
-            var hospitalWorkflow = GetAttributeValue( "HospitalAdmissionWorkflow" ).AsGuidOrNull();
-            var nursingHomeAdmissionWorkflow = GetAttributeValue( "NursingHomeResidentWorkflow" ).AsGuidOrNull();
-            var homeBoundPersonWorkflow = GetAttributeValue( "HomeboundPersonWorkflow" ).AsGuidOrNull();
-
-            var workflowService = new WorkflowService( rockContext );
-            var attributeService = new AttributeService( rockContext );
-            var attributeValueService = new AttributeValueService( rockContext );
-            var personAliasService = new PersonAliasService( rockContext );
-            var personService = new PersonService( rockContext );
-            var definedValueService = new DefinedValueService( rockContext );
-
-            var workflowTypesIdAsStrings = new WorkflowTypeService( rockContext ).Queryable()
-                    .Where( wt =>
-                         wt.Guid == hospitalWorkflow
-                         || wt.Guid == nursingHomeAdmissionWorkflow
-                         || wt.Guid == homeBoundPersonWorkflow
-                        )
-                    .ToList()
-                    .Select( wf => wf.Id.ToString() )
-                    .ToList();
-
-            var attributeIds = attributeService.Queryable()
-                    .Where( a => a.EntityTypeQualifierColumn == "WorkflowTypeId" && workflowTypesIdAsStrings.Contains( a.EntityTypeQualifierValue ) )
-                    .Select( a => a.Id ).ToList();
-
-            var wfTmpqry = workflowService.Queryable().AsNoTracking()
-                 .Where( w => (
-                    w.WorkflowType.Guid == hospitalWorkflow
-                    || w.WorkflowType.Guid == nursingHomeAdmissionWorkflow
-                    || w.WorkflowType.Guid == homeBoundPersonWorkflow
-                 ) && ( w.Status == "Active" ) );
-
-            var tqry = wfTmpqry.Join( attributeValueService.Queryable(),
-                obj => obj.Id,
-                av => av.EntityId.Value,
-                ( obj, av ) => new { Workflow = obj, AttributeValue = av } )
-                .Where( a => attributeIds.Contains( a.AttributeValue.AttributeId ) )
-                .GroupBy( obj => obj.Workflow )
-                .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } );
-            var qry = tqry.ToList();
-
-            var newQry = qry.Select( w => new
-            {
-                Workflow = w.Workflow,
-                Person = GetPerson( personAliasService, w.AttributeValues )
-            } );
-
-            var workflowsToClose = newQry
-                .Where( cd => cd.Person.IsDeceased && cd.Workflow.CompletedDateTime == null )
-                .Select( cd => cd.Workflow )
+            var workflowTypeGuids = new[]
+                {
+                    GetAttributeValue( "HospitalAdmissionWorkflow" ).AsGuidOrNull(),
+                    GetAttributeValue( "NursingHomeResidentWorkflow" ).AsGuidOrNull(),
+                    GetAttributeValue( "HomeboundPersonWorkflow" ).AsGuidOrNull()
+                }
+                .Where( g => g.HasValue )
+                .Select( g => g.Value )
                 .ToList();
 
-            foreach ( var workflow in workflowsToClose )
+            List<int> workflowIdsToClose;
+
+            using ( var rockContext = new RockContext() )
             {
-                workflow.MarkComplete();
+                var workflowTypeIds = new WorkflowTypeService( rockContext ).Queryable()
+                    .Where( wt => workflowTypeGuids.Contains( wt.Guid ) )
+                    .Select( wt => wt.Id )
+                    .ToList();
+
+                var workflowTypeIdsAsStrings = workflowTypeIds.Select( id => id.ToString() ).ToList();
+
+                var attributeIds = new AttributeService( rockContext ).Queryable()
+                    .Where( a => a.EntityTypeQualifierColumn == "WorkflowTypeId"
+                        && workflowTypeIdsAsStrings.Contains( a.EntityTypeQualifierValue )
+                        && PersonAttributeKeys.Contains( a.Key ) )
+                    .Select( a => a.Id )
+                    .ToList();
+
+                // Only the workflow Id and the person attribute value (a PersonAlias Guid) are needed.
+                var candidates = new WorkflowService( rockContext ).Queryable().AsNoTracking()
+                    .Where( w => workflowTypeIds.Contains( w.WorkflowTypeId )
+                        && w.Status == "Active"
+                        && w.CompletedDateTime == null )
+                    .Join( new AttributeValueService( rockContext ).Queryable().AsNoTracking()
+                            .Where( av => attributeIds.Contains( av.AttributeId ) ),
+                        w => w.Id,
+                        av => av.EntityId.Value,
+                        ( w, av ) => new { WorkflowId = w.Id, av.Value } )
+                    .ToList()
+                    .Select( c => new { c.WorkflowId, PersonAliasGuid = c.Value.AsGuidOrNull() } )
+                    .Where( c => c.PersonAliasGuid.HasValue )
+                    .ToList();
+
+                var personAliasGuids = candidates.Select( c => c.PersonAliasGuid.Value ).Distinct().ToList();
+
+                var deceasedPersonAliasGuids = new HashSet<Guid>( new PersonAliasService( rockContext ).Queryable().AsNoTracking()
+                    .Where( pa => personAliasGuids.Contains( pa.Guid ) && pa.Person.IsDeceased )
+                    .Select( pa => pa.Guid )
+                    .ToList() );
+
+                workflowIdsToClose = candidates
+                    .Where( c => deceasedPersonAliasGuids.Contains( c.PersonAliasGuid.Value ) )
+                    .Select( c => c.WorkflowId )
+                    .Distinct()
+                    .ToList();
+
+                // Leave alone workflows this job already closed once that staff have since reopened.
+                var reopenedWorkflowIds = rockContext.Set<WorkflowLog>().AsNoTracking()
+                    .Where( l => workflowIdsToClose.Contains( l.WorkflowId ) && l.LogText == ClosedLogText )
+                    .Select( l => l.WorkflowId )
+                    .Distinct()
+                    .ToList();
+
+                workflowIdsToClose = workflowIdsToClose.Except( reopenedWorkflowIds ).ToList();
             }
 
-            rockContext.SaveChanges();
+            // Re-fetch and save each workflow in its own context so one failure does not stop the rest.
+            var closedWorkflowIds = new List<int>();
+            var notSavedCount = 0;
+            var errorCount = 0;
 
-            Result = string.Format( "Closed {0} workflows.", workflowsToClose.Count() );
-        }
-
-        private Person GetPerson( PersonAliasService personAliasService, IEnumerable<AttributeValue> AttributeValues )
-        {
-            AttributeValue personAliasAV = AttributeValues.AsQueryable().Where( av => av.AttributeKey == "PersonToVisit" || av.AttributeKey == "HomeboundPerson" ).FirstOrDefault();
-            if ( personAliasAV != null )
+            foreach ( var workflowId in workflowIdsToClose )
             {
-                PersonAlias pa = personAliasService.Get( personAliasAV.Value.AsGuid() );
-                if ( pa != null )
+                try
                 {
-                    return pa.Person;
+                    using ( var writeContext = new RockContext() )
+                    {
+                        // Re-check eligibility: the workflow may have been completed since it was selected.
+                        var workflow = new WorkflowService( writeContext ).Queryable()
+                            .FirstOrDefault( w => w.Id == workflowId && w.Status == "Active" && w.CompletedDateTime == null );
+
+                        if ( workflow == null )
+                        {
+                            continue;
+                        }
+
+                        // Not Workflow.MarkComplete(): it re-stamps CompletedDateTime on activities that were
+                        // already completed, which would overwrite their original completion times.
+                        foreach ( var activity in workflow.Activities.Where( a => !a.CompletedDateTime.HasValue ) )
+                        {
+                            activity.MarkComplete();
+                        }
+
+                        workflow.CompletedDateTime = RockDateTime.Now;
+                        workflow.Status = "Completed";
+                        workflow.AddLogEntry( ClosedLogText, true );
+
+                        // SaveChanges returns 0 without throwing when a workflow trigger cancels the save.
+                        if ( writeContext.SaveChanges() > 0 )
+                        {
+                            closedWorkflowIds.Add( workflowId );
+                        }
+                        else
+                        {
+                            notSavedCount++;
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( new Exception( string.Format( "CloseDeseasedPastoralWorkflows could not close workflow {0}.", workflowId ), ex ) );
+                    errorCount++;
                 }
             }
-            return new Person();
+
+            var result = string.Format( "Closed {0} workflows.", closedWorkflowIds.Count );
+
+            if ( closedWorkflowIds.Any() )
+            {
+                result += string.Format( " Workflow Ids: {0}.", string.Join( ", ", closedWorkflowIds ) );
+            }
+
+            if ( notSavedCount > 0 )
+            {
+                result += string.Format( " {0} not saved (save cancelled).", notSavedCount );
+            }
+
+            if ( errorCount > 0 )
+            {
+                result += string.Format( " {0} failed (see Exception Log).", errorCount );
+                throw new RockJobWarningException( result );
+            }
+
+            Result = result;
         }
     }
 }

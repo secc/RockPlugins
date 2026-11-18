@@ -62,7 +62,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     int personId = PageParameter( "PersonId" ).AsInteger();
 
                     Person = new PersonService( new RockContext() ).Get( personId );
-                    Person.LoadAttributes();
+                    if ( Person != null )
+                    {
+                        Person.LoadAttributes();
+                    }
                 }
 
                 if ( Person == null )

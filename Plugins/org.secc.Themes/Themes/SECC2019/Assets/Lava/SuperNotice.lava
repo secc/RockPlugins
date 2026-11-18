@@ -1,0 +1,43 @@
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.countdown/2.2.0/jquery.countdown.min.js" type="text/javascript"></script> - -->
+
+{% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
+
+{% comment %}
+<div style="padding: 10px; color: white; background-color: #201e1d;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <a href="https://www.southeastchristian.org/events/third-day-farewell-tour/" style="color: white;">
+                    <h4>THIRD DAY FAREWELL TOUR <br />
+                        <small style="color: orange;">
+
+                        {% assign releaseRegistration = '201803071200' | AsDouble %}
+                        {% if releaseRegistration <= currentDate %}
+                             TICKETS AVAILABLE FOR SALE!
+                        {% else %}
+                            TICKETS AVAILABLE IN <div id="clock" style="display: inline-block;"></div>
+                        {% endif %}
+
+                        <span style="color:white; white-space: nowrap;">(CLICK HERE)</span>
+                        </small>
+                    </h4>
+                </a>
+                {% assign expireMovieNotice = '201803111400' | AsDouble %}
+                {% if expireMovieNotice > currentDate %}
+
+                     <hr style="margin: 5px auto;width: 60%;border-color: gray;">
+                     <h4>Imagine movie tickets available here at 2pm Sunday, March 11.</h4>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- <script>
+    $('#clock').countdown("2018/03/07 12:00:00", function(event) {
+      var totalHours = event.offset.totalDays * 24 + event.offset.hours;
+      $(this).html(event.strftime(totalHours + ' HR %M MIN %S SEC'));
+    });
+</script> -->
+
+{% endcomment %}

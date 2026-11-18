@@ -16,10 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
+using org.secc.Authentication;
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
@@ -92,26 +94,51 @@ namespace Rock.Security.ExternalAuthentication
                     return false;
                 }
 
-                //Limit to 5 attempts
-                if ( user.FailedPasswordAttemptCount > 4 )
+                var loadedHash = user.Password;
+                if ( string.IsNullOrWhiteSpace( loadedHash ) )
                 {
                     return false;
                 }
 
-                // If the security code is blank or doesn't match the password add one failed attempt
-                if ( string.IsNullOrWhiteSpace( user.Password ) || !AuthenticateBcrypt( user, password ) )
+                // Limit code entries per caller address. Counted before the login's attempt, and not given back.
+                var callerAddress = GetIpAddress();
+                bool logRefusal;
+                if ( !SMSRecords.TryRegisterCodeEntry( callerAddress, out logRefusal ) )
                 {
-                    using ( RockContext rockContext = new RockContext() )
+                    if ( logRefusal )
                     {
-                        UserLoginService userLoginService = new UserLoginService( rockContext );
-                        var userLogin = userLoginService.Get( user.Id );
-                        if ( userLogin != null )
-                        {
-                            userLogin.FailedPasswordAttemptCount++;
-                            rockContext.SaveChanges();
-                        }
+                        Log( string.Format( "SMS login code entry limit reached. IP: {0}", callerAddress ) );
                     }
                     return false;
+                }
+
+                // Limit to 5 attempts per code. The attempt is counted before the code is checked, in one
+                // statement, and only while the stored code is still the one being checked.
+                if ( ExecuteSql(
+                    "UPDATE [UserLogin] SET [FailedPasswordAttemptCount] = ISNULL([FailedPasswordAttemptCount],0) + 1 WHERE [Id] = @id AND [Password] = @loadedHash AND ISNULL([FailedPasswordAttemptCount],0) < 5",
+                    new SqlParameter( "@id", user.Id ),
+                    new SqlParameter( "@loadedHash", loadedHash ) ) == 0 )
+                {
+                    return false;
+                }
+
+                if ( !AuthenticateBcrypt( user, password ) )
+                {
+                    return false;
+                }
+
+                // A successful login gives its attempt back.
+                try
+                {
+                    ExecuteSql(
+                        "UPDATE [UserLogin] SET [FailedPasswordAttemptCount] = [FailedPasswordAttemptCount] - 1 WHERE [Id] = @id AND [Password] = @loadedHash AND [FailedPasswordAttemptCount] > 0",
+                        new SqlParameter( "@id", user.Id ),
+                        new SqlParameter( "@loadedHash", loadedHash ) );
+                }
+                catch ( Exception ex )
+                {
+                    // The attempt stays used; the login still succeeds.
+                    ExceptionLogService.LogException( ex );
                 }
                 return true;
             }
@@ -120,6 +147,20 @@ namespace Rock.Security.ExternalAuthentication
                 return false;
             }
 
+        }
+
+        /// <summary>
+        /// Runs a SQL statement against the Rock database and returns the number of rows it affected.
+        /// </summary>
+        /// <param name="sql">The SQL statement.</param>
+        /// <param name="parameters">The statement's parameters.</param>
+        /// <returns></returns>
+        protected virtual int ExecuteSql( string sql, params SqlParameter[] parameters )
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                return rockContext.Database.ExecuteSqlCommand( sql, parameters );
+            }
         }
 
         /// <summary>
@@ -233,7 +274,7 @@ namespace Rock.Security.ExternalAuthentication
         /// <returns></returns>
         public bool SendSMSAuthentication( string phoneNumber )
         {
-            RockContext rockContext = new RockContext();
+            RockContext rockContext = CreateRockContext();
 
             string error;
             var person = GetNumberOwner( phoneNumber, rockContext, out error );
@@ -243,7 +284,7 @@ namespace Rock.Security.ExternalAuthentication
             }
 
             // Rolling-window cap on code requests, BEFORE any regeneration / counter reset.
-            // Max requests applies per-server; actual attack opportunity is ~3x the configured maxRequests
+            // The budget is kept in memory on each web server, so Max Code Requests is counted per server.
             int maxRequests = GetAttributeValue( "MaxCodeRequests" ).AsIntegerOrNull() ?? 3; 
             int windowMins = GetAttributeValue( "CodeRequestWindowMinutes" ).AsIntegerOrNull() ?? 15;
             
@@ -251,16 +292,47 @@ namespace Rock.Security.ExternalAuthentication
             windowMins = windowMins > 0 ? windowMins : 15;
 
             string personKey = "SMS_" + person.Id.ToString();   // matches the UserLogin username
-            // Check both person and raw number so reformatting the number can't sidestep the cap.
-            if ( !SMSRecords.IsRequestAllowed( personKey, maxRequests, windowMins )
-              || !SMSRecords.IsRequestAllowed( phoneNumber, maxRequests, windowMins ) )
+            var ipAddress = GetIpAddress();
+
+            // Check both person and raw number so reformatting the number can't sidestep the cap, and
+            // reserve the IP and number, before the login's current code is replaced and the new one sent.
+            var issuance = SMSRecords.IssueIfAllowed( personKey, phoneNumber, ipAddress, maxRequests, windowMins, () => ReplaceCodeAndSend( rockContext, person, phoneNumber, ipAddress ) );
+
+            if ( issuance == SMSRecords.IssuanceResult.BudgetExceeded )
             {
                 ExceptionLogService.LogException( new Exception( string.Format(
                     "SMS OTP request budget exceeded. PersonId: {0} PhoneNumber: {1} IP: {2}",
-                    person.Id, phoneNumber, GetIpAddress() ) ) );
+                    person.Id, phoneNumber, ipAddress ) ) );
                 return false;   // do NOT regenerate, do NOT reset FailedPasswordAttemptCount
             }
 
+            if ( issuance == SMSRecords.IssuanceResult.Reserved )
+            {
+                // A code is still being sent to this IP or number, so the current code stays as it is.
+                ExceptionLogService.LogException( new Exception( string.Format( "Rate limiting reached for SMS authentication: IP: {0} PhoneNumber: {1}", ipAddress, phoneNumber ) ) );
+                return true;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Creates the context that <see cref="SendSMSAuthentication"/> uses.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual RockContext CreateRockContext()
+        {
+            return new RockContext();
+        }
+
+        /// <summary>
+        /// Replaces the person's login code with a new one and returns the new code.
+        /// </summary>
+        /// <param name="rockContext"></param>
+        /// <param name="person"></param>
+        /// <returns></returns>
+        protected virtual string ReplaceCode( RockContext rockContext, Person person )
+        {
             UserLoginService userLoginService = new UserLoginService( rockContext );
             var userLogin = userLoginService.Queryable()
                 .Where( u => u.UserName == ( "SMS_" + person.Id.ToString() ) )
@@ -288,10 +360,19 @@ namespace Rock.Security.ExternalAuthentication
             var password = GenerateSecureOtp().ToString();
             userLogin.Password = EncodeBcrypt( password );
             rockContext.SaveChanges();
+            return password;
+        }
 
-            // Record this issuance against the rolling-window budget.
-            SMSRecords.RecordIssuance( personKey );
-            SMSRecords.RecordIssuance( phoneNumber );
+        /// <summary>
+        /// Replaces the person's login code with a new one and sends it to the phone number.
+        /// </summary>
+        /// <param name="rockContext"></param>
+        /// <param name="person"></param>
+        /// <param name="phoneNumber"></param>
+        /// <param name="ipAddress"></param>
+        protected virtual void ReplaceCodeAndSend( RockContext rockContext, Person person, string phoneNumber, string ipAddress )
+        {
+            var password = ReplaceCode( rockContext, person );
 
             var recipients = new List<RockSMSMessageRecipient>();
             recipients.Add( RockSMSMessageRecipient.CreateAnonymous( phoneNumber, null ) );
@@ -317,21 +398,8 @@ namespace Rock.Security.ExternalAuthentication
 
             smsMessage.Message = GetAttributeValue( "Message" );
 
-            var ipAddress = GetIpAddress();
-
-            //Reserve items rate limits the text messages
-            if ( SMSRecords.ReserveItems( ipAddress, phoneNumber ) )
-            {
-                var delay = SMSRecords.GetDelay( ipAddress, phoneNumber );
-                Task.Run( () => { SendSMS( smsMessage, ipAddress, phoneNumber, delay ); } );
-            }
-            else
-            {
-                ExceptionLogService.LogException( new Exception( string.Format( "Rate limiting reached for SMS authentication: IP: {0} PhoneNumber: {1}", ipAddress, phoneNumber ) ) );
-            }
-
-
-            return true;
+            var delay = SMSRecords.GetDelay( ipAddress, phoneNumber );
+            Task.Run( () => { SendSMS( smsMessage, ipAddress, phoneNumber, delay ); } );
         }
 
         /// <summary>
@@ -359,7 +427,7 @@ namespace Rock.Security.ExternalAuthentication
         /// <param name="rockContext"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        public Person GetNumberOwner( string phoneNumber, RockContext rockContext, out string error )
+        public virtual Person GetNumberOwner( string phoneNumber, RockContext rockContext, out string error )
         {
             error = string.Empty;
             PhoneNumberService phoneNumberService = new PhoneNumberService( rockContext );
@@ -433,26 +501,31 @@ namespace Rock.Security.ExternalAuthentication
         }
 
         /// <summary>
-        /// Method for getting the user's IP address.
-        /// Used in rate limiting.
+        /// The caller's address (see <see cref="CallerAddress.ForRequest"/>), used to limit code requests and code entries.
         /// </summary>
         /// <returns></returns>
-        private static string GetIpAddress()
+        protected virtual string GetIpAddress()
         {
-            System.Web.HttpContext context = System.Web.HttpContext.Current;
-            string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            return CallerAddress.ForRequest( GetCurrentRequest() );
+        }
 
-            if ( !string.IsNullOrEmpty( ipAddress ) )
-            {
-                string[] addresses = ipAddress.Split( ',' );
-                if ( addresses.Length != 0 )
-                {
-                    var forwardedIp = addresses[0];
-                    var splitAddresss = forwardedIp.Split( ':' ); //Remove the occasional port
-                    return splitAddresss[0];
-                }
-            }
-            return context.Request.ServerVariables["REMOTE_ADDR"];
+        /// <summary>
+        /// The current request, or null when there is none.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual HttpRequestBase GetCurrentRequest()
+        {
+            var context = HttpContext.Current;
+            return context == null ? null : new HttpRequestWrapper( context.Request );
+        }
+
+        /// <summary>
+        /// Writes a message to the Exception Log.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        protected virtual void Log( string message )
+        {
+            ExceptionLogService.LogException( new Exception( message ) );
         }
 
         /// <summary>
@@ -464,16 +537,19 @@ namespace Rock.Security.ExternalAuthentication
         /// <param name="delay"></param>
         public async void SendSMS( RockSMSMessage smsMessage, string phoneNumber, string ipAddress, double delay )
         {
-            await Task.Delay( ( int ) delay );
             try
             {
+                await Task.Delay( ( int ) delay );
                 smsMessage.Send();
             }
             catch ( Exception ex )
             {
                 ExceptionLogService.LogException( ex );
             }
-            SMSRecords.ReleaseItems( ipAddress, phoneNumber );
+            finally
+            {
+                SMSRecords.ReleaseItems( ipAddress, phoneNumber );
+            }
         }
         #endregion
     }
@@ -485,30 +561,17 @@ namespace Rock.Security.ExternalAuthentication
     public static class SMSRecords
     {
         /// <summary>
-        /// Delay lock semaphore
+        /// The one lock for all of the state below
         /// </summary>
-        public static object _delayLock = new object();
-        /// <summary>
-        /// Reserve lock semaphore
-        /// </summary>
-        public static object _reserveLock = new object();
+        private static readonly object _lock = new object();
         /// <summary>
         /// List of SMS Records
         /// </summary>
-        public static List<SMSRecord> Records { get; set; }
+        private static readonly List<SMSRecord> Records = new List<SMSRecord>();
         /// <summary>
         /// List of Active Items
         /// </summary>
-        public static List<string> ActiveItems { get; set; }
-
-        /// <summary>
-        /// Constructor method
-        /// </summary>
-        static SMSRecords()
-        {
-            Records = new List<SMSRecord>();
-            ActiveItems = new List<string>();
-        }
+        private static readonly List<string> ActiveItems = new List<string>();
 
         /// <summary>
         /// Holds IP addressses and phone numbers in reserve
@@ -519,7 +582,7 @@ namespace Rock.Security.ExternalAuthentication
         /// <returns></returns>
         public static bool ReserveItems( string ip, string phoneNumber )
         {
-            lock ( _reserveLock )
+            lock ( _lock )
             {
                 if ( ActiveItems.Contains( ip ) || ActiveItems.Contains( phoneNumber ) )
                 {
@@ -541,7 +604,7 @@ namespace Rock.Security.ExternalAuthentication
         /// <param name="phoneNumber"></param>
         public static void ReleaseItems( string ip, string phoneNumber )
         {
-            lock ( _delayLock )
+            lock ( _lock )
             {
                 if ( ActiveItems.Contains( ip ) )
                 {
@@ -563,7 +626,7 @@ namespace Rock.Security.ExternalAuthentication
         /// <returns></returns>
         public static double GetDelay( string ip, string phoneNumber )
         {
-            lock ( _delayLock )
+            lock ( _lock )
             {
                 SMSRecords.Records.Add( new SMSRecord( ip ) );
                 SMSRecords.Records.Add( new SMSRecord( phoneNumber ) );
@@ -583,11 +646,6 @@ namespace Rock.Security.ExternalAuthentication
         }
 
         /// <summary>
-        /// Lock for the OTP request-budget store.
-        /// </summary>
-        private static readonly object _budgetLock = new object();
-
-        /// <summary>
         /// Timestamped record of codes issued, keyed by person ("SMS_{personId}") and phone number.
         /// Used to enforce a rolling-window cap on how many codes can be requested.
         /// </summary>
@@ -600,9 +658,9 @@ namespace Rock.Security.ExternalAuthentication
         /// <param name="key">"SMS_{personId}" or the raw phone number.</param>
         /// <param name="maxRequests">Max issuances allowed within the window.</param>
         /// <param name="windowMinutes">Rolling window length in minutes.</param>
-        public static bool IsRequestAllowed( string key, int maxRequests, int windowMinutes )
+        private static bool IsRequestAllowed( string key, int maxRequests, int windowMinutes )
         {
-            lock ( _budgetLock )
+            lock ( _lock )
             {
                 var windowStart = Rock.RockDateTime.Now.AddMinutes( -windowMinutes );
                 IssuanceRecords.RemoveAll( r => r.DateTime < windowStart );
@@ -611,13 +669,168 @@ namespace Rock.Security.ExternalAuthentication
         }
 
         /// <summary>
-        /// Records that a code was issued for this key (called only after a code is generated).
+        /// Records that a code is being issued for this key.
         /// </summary>
-        public static void RecordIssuance( string key )
+        private static void RecordIssuance( string key )
         {
-            lock ( _budgetLock )
+            lock ( _lock )
             {
                 IssuanceRecords.Add( new SMSRecord( key ) );
+            }
+        }
+
+        /// <summary>
+        /// Runs inside <see cref="TryBeginIssuance"/> after its checks and before the issuance is recorded. Null unless set by a test.
+        /// </summary>
+        internal static Action BeforeRecordIssuance;
+
+        /// <summary>
+        /// The outcome of <see cref="TryBeginIssuance"/>.
+        /// </summary>
+        public enum IssuanceResult
+        {
+            /// <summary>The issuance is counted and the IP and number are reserved.</summary>
+            Allowed,
+            /// <summary>The person or number has used its requests for the window.</summary>
+            BudgetExceeded,
+            /// <summary>A code is still being sent to the IP or number.</summary>
+            Reserved
+        }
+
+        /// <summary>
+        /// Decides in one locked step whether a code may be issued: the person and number must be within
+        /// their request budget, and the IP and number must not be reserved. Only then is the issuance
+        /// counted and the IP and number reserved; a refusal changes nothing. The caller releases the
+        /// reservation with <see cref="ReleaseItems"/>.
+        /// </summary>
+        public static IssuanceResult TryBeginIssuance( string personKey, string phoneNumber, string ipAddress, int maxRequests, int windowMinutes )
+        {
+            lock ( _lock )
+            {
+                if ( !IsRequestAllowed( personKey, maxRequests, windowMinutes )
+                  || !IsRequestAllowed( phoneNumber, maxRequests, windowMinutes ) )
+                {
+                    return IssuanceResult.BudgetExceeded;
+                }
+
+                if ( !ReserveItems( ipAddress, phoneNumber ) )
+                {
+                    return IssuanceResult.Reserved;
+                }
+
+                BeforeRecordIssuance?.Invoke();
+                RecordIssuance( personKey );
+                RecordIssuance( phoneNumber );
+                return IssuanceResult.Allowed;
+            }
+        }
+
+        /// <summary>
+        /// Runs <paramref name="replaceCodeAndSend"/> only when <see cref="TryBeginIssuance"/> allows the request, so a
+        /// refused request never touches the login. If it throws, the reservation is released and the exception rethrown.
+        /// </summary>
+        public static IssuanceResult IssueIfAllowed( string personKey, string phoneNumber, string ipAddress, int maxRequests, int windowMinutes, Action replaceCodeAndSend )
+        {
+            var result = TryBeginIssuance( personKey, phoneNumber, ipAddress, maxRequests, windowMinutes );
+            if ( result == IssuanceResult.Allowed )
+            {
+                try
+                {
+                    replaceCodeAndSend();
+                }
+                catch
+                {
+                    ReleaseItems( ipAddress, phoneNumber );
+                    throw;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Code entries allowed per caller address in a window that starts at its first counted entry.
+        /// </summary>
+        internal const int MaxCodeEntriesPerClient = 30;
+        internal const int CodeEntryWindowMinutes = 15;
+        internal const int MaxTrackedCodeEntryKeys = 20000;
+
+        private class CodeEntryWindow
+        {
+            public DateTime StartedAt;
+            public int Count;
+            public bool RefusalLogged;
+        }
+
+        private static readonly Dictionary<string, CodeEntryWindow> CodeEntryWindows = new Dictionary<string, CodeEntryWindow>();
+
+        /// <summary>
+        /// Counts a code entry for the caller address if its window has room, in one locked step. Entries are not
+        /// given back. A refused entry isn't counted; <paramref name="logRefusal"/> is true for the first refusal
+        /// in the window. Windows are timed in UTC, unlike the request budget above, so a daylight-saving change
+        /// doesn't lengthen or shorten one.
+        /// </summary>
+        internal static bool TryRegisterCodeEntry( string key, out bool logRefusal )
+        {
+            return TryRegisterCodeEntry( key, DateTime.UtcNow, out logRefusal );
+        }
+
+        /// <summary>
+        /// Counts a code entry at <paramref name="now"/>, a UTC time.
+        /// </summary>
+        internal static bool TryRegisterCodeEntry( string key, DateTime now, out bool logRefusal )
+        {
+            lock ( _lock )
+            {
+                logRefusal = false;
+                CodeEntryWindow window;
+                if ( !CodeEntryWindows.TryGetValue( key, out window ) || window.StartedAt < now.AddMinutes( -CodeEntryWindowMinutes ) )
+                {
+                    if ( window == null && CodeEntryWindows.Count >= MaxTrackedCodeEntryKeys )
+                    {
+                        // Keep memory bounded: drop the oldest tenth of the windows. This only discards counts.
+                        foreach ( var oldKey in CodeEntryWindows.OrderBy( w => w.Value.StartedAt ).Take( MaxTrackedCodeEntryKeys / 10 ).Select( w => w.Key ).ToList() )
+                        {
+                            CodeEntryWindows.Remove( oldKey );
+                        }
+                    }
+
+                    CodeEntryWindows[key] = new CodeEntryWindow { StartedAt = now, Count = 1 };
+                    return true;
+                }
+
+                if ( window.Count >= MaxCodeEntriesPerClient )
+                {
+                    logRefusal = !window.RefusalLogged;
+                    window.RefusalLogged = true;
+                    return false;
+                }
+
+                window.Count++;
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Removes every code-entry window. For tests.
+        /// </summary>
+        internal static void ClearCodeEntryWindows()
+        {
+            lock ( _lock )
+            {
+                CodeEntryWindows.Clear();
+            }
+        }
+
+        /// <summary>
+        /// When the caller address's code-entry window started, or null if it has none. For tests.
+        /// </summary>
+        internal static DateTime? GetCodeEntryWindowStart( string key )
+        {
+            lock ( _lock )
+            {
+                CodeEntryWindow window;
+                return CodeEntryWindows.TryGetValue( key, out window ) ? window.StartedAt : ( DateTime? ) null;
             }
         }
     }

@@ -22,6 +22,7 @@ using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
@@ -720,12 +721,8 @@ namespace RockWeb.Blocks.Event
         /// <summary>
         /// A class to store event item occurrence data for liquid
         /// </summary>
-        [DotLiquid.LiquidType( "EventItemOccurrence", "DateTime", "Name", "Date", "Time", "Campus", "Location",
-            "LocationDescription", "Description", "Summary", "OccurrenceNote", "DetailPage",
-            "Priority", "URLSlugs", "PrimaryMinistryImageGuid", "PrimaryMinstryTitle", "ImageHeaderText", "ImageHeaderTextSmall",
-            "EventDatesHide", "AttUseOnlyScheduleText", "AttScheduleText", "AttChildcareAvailable", "EventItem", "EventItemPhotoId",
-            "ICalendarContent", "CustomDateText", "CustomLocationText" )]
-        public class EventOccurrenceSummary
+        // LavaDataObject exposes every public property to both Lava engines, so no [LiquidType]/[LavaType] allow-list applies here.
+        public class EventOccurrenceSummary : LavaDataObject
         {
             public EventItemOccurrence EventItemOccurrence { get; set; }
             public EventItem EventItem { get; set; }

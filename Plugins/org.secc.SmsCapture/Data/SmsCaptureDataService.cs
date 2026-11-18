@@ -13,8 +13,6 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.SmsCapture.Data
 {
     public class SmsCaptureDataService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
@@ -22,7 +20,7 @@ namespace org.secc.SmsCapture.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="SmsCaptureDataService{T}"/> class.
         /// </summary>
-        public SmsCaptureDataService( RockContext context )
+        public SmsCaptureDataService( Rock.Data.DbContext context )
             : base( context )
         {
         }

@@ -1,0 +1,364 @@
+<style>
+.groupFinderSurveyForm {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 5vw;
+  position: absolute;
+  height: auto;
+  width: 90vw;
+  background-color: #fef0e4E0;
+  border-radius: 20px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.radioOptions {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+}
+.survey-label {
+  font-size: 62px;
+  margin-bottom: 30px;
+}
+.btn-format {
+  width: 35vw;
+  height: 10vw;
+  font-size: 32px;
+  margin-top: 90px !important;
+}
+.radioSelection {
+  font-size: 48px;
+}
+.selected {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+}
+input[type="radio"] {
+  display: none;
+}
+input[type="radio"]:checked + label {
+  background-color: #000000;
+  color: #FFFFFF;
+  border-radius: 15px;
+}
+input[type="text"] {
+  font-size: 64px !important;
+  width: 40vw;
+  height: 2.0em;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  padding: 40px;
+  color: #000000;
+  background-color: transparent;
+}
+.flex-vert {
+  display: flex;
+  flex-direction: column;
+}
+.select-btn{
+  font-size: 36px !important;
+}
+
+/* Styles for desktop devices */
+@media (min-width: 1024px) {
+  .survey-label {
+    font-size: 32px;
+    margin-bottom: 15px;
+  }
+  .btn-format {
+    width: 10vw;
+    height: 3vw;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 45px !important;
+  }
+  .radioSelection {
+    font-size: 24px;
+  }
+  input[type="radio"]:checked + label {
+    background-color: #000000;
+    color: #FFFFFF;
+    border-radius: 5px;
+  }
+  input[type="text"] {
+    font-size: 32px !important;
+    width: 20vw;
+    height: 2.0em;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    padding: 40px;
+    color: #000000;
+    background-color: transparent;
+  }
+  .select-btn{
+    font-size: 18px !important;
+  }
+}
+</style>
+
+<div class="groupFinderSurveyForm">
+      <!-- Question 1 -->
+      <div id="question1">
+        <div>
+          <label for="groupMeetingType" class="survey-label">What type of group are you interested in?</label>
+          <div class="radioOptions">
+            <div>
+                <input type="radio" class="btn-check" name="groupMeetingType" id="homegroups" value="homegroups" required>
+                <label class="btn btn-outline-primary radioSelection" for="homegroups">Home Groups</label>
+            </div>
+
+            <div>
+                <input type="radio" class="btn-check" name="groupMeetingType" id="oncampus" value="oncampus">
+                <label class="btn btn-outline-primary radioSelection" for="oncampus">On-Campus Groups</label>
+            </div>
+
+            <div>
+                <input type="radio" class="btn-check" name="groupMeetingType" id="onlinegroups" value="onlinegroups">
+                <label class="btn btn-outline-primary radioSelection" for="onlinegroups">Online Groups</label>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-format" onclick="getGroupMeetingType()">Next</button>
+        </div>
+      </div>
+
+      <!-- On-Campus Question 2 -->
+      <div id="question-oncampus-2" class="hidden">
+        <div>
+          <label for="oncampusCampuses" class="survey-label">Select the campus you prefer...</label>
+          <div id="oncampusCampuses" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+            {% for campus in Campuses %}
+              {% assign publicCampus = campus | Attribute:'Public' %}
+              {% if publicCampus == 'Yes' %}
+              <a id="oncampus-{{ campus.Name | Downcase | Replace:" ","" }}" class="select-btn button se-btn se-btn--tag no-transitions uppercase g-margin-y-5--xs g-margin-x-5--xs" value="{{ campus.Name | Downcase | Replace:" ","" }}" onclick="updateCampus('{{ campus.Name | Downcase | Replace:' ','' }}', this)">{{campus.Name}}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <button type="button" class="btn btn-primary btn-format" onclick="nextQuestion(2, 'oncampus', 0)">Next</button>
+        </div>
+      </div>
+
+      <!-- On-Campus Question 3 -->
+      <div id="question-oncampus-3" class="hidden">
+        <div class="flex-vert">
+          <label for="oncampusMinistries" class="survey-label">Which ministry area most interests you?</label>
+          <div id="oncampusMinistries" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+            <a id="allMinistries" class="select-btn button se-btn se-btn--tag no-transitions uppercase g-margin-y-5--xs g-margin-x-5--xs" value="allMinistries" onclick="updateSSMinistries('allMinistries', this)">All Ministries</a>
+            {% definedvalue where:'DefinedTypeId==16' %}
+              {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+              {% for definedValue in definedvalueItemsSorted %}
+                {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+                {% if publicFilter == "Yes" %}
+                  {% assign valuesToExclude = "Connection,Children,Missions,Deaf & Disabilities,Middle School,High School,Sports & Fitness,Career Transitions,Prayer,Business Leaders,3Thirds,Precepts,The Basics,50+" | Split: ',' %}
+                  {% assign valueToCheck = definedValue.Value | Capitalize %}
+                  {% if valuesToExclude contains valueToCheck %}
+                    {% comment %} Do nothing. {% endcomment %}
+                  {% else %}
+                    {% assign urlSlug = definedValue | Attribute:'URLSlug' %}
+                    <a id="{{urlSlug}}" class="select-btn button se-btn se-btn--tag no-transitions uppercase g-margin-y-5--xs g-margin-x-5--xs" value="{{urlSlug}}" onclick="updateSSMinistries('{{urlSlug}}', this)">{{ definedValue.Value | Capitalize }}</a>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            {% enddefinedvalue %}
+          </div>
+          <button type="button" class="btn btn-primary btn-format" onclick="getRedirectURL('oncampus')">Show me groups</button>
+        </div>
+      </div>
+
+      <!-- Home Groups Question 2 -->
+      <div id="question-homegroups-2" class="hidden">
+        <div>
+          <label for="homegroupsCampuses" class="survey-label">Select the campus you prefer...</label>
+          <div id="homegroupsCampuses" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+            {% for campus in Campuses %}
+              {% assign publicCampus = campus | Attribute:'Public' %}
+              {% if publicCampus == 'Yes' %}
+              <a id="homegroups-{{ campus.Name | Downcase | Replace:" ","" }}" class="select-btn button se-btn se-btn--tag no-transitions uppercase g-margin-y-5--xs g-margin-x-5--xs" value="{{ campus.Name | Downcase | Replace:" ","" }}" onclick="updateCampus('{{ campus.Name | Downcase | Replace:' ','' }}', this)">{{campus.Name}}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <button type="button" class="btn btn-primary btn-format" onclick="nextQuestion(2, 'homegroups', 0)">Next</button>
+        </div>
+      </div>
+
+      <!-- Home Groups Question 3 -->
+      <div id="question-homegroups-3" class="hidden">
+        <div>
+          <label for="homegroupsMinistries" class="survey-label">Which categories sound most like you? (Select all that apply)</label>
+          <div id="homegroupsMinistries" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+            {%- definedvalue where:'DefinedTypeId==52' -%}
+              {%- assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' -%}
+              {%- for definedValue in definedvalueItemsSorted -%}
+                  {%- if definedValue != '' -%}
+                    {% if definedValue.Id != 24282 %} <!-- Leave out the Engagement category-->
+                      {% assign urlSlug = definedValue | Attribute:'URLSlug' %}
+                      <a id="{{urlSlug}}" class="select-btn button se-btn se-btn--tag no-transitions uppercase g-margin-y-5--xs g-margin-x-5--xs" value="{{ definedValue.Id }}" onclick="toggleSelection(this); updateMSMinistries({{urlSlug}})">{{ definedValue.Value | Capitalize }}</a>
+                    {% endif %}
+                  {%- endif -%}
+              {%- endfor -%}
+            {%- enddefinedvalue -%}
+          </div>
+          <button type="button" class="btn btn-primary btn-format" onclick="nextQuestion(3, 'homegroups', 0)">Next</button>
+        </div>
+      </div>
+
+      <!-- Home Groups Question 4 -->
+      <div id="question-homegroups-4" class="hidden">
+        <div class="flex-vert">
+          <label for="homegroupsZipcode" class="survey-label">Zip code? (Optional)</label>
+          <input type="text" id="homegroupsZipcode" class="text-style" name="homegroupsZipcode" placeholder="XXXXX">
+          <button id="zipcodeBtn" type="button" class="btn btn-primary btn-format" onclick="nextQuestion(4, 'homegroups', 0)">Next</button>
+        </div>
+      </div>
+
+      <!-- Home Groups Question 5 -->
+      <div id="question-homegroups-5" class="hidden">
+        <div>
+          <label for="childAccomodation" class="survey-label">Do you need a group that accomodates children?</label>
+          <div class="radioOptions">
+            <div>
+                <input type="radio" class="btn-check" name="childAccomodation" id="yesChild" value="yes" required>
+                <label class="btn btn-outline-primary radioSelection" for="yesChild">Yes</label>
+            </div>
+
+            <div>
+                <input type="radio" class="btn-check" name="childAccomodation" id="noChild" value="no">
+                <label class="btn btn-outline-primary radioSelection" for="noChild">No</label>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-format" onclick="getRedirectURL('homegroups')">Show me groups</button>
+        </div>
+      </div>
+</div>
+
+<script>
+  var campus = "";
+  var ministry = "";
+  var msMinistries = "";
+
+  function getGroupMeetingType() {
+    // Get the selected radio button value for group meeting type
+    const selectedGroupType = document.querySelector('input[name="groupMeetingType"]:checked');
+    if (selectedGroupType) {
+      if (selectedGroupType.value == "onlinegroups"){
+        getRedirectURL(selectedGroupType.value);
+      } else {
+        getCampus();
+        if (campus == ""){
+          nextQuestion(1, selectedGroupType.value, 0);
+        } else {
+          nextQuestion(1, selectedGroupType.value, 1);
+        }
+      }
+    } else {
+      alert("Please select a group type before proceeding.");
+    }
+  }
+
+  function getCampus() {
+    // Determine if user is logged in & has a campus
+    {% if CurrentPerson %}
+    campus = "{{ CurrentPerson | Campus | Property:'Name' | Downcase | Replace:" ","" }}";
+    console.log(campus);
+    {% endif %}
+  }
+
+  function nextQuestion(currentQ, groupMeetingType, skipCampusQ) {
+    // Hide current question and show next question
+    if (currentQ == 1){
+      var currentQuestionId = `question1`;
+    } else {
+      var currentQuestionId = `question-${groupMeetingType}-${currentQ}`;
+    }
+    if (skipCampusQ == 1){
+      var nextQuestionId = `question-${groupMeetingType}-${currentQ + 2}`;
+    } else {
+      var nextQuestionId = `question-${groupMeetingType}-${currentQ + 1}`;
+    }
+
+    document.getElementById(currentQuestionId).classList.add('hidden');
+    document.getElementById(nextQuestionId).classList.remove('hidden');
+
+    if (currentQ == 3 && groupMeetingType == 'homegroups'){
+      document.getElementById("homegroupsZipcode").focus();
+    }
+
+  }
+
+  function toggleSelection(link) {
+    link.classList.toggle('selected'); // Toggle the 'selected' class on click
+  }
+
+  function updateCampus(campusName, link) {
+    var oncampusCampusOptions = document.querySelectorAll('#oncampusCampuses a.selected');
+    var homegroupsCampusOptions = document.querySelectorAll('#homegroupsCampuses a.selected');
+
+    oncampusCampusOptions.forEach(option => {
+      option.classList.remove('selected');
+    });
+
+    homegroupsCampusOptions.forEach(option => {
+      option.classList.remove('selected');
+    });
+
+    toggleSelection(link);
+
+    campus = campusName;
+    console.log(campus);
+  }
+
+  function updateSSMinistries(urlSlug, link){
+    var ssMinistriesOptions = document.querySelectorAll('#oncampusMinistries a.selected');
+
+    ssMinistriesOptions.forEach(option => {
+      option.classList.remove('selected');
+    });
+
+    toggleSelection(link);
+
+    ministry = urlSlug;
+    console.log(ministry);
+  }
+
+  function updateMSMinistries(urlSlug) {
+      // Get all links with the class 'selected'
+      var links = document.querySelectorAll('#homegroupsMinistries a.selected');
+      // Filter selected links and extract their 'value' attributes
+      var selectedValues = Array.from(links)
+          .filter(link => link.classList.contains('selected'))
+          .map(link => link.getAttribute('value'));
+
+      // Join the values into a comma-separated string
+      msMinistries = selectedValues.join(',');
+    console.log(msMinistries);
+  }
+
+  function getRedirectURL(groupMeetingType) {
+    //Construct the redirect URL based on which questions were answered
+    if (groupMeetingType == "onlinegroups"){
+
+      var redirectURL = 'https://my.southeastchristian.org/onlinegroups';
+
+    } else if (groupMeetingType == "oncampus") {
+
+      var redirectURL = `https://my.southeastchristian.org/groups/oncampus/${campus}/${ministry}`;
+
+    } else {
+
+      var zipcode = document.getElementById("homegroupsZipcode").value;
+      var childAccomodation = document.querySelector('input[name="childAccomodation"]:checked').value;
+
+      if (childAccomodation == 'yes'){
+        var redirectURL = `https://my.southeastchristian.org/groups/homegroups/${campus}?&type=${msMinistries}&zipcode=${zipcode}&otc=yes`;
+      } else {
+        var redirectURL = `https://my.southeastchristian.org/groups/homegroups/${campus}?&type=${msMinistries}&zipcode=${zipcode}`;
+      }
+
+    }
+
+    //Re-direct to the parameterized groups page link
+    window.location.href = redirectURL;
+  }
+
+</script>

@@ -74,14 +74,31 @@ namespace org.secc.GroupManager
                 && CurrentGroup.GroupType.InheritedGroupTypeId == FilterGroupType.Id )
             {
                 CurrentGroup.GroupType.LoadAttributes();
-                CurrentGroupFilters = CurrentGroup.GroupType.GetAttributeValue( "FilterAttribute" )
-                    .Split( new char[','], StringSplitOptions.RemoveEmptyEntries )
-                    .ToList();
+                CurrentGroupFilters = ParseFilterAttributeKeys( CurrentGroup.GroupType.GetAttributeValue( "FilterAttribute" ) );
             }
             else
             {
                 CurrentGroupFilters = new List<string>();
             }
+        }
+
+        /// <summary>
+        /// Splits the group type's comma-separated FilterAttribute value into trimmed attribute keys.
+        /// </summary>
+        /// <param name="value">The raw FilterAttribute value, e.g. "Grade,Campus".</param>
+        /// <returns>The attribute keys, or an empty list when the value is null or blank.</returns>
+        internal static List<string> ParseFilterAttributeKeys( string value )
+        {
+            if ( string.IsNullOrWhiteSpace( value ) )
+            {
+                return new List<string>();
+            }
+
+            return value
+                .Split( new[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
+                .Select( s => s.Trim() )
+                .Where( s => s.Length > 0 )
+                .ToList();
         }
 
         private void LoadSession( RockContext rockContext )

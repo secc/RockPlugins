@@ -13,11 +13,19 @@
                         <TextBox :modelValue="modelValue.url" @update:modelValue="update('url', $event)" label="" placeholder="https://..." />
                     </div>
                     <div class="li-field li-sub">
-                        <TextBox :modelValue="modelValue.subtitle || ''" @update:modelValue="update('subtitle', $event)" label="" placeholder="Subtitle (optional)" />
+                        <TextBox :modelValue="modelValue.subtitle || ''" @update:modelValue="update('subtitle', $event)" label="" :placeholder="isCard ? 'Card description (optional)' : 'Subtitle (optional)'" />
+                    </div>
+                </div>
+                <!-- ROCK-9361: card-style links get an optional image above the title. -->
+                <div v-if="isCard" class="li-card-line">
+                    <span class="li-card-tag"><i class="fa fa-id-card"></i> Card</span>
+                    <div class="li-card-image">
+                        <ImageUploader :modelValue="cardImageValue" @update:modelValue="onCardImageChange" label="" help="Optional image shown at the top of the card." />
                     </div>
                 </div>
             </div>
             <div class="li-actions">
+                <button type="button" class="btn btn-default btn-xs li-card-toggle" :class="{ 'is-card': isCard }" :aria-pressed="isCard" @click="toggleCard" :title="isCard ? 'Show as a button' : 'Show as a card'" aria-label="Show as card"><i class="fa fa-id-card"></i></button>
                 <button type="button" class="btn btn-default btn-xs li-feature" :class="{ 'is-featured': modelValue.isFeatured }" :aria-pressed="!!modelValue.isFeatured" @click="toggleFeatured" title="Featured button (one per list)" aria-label="Featured button"><i class="fa fa-star"></i></button>
                 <button v-if="canNest || isNested" type="button" class="btn btn-default btn-xs" :class="{ 'is-nested': isNested }" @click="toggleNest" :title="isNested ? 'Move out of the section' : 'Nest under the section above'" :aria-label="isNested ? 'Un-nest link' : 'Nest link'"><i :class="isNested ? 'fa fa-outdent' : 'fa fa-indent'"></i></button>
                 <button type="button" class="btn btn-default btn-xs" @click="$emit('moveUp')" title="Move up" aria-label="Move up"><i class="fa fa-chevron-up"></i></button>
@@ -73,7 +81,10 @@ import { computed, ref } from "vue";
 import TextBox from "@Obsidian/Controls/textBox.obs";
 import DropDownList from "@Obsidian/Controls/dropDownList.obs";
 import CheckBox from "@Obsidian/Controls/checkBox.obs";
+import ImageUploader from "@Obsidian/Controls/imageUploader.obs";
+import type { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
 import type { LinkItemBag } from "../types";
+import { isCardLink } from "../linkListItems";
 
 const props = defineProps<{
     modelValue: LinkItemBag;
@@ -119,6 +130,22 @@ function onTargetChange(value: string | string[] | undefined): void {
     update("target", t);
 }
 
+// ROCK-9361: per-link display style. A card reuses Text (title) + Subtitle
+// (description) and adds an optional image. The image is kept in the bag when
+// toggling back to a button (so an accidental toggle loses nothing before save);
+// the server only persists it for card rows.
+const isCard = computed(() => isCardLink(props.modelValue));
+function toggleCard(): void {
+    update("displayStyle", isCard.value ? "button" : "card");
+}
+
+// ImageUploader's modelValue is a ListItemBag whose value is the BinaryFile guid
+// (same mapping the editor uses for the header images).
+const cardImageValue = computed((): ListItemBag | null => props.modelValue.cardImage ? { value: props.modelValue.cardImage } : null);
+function onCardImageChange(v: ListItemBag | undefined | null): void {
+    update("cardImage", v?.value ?? "");
+}
+
 // Featured is a per-link toggle; the editor enforces "at most one" (radio-like).
 function toggleFeatured(): void {
     update("isFeatured", !props.modelValue.isFeatured);
@@ -157,6 +184,11 @@ function toggleFeatured(): void {
 .li-actions .options-open { background: #e7eef5; }
 .li-actions .is-nested { background: #e7eef5; color: #4a6b8a; }
 .li-feature { color: #b3bbc4; }
+.li-card-toggle { color: #b3bbc4; }
+.li-card-toggle.is-card { background: #e3effa; color: #2f6fa8; border-color: #b6d3ec; }
+.li-card-line { display: flex; gap: 10px; align-items: flex-start; }
+.li-card-tag { flex: 0 0 auto; margin-top: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #2f6fa8; display: inline-flex; align-items: center; gap: 5px; }
+.li-card-image { flex: 1 1 auto; min-width: 0; }
 .li-feature.is-featured { background: #fde9c8; color: #d98324; border-color: #f0c98a; }
 
 /* Compact the Rock controls inside a row (drop the form-group margin). */

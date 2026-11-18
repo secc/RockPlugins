@@ -1,0 +1,86 @@
+{%- capture bsq -%}\"{%- endcapture -%}
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermons' componententityid:'27191' operation:'View' summary:'Sermons Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' %}
+Sermons Page
+{% endinteractionwrite %}
+
+{%- cache key:'subsplash-sermons-v2' duration:'3600' -%}
+{
+	"header": {
+		"title": "Sermons"
+	},
+	{%- if page != empty -%}
+	    {%- assign pageNumber = page -%}
+	{%- endif -%}
+	{%- assign offset = pageNumber | Minus:1 | Times: 120 -%}
+	{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+	{%- contentchannelitem where:'Status == 2 && ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
+		"blocks": [
+			{%- assign comma = "" -%}
+	        {%- for item in contentchannelitemItems -%}
+        {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                {%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+                {%- assign childCount = itemChildItems | Size -%}
+                {%- if childCount > 0 -%}
+                {{ comma }}
+                {%- assign itemActionHandler = "blockPage" -%}
+                {%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/sermons/series-2/" | Append:item.Id -%}
+
+                {%- comment -%}If only one sermon, go directly to that sermon{%- endcomment -%}
+                {%- if childCount == 1 -%}
+                    {%- assign onlyChild = itemChildItems | First -%}
+                    {%- assign onlySermon = onlyChild.ChildContentChannelItem -%}
+                    {%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/sermon/v2/" | Append:onlySermon.Id -%}
+                {%- endif -%}
+
+                {%- assign resourcesCount = 0 -%}
+                {%- for messages in itemChildItems -%}
+                    {%- assign message = messages.ChildContentChannelItem -%}
+                    {%- if message.ContentChannelId != "23" -%}
+                        {%- assign resourcesCount = resourcesCount | Plus:1 -%}
+                    {%- endif -%}
+                {%- endfor -%}
+                {%- if resourcesCount != 0 -%}
+                {%- assign itemActionHandler = "subtabs" -%}
+                {%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/tabs/series/" | Append:item.Id -%}
+                {%- endif -%}
+                {
+                    "type": "image",
+                    "props": {
+                        {%-comment-%}
+                        "title": "{{item.Title | Replace:'"',bsq }}",
+                        "subtitle": "{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+                        {%-endcomment-%}
+                        {%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
+                        {%- if seriesImageGuid != empty -%}
+                            "imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&bgcolor=121314&width=1280&height=720&mode=crop&s.roundcorners=20,20,20,20&bgcolor=121212&format=png&margin=60,87,60,87&anchor=center",
+                        {%- else -%}
+                        {%- for child in item.ChildItems -%}
+                            {%- assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
+                            {%- assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+                            {%- if seriesImage != empty -%}
+                            "imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=1280&height=720&mode=crop&s.roundcorners=20,20,20,20&bgcolor=121212&format=png&margin=60,87,60,87&anchor=center",
+                            {%- break -%}
+                            {%- endif %}
+                            {%- endfor -%}
+                        {%- endif -%}
+                        "averageColor": "#000",
+                        "aspectRatio": 1.77,
+                        "action":
+                            {
+                                "handler": "{{- itemActionHandler -}}",
+                                {%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
+                                "url": "{{- itemActionUrl -}}"
+                            }
+
+                    }
+                }
+                {%- assign comma = "," -%}
+                {%- endif -%}
+            {%- endif -%}
+        {%- endfor -%}
+	    ]
+	{%- endcontentchannelitem -%}
+}
+{%- endcache -%}

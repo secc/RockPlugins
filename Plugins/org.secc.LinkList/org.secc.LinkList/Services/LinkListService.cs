@@ -366,12 +366,17 @@ namespace org.secc.LinkList.Services
                 .OrderBy( i => i.Title )
                 .ToList();
 
-            // Non-admins see only lists they can EDIT (the management permission).
+            // Non-admins see only lists they can EDIT (the management permission),
+            // plus - via the creator fallback in CanEditItem - a list they created
+            // whose security group failed to get created, so it stays reachable
+            // and can be repaired by re-saving. The "has a group" lookup is one
+            // query for the whole page rather than one per hidden row.
             // Item attributes (IsPublic / Design) are read after the auth filter
             // so only rows that will be returned get hydrated - and in one
             // bulk pass, not one round-trip per row.
+            var itemsWithGroup = isAdmin ? null : ItemIdsWithGroupEditRule( pagedIds );
             var visibleItems = items
-                .Where( item => isAdmin || ( currentPerson != null && item.IsAuthorized( Authorization.EDIT, currentPerson ) ) )
+                .Where( item => isAdmin || CanEditItem( item, currentPerson, itemsWithGroup ) )
                 .ToList();
             visibleItems.LoadAttributes( _rockContext );
 
@@ -707,6 +712,8 @@ namespace org.secc.LinkList.Services
                     Subtitle = SafeAttr( row, LinkListGuids.MatrixAttributeKey.Subtitle, string.Empty ),
                     Description = SafeAttr( row, LinkListGuids.MatrixAttributeKey.Description, string.Empty ),
                     IsFeatured = SafeAttr( row, LinkListGuids.MatrixAttributeKey.IsFeatured, "False" ).AsBoolean(),
+                    DisplayStyle = NormalizeDisplayStyle( SafeAttr( row, LinkListGuids.MatrixAttributeKey.DisplayStyle, LinkListGuids.DisplayStyleValue.Button ) ),
+                    CardImage = SafeAttr( row, LinkListGuids.MatrixAttributeKey.CardImage, string.Empty ),
                     Order = displayOrder++
                 } );
             }
@@ -973,6 +980,21 @@ namespace org.secc.LinkList.Services
                     }
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.IsFeatured, isFeatured.ToString() );
 
+                    // ROCK-9361: display style + card image. Only link rows carry a
+                    // style (sections/separators are always "button"), and only a
+                    // card keeps its image - switching a link back to a button clears
+                    // it, so a row never references an image it doesn't show. The
+                    // CardImage value is re-serialized from a parsed guid (never raw
+                    // client text).
+                    var displayStyle = normalizedType == LinkListGuids.ItemTypeValue.Link
+                        ? NormalizeDisplayStyle( bagRow.DisplayStyle )
+                        : LinkListGuids.DisplayStyleValue.Button;
+                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.DisplayStyle, displayStyle );
+                    var cardImage = displayStyle == LinkListGuids.DisplayStyleValue.Card
+                        ? bagRow.CardImage.AsGuidOrNull()?.ToString() ?? string.Empty
+                        : string.Empty;
+                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.CardImage, cardImage );
+
                     row.SaveAttributeValues( _rockContext );
                 }
             }
@@ -986,7 +1008,19 @@ namespace org.secc.LinkList.Services
             }
         }
 
-        private static string NormalizeItemType( string raw )
+        /// <summary>
+        /// ROCK-9361: canonical DisplayStyle value. Anything other than "card"
+        /// (case-insensitive) - including blank, which is every row saved before
+        /// migration 012 - is a button, so existing lists render unchanged.
+        /// </summary>
+        public static string NormalizeDisplayStyle( string raw )
+        {
+            return string.Equals( raw?.Trim(), LinkListGuids.DisplayStyleValue.Card, StringComparison.OrdinalIgnoreCase )
+                ? LinkListGuids.DisplayStyleValue.Card
+                : LinkListGuids.DisplayStyleValue.Button;
+        }
+
+        public static string NormalizeItemType( string raw )
         {
             if ( raw.IsNullOrWhiteSpace() ) return LinkListGuids.ItemTypeValue.Link;
             var lower = raw.Trim().ToLowerInvariant();
@@ -1420,6 +1454,102 @@ namespace org.secc.LinkList.Services
             var prefix = LinkListGuids.SecurityGroupNamePrefix;
             return groups.FirstOrDefault( g => g.Name != null && g.Name.StartsWith( prefix ) )
                 ?? groups.First();
+        }
+
+        /// <summary>
+        /// The subset of <paramref name="itemIds"/> that have at least one group-based
+        /// Allow/EDIT AuthRule - the same predicate <see cref="GetPrimarySecurityGroup"/>
+        /// uses, evaluated for a whole page of items in one query.
+        /// </summary>
+        public HashSet<int> ItemIdsWithGroupEditRule( ICollection<int> itemIds )
+        {
+            var result = new HashSet<int>();
+            if ( itemIds == null || itemIds.Count == 0 )
+            {
+                return result;
+            }
+            var contentChannelItemEntityTypeId = EntityTypeCache.Get( typeof( ContentChannelItem ) )?.Id;
+            if ( !contentChannelItemEntityTypeId.HasValue )
+            {
+                return result;
+            }
+
+            var ids = new AuthService( _rockContext ).Queryable()
+                .Where( a =>
+                    a.EntityTypeId == contentChannelItemEntityTypeId.Value
+                    && a.EntityId.HasValue
+                    && itemIds.Contains( a.EntityId.Value )
+                    && a.Action == Authorization.EDIT
+                    && a.AllowOrDeny == "A"
+                    && a.GroupId.HasValue )
+                .Select( a => a.EntityId.Value )
+                .Distinct()
+                .ToList();
+            result.UnionWith( ids );
+            return result;
+        }
+
+        /// <summary>
+        /// The management-permission check every editor entry point uses: item EDIT,
+        /// or the creator fallback below. Order matters - the cheap in-memory
+        /// authorization check runs first, the Auth query only when it fails.
+        /// </summary>
+        public bool CanEditItem( ContentChannelItem item, Person person )
+        {
+            return CanEditItem( item, person, itemsWithGroup: null );
+        }
+
+        /// <summary>
+        /// Overload for callers that already know, for a batch of items, which ones
+        /// have a group EDIT rule (<see cref="ItemIdsWithGroupEditRule"/>). Pass null
+        /// to fall back to a per-item lookup.
+        /// </summary>
+        public bool CanEditItem( ContentChannelItem item, Person person, HashSet<int> itemsWithGroup )
+        {
+            if ( item == null || person == null )
+            {
+                return false;
+            }
+            return item.IsAuthorized( Authorization.EDIT, person )
+                || IsSetupIncompleteCreator( item, person, itemsWithGroup );
+        }
+
+        /// <summary>
+        /// True when <paramref name="person"/> created the item AND the item has no
+        /// group-based EDIT rule yet - i.e. EnsureSecurityGroup failed (or has not run)
+        /// on a list whose creator, since ROCK-9100, holds no channel EDIT and so has
+        /// no other route to it. Deliberately narrow: once a group exists, only the
+        /// group governs, so a creator later removed from it loses access as intended.
+        /// Rock stamps CreatedByPersonAliasId from the request's current person on
+        /// the first SaveChanges, which is what makes this attributable.
+        /// </summary>
+        public bool IsSetupIncompleteCreator( ContentChannelItem item, Person person )
+        {
+            return IsSetupIncompleteCreator( item, person, itemsWithGroup: null );
+        }
+
+        private bool IsSetupIncompleteCreator( ContentChannelItem item, Person person, HashSet<int> itemsWithGroup )
+        {
+            if ( item == null || person == null || !item.CreatedByPersonAliasId.HasValue )
+            {
+                return false;
+            }
+            // Group check first: with a pre-computed set it is free, and in the grid
+            // it rules out every other person's (fully set up) list before the
+            // per-row alias query below.
+            var hasGroup = itemsWithGroup != null
+                ? itemsWithGroup.Contains( item.Id )
+                : GetPrimarySecurityGroup( item ) != null;
+            if ( hasGroup )
+            {
+                return false;
+            }
+            // Resolve the alias through the service rather than person.Aliases: the
+            // current person comes from the request, not this context, so its
+            // navigation collection may not be loaded.
+            var createdByAliasId = item.CreatedByPersonAliasId.Value;
+            return new PersonAliasService( _rockContext ).Queryable()
+                .Any( a => a.Id == createdByAliasId && a.PersonId == person.Id );
         }
 
         /// <summary>

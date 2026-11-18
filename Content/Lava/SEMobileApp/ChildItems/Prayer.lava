@@ -6,7 +6,7 @@
 				"title": "Prayer",
 				"images": [{
 					"width": 500,
-					"url": "https://www.southeastchristian.org/Content/SubSplash/prayer.jpg"
+					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}Content/SubSplash/prayer.jpg"
 				}]
 			}]
 		},
@@ -34,7 +34,7 @@
 						"actions":[{
 							"handler":"browser",
 							"style":"internal",
-							"contentUrl":"https://www.southeastchristian.org/prayer"
+							"contentUrl":"{{ 'Global' | Attribute:'PublicApplicationRoot' }}prayer"
 						}]
 					}
 				]

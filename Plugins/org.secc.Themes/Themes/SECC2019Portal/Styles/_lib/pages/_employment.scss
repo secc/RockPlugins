@@ -1,0 +1,42 @@
+/* ------------------------------------------------------------------------------------
+	Visit: Sets the style for certain aspects of the Employment Opportunities Page
+------------------------------------------------------------------------------------- */
+
+.job {
+  padding: 2em 1em;
+  + .job {
+    border-top: 1px solid #a09d99;
+  }
+  header {
+    margin-bottom: 1em;
+  }
+  .job-title {
+    font-family: proxima-nova-n1,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight: 100;
+  }
+  .location {
+    font-size: 0.9em;
+  }
+  .ministry {
+    float: right;
+  }
+  .hours {
+    float: right;
+    font-size: .9em;
+    font-style: italic;
+  }
+  .description {
+    max-height: 0;
+    overflow: auto;
+    transition: all 500ms ease-out;
+  }
+  &.active .description {
+    max-height: 2000px;
+  }
+  .apply-link {
+    float: right;
+  }
+  span[contenteditable] {
+    display: none !important;
+  }
+}

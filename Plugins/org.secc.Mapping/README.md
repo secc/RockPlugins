@@ -97,15 +97,8 @@ Ships Rock plugin migrations under `/Migrations/`:
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** `{address}` is passed straight through to the Azure Maps payload and is also
-  stored as the `Origin` column (the in-memory cache key is `origin + destinationAddress`). The
-  endpoint is `[Authenticate]`-gated, so callers must be
-  logged-in Rock users, but the address travels in the URL path (logged in IIS/proxy logs). Worth
-  confirming that's acceptable for the addresses being queried.
-- **Improvement:** The Azure Maps key is read from the `AzureMapsKey` global attribute on every call;
-  confirm that attribute is stored encrypted and not broadly readable, since it bills against a paid
-  Azure subscription. If `AzureMapsKey` is empty the request still fires and simply fails (logged),
-  rather than short-circuiting.
+- **Improvement:** If the `AzureMapsKey` global attribute is empty the request still fires and simply
+  fails (logged), rather than short-circuiting.
 - **Improvement:** `AzureDistanceMatrix.OrderDestinations` returns **only** destinations where
   `IsCalculated == true`, sorted by `TravelDuration`. Any address Azure can't route (bad/foreign
   address, API failure) is silently dropped from the results rather than reported, so the caller can't

@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <!-- Build only the projects referenced below, so the properties passed to them apply. -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <!-- Resolve RockWeb the same way LinkList.Tests does: honor an explicit
+       /p:RockWebPath, then probe the rock-dev-tool layout (Rock next to the
+       plugin folder) and the Rock solution layout (SolutionDir). -->
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('..\..\Rock\RockWeb\Bin')">..\..\Rock\RockWeb</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- org.secc.OAuth skips its copy into RockWeb when CopyToRockWeb is false, and an empty
+         PostBuildEvent turns off its post-build event. Both apply when MSBuild builds the plugin
+         through this reference from the command line. Visual Studio builds the plugin as its own
+         project, so building it in a solution, on its own or from Rock.sln still copies it. -->
+    <ProjectReference Include="..\org.secc.OAuth.csproj" AdditionalProperties="CopyToRockWeb=false;PostBuildEvent=" />
+    <!-- The plugin's migrations derive from Rock.Plugin.Migration. -->
+    <Reference Include="Rock">
+      <HintPath>$(RockWebPath)\Bin\Rock.dll</HintPath>
+    </Reference>
+    <!-- Rock.dll's types depend on Rock.Common. -->
+    <Reference Include="Rock.Common">
+      <HintPath>$(RockWebPath)\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <!-- Rock reads its version for plugin migrations from Rock.Version's VersionInfo. -->
+    <Reference Include="Rock.Version">
+      <HintPath>$(RockWebPath)\Bin\Rock.Version.dll</HintPath>
+    </Reference>
+    <!-- Rock.Plugin.Migration's members use Entity Framework types. Both assemblies come from
+         RockWeb so that they are the same build. -->
+    <Reference Include="EntityFramework">
+      <HintPath>$(RockWebPath)\Bin\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>$(RockWebPath)\Bin\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

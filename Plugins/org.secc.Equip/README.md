@@ -146,19 +146,9 @@ Ships Rock plugin migrations under `/Migrations/`:
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** Course viewer-restriction logic is split. `Course.PersonCanView` checks
-  `AllowedGroup` / `AllowedDataView` membership, while `CustomFilters.PersonCourseInfo` instead
-  relies on `IsAuthorized(VIEW, currentPerson)` (Rock category-based security via `ParentAuthority`).
-  These are two different gates; confirm the Course Entry / Course Lava blocks consistently enforce
-  whichever one is intended so a course can't be viewed through one path but not the other.
 - **Improvement:** The `PersonCourseInfo` Lava filter constructs a fresh `RockContext` per call and
   materializes all active courses in the scoped categories, then authorizes them in-memory — fine
   for a single person page, wasteful if looped over many people.
-- **Improvement:** Several video/HTML page types disable request validation
-  (`ValidateRequestMode.Disabled`) and emit author-supplied HTML/embed markup directly into the page
-  (e.g. `YouTubePage`/`VimeoPage` wrap `coursePage.Configuration` in a container literal). That's
-  expected for an HTML-authoring tool, but it means page authoring should stay an
-  admin/trusted-staff capability — treat the Course Detail/Page Edit blocks' security accordingly.
 - **Improvement:** The `Data/LearingContext.cs` filename is misspelled (the class is
   `LearningContext`); harmless but worth tidying. Its doc-comment also still references
   `GroupManagerContext` from a copy/paste.

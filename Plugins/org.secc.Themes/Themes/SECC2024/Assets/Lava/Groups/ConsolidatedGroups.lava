@@ -1,0 +1,1105 @@
+<style>
+    .filterbox{
+        display: block;
+    }
+    .flex-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+    .flex-justify-sb {
+        justify-content: space-between;
+    }
+    .campus-photo {
+        height: 30px;
+        border-radius: 50%;
+    }
+    .hide {
+        display: none;
+    }
+    .readmore_dates {
+        transition: height 100ms;
+        overflow: hidden;
+        display: none;
+     }
+     .grid {
+        display: grid;
+        grid-template-columns: 100%;
+    }
+    @media (min-width: 48em) {
+        .grid { grid-template-columns: 50% 50%; }
+    }
+
+    .event-calendar .card {
+        border-radius: 4px;
+    }
+    .event-calendar .card:hover,
+    .event-calendar .card:focus,
+    .event-calendar .card:active {
+        background-color: rgba(254, 240, 228, 0.3);
+    }
+    .hide {
+        display: none;
+    }
+    .see-more {
+        color: #616264;
+    }
+    .se-dropdown {
+		border: 1px solid rgba(29, 31, 33, 0.20);
+		border-radius: 4px;
+		cursor: pointer;
+		padding: 5px 70px 5px 15px;
+		display: block;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		color: black;
+		line-height: 28px;
+		font-weight: 400;
+		box-sizing: border-box;
+		display: inline-block;
+		margin: 0;
+		position: relative;
+		vertical-align: middle;
+		margin-top: 5px;
+		min-width: 170px;
+		width: 100%;
+		z-index: 10;
+	}
+	.se-dropdown .arrow {
+		height: auto;
+		position: absolute;
+		top: 19px;
+		right: 15px;
+		width: 20px;
+	}
+	.se-dropdown .arrow b {
+		border-color: white;
+		border-style: none;
+		border-width: 0px;
+		height: 0;
+		position: absolute;
+		width: 0;
+	}
+	.se-dropdown .arrow b:before {
+		width: 10px;
+		height: 10px;
+		content: "";
+		border: solid #000000;
+		border-width: 0 2px 2px 0;
+		display: inline-block;
+		position: absolute;
+		top: 55%;
+		left: 50%;
+		transition: all 0.4s ease;
+		transform: translate(-50%, -50%) rotate(45deg);
+		-webkit-transform: translate(-50%, -50%) rotate(45deg);
+	}
+	.se-dropdown + div {
+		box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
+		padding: 15px;
+		display: none;
+		position: absolute;
+		background-color: #FFFFFF;
+		overflow: visible;
+		box-sizing: border-box;
+		z-index: 1051;
+	}
+	.se-dropdown[aria-expanded="true"] + div {
+		display: block;
+	}
+	.se-dropdown[aria-expanded="true"] .arrow b:before {
+		transform: translate(-50%, -50%) rotate(-135deg);
+		-webkit-transform: translate(-50%, -50%) rotate(-135deg);
+		top: 3px;
+	}
+    .se-input {
+        background-color: white;
+        border: 1px solid rgba(29, 31, 33, 0.20);
+        border-radius: 4px;
+        box-sizing: border-box;
+        color: #1D1F21;
+        display: inline-block;
+        font-weight: 400;
+        font-size: 1rem;
+        line-height: 28px;
+        margin: 5px 0 0 0;
+        min-width: 170px;
+        overflow: hidden;
+        padding: 5px 70px 5px 15px;
+        position: relative;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        white-space: nowrap;
+        width: 100%;
+        z-index: 10;
+    }
+    .se-zipcode-loading {
+        position: absolute;
+        right: 25px;
+        top: 18px;
+        z-index: 30;
+    }
+    @media (max-width:991px)
+    {
+        .se-dropdown + div {
+            position: relative;
+        }
+        .col-md-4 {
+            margin-bottom: 15vh;
+        }
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    }
+</style>
+
+<div class="container g-width-100-percent--xs">
+    <div class="">
+        <div class="col-md-4">
+            <div class="filterbox">
+                <div class="">
+                    <div class="">
+                        <h2 class="g-font-family--secondary">Find a Group</h2>
+                        <p class="g-font-weight--400 g-line-height--sm g-padding-t-20--xs g-padding-t-50--md" style="color: #616264;">Find a group that interests you by filtering by campus or asking for a suggestion. Click to see more details or to register.</p>
+                        <br />
+                    </div>
+
+                    <div class="g-padding-y-10--xs g-width-100-percent--xs g-width-50-percent--md" tabindex="0" style="outline: none;">
+                        <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="campuses" aria-expanded="false" data-control="#groupFilters">
+                            Campus <span class="g-font-weight--300" id="campusesText"><span class="count"></span></span>
+                            <span class="arrow" role="presentation"><b role="presentation"></b></span>
+                        </span>
+                        <div id="campuses" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+                            <p>Select a campus:</p>
+                            {% for campus in Campuses %}
+                                {% assign publicCampus = campus | Attribute:'Public' %}
+                                {% if publicCampus == 'Yes' %}
+                                    <a class="g-margin-y-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="{{campus.Name | Downcase | Replace:" ",""}}">{{ campus.Name }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="g-padding-y-10--xs g-width-100-percent--xs g-width-50-percent--md" tabindex="0" style="outline: none;">
+                        <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="groupMeetingType" aria-expanded="false" data-control="#groupFilters">
+                            Group Type <span class="g-font-weight--300" id="groupMeetingTypeText"><span class="count"></span></span>
+                            <span class="arrow" role="presentation"><b role="presentation"></b></span>
+                        </span>
+                        <div id="groupMeetingType" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+                            <p>Select a type of group:</p>
+                            <a class="g-margin-y-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="Home" onclick="toggleZipcodeFilter()">Home</a>
+                            <a class="g-margin-y-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="On-Campus">On-Campus</a>
+                            <a class="g-margin-y-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="Online">Online</a>
+                        </div>
+                    </div>
+
+                    <br>
+                    <div class="flex-row flex-justify-sb g-width-100-percent--xs g-width-50-percent--md">
+                        <a id="filterToggle" class="cursor-pointer" OnClick="toggleMoreFilters()">More Filters</a>
+                        <a id="resetFilter" class="cursor-pointer" OnClick="resetFilters()" style="display: none;">Reset Filters</a>
+                    </div>
+
+                    <div id="moreFilters" hidden="true">
+                        <div class="g-display-inline-block--xs g-width-100-percent--xs g-width-50-percent--lg">
+                            <input id="se-zipcode" class="se-input hidden" placeholder="Zipcode" type="number" pattern="\d*" />
+                            <i class="fas fa-circle-notch fa-spin se-zipcode-loading hidden"></i>
+                        </div>
+
+                        <div class="g-padding-y-10--xs g-width-100-percent--xs g-width-50-percent--md" tabindex="0" style="outline: none;">
+                            <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
+                                Meets On <span class="g-font-weight--300" id="dayOfTheWeekText"><span class="count"></span></span>
+                                <span class="arrow" role="presentation"><b role="presentation"></b></span>
+                            </span>
+                            <div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+                                <p>Select a day of the week:</p>
+                                <a class="g-margin-y-5--xs g-margin-x-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="Sunday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
+                                <a class="g-margin-y-5--xs g-margin-x-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="Monday" data-toggle="tooltip" data-placement="bottom" title="Monday">M</a>
+                                <a class="g-margin-y-5--xs g-margin-x-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="Tuesday" data-toggle="tooltip" data-placement="bottom" title="Tuesday">T</a>
+                                <a class="g-margin-y-5--xs g-margin-x-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="Wednesday" data-toggle="tooltip" data-placement="bottom" title="Wednesday">W</a>
+                                <a class="g-margin-y-5--xs g-margin-x-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="Thursday" data-toggle="tooltip" data-placement="bottom" title="Thursday">T</a>
+                                <a class="g-margin-y-5--xs g-margin-x-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="Friday" data-toggle="tooltip" data-placement="bottom" title="Friday">F</a>
+                                <a class="g-margin-y-5--xs g-margin-x-5--xs button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
+                            </div>
+                        </div>
+
+                        <div class="g-display-inline-block--xs g-width-100-percent--xs g-width-50-percent--lg" tabindex="0" style="outline: none;">
+                            <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="typeSelected" aria-expanded="false" data-control="#groupFilters">
+                                Ministry <span class="g-font-weight--300" id="ministriesText"><span class="count"></span></span>
+                                <span class="arrow" role="presentation"><b role="presentation"></b></span>
+                            </span>
+                            <div id="ministries" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+                                <p>Select categories of your interests:</p>
+                                {% definedvalue where:'DefinedTypeId==16' %}
+                                    {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+                                    {% for definedValue in definedvalueItemsSorted %}
+                                        {% assign idRepresentation = definedValue.Id | AsString %}
+                                            {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+                                            {% if publicFilter == "Yes" %}
+                                                <a class="button se-btn se-btn--tag no-transitions uppercase g-margin-y-5--xs g-margin-x-5--xs" data-filter="{{ definedValue.Id }}">{{ definedValue.Value | Capitalize }}</a>
+                                            {% endif %}
+                                    {% endfor %}
+                                {% enddefinedvalue %}
+                            </div>
+                        </div>
+
+                        <div class="g-font-size-20--xs g-display-inline-block--xs col-xs-12 g-padding-x-5--xs g-padding-t-10--xs g-margin-b-20--xs text-left g-font-weight--400">
+                            <div>
+                                <input id="se-handicap" class="" type="checkbox" name="Handicap Accessibility"/> <label for="se-handicap" class="g-font-size-16--xs g-font-weight--400 g-display-inline-block--xs g-padding-r-10--xs">Handicap Accessibility</label>
+                            </div>
+                            <div>
+                                <input id="se-otc" class="" type="checkbox" name="Open to Children" /> <label for="se-otc" class="g-font-size-16--xs g-font-weight--400 g-display-inline-block--xs g-padding-r-10--xs">Open to Children</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div id="event-results" class="g-padding-b-150--xs">
+            {% assign contCount = 0 %}
+            <div class="">
+                {% assign urlArray = 'Global' | Page:'Url' | Split:'/' %}
+                {% assign groupRequest = "https://" | Append:urlArray[1] | Append:'/Webhooks/Lava.ashx/publishgroup/list/v2'%}
+                <script>
+                    console.log('{{groupRequest}}');
+                </script>
+
+                <div class="isotope_wrap is-showing-items">
+                    {%- assign results = 'publishGroupsList' | PersistedDataset -%}
+                        {% assign publishGroupCount = results | Size %}
+                        <script>
+                            console.log('{{publishGroupCount}}');
+                        </script>
+
+                        {% for publishGroup in results %}
+                            {% if forloop.index == 25 %} {% comment %} Force update the DOM after first 25 groups are loaded {% endcomment %}
+                                <script>
+                                    document.querySelector('.isotope_wrap.is-showing-items').innerHTML += "";
+                                    console.log('First 25 groups loaded...');
+                                </script>
+                            {% endif %}
+                            {% assign registrationLink = publishGroup.RegistrationUri %}
+                            {% assign contactLink = publishGroup.ContactUri %}
+                            <div class="{% if publishGroup.GroupMeetingType == 'Home' %}homegroup{% endif %} event-calendar isotope_item g-width-100-percent--xs g-width-49-percent--lg"
+                                data-groupid="{{ publishGroup.GroupId }}"
+                                data-day="{{ publishGroup.MeetingDay }}"
+                                data-campus="{{ publishGroup.CampusName | Downcase | Replace:" ","" }}"
+                                data-grouptype="{{ publishGroup.GroupMeetingType}}"
+                                data-ministry="{{ publishGroup.Audience }}"
+                                data-handicap-accessible="{{ publishGroup.IsHandicapAccessible }}"
+                                data-open-to-children="{{ publishGroup.IsChildcareAvailable }}">
+                                <div class="clearfix card">
+                                    <div class="caption g-padding-x-25--xs g-padding-x-30--md g-padding-t-30--xs g-padding-t-40--md g-margin-b-20--xs g-margin-b-25--md">
+                                        <div class="distance-container hidden">
+                                            <h6 class="uppercase g-padding-b-5--xs g-font-weight--700 g-width-100-percent--xs">
+                                                Distance: <span class="distance"></span> miles
+                                            </h6>
+                                            <hr class="g-hor-divider__solid__t--gray-lighter" />
+                                        </div>
+                                        <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md" style="margin-bottom: 5px;">
+                                            {{ publishGroup.Title | Truncate:40,'...' }}
+                                        </h3>
+
+                                        <!-- Campus & Group Type -->
+                                        {% if publishGroup.GroupMeetingType == 'On-Campus' %}
+                                            <p class="g-font-size-14---xs g-font-weight--300 flex-row">
+                                                <img src="https://rock.secc.org/GetImage.ashx?guid={{publishGroup.CampusPhotoGuid}}" class="campus-photo"> &nbsp;{{ publishGroup.CampusName }}
+                                            </p>
+                                            <p class="g-font-size-14---xs g-font-weight--300 flex-row">
+                                                <i class="fal fa-church"></i>&nbsp; On-Campus Group
+                                            </p>
+                                        {% else %}
+                                            {% if publishGroup.GroupMeetingType == 'Home' %}
+                                                <p class="g-font-size-14---xs g-font-weight--300 flex-row">
+                                                    <i class="fal fa-house"></i>&nbsp; {{ publishGroup.CampusName }} Home Group
+                                                </p>
+                                            {% elseif publishGroup.GroupMeetingType == 'Online' %}
+                                                <p class="g-font-size-14---xs g-font-weight--300 flex-row">
+                                                    <i class="fal fa-globe"></i>&nbsp; Online Group
+                                                </p>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        <!-- Group Member Stats -->
+                                        {% if publishGroup.ShowDemographicInfo == "True" %}
+                                        <p class="g-font-size-14---xs g-font-weight--300">
+                                            <i class="fal fa-users"></i>
+                                            {% if publishGroup.NumGroupMembers > 0 %}
+                                                {{ publishGroup.NumGroupMembers }} members aged {{ publishGroup.YoungestAge }} - {{ publishGroup.OldestAge}}
+                                            {% else %}
+                                                No member info available
+                                            {% endif %}
+                                        </p>
+                                        {% endif %}
+
+                                        <!-- Meeting Time & Location -->
+                                        {% assign scheduleText = null %}
+                                        {% assign meetingDaySize = publishGroup.MeetingDay | Trim | Size %}
+                                        {% assign meetingTimeSize = publishGroup.MeetingDay | Trim | Size %}
+                                        {% if publishGroup.CustomSchedule != '' %}
+                                            {% assign scheduleText = publishGroup.CustomSchedule %}
+                                        {% elseif meetingDaySize > 0 and meetingTimeSize > 0 %}
+                                            {% assign scheduleText = publishGroup.MeetingDay | Append:'s ' | Append:publishGroup.MeetingTime %}
+                                        {% endif %}
+
+                                        {% if scheduleText != null %}
+                                            <p class="g-font-size-14--xs g-font-weight--300">
+                                                <i class="fal fa-calendar"></i> {{ scheduleText }}{% if publishGroup.StartDate and publishGroup.StartDate != empty %}&nbsp;| Starting: {{ publishGroup.StartDate | Date:'MMM d'}} {% endif %}
+                                            </p>
+                                        {% else %}
+                                            <p class="g-font-size-14--xs g-font-weight--300"><i class="fal fa-calendar"></i> No schedule available </p>
+                                        {% endif %}
+
+                                        {% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty%}
+                                            <p class="g-font-size-14--xs g-font-weight--300">
+                                                <i class="fal fa-map-marker-alt"></i> {{ publishGroup.MeetingLocation }}
+                                            </p>
+                                        {% else %}
+                                            <p class="g-font-size-14--xs g-font-weight--300">
+                                                <i class="fal fa-map-marker-alt"></i> Register for location info
+                                            </p>
+                                        {% endif %}
+
+                                        <!-- ChildCare -->
+                                        {% if publishGroup.IsChildcareAvailable == true %}
+                                            <p class="g-font-size-14--xs g-font-weight--300">
+                                                <i class="fal fa-child"></i> Children's Programming Available
+                                            </p>
+                                        {% endif %}
+
+                                        <!-- Handicap Accessibility -->
+                                        {% if publishGroup.IsHandicapAccessible == true and publishGroup.GroupMeetingType == 'Home' %}
+                                            <p class="g-font-size-14--xs g-font-weight--300">
+                                                <i class="fal fa-wheelchair"></i> Accessible
+                                            </p>
+                                        {% endif %}
+
+                                        <!-- Group Description-->
+                                        <p class="g-font-size-14--xs g-font-weight--300">
+                                            {{ publishGroup.Description | Truncate:112,'...' }} <a class="see-more" href="{{ registrationLink }}">see more</a>
+                                        </p>
+
+                                    </div>
+
+                                    <!-- Register & Contact Buttons -->
+                                    <div class="text-center g-margin-b-25--xs g-margin-b-30--md g-margin-x-10--xs" style="display:flex; align-content:space-between;">
+                                        <div class="" style="flex:2 1 0;">
+                                            {% if publishGroup.RegistrationRequirement != 0 %}
+                                                {% assign buttonText = 'Register' %}
+                                            {% else %}
+                                                {% assign buttonText = 'View Details' %}
+                                            {% endif %}
+                                            {[ sebutton title:'{{ buttonText }}' href:'{{ registrationLink }}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                                        </div>
+                                        <div class="" style="flex:1 1 0;">
+                                            {[ sebutton title:'Contact' href:'{{ contactLink }}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                                        </div>
+                                    </div>
+
+                                    <div class="mobile-only" style="position:absolute;top:1rem;right:1rem;">
+                                        <a onclick="shareMessage('{{ publishGroup.Title | Replace:"'","\'"}}','Join me at {{ publishGroup.Title | Replace:"'","\'"}}!','{{registrationLink}}')">
+                                            <i class="fas fa-share-alt" style="color:#1D1F21"></i>
+                                        </a>
+                                    </div>
+
+                                </div>
+                            </div> <!-- END: isotope_item -->
+                        {% endfor %}
+                </div><!-- END: isotope_wrap -->
+
+                <div id="noresultmsg" class="row" {% unless publishGroupCount == 0 or ministryCount == 0 %}style="display: none;"{% endunless %}>
+                    <div class="col-xs-12 text-center">
+                        <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
+                            <p style="margin: 0px;">There are no groups for this ministy at this time. Please try another campus or ministry.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- END: bootstrap container -->
+        </div>
+    </div>
+</div>
+
+<script>
+    //Pre-filled filtering w/ page parameters
+    $(document).ready(function () {
+        const campus = getPageParameter('campus');
+        const grouptype = getPageParameter('grouptype');
+        const ministry = getPageParameter('ministry');
+        const meets = getPageParameter('meets');
+        const handicap = getPageParameter('handicap');
+        const otc = getPageParameter('otc');
+
+        if (campus) {
+            // Split campus parameter on ',' and loop through each value
+            campus.split(',').forEach(campusValue => {
+                // Trim any extra spaces
+                campusValue = campusValue.trim();
+
+                // Find the <a> element with a data-filter attribute matching the campus parameter
+                const targetElementc = $(`a[data-filter='${campusValue}']`);
+
+                // Check if the element exists
+                if (targetElementc.length > 0) {
+                    // Simulate a click on the campus filter element
+                    targetElementc[0].click();
+                } else {
+                    console.error('No matching <a> element found for value:', campusValue);
+                }
+            });
+        }
+        if (grouptype) {
+            // Split grouptype parameter on ',' and loop through each value
+            grouptype.split(',').forEach(groupTypeValue => {
+                // Trim any extra spaces
+                groupTypeValue = groupTypeValue.trim();
+
+                // Find the <a> element with a data-filter attribute matching the grouptype parameter
+                const targetElementgt = $(`a[data-filter='${groupTypeValue}']`);
+
+                // Check if the element exists
+                if (targetElementgt.length > 0) {
+                    // Simulate a click on the grouptype filter element
+                    targetElementgt[0].click();
+                } else {
+                    console.error('No matching <a> element found for value:', campusValue);
+                }
+            });
+        }
+        if (ministry) {
+            /*// Map page parameter text to defined value Ids
+            const ministryMappings = {
+                {% definedvalue where:'DefinedTypeId==16' %}
+                    {% for definedValue in definedvalueItems %}
+                        {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+                        {% if publicFilter == "Yes" %}
+                            "{{ definedValue | Attribute:'URLSlug' }}": {{ definedValue.Id }}{% if forloop.last == false %},{% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% enddefinedvalue %}
+            };
+
+            function getMinistryId(ministryPageParameter) {
+                return ministryMappings[ministryPageParameter] || null;
+            }*/
+
+            // Split ministry parameter on ',' and loop through each value
+            ministry.split(',').forEach(ministryValue => {
+                // Trim any extra spaces
+                ministryValue = ministryValue.trim();
+
+                //const ministryId = getMinistryId(ministryValue);
+
+                if (ministryValue) {
+                    // Find the <a> element with a data-filter attribute matching the ministry ID
+                    const targetElementm = $(`a[data-filter='${ministryValue}']`);
+
+                    // Check if the element exists
+                    if (targetElementm.length > 0) {
+                        // Simulate a click on the ministry filter element
+                        targetElementm[0].click();
+                    } else {
+                        console.error('No matching <a> element found for value:', ministryValue);
+                    }
+                } else {
+                    console.error('No mapping found for ministry value:', ministryValue);
+                }
+            });
+        }
+
+        if (meets) {
+            // Split meets parameter on ',' and loop through each value
+            meets.split(',').forEach(meetsOnValue => {
+                // Trim any extra spaces
+                meetsOnValue = meetsOnValue.trim();
+
+                // Find the <a> element with a data-filter attribute matching the grouptype parameter
+                const targetElementmo = $(`a[data-filter='${meetsOnValue}']`);
+
+                // Check if the element exists
+                if (targetElementmo.length > 0) {
+                    // Simulate a click on the grouptype filter element
+                    targetElementmo[0].click();
+                } else {
+                    console.error('No matching <a> element found for value:', campusValue);
+                }
+            });
+        }
+
+        if (handicap && handicap.toLowerCase() === 'true') {
+            const handicapCheckbox = $('#se-handicap');
+
+            if (handicapCheckbox.length > 0) {
+                // Simulate a click event to trigger any event listeners
+                handicapCheckbox.click();
+            } else {
+                console.error('Handicap checkbox not found.');
+            }
+        }
+
+        if (otc && otc.toLowerCase() === 'true') {
+            const otcCheckbox = $('#se-otc');
+
+            if (otcCheckbox.length > 0) {
+                // Simulate a click event to trigger any event listeners
+                otcCheckbox.click();
+            } else {
+                console.error('Open to children checkbox not found.');
+            }
+        }
+
+        if( meets || ministry || (handicap && handicap.toLowerCase() === 'true') || (otc && otc.toLowerCase() === 'true')) {
+            const moreFiltersLink = $('#filterToggle');
+            moreFiltersLink.click();
+        }
+    });
+
+    function getPageParameter(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name); // Returns null if the parameter doesn't exist
+    }
+
+    function shareMessage(title, message, url) {
+        if (navigator.share) {
+            navigator.share({
+                title: title,
+                text: message + '\n',
+                url: url
+            })
+                .then(() => console.log("Message shared successfully!"))
+                .catch((error) => console.error("Error sharing message:", error));
+        } else {
+            console.log("Share API is not supported in this browser.");
+        }
+    }
+
+    function isMobileDevice() {
+        return /Mobi|Android/i.test(navigator.userAgent);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var elements = document.getElementsByClassName('mobile-only');
+        for (var i = 0; i < elements.length; i++) {
+            if (isMobileDevice()) {
+                elements[i].style.display = 'block';
+            } else {
+                elements[i].style.display = 'none';
+            }
+        }
+    });
+
+    function toggleMoreFilters() {
+        const moreFilters = document.getElementById("moreFilters");
+        const filterToggle = document.getElementById("filterToggle");
+        moreFilters.hidden = !moreFilters.hidden;
+        filterToggle.textContent = moreFilters.hidden ? "More Filters" : "Fewer Filters";
+    }
+
+    function toggleResetLink(appliedFilters) {
+        //var enteredZipcode = document.getElementById("se-zipcode").value;
+        var enteredZipcode = "";
+        const resetFilterLink = document.getElementById("resetFilter");
+        if (appliedFilters != "" || enteredZipcode != "") {
+            resetFilterLink.style.display = "inline"; // Show the link if filters are applied
+        } else {
+            resetFilterLink.style.display = "none"; // Hide the link if no filters are applied
+        }
+    }
+
+    function toggleDropdown($selected) {
+        // Close all of the others - before opening this
+        $('[data-control="#groupFilters"]').not($selected).attr('aria-expanded','false');
+        $selected.attr('aria-expanded', function (i, attr) {
+            return attr == 'true' ? 'false' : 'true'
+        });
+    }
+
+    // When the user clicks on the button, toggle between hiding and showing the dropdown content
+    $('[data-toggle="dropdown-content"]').mousedown(function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        $this.parent().focus();
+        toggleDropdown($this);
+    });
+
+    $('[data-control="#groupFilters"]').parent().focusout(function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        $this.children("[data-toggle='dropdown-content']").attr('aria-expanded', 'false');
+    });
+
+    // Initialize Isotope/Groups
+    var $grid = $('.isotope_wrap').isotope({
+        itemSelector: '.isotope_item',
+        percentPosition: true,
+        layoutMode: 'fitRows'
+    });
+
+    // Not using isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
+    if (Modernizr.mq('only all and (max-width: 720px)')) {
+        $('.isotope_wrap').addClass('is-showing-items');
+    } else {
+        var isoOptions = {
+            itemSelector: '.isotope_item',
+            percentPosition: true,
+            layoutMode: 'fitRows'
+        };
+        // Init Isotope
+        $grid.addClass('is-showing-items').isotope(isoOptions);
+    }
+
+    // Bind to buttons related to the campuses
+    $campuses = $('#campuses').on( 'click', '.button', function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        var filterValue = $this.attr('data-filter');
+        $this.toggleClass('active');
+        buildCampusesFilters(filterValue);
+        reapplyIso();
+    });
+
+    // Bind to buttons related to the group meeting types
+    $groupTypes = $('#groupMeetingType').on( 'click', '.button', function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        var filterValue = $this.attr('data-filter');
+        $this.toggleClass('active');
+        buildGroupTypeFilters(filterValue);
+        reapplyIso();
+    });
+
+    function toggleZipcodeFilter() {
+        const seZipcode = $('#se-zipcode');
+        if (seZipcode.hasClass('hidden')) {
+            seZipcode.removeClass('hidden');
+        } else {
+            $('.homegroup').find('div.distance-container').each(function(){
+                $(this).addClass("hidden");
+            });
+            seZipcode.val("");
+            seZipcode.addClass('hidden');
+        }
+    }
+
+    // Bind to buttons related to the day of the week
+    $daysOfTheWeek = $('#daysOfTheWeek').on( 'click', '.button', function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        var filterValue = $this.attr('data-filter');
+        $this.toggleClass('active');
+        buildDaysFilters(filterValue);
+        reapplyIso();
+    });
+
+    // Bind to buttons related to the ministries
+    $ministries = $('#ministries').on( 'click', '.button', function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        var filterValue = $this.attr('data-filter');
+        console.log(filterValue);
+        $this.toggleClass('active');
+        buildMinistriesFilters(filterValue);
+        reapplyIso();
+    });
+
+    $('#se-handicap:checkbox').change(function(e) {
+        e.preventDefault();
+        buildHandicapFilter();
+        reapplyIso();
+    });
+
+    $('#se-otc:checkbox').change(function(e) {
+        e.preventDefault();
+        buildOTCFilter();
+        reapplyIso();
+    });
+
+    function addURLParameterValue(param, value) {
+        const currentUrl = new URL(window.location);
+        let currentParam = currentUrl.searchParams.get(param);
+
+        // If the parameter exists, split it into an array
+        if (currentParam) {
+            let values = currentParam.split(',');
+
+            // Only add the value if it doesn't already exist
+            if (!values.includes(value)) {
+                values.push(value);  // Add the value to the array
+            }
+
+            // Join the array back into a comma-separated string and update the URL
+            currentUrl.searchParams.set(param, values.join(','));
+        } else {
+            // If the parameter doesn't exist, create it with the value
+            currentUrl.searchParams.set(param, value);
+        }
+
+        // Update the URL without reloading the page
+        window.history.replaceState({}, '', currentUrl);
+    }
+
+    function removeURLParameterValue(param, value) {
+        const currentUrl = new URL(window.location);
+        let currentParam = currentUrl.searchParams.get(param);
+
+        // If the parameter exists, split it into an array
+        if (currentParam) {
+            let values = currentParam.split(',');
+
+            // Find the index of the value to remove
+            const valueIndex = values.indexOf(value);
+            if (valueIndex !== -1) {
+                // Remove the value from the array
+                values.splice(valueIndex, 1);
+            }
+
+            // If the array is empty, delete the parameter entirely
+            if (values.length === 0) {
+                currentUrl.searchParams.delete(param);
+            } else {
+                // Join the array back into a comma-separated string and update the URL
+                currentUrl.searchParams.set(param, values.join(','));
+            }
+
+            // Update the URL without reloading the page
+            window.history.replaceState({}, '', currentUrl);
+        }
+    }
+
+    // Handling campuses selected
+    var campuses_selected = [];
+    function buildCampusesFilters(campus) {
+        if (~campuses_selected.indexOf(campus)) {
+            // remove from array (toggling)
+            campuses_selected.splice($.inArray(campus, campuses_selected),1);
+            removeURLParameterValue('campus', campus);
+        } else {
+            // add to array
+            if (campus != '' && campus != undefined) {
+                campuses_selected.push(campus);
+                addURLParameterValue('campus', campus);
+            }
+        }
+    }
+
+    // Handling group types selected
+    var grouptypes_selected = [];
+    function buildGroupTypeFilters(grouptype) {
+        if (~grouptypes_selected.indexOf(grouptype)) {
+            // remove from array (toggling)
+            grouptypes_selected.splice($.inArray(grouptype, grouptypes_selected),1);
+            removeURLParameterValue('grouptype', grouptype);
+        } else {
+            // add to array
+            if (grouptype != '' && grouptype != undefined) {
+                grouptypes_selected.push(grouptype);
+                addURLParameterValue('grouptype', grouptype);
+            }
+        }
+    }
+
+    // Handling days selected
+    var days_selected = [];
+    function buildDaysFilters(day) {
+        if (~days_selected.indexOf(day)) {
+            // remove from array (toggling)
+            days_selected.splice($.inArray(day, days_selected),1);
+            removeURLParameterValue('meets', day);
+        } else {
+            // add to array
+            if (day != '' && day != undefined) {
+                days_selected.push(day);
+                addURLParameterValue('meets', day);
+            }
+        }
+    }
+
+    // Handling ministries selected
+    var ministries_selected = [];
+    function buildMinistriesFilters(ministry) {
+        if (~ministries_selected.indexOf(ministry)) {
+            // remove from array (toggling)
+            ministries_selected.splice($.inArray(ministry, ministries_selected),1);
+            removeURLParameterValue('ministry', ministry);
+        } else {
+            // add to array
+            if (ministry != '' && ministry != undefined) {
+                ministries_selected.push(ministry);
+                addURLParameterValue('ministry', ministry);
+            }
+        }
+    }
+
+    // Handling handicap selection
+    var handicap_selected = [];
+    function buildHandicapFilter() {
+        // reset campus array, campuses are only selected one at a time
+        handicap_selected = [];
+        var checkbox = document.getElementById('se-handicap').checked ? 'true' : 'false';
+        // add to array
+        if (checkbox != undefined && checkbox == 'true') {
+            handicap_selected.push(checkbox);
+            addURLParameterValue('handicap', checkbox);
+        }
+        else {
+            removeURLParameterValue('handicap', 'true');
+        }
+    }
+
+    // Handling open-to-children (otc) selection
+    var otc_selected = [];
+    function buildOTCFilter() {
+        // reset campus array, campuses are only selected one at a time
+        otc_selected = [];
+        var checkbox = document.getElementById('se-otc').checked ? 'true' : 'false';
+        // add to array
+        if (checkbox != undefined && checkbox == 'true') {
+            otc_selected.push(checkbox);
+            addURLParameterValue('otc', checkbox);
+        }
+        else {
+            removeURLParameterValue('otc', 'true');
+        }
+    }
+
+    // Handling the entered zip code
+    $zipcode_input = $('#se-zipcode')
+
+    $zipcode_input.keydown( function (e) {
+        if (e.keyCode == 13) {
+            e.preventDefault();
+        }
+    });
+
+    $zipcode_input.keyup(function(){
+        var zipcode = $zipcode_input.val();
+        var $homegroup = $('.homegroup');
+        if (zipcode.length==5){
+            $('.se-zipcode-loading').removeClass('hidden');
+            $.getJSON(
+            "/api/groupmanager/homegroups/60/"+zipcode,
+            function(data){
+                if (zipcode.length!=5){
+                    $('.se-zipcode-loading').addClass('hidden');
+                    return
+                }
+                $homegroup.attr("data-distance",Number.MAX_VALUE);
+                $.each( data, function( key, val ){
+                    $("div[data-groupid='"+key+"']").attr("data-distance",val);
+                });
+                $homegroup.trigger('datachange');
+            });
+        } else {
+            $homegroup.find('div.distance-container').each(function(){
+            $(this).addClass("hidden");
+            });
+            $grid.isotope();
+        }
+    });
+
+    $('.homegroup').on('datachange', function(e, key){
+        var $this = $( this );
+        var distanceVal = $this.attr('data-distance');
+        if (distanceVal != undefined && distanceVal != '' && distanceVal != Number.MAX_VALUE) {
+            $this.find('span.distance').html(distanceVal);
+            if($this.find('div.distance-container').hasClass("hidden")){
+                $this.find('div.distance-container').removeClass('hidden');
+            }
+        }
+        $grid.isotope('updateSortData').isotope({
+            getSortData: {
+                distance: '[data-distance] parseFloat',
+            },
+            sortBy: [ 'distance' ]
+        });
+        $('.se-zipcode-loading').addClass('hidden');
+    });
+
+
+    function reapplyIso() {
+        updateFilterCounts();
+        var filters = runFilters();
+        toggleResetLink(filters);
+
+        $grid.isotope({
+        itemSelector: '.isotope_item',
+        percentPosition: true,
+        layoutMode: 'fitRows',
+        filter: filters
+        });
+        let filteredElements = $grid.isotope('getFilteredItemElements');
+        showNoResults(filteredElements);
+        //buildParameterizedUrl();
+    }
+
+    function resetFilters() {
+        campuses_selected = [];
+        $('#campuses').children('.active').toggleClass('active');
+
+        grouptypes_selected = [];
+        $('#groupMeetingType').children('.active').toggleClass('active');
+
+        document.getElementById("se-zipcode").value = "";
+        if (!$('#se-zipcode').hasClass('hidden')) {
+            $('#se-zipcode').addClass('hidden');
+        }
+
+        $('.homegroup').find('div.distance-container').each(function(){
+            $(this).addClass("hidden");
+        });
+
+        days_selected = [];
+        $('#daysOfTheWeek').children('.active').toggleClass('active');
+
+        ministries_selected = [];
+        $('#ministries').children('.active').toggleClass('active');
+
+        handicap_selected = [];
+        document.getElementById("se-handicap").checked = false;
+
+        otc_selected = [];
+        document.getElementById("se-otc").checked = false;
+        reapplyIso();
+        clearURLParameters();
+    }
+
+    function clearURLParameters(){
+        //Updating the URL to match cleared filters
+        const currentUrl = new URL(window.location);
+
+        currentUrl.search = '';
+
+        // Update the URL without reloading the page
+        window.history.replaceState({}, '', currentUrl);
+    }
+
+    function runFilters() {
+        var filterSelectors = [];
+        // If campuses are selected
+        if (campuses_selected.length != 0) {
+            filterSelectors.push(createFilters(campuses_selected, 'data-campus'));
+        }
+        // If grouptypes are selected
+        if (grouptypes_selected.length != 0) {
+            filterSelectors.push(createFilters(grouptypes_selected, 'data-grouptype'));
+        }
+        // If days are selected
+        if (days_selected.length != 0) {
+            filterSelectors.push(createFilters(days_selected, 'data-day'));
+        }
+        // If ministries are selected
+        if (ministries_selected.length != 0) {
+            filterSelectors.push(createFilters(ministries_selected, 'data-ministry'));
+        }
+        // If handicap is selected
+        if (handicap_selected.length != 0) {
+            filterSelectors.push(createFilters(handicap_selected, 'data-handicap-accessible'));
+        }
+        // If otc is selected
+        if (otc_selected.length != 0) {
+            filterSelectors.push(createFilters(otc_selected, 'data-open-to-children'));
+        }
+        var filterArray = [];
+        if (filterSelectors.length!=0){
+            filterSelectors.forEach(function(filterSet, index, array) {
+                if (index==0) {
+                    filterArray = filterSet;
+                } else {
+                    var tempArray = [];
+                    filterArray.forEach(function(primaryFilter) {
+                        filterSet.forEach(function(secondaryFilter) {
+                            tempArray.push(primaryFilter+secondaryFilter);
+                        });
+                    });
+                    filterArray = tempArray;
+                }
+            });
+        }
+        return filterArray.join(',');
+    }
+
+    function createFilters(arrayList, selector) {
+        var output = [];
+        if (arrayList.length != 0) {
+            // make string of selectors
+            arrayList.forEach(function(item, index, array) {
+                output.push('['+selector+'*="'+item+'"]');
+            });
+        }
+        return output;
+    }
+
+    // display message box if no filtered items
+    showNoResults = (array) => {
+        if (array.length == 0) {
+            $('#noresultmsg').show();
+        } else {
+            $('#noresultmsg').hide();
+        }
+    }
+
+    function updateFilterCounts() {
+        // handling selected filters
+        if(campuses_selected.length) {
+            $("span#campusesText span.count").html("("+campuses_selected.length+")");
+        } else {
+            $("span#campusesText span.count").html("");
+        }
+        if(grouptypes_selected.length) {
+            $("span#groupMeetingTypeText span.count").html("("+grouptypes_selected.length+")");
+        } else {
+            $("span#groupMeetingTypeText span.count").html("");
+        }
+        if(days_selected.length) {
+            $("span#dayOfTheWeekText span.count").html("("+days_selected.length+")");
+        } else {
+            $("span#dayOfTheWeekText span.count").html("");
+        }
+        if(ministries_selected.length) {
+            $("span#ministriesText span.count").html("("+ministries_selected.length+")");
+        } else {
+            $("span#ministriesText span.count").html("");
+        }
+    }
+
+    /*function buildParameterizedUrl(){
+        var newUrl = "/allgroups?";
+        var tempString = "";
+
+        // If campuses are selected
+        if (campuses_selected.length != 0) {
+            for (i=0, i < campuses_selected.length, i++ ){
+                if( i === campuses_selected.length - 1 ){
+                    tempString += `${campuses_selected[i]}&`;
+                }
+                else {
+                    tempString += `${campuses_selected[i]},`
+                }
+            }
+            newUrl += `${tempString}`;
+            tempString = "";
+        }
+        // If grouptypes are selected
+        if (grouptypes_selected.length != 0) {
+            for (i=0, i < grouptypes_selected.length, i++ ){
+                if( i === grouptypes_selected.length - 1 ){
+                    tempString += `${grouptypes_selected[i]}&`;
+                }
+                else {
+                    tempString += `${grouptypes_selected[i]},`
+                }
+            }
+            newUrl += `${tempString}`;
+            tempString = "";
+        }
+
+        if (newUrl.endsWith('&')) {
+            newUrl = newUrl.slice(0, -1);
+        }
+
+        window.history.replaceState({}, '', newUrl);
+    }*/
+</script>

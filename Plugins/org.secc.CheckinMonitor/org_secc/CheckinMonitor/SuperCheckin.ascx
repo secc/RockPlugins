@@ -145,8 +145,7 @@
         </Rock:ModalDialog>
 
         <Rock:NotificationBox runat="server" NotificationBoxType="Warning" ID="nbChange" Visible="false">
-            Changes have been saved. If birthday or grade have been changed, the check-in information on this page may not
-            be accurate. To update check-in information reload page. 
+            Changes have been saved.
         </Rock:NotificationBox>
 
         <!-- New Family -->
@@ -304,9 +303,6 @@
                             <div class="col-xs-12 col-sm-6">
                                 <Rock:GradePicker ID="ddlGradePicker" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
                             </div>
-                            <div class="col-xs-12 col-sm-6">
-                                <Rock:YearPicker runat="server" ID="ypNewGraduation" Label="Graduation"></Rock:YearPicker>
-                            </div>
                         </div>
                         <Rock:BootstrapButton runat="server" ID="btnSaveAddPerson" Text="Next" CssClass="btn btn-default"
                             OnClick="btnSaveAddPerson_Click"></Rock:BootstrapButton>
@@ -327,14 +323,11 @@
                                     <Rock:RockTextBox CssClass="col-sm-6" runat="server" ID="tbEditLast" Label="Last Name" />
                                 </asp:Panel>
 
-                                <div class="col-xs-12 col-sm-5">
+                                <div class="col-xs-12 col-sm-6">
                                     <Rock:BirthdayPicker ID="dpEditBirthDate" runat="server" Label="Birthdate" Required="true" RequireYear="true" />
                                 </div>
-                                <div class="col-xs-12 col-sm-4">
+                                <div class="col-xs-12 col-sm-6">
                                     <Rock:GradePicker ID="gpEditGrade" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
-                                </div>
-                                <div class="col-xs-12 col-sm-3">
-                                    <Rock:YearPicker runat="server" ID="ypEditGraduation" Label="Graduation"></Rock:YearPicker>
                                 </div>
 
                                 <div class="col-xs-12">

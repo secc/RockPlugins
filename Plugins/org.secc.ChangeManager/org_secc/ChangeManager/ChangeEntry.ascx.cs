@@ -495,6 +495,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             bool autoApply = CanAutoApply( person );
             List<string> errors;
+            var applyErrors = new List<string>();
 
             if ( changeRequest.ChangeRecords.Any()
             || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
@@ -506,6 +507,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 if ( autoApply )
                 {
                     changeRequest.CompleteChanges( rockContext, out errors );
+                    applyErrors.AddRange( errors );
                 }
 
                 changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull(), "", null, null );
@@ -520,11 +522,12 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 if ( autoApply )
                 {
                     familyChangeRequest.CompleteChanges( rockContext, out errors );
+                    applyErrors.AddRange( errors );
                 }
                 familyChangeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull(), "", null, null );
             }
 
-            if ( autoApply )
+            if ( autoApply && !applyErrors.Any() )
             {
                 NavigateToPerson();
             }
@@ -533,6 +536,15 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 pnlMain.Visible = false;
                 pnlNoPerson.Visible = false;
                 pnlDone.Visible = true;
+
+                //A failed apply rolls back, so the request is left pending for review
+                if ( applyErrors.Any() )
+                {
+                    pnlDoneSuccess.Visible = false;
+                    nbApplyError.Visible = true;
+                    nbApplyError.Text = "Your changes were submitted but could not be applied automatically. They are pending review."
+                        + "<ul>" + string.Join( "", applyErrors.Select( ex => string.Format( "<li>{0}</li>", ex.EncodeHtml() ) ) ) + "</ul>";
+                }
             }
         }
 

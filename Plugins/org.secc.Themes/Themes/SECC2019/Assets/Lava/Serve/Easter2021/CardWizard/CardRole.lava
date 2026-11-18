@@ -9,8 +9,8 @@
 							<a href="{{partition.Url}}&GroupId={{groupId}}">
 						{% endif %}
 					{% endif %}
-					<div class="serve-card serve-card g-margin-y-40--xs g-margin-x-auto--xs" style="background-color: #663366">
-                        <div class="box text-center g-padding-t-60--xs g-position--relative" style="min-height: 270px; background-color: #663366; border-radius: 5px;">
+					<div class="serve-card serve-card g-margin-y-40--xs g-margin-x-auto--xs" style="background-color: #2b222f">
+                        <div class="box text-center g-padding-t-60--xs g-position--relative" style="min-height: 315px; background-color: #2b222f; border-radius: 5px;">
                             {% assign icon = role.Entity | Attribute:"Icon" %}
 							{% if icon != '' and icon != empty %}
                                 {% if icon == "fa fa-baby" or icon == "fa fa-child" %}

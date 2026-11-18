@@ -40,8 +40,8 @@
 									              <tr>
 										              <td valign="middle" class="calendar-icon"><img src="/Themes/SECC2019/Assets/img/events/Events.svg" aria-role="presentation" width="90" height="60" /></td>
 										              <td valign="middle" class="g-padding-r-20--sm">
-									                  <span class="g-display-block--xs g-font-size-20--xs g-font-family--primary g-font-weight--400 g-line-height--sm">{{ eventItemOccurrence.DateTime | Date: 'dddd'  }}</span>
-									                  <span class="g-display-block--xs g-font-size-44--xs g-font-family--primary g-font-weight--400 g-line-height--sm" style="white-space: nowrap">{{ eventItemOccurrence.DateTime | Date: 'MMM dd'  }}</span>
+									                  <span class="g-display-block--xs g-font-size-20--xs g-font-family--primary g-font-weight--400 g-line-height--sm">{{ eventItemOccurrence.Date | Date: 'dddd'  }}</span>
+									                  <span class="g-display-block--xs g-font-size-44--xs g-font-family--primary g-font-weight--400 g-line-height--sm" style="white-space: nowrap">{{ eventItemOccurrence.Date | Date: 'MMM dd'  }}</span>
 										              </td>
 									              </tr>
 								              </table>
@@ -54,7 +54,7 @@
 								              <div class="row">
 									              <div class="col-md-8 col-md-offset-2">
 										              <h3 class="g-font-weight--700">Event Details</h3>
-										              <p><strong>Time:</strong> {{ eventItemOccurrence.DateTime | Date: 'hh:mm tt'  }}</p>
+										              <p><strong>Time:</strong> {{ eventItemOccurrence.Time }}</p>
 										              <p><strong>Location:</strong> {{ eventItemOccurrence.Location }}</p>
                                   <p> {{ eventLocationDesc }}</p>
 										              <div class="g-margin-t-30--sm g-margin-t-20--xs">

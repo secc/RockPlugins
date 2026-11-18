@@ -16,11 +16,19 @@
 				  <ul class="cd-nav-icons is-hidden">
               <li class="go-back arrow"><a class="arrow">Menu</a></li>
 						{% for grandChildPage in childPage.Pages %}
-              <li class="se-3-column{% unless forloop.last %} border-right{% endunless %}">
+              {%- if childPage.Title =="Development"-%}
+                <li class="col-md-6{% unless forloop.last %} border-right{% endunless %}">
                   <a class="cd-nav-item {{ grandChildPage.IconCssClass }}" href="{{ grandChildPage.Url }}">
                     <h3>{{ grandChildPage.Title }}</h3>
                   </a>
-              </li>
+                </li>
+              {%- else -%}
+                <li class="se-3-column{% unless forloop.last %} border-right{% endunless %}">
+                    <a class="cd-nav-item {{ grandChildPage.IconCssClass }}" href="{{ grandChildPage.Url }}">
+                      <h3>{{ grandChildPage.Title }}</h3>
+                    </a>
+                </li>
+              {%-endif -%}
             {% endfor %}
           </ul>
         {% endif%}

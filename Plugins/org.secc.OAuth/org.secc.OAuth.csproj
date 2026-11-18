@@ -135,6 +135,7 @@
     <Compile Include="Migrations\201605271634000_CreateAdminPage.cs" />
     <Compile Include="Migrations\201605311211000_CreateClientScopes.cs" />
     <Compile Include="Migrations\202507111500_CreateTokenStorage.cs" />
+    <Compile Include="Migrations\202610281539_DeactivateLocalhostTestClient.cs" />
     <Compile Include="Model\Authorization.cs" />
     <Compile Include="Model\AuthorizationService.cs" />
     <Compile Include="Model\AuthToken.cs" />
@@ -157,14 +158,15 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
+  <!-- The post-build event copies the plugin into RockWeb. Builds that set CopyToRockWeb to false (test builds) skip it. -->
+  <PropertyGroup Condition="'$(CopyToRockWeb)' != 'false'">
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.OAuth.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.Owin.Security.Oauth*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.Owin.Security.Cookies*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\System.Web.Http.Owin*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.AspNet.Identity.Core*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\DotNetOpenAuth*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
+xcopy /Y /R "$(TargetDir)org.secc.OAuth.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)Microsoft.Owin.Security.Oauth*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)Microsoft.Owin.Security.Cookies*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)System.Web.Http.Owin*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)Microsoft.AspNet.Identity.Core*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)DotNetOpenAuth*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

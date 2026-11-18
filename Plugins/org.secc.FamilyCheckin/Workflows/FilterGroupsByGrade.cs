@@ -176,7 +176,8 @@ namespace org.secc.FamilyCheckin
         {
             var transitionDate = area.GetAttributeValue( "GradeTransitionDate" ).AsDateTime() ?? GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
             transitionDate = new DateTime( RockDateTime.Today.Year, transitionDate.Month, transitionDate.Day );
-            return RockDateTime.Now.Date < transitionDate ? transitionDate.Year : transitionDate.Year + 1;
+            // Move to the new school year the day after the transition date, like Rock's PersonService.GetCurrentGraduationYear()
+            return RockDateTime.Now.Date <= transitionDate ? transitionDate.Year : transitionDate.Year + 1;
 
         }
 

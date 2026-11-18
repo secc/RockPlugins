@@ -17,10 +17,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
@@ -65,6 +62,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     {
         private RockContext _rockContext;
         private List<int> _approvedPeopleIds;
+
+        // Grade picker option for kids younger than Kindergarten. It is not a grade offset,
+        // so SelectedGradeOffset is null and no graduation year is saved for it.
+        private const string PreKGradeValue = "prek";
+        private const string PreKGradeText = "Newborn to Pre-K";
+
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
@@ -74,6 +77,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
 
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
+
+            // Added on every request so the option exists before post data is loaded
+            AddPreKOption( ddlGradePicker );
+            AddPreKOption( gpEditGrade );
         }
 
         protected override void OnLoad( EventArgs e )
@@ -169,6 +176,68 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 NavigateToPreviousPage();
             }
             DisplayFamilyMemberMenu();
+        }
+
+        /// <summary>
+        /// Re-runs the check-in workflow after a person is added or their age or grade changes, keeping the rooms
+        /// already selected for the family. Like ActivateFamily, an error goes back to the previous page.
+        /// </summary>
+        /// <param name="changedPersonId">The person who was added or changed. Their selections in groups that are now excluded are dropped.</param>
+        /// <returns>false if the workflow failed and the page is navigating away.</returns>
+        private bool RefreshFamilyOptions( int changedPersonId )
+        {
+            // The workflow rebuilds every family member's group types, which clears their selections, so remember them first
+            var selectedScheduleKeys = new HashSet<string>( CurrentCheckInState.CheckIn.CurrentFamily.People
+                .SelectMany( p => p.GroupTypes
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.Locations
+                        .SelectMany( l => l.Schedules
+                            .Where( s => s.Selected )
+                            .Select( s => GetScheduleKey( p, g, l, s ) ) ) ) ) );
+
+            List<string> errorMessages = new List<string>();
+            ProcessActivity( GetAttributeValue( "WorkflowActivity" ), out errorMessages );
+            if ( errorMessages.Any() )
+            {
+                // Rock stops at the first failed action, so the filters after it never ran and the family's options
+                // can't be trusted. Start a new workflow next time, so the failed activity doesn't run first on every
+                // later activity in this session.
+                CurrentWorkflow = null;
+                SaveState();
+                NavigateToPreviousPage();
+                return false;
+            }
+
+            foreach ( var checkinPerson in CurrentCheckInState.CheckIn.CurrentFamily.People )
+            {
+                foreach ( var group in checkinPerson.GroupTypes.SelectMany( gt => gt.Groups ) )
+                {
+                    if ( checkinPerson.Person.Id == changedPersonId && group.ExcludedByFilter )
+                    {
+                        continue;
+                    }
+
+                    foreach ( var location in group.Locations )
+                    {
+                        foreach ( var schedule in location.Schedules )
+                        {
+                            if ( selectedScheduleKeys.Contains( GetScheduleKey( checkinPerson, group, location, schedule ) ) )
+                            {
+                                schedule.Selected = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            SaveState();
+            DisplayFamilyMemberMenu();
+            return true;
+        }
+
+        private static string GetScheduleKey( CheckInPerson checkinPerson, CheckInGroup group, CheckInLocation location, CheckInSchedule schedule )
+        {
+            return string.Format( "{0}|{1}|{2}|{3}", checkinPerson.Person.Id, group.Group.Id, location.Location.Id, schedule.Schedule.Id );
         }
 
         private List<int> GetApprovedIds()
@@ -401,11 +470,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            int selectedPersonId;
+            // BuildGroupTypeModal handles a selected person who isn't in the check-in state
             if ( ViewState["SelectedPersonId"] != null )
             {
-                selectedPersonId = ( int ) ViewState["SelectedPersonId"];
-                var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).First();
                 CheckinModal();
             }
         }
@@ -440,14 +507,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             var selectedPersonId = ( int ) ViewState["SelectedPersonId"];
             var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).FirstOrDefault();
-            var canWorkWithMinors = IsApproved( checkinPerson.Person );
 
             phCheckin.Controls.Clear();
 
+            // A person added while the check-in options could not be refreshed is not in the check-in state yet
             if ( checkinPerson == null )
             {
                 return;
             }
+
+            var canWorkWithMinors = IsApproved( checkinPerson.Person );
 
             var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).ToList();
             var childGroupIds = OccurrenceCache.GetChildrenOccurrences().Select( o => o.GroupId ).ToList();
@@ -609,26 +678,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             tbNewPersonFirstName.Text = "";
             tbNewPersonLastName.Text = "";
             dpNewPersonBirthDate.SelectedDate = null;
-            ypNewGraduation.Text = "";
+            ddlGradePicker.SelectedIndex = 0;
 
             rblNewPersonGender.Items.Clear();
             rblNewPersonGender.BindToEnum<Gender>();
 
-            var gradeLabel = "";
-            var today = RockDateTime.Today;
-            var transitionDate = GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
-
-            if ( transitionDate > today )
-            {
-                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.AddYears( -1 ).Year, today.Year );
-            }
-            else
-            {
-                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.Year, today.AddYears( 1 ).Year );
-            }
-            ddlGradePicker.Label = gradeLabel;
-
-            ScriptManager.RegisterStartupScript( ddlGradePicker, ddlGradePicker.GetType(), "grade-selection-" + BlockId.ToString(), ddlGradePicker.GetJavascriptForYearPicker( ypNewGraduation ), true );
+            SetGradeLabel( ddlGradePicker );
         }
 
         protected void btnSaveAddPerson_Click( object sender, EventArgs e )
@@ -651,10 +706,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
             }
             person.SetBirthDate( dpNewPersonBirthDate.SelectedDate );
-            if ( ypNewGraduation.SelectedYear.HasValue )
-            {
-                person.GraduationYear = ypNewGraduation.SelectedYear.Value;
-            }
+            person.GraduationYear = Person.GraduationYearFromGradeOffset( ddlGradePicker.SelectedGradeOffset );
 
             person.ConnectionStatusValueId = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
 
@@ -696,8 +748,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
             ViewState["SelectedPersonId"] = person.Id;
-            ActivateFamily();
-            EditPerson( person );
+            if ( RefreshFamilyOptions( person.Id ) )
+            {
+                EditPerson( person );
+            }
         }
 
         private void EditPerson( Person person, bool setValue = true )
@@ -730,40 +784,38 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 if ( !person.HasGraduated ?? false )
                 {
-                    ypEditGraduation.SelectedYear = person.GraduationYear;
-
                     int gradeOffset = person.GradeOffset.Value;
                     var maxGradeOffset = gpEditGrade.MaxGradeOffset;
 
-                    // keep trying until we find a Grade that has a gradeOffset that that includes the Person's gradeOffset (for example, there might be combined grades)
-                    while ( !gpEditGrade.Items.OfType<ListItem>().Any( a => a.Value.AsInteger() == gradeOffset ) && gradeOffset <= maxGradeOffset )
+                    if ( gradeOffset > maxGradeOffset )
                     {
-                        gradeOffset++;
+                        // Graduation year is after the lowest school grade's (Kindergarten)
+                        gpEditGrade.SetValue( PreKGradeValue );
                     }
+                    else
+                    {
+                        // keep trying until we find a Grade that has a gradeOffset that that includes the Person's gradeOffset (for example, there might be combined grades)
+                        while ( !gpEditGrade.Items.OfType<ListItem>().Any( a => a.Value.AsInteger() == gradeOffset ) && gradeOffset <= maxGradeOffset )
+                        {
+                            gradeOffset++;
+                        }
 
-                    gpEditGrade.SetValue( gradeOffset );
+                        gpEditGrade.SetValue( gradeOffset );
+                    }
+                }
+                else if ( !person.GraduationYear.HasValue && IsPreKAge( person ) )
+                {
+                    gpEditGrade.SetValue( PreKGradeValue );
                 }
                 else
                 {
-                    ypEditGraduation.SelectedYear = null;
                     gpEditGrade.SelectedIndex = 0;
                 }
-            }
-            var gradeLabel = "";
-            var today = RockDateTime.Today;
-            var transitionDate = GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
 
-            if ( transitionDate > today )
-            {
-                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.AddYears( -1 ).Year, today.Year );
+                // Remember what was loaded so saving only changes the graduation year if the grade was changed
+                ViewState["EditGradeInitialValue"] = gpEditGrade.SelectedValue;
             }
-            else
-            {
-                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.Year, today.AddYears( 1 ).Year );
-            }
-            gpEditGrade.Label = gradeLabel;
-
-            ScriptManager.RegisterStartupScript( gpEditGrade, gpEditGrade.GetType(), "grade-selection-" + BlockId.ToString(), gpEditGrade.GetJavascriptForYearPicker( ypEditGraduation ), true );
+            SetGradeLabel( gpEditGrade );
 
             var AttributeList = new List<int>();
 
@@ -795,28 +847,30 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             var person = new PersonService( _rockContext ).Get( personId );
 
-            if ( person.ConnectionStatusValueId == DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id )
+            var canEditName = person.ConnectionStatusValueId == DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+            if ( canEditName )
             {
                 person.FirstName = tbEditFirst.Text;
                 person.NickName = tbEditFirst.Text;
                 person.LastName = tbEditLast.Text;
-
-                var checkinPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
-                if ( checkinPerson != null )
-                {
-                    checkinPerson.Person = person.Clone( false );
-                }
             }
+
+            var originalBirthDate = person.BirthDate;
+            var originalGraduationYear = person.GraduationYear;
 
             person.SetBirthDate( dpEditBirthDate.SelectedDate );
 
-            if ( ypEditGraduation.SelectedYear.HasValue )
+            // Only change the graduation year if the grade was changed, so an untouched grade is never altered
+            if ( gpEditGrade.SelectedValue != ( ViewState["EditGradeInitialValue"] as string ) )
             {
-                person.GraduationYear = ypEditGraduation.SelectedYear.Value;
+                person.GraduationYear = Person.GraduationYearFromGradeOffset( gpEditGrade.SelectedGradeOffset );
             }
-            else
+
+            // Validate before saving anything, because saving an attribute value also saves the person
+            if ( !person.IsValid )
             {
-                person.GraduationYear = null;
+                maWarning.Show( string.Join( "<br>", person.ValidationResults.Select( r => r.ErrorMessage.EncodeHtml() ) ), ModalAlertType.Alert );
+                return;
             }
 
             var AttributeList = new List<int>();
@@ -844,43 +898,75 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     System.Web.UI.Control attributeControl = fsAttributes.FindControl( string.Format( "attribute_field_{0}", attribute.Id ) );
                     if ( attributeControl != null )
                     {
-                        string originalValue = person.GetAttributeValue( attribute.Key );
                         string newValue = attribute.FieldType.Field.GetEditValue( attributeControl, attribute.QualifierValues );
                         Rock.Attribute.Helper.SaveAttributeValue( person, attribute, newValue, _rockContext );
-
-                        // Check for changes to write to history
-                        if ( ( originalValue ?? string.Empty ).Trim() != ( newValue ?? string.Empty ).Trim() )
-                        {
-                            string formattedOriginalValue = string.Empty;
-                            if ( !string.IsNullOrWhiteSpace( originalValue ) )
-                            {
-                                formattedOriginalValue = attribute.FieldType.Field.FormatValue( null, originalValue, attribute.QualifierValues, false );
-                            }
-
-                            string formattedNewValue = string.Empty;
-                            if ( !string.IsNullOrWhiteSpace( newValue ) )
-                            {
-                                formattedNewValue = attribute.FieldType.Field.FormatValue( null, newValue, attribute.QualifierValues, false );
-                            }
-                        }
                     }
                 }
             }
-            if ( person.IsValid )
-            {
-                _rockContext.SaveChanges();
-            }
+            _rockContext.SaveChanges();
             pnlPersonInformation.Visible = true;
             pnlEditPerson.Visible = false;
 
-            var cPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
-            if ( cPerson != null )
+            var checkinPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
+            if ( checkinPerson != null )
             {
-                cPerson.Person.SetBirthDate( person.BirthDate );
+                if ( canEditName )
+                {
+                    checkinPerson.Person = person.Clone( false );
+                }
+
+                checkinPerson.Person.SetBirthDate( person.BirthDate );
+                checkinPerson.Person.GraduationYear = person.GraduationYear;
             }
 
-            DisplayFamilyMemberMenu();
+            if ( person.BirthDate != originalBirthDate || person.GraduationYear != originalGraduationYear )
+            {
+                // Age and grade decide which groups a person can check into, so rebuild their options
+                if ( !RefreshFamilyOptions( person.Id ) )
+                {
+                    return;
+                }
+            }
+            else
+            {
+                DisplayFamilyMemberMenu();
+            }
             nbChange.Visible = true;
+        }
+
+        /// <summary>
+        /// Adds the "Newborn to Pre-K" option right below the blank option of a grade picker.
+        /// </summary>
+        private void AddPreKOption( GradePicker gradePicker )
+        {
+            if ( gradePicker.Items.FindByValue( PreKGradeValue ) == null )
+            {
+                gradePicker.Items.Insert( 1, new ListItem( PreKGradeText, PreKGradeValue ) );
+            }
+        }
+
+        /// <summary>
+        /// Labels a grade picker with the current school year. Uses Rock's graduation date, which also decides
+        /// the graduation year that gets saved and the grade that check-in filters on.
+        /// </summary>
+        private void SetGradeLabel( GradePicker gradePicker )
+        {
+            var graduationYear = PersonService.GetCurrentGraduationYear();
+            gradePicker.Label = string.Format( "Grade (For School Year {0}-{1})", graduationYear - 1, graduationYear );
+        }
+
+        /// <summary>
+        /// Determines whether the person is too young for Kindergarten. The GradeTransitionDate global attribute is
+        /// the Kindergarten cutoff, so this is whether they were younger than 5 when the current school year started.
+        /// </summary>
+        private bool IsPreKAge( Person person )
+        {
+            var schoolYearStart = PersonService.GetCurrentGraduationDate().AddYears( -1 );
+
+            // The second argument is the date the age is calculated on
+            var ageAtSchoolYearStart = Person.GetAge( person.BirthDate, schoolYearStart );
+
+            return ageAtSchoolYearStart.HasValue && ageAtSchoolYearStart.Value < 5;
         }
 
         protected void btnCancelAttributes_Click( object sender, EventArgs e )
@@ -1043,7 +1129,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void ProcessLabels()
         {
-            var printQueue = new Dictionary<string, StringBuilder>();
             foreach ( var selectedFamily in CurrentCheckInState.CheckIn.Families.Where( p => p.Selected ) )
             {
                 List<CheckInLabel> labels = new List<CheckInLabel>();
@@ -1108,98 +1193,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
 
                 // Print server labels
-                if ( labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Server ) )
-                {
-                    string delayCut = @"^XB";
-                    string endingTag = @"^XZ";
-                    var printerIp = string.Empty;
-                    var labelContent = new StringBuilder();
-
-                    // make sure labels have a valid ip
-                    var lastLabel = labels.Last();
-                    foreach ( var label in labels.Where( l => l.PrintFrom == PrintFrom.Server && !string.IsNullOrEmpty( l.PrinterAddress ) ) )
-                    {
-                        var labelCache = KioskLabel.Get( label.FileGuid );
-                        if ( labelCache != null )
-                        {
-                            if ( printerIp != label.PrinterAddress )
-                            {
-                                printQueue.AddOrReplace( label.PrinterAddress, labelContent );
-                                printerIp = label.PrinterAddress;
-                                labelContent = new StringBuilder();
-                            }
-
-                            var printContent = labelCache.FileContent;
-                            foreach ( var mergeField in label.MergeFields )
-                            {
-                                if ( !string.IsNullOrWhiteSpace( mergeField.Value ) )
-                                {
-                                    printContent = Regex.Replace( printContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), ZebraFormatString( mergeField.Value ) );
-                                }
-                                else
-                                {
-                                    printContent = Regex.Replace( printContent, string.Format( @"\^FO.*\^FS\s*(?=\^FT.*\^FD{0}\^FS)", mergeField.Key ), string.Empty );
-                                    printContent = Regex.Replace( printContent, string.Format( @"\^FD{0}\^FS", mergeField.Key ), "^FD^FS" );
-                                }
-                            }
-
-                            // send a Delay Cut command at the end to prevent cutting intermediary labels
-                            if ( label != lastLabel )
-                            {
-                                printContent = Regex.Replace( printContent.Trim(), @"\" + endingTag + @"$", delayCut + endingTag );
-                            }
-
-                            labelContent.Append( printContent );
-                        }
-                    }
-
-                    printQueue.AddOrReplace( printerIp, labelContent );
-                }
-
-                if ( printQueue.Any() )
-                {
-                    PrintLabels( printQueue );
-                    printQueue.Clear();
-                }
+                new LabelPrinter { Labels = labels }.PrintNetworkLabels();
             }
             ClearCheckin();
-        }
-
-        /// <summary>
-        /// Prints the labels.
-        /// </summary>
-        /// <param name="families">The families.</param>
-        private void PrintLabels( Dictionary<string, StringBuilder> printerContent )
-        {
-            foreach ( var printerIp in printerContent.Keys.Where( k => !string.IsNullOrEmpty( k ) ) )
-            {
-                StringBuilder labelContent;
-                if ( printerContent.TryGetValue( printerIp, out labelContent ) )
-                {
-                    var socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
-                    var printerIpEndPoint = new IPEndPoint( IPAddress.Parse( printerIp ), 9100 );
-                    var result = socket.BeginConnect( printerIpEndPoint, null, null );
-                    bool success = result.AsyncWaitHandle.WaitOne( 5000, true );
-
-                    if ( socket.Connected )
-                    {
-                        var ns = new NetworkStream( socket );
-                        byte[] toSend = System.Text.Encoding.ASCII.GetBytes( labelContent.ToString() );
-                        ns.Write( toSend, 0, toSend.Length );
-                    }
-                    else
-                    {
-                        //phPrinterStatus.Controls.Add(new LiteralControl(string.Format("Can't connect to printer: {0}", printerIp)));
-                    }
-
-                    if ( socket != null && socket.Connected )
-                    {
-                        socket.Shutdown( SocketShutdown.Both );
-                        socket.Close();
-                    }
-                }
-            }
-
         }
 
         private void ClearCheckin()
@@ -1260,18 +1256,6 @@ try{{
 }} catch(e){{}}
             ", jsonObject, btnBack.UniqueID );
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
-        }
-
-        private static string ZebraFormatString( string input, bool isJson = false )
-        {
-            if ( isJson )
-            {
-                return input.Replace( "é", @"\\82" );  // fix acute e
-            }
-            else
-            {
-                return input.Replace( "é", @"\82" );  // fix acute e
-            }
         }
 
         protected void btnNewFamily_Click( object sender, EventArgs e )

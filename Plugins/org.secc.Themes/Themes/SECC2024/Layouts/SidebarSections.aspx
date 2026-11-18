@@ -1,124 +1,15 @@
 <%@ Page Language="C#" MasterPageFile="Site.Master" AutoEventWireup="true" Inherits="Rock.Web.UI.RockPage" %>
 
+<asp:Content ID="CustomStyles" ContentPlaceHolderID="CustomStyles" runat="server">
+    <!-- My Account CSS-->
+        <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/my-account.css", true) %>"/>
+</asp:Content>
+
 <asp:Content ID="ctMain" ContentPlaceHolderID="main" runat="server">
 
 	<Rock:Zone Name="Feature" runat="server" />
 
-    <style>
-    #wrapper {
-        padding-left: 0;
-        -webkit-transition: all 0.5s ease;
-        -moz-transition: all 0.5s ease;
-        -o-transition: all 0.5s ease;
-        transition: all 0.5s ease;
-        position: relative;
-    }
 
-    #sidebar-wrapper {
-        z-index: 1000;
-        position: absolute;
-        left: 250px;
-        width: 0;
-        height: 100%;
-        margin-left: -250px;
-        overflow-y: auto;
-        background: #ffffff;
-        -webkit-transition: all 0.5s ease;
-        -moz-transition: all 0.5s ease;
-        -o-transition: all 0.5s ease;
-        transition: all 0.5s ease;
-    }
-
-
-    #page-content-wrapper {
-        position: relative;
-        background-color: #F5F5F5;
-        padding: 20px;
-		min-height: 400px;
-    }
-
-    /* Sidebar Styles */
-    .sidebar-nav {
-        position: absolute;
-        top: 0;
-        width: 250px;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        padding-top: 20px;
-    }
-
-    .sidebar-nav li {
-        text-indent: 20px;
-        line-height: 40px;
-        margin: 20px 0px;
-        border-left: 0px solid;
-        -webkit-transition: border .1s ease-out;
-        -moz-transition: border .1s ease-out;
-        -o-transition: border .1s ease-out;
-        transition: border .1s ease-out;
-    }
-
-	.sidebar-nav li.active {
-		border-left: 10px solid #ccc;
-	}
-
-    .sidebar-nav li:hover {
-        border-left: 10px solid #ccc;
-    }
-
-    .sidebar-nav li i {
-        vertical-align: middle;
-        padding-right: 10px;
-    }
-
-    .sidebar-nav li a {
-        display: block;
-        text-decoration: none;
-        color: #000;
-    }
-
-    .sidebar-nav li a:hover {
-        text-decoration: none;
-        color: rgba(0,0,0,0.5);
-        background: rgba(255,255,255,0.2);
-    }
-
-    .sidebar-nav li a:active,
-    .sidebar-nav li a:focus {
-        text-decoration: none;
-    }
-
-    .sidebar-nav > .sidebar-brand {
-        height: 65px;
-        font-size: 18px;
-        line-height: 60px;
-    }
-
-    .sidebar-nav > .sidebar-brand a {
-        color: #999999;
-    }
-
-    .sidebar-nav > .sidebar-brand a:hover {
-        color: #fff;
-        background: none;
-    }
-
-    @media(min-width:768px) {
-        #wrapper {
-            padding-left: 250px;
-        }
-
-        #sidebar-wrapper {
-            width: 250px;
-        }
-
-        #page-content-wrapper {
-            padding: 4rem;
-            position: relative;
-        }
-    }
-    </style>
 
     <div id="wrapper">
 

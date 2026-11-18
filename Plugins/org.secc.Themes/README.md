@@ -2,6 +2,8 @@
 
 > Southeast's Rock site themes — the master pages, page layouts, and styling that skin Rock's external and check-in sites.
 
+Last updated: 2026-09-25
+
 ## Overview
 
 This "plugin" is not compiled code; it is the collection of Rock **themes** Southeast maintains.
@@ -35,9 +37,17 @@ look.
   KyleIdlman17/           One-off event/site theme
   my-secc/                "my.secc" theme (ships Site.Master.cs code-behind)
   SECC2019/ChurchOnline/  Church Online Platform skins (Template.liquid + SCSS, 3 sub-themes)
-  SEMobileApp/            Lava snippets for the mobile app (GrowTabs, Give card) — no layouts
+  SEMobileApp/            2020-era mobile-app Lava (Home, Sermons, Bulletin, cards) — no layouts
   RockConfiguration_Baks/ Backup copies of Global Attribute email-template Lava (header/footer/full)
 ```
+
+## Source of truth
+
+Themes are served from a network share that the CI/CD pipeline does **not** deploy; they are copied there by hand,
+and the share (production) is the source of truth. On 2026-09-24 the repo was re-baselined from the production share
+for the themes the database still uses (ROCK-9086, PR #317) with the Fluid-compatibility fixes re-applied on top;
+`KyleIdlman17`, `SE Kids` and `StarkLess` were not synced (retired / unused). After merging a theme change, copy the
+theme folder to the prod and dev shares (LF line endings, byte-compare, no deletes) and clear the Rock cache.
 
 ## Components
 
@@ -53,7 +63,7 @@ field types here.
 | `SECC2019Portal` | Site (portal) | 10 | Ships a Compass `config.rb` for SCSS compilation. |
 | `SECC2019_Child_Invert` | Check-in | 11 | Adds `Checkin.aspx` + `Checkin-Site.Master`, `Sections`/`SidebarSections`. |
 | `SECC2019_LandingPage` | Landing pages | 17 | Full*/Simple* card, centered, fifty-fifty, and overlay layouts. |
-| `SECC2024` | Public site | 11 | Newer site theme; adds a `TwoColumn` layout. |
+| `SECC2024` | Public site | 11 | Newer site theme; adds a `TwoColumn` layout and Rock 16 progress-tracker compatibility styling for registration/sign-up screens, including size fixes for inline separator SVGs and a responsive hide below 768px. |
 | `SECC2014` | Public site (legacy) | 9 | Older site theme; LESS styles + vendor scripts. |
 | `Easter` | Seasonal site | 8 | Includes `Assets/Lava/` page-render snippets and `Site.Master.cs`. |
 | `ChristmasTogether` | Seasonal check-in | 1 | `Checkin.aspx` + `Site.Master` only; LESS variable overrides. |
@@ -67,7 +77,7 @@ field types here.
 | Folder | Contents |
 |--------|----------|
 | `SECC2019/ChurchOnline/Themes/` | Church Online Platform skins — `SEOnlineDarkTheme`, `SEOnlineDarkThemeYellow`, `SEOnlineLightTheme`, each `Template.liquid` + `javascript.js` + `stylesheet*.scss`. |
-| `SEMobileApp/` | Lava for the mobile app: `GrowTabs.lava`, `Give/Give.lava`, `Give/HtmlToImage/GiveCard.html`. |
+| `SEMobileApp/` | 2020-era copy of the mobile-app Lava (Home, Sermons, Bulletin, HtmlToImage cards, `AppProfile*.lava`, `Bulletin/MetricsInRock.lava`) plus `GrowTabs.lava` and `Give/`. Three of these files are still included by live pages; the current mobile-app templates live in `Content/Lava/SEMobileApp/`. |
 | `RockConfiguration_Baks/GlobalAttributeEmailTemplates/` | Backup Lava for the Email Header / Footer / Full email-template Global Attributes. |
 
 ## Dependencies & Integrations

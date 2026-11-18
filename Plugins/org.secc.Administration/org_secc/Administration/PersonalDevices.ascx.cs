@@ -26,6 +26,7 @@ using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
@@ -465,8 +466,8 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// <summary>
         /// A class to store personal device for lava
         /// </summary>
-        [DotLiquid.LiquidType( "PersonalDevice", "DeviceIconCssClass", "PlatformValue" )]
-        public class PersonalDeviceItem
+        // LavaDataObject exposes every public property to both Lava engines, so no [LiquidType]/[LavaType] allow-list applies here.
+        public class PersonalDeviceItem : LavaDataObject
         {
             /// <summary>
             /// Gets or sets the personal device.

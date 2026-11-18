@@ -1,0 +1,541 @@
+@import 'expandable-menu';
+@import '../bootstrap/mixins/vendor-prefixes';
+
+$MobileMenuWidth			: 75%;
+$MobileDropDownBackground	: $DarkGrayColor;
+
+$SuperNavBackground			: $HighlightColor;
+$SuperNavColor 				: $NavItemColor;
+$SuperNavContentHeight 		: 22px;
+$SuperNavPadding			: 6px;
+$SuperNavHeight				: $SuperNavContentHeight + ($SuperNavPadding * 2); //Total Height (including padding)
+
+
+$SiteNavBackground			: #000000;
+$SiteNavColor				: $NavItemColor;
+$SiteNavHeight				: 100px;
+
+$LogoOverflow				: -10px;
+$LogoWidth					: $SiteNavHeight + ($LogoOverflow * 2); //This works cause the Logo is square
+
+$MegaMenuCalloutColor		: $CalloutColor;
+$MegaMenuHeight				: 500px;
+
+
+@include ExpandableMenu;
+
+
+.hamburger-icon {
+	display: inline-block;
+
+	span {
+		display			: block;
+		width			: 17px;
+		height			: 2px;
+		border-radius	: 1px;
+		background-color: $SiteNavColor;
+
+		& + span { margin-top	: 3px; }
+	}
+}
+
+/* Z -INDEXES
+   ==========
+
+   We'll use a base of 10 for our z-indexing.
+*/
+
+body {
+
+	//The Page Body is set to use our base...
+	#PageBody {
+		position: relative;
+		// z-index: 10;
+	}
+
+	//The SiteHeader needs to be ABOVE the PageBody, for a couple reasons.
+	//First, the main logo overflows the header into the PageBody and needs
+	//to be visible.
+	//Second, the Mega Menus are contained in the SiteHeader and when they are
+	//visible, they need to show over the PageBody content.
+	#SiteHeader {
+		position: relative;
+		z-index: 20;
+
+		//Items within the SiteHeader have their own stacking order
+
+		//SiteNav is our "main" element in the header
+		#SiteNav {
+			position: relative;
+			z-index: 30;
+		}
+
+		//The Supernav needs to be behind the SiteNav so that the Main
+		//Logo (which overlaps the supernav) will show
+		#SuperNav {
+			position: relative;
+			z-index: 20;
+		}
+
+		//The Locations menu is the opposite of the MegaMenu ..
+		//It gets shown on top of the SiteNav and Supernav, so position it thus.
+		#LocationsMenu {
+			position: absolute;
+			z-index: 40;
+		}
+
+		#AccountMenu {
+			position: relative;
+			z-index: 40;
+		}
+	}
+}
+
+#siteLogin {
+	margin-right: -9px;
+}
+
+#SuperNav {
+
+	$InputPadding 		: 2px;
+
+	background			: $SuperNavBackground;
+	color				: $SuperNavColor;
+	font-size			: .875em;
+	height 				: $SuperNavHeight;
+	@include FontSmoothing;
+
+	@include phones {
+		height: 10px;
+	}
+	button, a {
+		text-transform: uppercase;
+	}
+
+	li.notice {
+		background: #ffffff;
+		border-radius: 4px;
+		color: $ErrorColor;
+		font-weight: 600;
+	}
+
+	.locations-toggle {
+		line-height: $SuperNavHeight;
+		padding: 0px 10px;
+		margin-left: -10px;
+		@include Transition(background .2s ease-out);
+
+		.glyphicon-remove {
+			display: none;
+		}
+
+		&.active {
+			background: $CalloutColor;
+			padding: 10px 10px;
+			text-decoration: none;
+
+			.glyphicon {
+				display: inline;
+			}
+		}
+	}
+
+	.account-menu-toggle {
+		.caret { visibility: hidden; }
+		padding: 10px;
+		@include Transition(background .2s ease-out);
+
+		&:hover {
+			.caret { visibility: visible; }
+		}
+		&:hover,&:active,&:focus,&:visited {
+			text-decoration: none;
+		}
+		&.active {
+			background: $CalloutColor;
+		}
+	}
+
+	.navigation.pull-right {
+		padding: $SuperNavPadding 0px;
+		line-height: $SuperNavContentHeight;
+		& li:last-child {
+			padding-right: 0;
+		}
+	}
+
+	div {
+		input {
+			border			: none;
+			padding			: $InputPadding 0px $InputPadding 3px;
+			line-height		: $SuperNavContentHeight - ($InputPadding * 2);
+			background		: rgba(#000000, 0.4);
+			color			: $SuperNavColor;
+			outline 		: none;
+			//margin-bottom 	: 0;
+			width 			: auto;
+			&:focus { background: #ffffff; color: #000;}
+			@include placeholder($GrayColor);
+		}
+
+		button {
+			background		: rgba(#000000, 0.4);
+			color 			: $SuperNavColor; //darken($SuperNavBackground, 30%);
+			border			: none;
+			padding			: 0px 8px 0px 3px;
+
+			span { vertical-align: text-top; }
+
+			.lt-ie9 & {
+				padding: 0px 8px 3px 3px;
+			}
+		}
+	}
+	#search-submit {
+		padding: 3px 8px 3px 3px;
+		background		: rgba(#000000, 0.4);
+		.glyphicon {
+			padding: 0 8px 0px 3px;
+		}
+	}
+
+	a {	color			: inherit;}
+
+	li + li {
+		@include tablets { margin-left: 13px; }
+		@include desktops { margin-left: 30px; }
+		@include hd-displays {margin-left: 45px; }
+	}
+}
+
+#AccountMenu {
+	height: 0px;
+	left: -20px;
+
+	& > nav {
+		position: absolute;
+		width: 200px;
+		height: 0px;
+		overflow: hidden;
+		background: $CalloutColor;
+		top: 0px;
+		@include phones { display: none;}
+		@include tablets { right: 100px; }
+		@include desktops { right: 120px; }
+		@include large-desktops { right: 145px; }
+		@include hd-displays { right: 160px; }
+
+		@include Transition(all 0.25s ease-out);
+
+		&.active {
+			height: 199px;
+			// @include BoxShadow($right: 0px, $bottom: 2px, $blur: 8px, $color: $GrayColor, $spread: 2px);
+		}
+
+		a {
+			color: $CopyColor;
+			text-decoration: none !important;
+			li {
+				padding: 10px;
+				border-bottom: 1px solid $HighlightColor;
+				font-size: .85em;
+				font-family: $Proxima-SemiBold;
+				font-weight: 600;
+				&:hover {
+					background: rgba($SuperNavColor, .8);
+				}
+			}
+		}
+
+
+	}
+}
+
+#LocationsMenu {
+	$LocationsMenuHeight: 400px;
+
+	width: 100%;
+	height: 0px;
+	overflow: hidden;
+	background: $CalloutColor;
+	top: $SuperNavHeight - ($LogoOverflow + 10px);
+	@include Transition(all 0.25s ease-out);
+
+	&.active { height: $LocationsMenuHeight; }
+
+	h1 {
+		margin-top: 1em;
+		text-transform: uppercase;
+		color: #ffffff;
+	}
+
+	.campus {
+		display: none;
+
+		&.active { display: block; }
+	}
+
+	.campus-map {
+		float: right;
+		width: 50%;
+
+		& img {	border: 1px solid $GrayColor; }
+	}
+
+	.campus-details {
+		padding-top: 60px;
+	}
+
+	.location-buttons {
+		position: absolute;
+		top: 100px;
+
+		.se-logo { margin-right: 10px; }
+	}
+
+	.visit-us {
+		height: $LocationsMenuHeight;
+		border-right: 1px solid #ffffff;
+
+		ul {
+			@include flexbox;
+			@include flexbox-prop(flex-flow, row wrap);
+			@include flexbox-prop(justify-content, center);
+			width: 100%;
+
+
+			li {
+				margin-bottom: 1em;
+				width: 33%;
+				padding-left: 0;
+				padding-right: 0;
+			}
+
+			.se-logo {
+				font-size: 1.8em;
+				@include tablets { font-size: 1.8em; }
+			}
+		}
+	}
+
+}
+
+
+
+#SiteNav {
+	color 				: $SiteNavColor;
+	background 			: $SiteNavBackground;
+	width				: 100%;
+	@include phones {
+		padding: 11px 0;
+	}
+	ul.navigation {
+		display			: inline-block;
+		width			: 45%;
+
+		li.list-header {
+			font-family: $Proxima-ExtraBold;
+			font-weight: 800;
+			text-transform: uppercase;
+			margin-top: .5em;
+			margin-bottom: .5em;
+		}
+
+		li.menu-item {
+			display	: inline-block;
+			&.active .btn-menu { color: lighten($HighlightColor, 40%);; }
+
+			button.btn-menu,
+			a.btn-menu {
+				font-size 		: 1.5em;
+				color			: inherit;
+				text-decoration	: none;
+				line-height			: $SiteNavHeight;
+				text-transform		: uppercase;
+				font-weight			: 400;
+				@include FontSmoothing;
+
+				&:hover {
+					color: $HighlightColor;
+				}
+
+				@include phones {
+					line-height: 45px;
+					font-size: 1.2em;
+				}
+				@include tablets { font-size: 1.1em; }
+				@include desktops {font-size: 1.1em; }
+			}
+		}
+
+		&.pull-left > .menu-item {
+			@include tablets 		{		margin-right: 2%;}
+			@include desktops 		{		margin-right: 7%;}
+			@include large-desktops {		margin-right: 9%;}
+			@include hd-displays	{		margin-right: 13%; }
+		}
+
+
+		&.pull-right {
+			text-align	: right;
+
+			& > .menu-item {
+				@include tablets 		{	margin-left: 4%;}
+				@include desktops 		{	margin-left: 9%;}
+				@include large-desktops {	margin-left: 11%;}
+				@include hd-displays 	{	margin-left: 14%;}
+
+				@include phones 		{
+					margin-right: 4%;
+					.icon-label { margin-left: 5px; text-transform: none;}
+				}
+
+				@media (max-width: 574px) {
+					margin-right: 25%;
+					.icon-label { display: none; }
+				}
+			}
+		}
+
+		.menu-item.active nav.sub-menu {
+			max-height: 800px;
+			@include Transition(all .75s ease-out);
+
+		}
+	}
+
+	.site-logo {
+		position		: absolute;
+		z-index 		: 2;
+		width			: $LogoWidth;
+		left			: 50%;
+		top				: ($LogoOverflow * -1);
+		margin-left		: ($LogoWidth / -2);
+		//margin-left		: -42.5px;
+		display			: inline-block;
+		text-align		: center;
+
+		img {
+			width: $LogoWidth; // must be defined to look good on IE
+		}
+		@include phones {
+			width: ($LogoWidth - 29px);
+			margin-left: (($LogoWidth - 29px) / -2);
+			top: 8px;
+		}
+
+		a {
+			display		: inline-block;
+
+			.lt-ie9 & {
+				width: $LogoWidth;
+			}
+		}
+	}
+}
+
+
+
+#MobileNav {
+    $itemDivider: $DefaultBorder;
+    $vertical-padding: 1em;
+
+    @include ExpandableStyles($indentation: 20px, $vertical-padding: $vertical-padding, $divider: $itemDivider, $indent-children-class: "nav-section") {
+        font-size: 1.15em;
+        font-weight: 700;
+        text-transform: uppercase;
+        @include FontSmoothing;
+    }
+
+    button {
+        text-transform: inherit;
+    }
+
+    .nav-section {
+        background: $SuperNavBackground;
+        color: $SuperNavColor;
+
+        & > ul > li {
+            border-bottom: $itemDivider;
+        }
+    }
+
+    li li {
+        background: $SiteNavBackground;
+        color: lighten($MobileDropDownBackground, 65%);
+    }
+
+    li li li {
+        color: lighten($MobileDropDownBackground, 45%);
+        background: transparent;
+
+        & > *:first-child {
+            padding-top: ($vertical-padding / 2);
+            padding-bottom: ($vertical-padding / 2);
+        }
+    }
+
+    li li li li {
+        //color: $SuperNavColor;
+        text-transform: none;
+    }
+
+
+    .dropdown.active {
+        background: $MobileDropDownBackground;
+
+        & > .toggle {
+            color: $HighlightText;
+        }
+    }
+
+    li.active > a, li.active > button {
+        color: #fff !important;
+    }
+
+    li.notice {
+        background: #ffffff;
+        color: $ErrorColor;
+    }
+
+
+
+    .locations-grid {
+        border-top: 1px solid #000;
+        width: 100%;
+        padding: 15px 0px;
+        margin-left: 0;
+
+        @include flexbox();
+        @include flex-flow(row wrap);
+        @include justify-content(space-around);
+
+        li {
+            border: none !important;
+            background: none;
+            padding-bottom: 10px;
+        }
+
+        .se-logo {
+            font-size: 1.1em;
+
+            @media (max-width: 500px) {
+                font-size: 1.8em;
+            }
+
+            @media (max-width: 400px) {
+                font-size: 1.4em;
+            }
+
+            @media (max-width: 350px) {
+                font-size: 1.2em;
+            }
+
+            text-decoration: none;
+
+            &:hover, &:active {
+                text-decoration: inherit;
+            }
+        }
+    }
+}

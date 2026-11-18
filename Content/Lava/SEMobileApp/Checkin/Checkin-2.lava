@@ -1,0 +1,103 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'checkin' componententityid:'31635' operation:'View' summary:'SE!KIDS Check In Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+SE!KIDS Check In Page
+{% endinteractionwrite %}
+{%- assign campusIdParam = "" -%}
+{%- if Id != "" -%}
+	{%- assign campusIdParam = "?campusId=" | Append:Id -%}
+{%- endif -%}
+{%- assign kidsCheckin = 'Global' | Attribute:'MobileApplicationRoot' | Append:'mobilecheckin' -%}
+{
+    "header": {
+        "title": "SE!KIDS Check In"
+        },
+    "blocks": [
+        {
+            "type":"image",
+            "props": {
+                "averageColor": "#000",
+                "imageUrl": "https://my.southeastchristian.org/Content/SEApp/se-kids-gradient.png",
+                "horizontalSpacing": "medium",
+                "topSpacing": "medium",
+                "bottomSpacing": "medium",
+                "imageRadius": "medium",
+                "width": "1600",
+                "height": "800",
+                "action":{
+                    "handler":"browser",
+                    "type":"navigation",
+                    "style":"internal",
+                    "contentUrl": "{{kidsCheckin}}{{campusIdParam}}",
+                    "authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
+                }
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Start Check In",
+                "color": "#28A5BB",
+                "width": "content",
+                "action": {
+                    "handler":"browser",
+                    "type":"navigation",
+                    "style":"internal",
+                    "contentUrl": "{{kidsCheckin}}{{campusIdParam}}",
+                    "authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
+                }
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "h1": true,
+                "expandable": false,
+                "topSpacing": "medium",
+                "bottomSpacing": "medium",
+                "averageColor": "#262626",
+                "content": "“Children are a gift from the Lord; they are a reward from him.”\nPsalm 127:3 NLT"
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "expandable": false,
+                "topSpacing": "medium",
+                "bottomSpacing": "medium",
+                "content": "Mobile check-in is a new touchless option for parents. Instead of checking in your kids at the kiosk, you now have the option to check them in right here on your phone. After selecting a campus and classes, a QR code will show up on your screen. Scan that code at any check-in station and your kids' name tags will print immediatly."
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "expandable": false,
+                "numberOfLines": 10,
+                "bottomSpacing": "medium",
+                "content": "Before scanning your QR code, your reservations will be guaranteed for about 10 minutes. If you are past your reserved time, your spots may be released to make room for present familes. (Once you scan your code and receive your name tags, we know you're here and won't cancel your check-in.)"
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "expandable": false,
+                "bottomSpacing": "large",
+                "content": "If you need any help or have any questions please see one of our check-in volunteers."
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Start Check In",
+                "color": "#28A5BB",
+                "topSpacing": "medium",
+                "width": "content",
+                "action": {
+                    "handler":"browser",
+                    "type":"navigation",
+                    "style":"internal",
+                    "contentUrl": "{{kidsCheckin}}{{campusIdParam}}",
+                    "authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
+                }
+            }
+        }
+    ]
+}

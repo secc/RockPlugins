@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {"Series":
     [
         {%- assign itemComma = '' -%}
@@ -9,8 +10,8 @@
             {{itemComma}}
             {
                 "Id": {{item.Id}},
-                "Name":"{{item.Title | Replace:'"','\"'}}",
-                "Description":"{{item.Content | Replace:'"','\"'}}",
+                "Name":"{{item.Title | Replace:'"',bsq }}",
+                "Description":"{{item.Content | Replace:'"',bsq }}",
                 "Image": "{{ 'Global' | Attribute:'InternalApplicationRoot' }}GetFile.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}",
                 "Sermons": [
                 {%- assign childComma = '' -%}
@@ -18,8 +19,8 @@
                 {{childComma}}
                 {
 			        "Id":{{ message.ChildContentChannelItem.Id }},
-			        "Title":"{{ message.ChildContentChannelItem.Title  | Replace:'"','\"' | NewlineToBr | Replace:'<br />',' ' }}",
-			        "Description":"{{ message.ChildContentChannelItem.Content  | Replace:'"','\"' | NewlineToBr | Replace:'<br />',' '  }}",
+			        "Title":"{{ message.ChildContentChannelItem.Title  | Replace:'"',bsq  | NewlineToBr | Replace:'<br />',' ' }}",
+			        "Description":"{{ message.ChildContentChannelItem.Content  | Replace:'"',bsq  | NewlineToBr | Replace:'<br />',' '  }}",
 			        "Image": "{{ 'Global' | Attribute:'InternalApplicationRoot' }}GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}.jpg?guid={{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}",
 			        "Audio": "{{ 'Global' | Attribute:'InternalApplicationRoot' }}GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}",
 			        "Speaker": "{{message.ChildContentChannelItem | Attribute:'Speaker'}}",

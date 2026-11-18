@@ -1,4 +1,5 @@
 {% cache key:'webook-sermons-{{page}}' duration:'0' %}
+{%- capture bsq -%}\"{%- endcapture -%}
 {%- if page != empty -%}
     {%- assign pageNumber = page -%}
 {%- endif -%}
@@ -20,8 +21,8 @@
                 {{itemComma}}
                 {
                     "Id": {{item.Id}},
-                    "Name":"{{item.Title | Replace:'"','\"'}}",
-                    "Description":"{{ item.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode }}",
+                    "Name":"{{item.Title | Replace:'"',bsq }}",
+                    "Description":"{{ item.Content | Replace:'"',bsq  | UrlEncode | Replace:'%0A','<br>' | UrlDecode }}",
                     "Image": "/GetImage.ashx/{{imageGuid}}.jpg?guid={{imageGuid}}&mode=crop&width=960&height=540",
                     "Date":"{{item.StartDateTime}}",
                     "Slug":"{{item.PrimarySlug}}",
@@ -35,9 +36,9 @@
                             {
             			        "Id":{{ message.ChildContentChannelItem.Id }},
             			        "Slug":"{{ message.ChildContentChannelItem.PrimarySlug }}",
-            			        "Title":"{{ message.ChildContentChannelItem.Title  | Replace:'"','\"' | NewlineToBr | Replace:'<br />',' ' }}",
+            			        "Title":"{{ message.ChildContentChannelItem.Title  | Replace:'"',bsq  | NewlineToBr | Replace:'<br />',' ' }}",
             			        "Date":"{{ message.ChildContentChannelItem.StartDateTime | Date:'MMMM d, yyyy' }}",
-            			        "Description":"{{ message.ChildContentChannelItem.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode }}",
+            			        "Description":"{{ message.ChildContentChannelItem.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','<br>' | UrlDecode }}",
             			        "Image": "/GetImage.ashx/{{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}.jpg?guid={{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}&mode=crop&width=960&height=540",
             			        "Audio": "/GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}",
             			        "Speaker": "{{message.ChildContentChannelItem | Attribute:'Speaker'}}",

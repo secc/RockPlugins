@@ -71,11 +71,6 @@ Runtime behavior (`LessInclude.ascx.cs`):
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** The block writes files into the live theme's `Styles/<blockId>/` directory
-  at runtime based on admin-entered LESS, and links them into the page header. Since the settings
-  modal is admin-only this is expected, but the block has effective write access to the theme
-  directory and compiles attacker-controllable LESS — worth confirming the settings modal is gated to
-  trusted CMS-admin roles and that the theme folder isn't writable by lower-privilege paths.
 - **Improvement:** Every file-touching method (`GetFileLocation` on `OnLoad`, plus `GetPageFile`,
   `ProcessLess`, and `SavePageFile` on the settings/save path) sets `Environment.CurrentDirectory`
   on a shared web process. Setting process-global CWD from a request is not thread-safe and can race

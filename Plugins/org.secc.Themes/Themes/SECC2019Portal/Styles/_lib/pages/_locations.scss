@@ -1,0 +1,163 @@
+/* ----------------------------------------------------------------------------------
+	Locations: Sets the style for certain aspects of the Locations Page
+----------------------------------------------------------------------------------- */
+
+#LocationsPageMenu {
+  .container {
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  .row {
+    margin-left: -15px;
+    margin-right: -15px;
+    &:after, &:before {
+      content: " ";
+      display: table;
+    }
+  }
+  .image-divider {
+    padding: 0 !important;
+    img {
+      width: 100%;
+    }
+  }
+}
+
+#map-container {
+  padding: 0;
+}
+
+#map-canvas {
+  min-height: 450px;
+  height: 100%;
+}
+
+#LocationsPageMenu {
+  .iw_title {
+    font-size: 2rem;
+    font-weight: bolder;
+  }
+  .iw_subTitle {
+    font-size: 1.8rem;
+    font-weight: bolder;
+  }
+  .se-logo {
+    margin-right: 10px;
+  }
+  .campus {
+    display: none;
+    &.active {
+      display: block;
+    }
+  }
+  .campus-map {
+    border: 1px solid #6D6A66;
+    margin-bottom: 5px;
+  }
+  .campus-details {
+    padding-top: 20px;
+  }
+  .visit-us li {
+    padding: 5px 10px;
+    background: #dddbd8;
+    margin-top: 4px;
+    a {
+      color: inherit;
+      &:hover {
+        color: #069;
+      }
+    }
+  }
+  a.btn-normal {
+    color: inherit;
+    border: 1px solid #a09d99;
+    font-size: 1.2em;
+    line-height: 1.3em;
+    padding: .5em 1.3em;
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+button.btn-normal {
+  border: 1px solid #a09d99;
+  font-size: 1.2em;
+  line-height: 1.3em;
+  padding: .5em 1.3em;
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+input {
+  &[type=button].btn-normal, &[type=reset].btn-normal, &[type=submit].btn-normal {
+    border: 1px solid #a09d99;
+    font-size: 1.2em;
+    line-height: 1.3em;
+    padding: .5em 1.3em;
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+#LocationsPageMenu .container-fluid {
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: 15px;
+  padding-right: 15px;
+  &:after, &:before {
+    content: " ";
+    display: table;
+  }
+  &:after {
+    clear: both;
+  }
+}
+
+@media (max-width: 767px) {
+  #MapFrame {
+    height: 226px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  #MapFrame {
+    height: 368px;
+  }
+}
+
+@media (min-width: 1600px) {
+  #MapFrame {
+    height: 566px;
+  }
+}
+
+@media (min-width: 768px) {
+  #LocationsPageMenu {
+    .col-sm-6 {
+      width: 50%;
+    }
+    .container {
+      width: 750px;
+    }
+    .map-container {
+      margin-top: -35px;
+    }
+  }
+}
+
+@media (min-width: 992px) {
+  #LocationsPageMenu .container {
+    width: 970px;
+  }
+  #MapFrame {
+    height: 450px;
+  }
+}
+
+@media (min-width: 1200px) {
+  #LocationsPageMenu .container {
+    width: 1170px;
+  }
+}

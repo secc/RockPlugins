@@ -137,4 +137,12 @@
     cursor: pointer;
 }
 
+@media only screen and (max-width: 767px) {
+	.checkbox-inline{
+		margin-top: 10px !important;
+	}
+	.checkbox-inline input {
+		margin-left: -30px !important;
+	}
+}
 /* end of custom code */

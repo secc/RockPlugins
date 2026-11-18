@@ -95,6 +95,10 @@ reference source for how to drive the actions, not as deployed blocks.
   (`ActionComponent`), `AttributeCache`, Lava (`ResolveMergeFields`), `RockBlock` (examples).
 - **Third-party:** `NReco.PdfGenerator` 1.1.15 (HTML-to-PDF, wkhtmltopdf-based), `itext7` 7.0.1
   (form merge + PDF combine), EntityFramework 6.1.3.
+- **SECC / storage providers:** PDF Form Merge and PDF Combine read their input files with
+  `org.secc.DevLib`'s `BinaryFile.ReadContentBytes()`. It buffers a fresh storage-provider stream into
+  memory and disposes it before iText sees the bytes, so templates and inputs can live in any Rock storage
+  provider (Database, FileSystem, Azure Blob). A missing or empty file fails the action with a named error.
 
 ## Observations
 
@@ -108,10 +112,6 @@ reference source for how to drive the actions, not as deployed blocks.
   `ComponentName` is "Insert XHTML and Lava" — the action stores XHTML to a workflow attribute but
   does no PDF rendering itself, so it must be paired with another action. Worth confirming it's still
   used.
-- **Improvement:** NReco's `HtmlToPdfConverter` shells out to a bundled wkhtmltopdf binary; the
-  `Lava PDF` action renders user/admin-authored Lava+HTML. Since templates are authored by trusted
-  staff this is low-risk, but be aware external HTML/remote resources in a template are fetched by the
-  renderer. Review template sources if untrusted input ever reaches them.
 - **Improvement:** `LavaPDF` does not null-check the result of `BinaryFileTypeService.Get(...)` when a
   `binaryFileType` qualifier is present, so a misconfigured destination attribute could throw.
 
@@ -125,3 +125,5 @@ reference source for how to drive the actions, not as deployed blocks.
 - The example blocks show two driving patterns: passing a `PDFWorkflowObject` entity into
   `WorkflowService.Process` vs. letting an action read/write workflow attributes directly.
 - Related: [org.secc.Workflow](../org.secc.Workflow/README.md) for other SECC workflow actions.
+
+Last updated: 2026-09-29

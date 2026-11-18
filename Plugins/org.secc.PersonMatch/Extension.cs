@@ -51,11 +51,9 @@ namespace org.secc.PersonMatch
                 }
 
                 LocationService locationService = new LocationService( context );
-                AttributeValueService attributeValueService = new AttributeValueService( context );
-                List<AttributeValue> attributeValues = attributeValueService.GetByAttributeId( AttributeCache.Get( GOES_BY_ATTRIBUTE.AsGuid() ).Id ).ToList();
-                var diminutiveName = DefinedTypeCache.Get( DIMINUTIVE_NAMES.AsGuid() );
+                List<List<string>> diminutiveGroups = GetDiminutiveGroups( context );
 
-                firstName = firstName ?? string.Empty;
+                firstName = ( firstName ?? string.Empty ).Trim();
                 lastName = lastName ?? string.Empty;
                 email = email == null ? string.Empty : email.ToLower() ?? string.Empty;
                 phone = PhoneNumber.CleanNumber( phone ?? string.Empty );
@@ -147,23 +145,7 @@ namespace org.secc.PersonMatch
                 // Now narrow down the list by looking for the first name (or diminutive name)
                 foreach ( Person matchingPerson in matchingPersons )
                 {
-                    if ( firstName != null && ( ( matchingPerson.FirstName != null && matchingPerson.FirstName.ToLower() != firstName.ToLower() ) || ( matchingPerson.NickName != null && matchingPerson.NickName.ToLower() != firstName.ToLower() ) ) )
-                    {
-                        foreach ( DefinedValueCache dv in diminutiveName.DefinedValues )
-                        {
-                            AttributeValue av = attributeValues.Where( av2 => av2.EntityId == dv.Id ).FirstOrDefault();
-                            List<string> nameList = new List<string>();
-                            nameList = av.Value.Split( '|' ).ToList();
-                            nameList.Add( dv.Value );
-                            if ( nameList.Contains( firstName.ToLower() ) &&
-                                ( nameList.Contains( matchingPerson.FirstName.ToLower() ) || nameList.Contains( matchingPerson.NickName.ToLower() ) ) )
-                            {
-                                firstNameMatchingPersons.Add( matchingPerson );
-                                break;
-                            }
-                        }
-                    }
-                    else
+                    if ( FirstNameMatches( firstName, matchingPerson.FirstName, matchingPerson.NickName, diminutiveGroups ) )
                     {
                         firstNameMatchingPersons.Add( matchingPerson );
                     }
@@ -171,6 +153,95 @@ namespace org.secc.PersonMatch
 
                 return firstNameMatchingPersons;
             }
+        }
+
+        /// <summary>
+        /// Loads the Diminutive Names defined values as name groups. Each group holds the defined value
+        /// plus its "Goes By" names. A defined value without a "Goes By" value is a group of one name.
+        /// Returns an empty list if the defined type or the attribute is missing.
+        /// </summary>
+        private static List<List<string>> GetDiminutiveGroups( RockContext context )
+        {
+            var diminutiveGroups = new List<List<string>>();
+
+            var diminutiveNames = DefinedTypeCache.Get( DIMINUTIVE_NAMES.AsGuid() );
+            var goesByAttribute = AttributeCache.Get( GOES_BY_ATTRIBUTE.AsGuid() );
+            if ( diminutiveNames == null || goesByAttribute == null )
+            {
+                return diminutiveGroups;
+            }
+
+            var goesByValues = new AttributeValueService( context )
+                .GetByAttributeId( goesByAttribute.Id )
+                .Where( av => av.EntityId.HasValue )
+                .Select( av => new { EntityId = av.EntityId.Value, av.Value } )
+                .ToList()
+                .GroupBy( av => av.EntityId )
+                .ToDictionary( g => g.Key, g => g.First().Value );
+
+            foreach ( DefinedValueCache dv in diminutiveNames.DefinedValues.Where( v => v.IsActive ) )
+            {
+                var nameList = new List<string> { dv.Value };
+                string goesBy;
+                if ( goesByValues.TryGetValue( dv.Id, out goesBy ) && !string.IsNullOrEmpty( goesBy ) )
+                {
+                    nameList.AddRange( goesBy.Split( '|' ) );
+                }
+
+                diminutiveGroups.Add( nameList );
+            }
+
+            return diminutiveGroups;
+        }
+
+        /// <summary>
+        /// Determines whether a person's first or nick name matches the requested first name. The names
+        /// match when the input equals either name, or when a diminutive group contains both the input and
+        /// either name. Comparisons are case-insensitive and ignore surrounding whitespace.
+        /// </summary>
+        internal static bool FirstNameMatches( string input, string firstName, string nickName, IEnumerable<IEnumerable<string>> diminutiveGroups )
+        {
+            input = input?.Trim();
+            firstName = firstName?.Trim();
+            nickName = nickName?.Trim();
+
+            // No first name was requested, or the person has no first name or nick name to compare.
+            if ( string.IsNullOrEmpty( input ) || ( string.IsNullOrEmpty( firstName ) && string.IsNullOrEmpty( nickName ) ) )
+            {
+                return true;
+            }
+
+            if ( NameEquals( input, firstName ) || NameEquals( input, nickName ) )
+            {
+                return true;
+            }
+
+            if ( diminutiveGroups == null )
+            {
+                return false;
+            }
+
+            foreach ( var group in diminutiveGroups )
+            {
+                if ( group == null )
+                {
+                    continue;
+                }
+
+                var names = group.Where( n => !string.IsNullOrWhiteSpace( n ) ).Select( n => n.Trim() ).ToList();
+                if ( names.Any( n => NameEquals( n, input ) ) &&
+                    names.Any( n => NameEquals( n, firstName ) || NameEquals( n, nickName ) ) )
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool NameEquals( string left, string right )
+        {
+            return !string.IsNullOrEmpty( left ) && string.Equals( left, right, StringComparison.OrdinalIgnoreCase );
         }
 
         private static Person GetOrCreateNamelessPerson( string email, string phone, PersonService personService )

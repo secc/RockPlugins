@@ -100,11 +100,6 @@ Ships Rock plugin migrations under `/Migrations/`:
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** The `SQLMatchExpression` and `LavaMatchExpression` test bodies are stored
-  test attributes that execute arbitrary SQL / Lava (with configurable `Lava Commands`, including
-  potentially `Sql`/`Execute`) under Rock's privileges. Whoever can create/edit a test via the
-  *Monitor Test Detail* block effectively gets server-side SQL and Lava execution — confirm those
-  pages/blocks are locked to administrators.
 - **Improvement:** The Rock **pages and blocks are not installed by any migration** (only the two
   tables are). The `.ascx` files are deployed to `RockWeb/Plugins/org_secc/`, but the page/block
   entries must be created by hand in the admin UI. Worth confirming this is intentional rather than

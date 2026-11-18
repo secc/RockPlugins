@@ -13,7 +13,6 @@
 // </copyright>
 //
 using org.secc.Microframe.Data;
-using Rock.Data;
 
 namespace org.secc.Microframe.Model
 {
@@ -21,10 +20,10 @@ namespace org.secc.Microframe.Model
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KioskService"/> class.
+        /// Initializes a new instance of the <see cref="SignService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public SignService( RockContext context ) : base( context ) { }
+        public SignService( Rock.Data.DbContext context ) : base( context ) { }
 
     }
 }

@@ -23,8 +23,9 @@ OAuth turns Rock into its own OAuth 2.0 provider. It wires an OWIN authorization
 /Model/                 Client, Scope, ClientScope, Authorization entities + services; AuthToken + AuthTokenService (sproc-backed code storage)
 /Rest/Controllers/      OAuthController — api/oauth/* profile + family endpoints (bearer-gated)
 /Utilities/             TokenResponse — DTO for deserializing a token endpoint response
-/Migrations/            Rock plugin migrations (tables, OAuth site/pages, admin page, seed client/scopes, token storage)
+/Migrations/            Rock plugin migrations (tables, OAuth site/pages, admin page, Family/Profile scopes, token storage, sample-client deactivation)
 /org_secc/OAuth/        UI blocks (.ascx + .ascx.cs): Authorize, Login, Logout, Configuration, OAuthServiceProvider, OAuthRestorer, AuthLogout
+/org.secc.OAuth.Tests/  xunit tests that run migrations 4-6 against a temporary SQL Server database
 ```
 
 ## How the OAuth Server Works
@@ -54,7 +55,7 @@ flowchart TD
 - The OWIN `OAuthAuthorizationServerProvider` delegates drive the server lifecycle: `OnValidateClientRedirectUri`, `OnValidateClientAuthentication`, `OnGrantResourceOwnerCredentials`, `OnGrantClientCredentials` (all in `Startup`).
 - **Authorization codes** are generated as two concatenated GUIDs and persisted via `AuthTokenService` (stored procedures `_org_secc_OAuth_spAddToken/spGetTicket/spDeleteToken`); a code is single-use — `ReceiveAuthenticationCode` deletes it on consumption.
 - **Refresh tokens** are serialized OWIN tickets with an optional lifespan from `OAuthRefreshTokenLifespan` (hours).
-- **Scopes** are carried as `urn:oauth:scope` claims. A request only gets the intersection of requested scopes and the client's active `ClientScope` rows. If a client has *no* active client-scopes, all requested scopes are auto-approved (see Edge Cases).
+- **Scopes** are carried as `urn:oauth:scope` claims. A request only gets the intersection of requested scopes and the client's active `ClientScope` rows.
 - **Credential validation** reuses Rock's `AuthenticationContainer` components — the same providers Rock uses for normal login (password, SMS, etc.), respecting `IsConfirmed` / `IsLockedOut`.
 - Entities are EF models on a dedicated `OAuthContext` that shares the `RockContext` connection but has its EF initializer set to `null` (no auto-migration).
 
@@ -141,25 +142,21 @@ Ships Rock plugin migrations under `/Migrations/`:
 - `201605171249414_InitialCreate` — the four OAuth tables (Client, Scope, ClientScope, Authorization).
 - `201605201037000_CreatePlugin` — `OAuthSettings` global attribute, the OAuth **site**, portal/login/authorize/logout pages + routes, and the portal blocks.
 - `201605271634000_CreateAdminPage` — the **OAuth Configuration** admin page/block under Rock RMS.
-- `201605311211000_CreateClientScopes` — seeds an initial client and its client-scope rows.
+- `201605311211000_CreateClientScopes` — the `Family` and `Profile` scopes.
 - `202507111500_CreateTokenStorage` — `_org_secc_OAuth_Token` table + `spAddToken`/`spGetTicket`/`spDeleteToken` stored procedures for authorization-code storage.
+- `202610281539_DeactivateLocalhostTestClient` — deactivates active clients named *Localhost Test* with callback `https://localhost:44300/`, the sample client that earlier versions of `CreateClientScopes` created, and active clients with that sample client's ApiKey and ApiSecret, whatever their name or callback. Clients are created on the **OAuth Configuration** page.
 
 ## Edge Cases & Constraints
 
-- **Empty client-scope list = open consent.** In both `GrantResourceOwnerCredentials` (Startup) and the Authorize block, if a client has *no* active `ClientScope` rows, the scope check short-circuits to approved. A client registered without scopes effectively bypasses scope filtering — confirm that's intended for every registered client.
 - **SSL is enforced two ways.** `Startup` passes `AllowInsecureHttp = !OAuthRequireSsl`, and the Authorize block throws `"OAuth requires SSL."` on non-HTTPS when `OAuthRequireSsl` is true. Turning SSL off is a deliberate, global toggle in `OAuthSettings`.
 - **Authorization codes are single-use and server-stored.** `ReceiveAuthenticationCode` deletes the row on use; there is no built-in expiry/cleanup of unconsumed `_org_secc_OAuth_Token` rows (worth a janitor job if codes are abandoned often).
 - **Default `OAuthSettings` seed has a duplicate key.** The migration default string contains `OAuthTokenPath` twice (`/OAuth/Logout` then `/OAuth/Token`) and no `OAuthRefreshTokenLifespan`; values are normally corrected through the Configuration block on first save.
-- **SMS auth is special-cased.** The resource-owner grant allows `Rock.Security.ExternalAuthentication.SMSAuthentication` even though it normally requires remote authentication.
 - **Service-provider block needs a session.** `OAuthServiceProvider.OnInit` sets a dummy `Session["MockData"]` to guarantee a session exists before DotNetOpenAuth prepares the user-authorization request.
 
 ## Observations
 
-*Noticed while documenting — not a full audit; security-sensitive areas flagged for confirmation.*
+*Noticed while documenting — not a full audit.*
 
-- **Security (review):** Client credentials are matched with a LINQ-to-SQL string compare on `ApiKey`/`ApiSecret` GUIDs (`ValidateClientAuthentication`), and the `ApiSecret` is a plain GUID stored in the clear in `_org_secc_OAuth_Client` and shown in the admin UI. These act as a client password; confirm the admin page/block security is locked to trusted staff and consider whether secrets should be hashed. Comparison is not constant-time, though GUID secrets make timing attacks impractical.
-- **Security (review):** `OAuthController` endpoints catch all exceptions and return a generic 500, but `GetProfile`/`GetFamily` gate only on the presence of a `profile`/`family` scope claim — there is no per-field consent beyond that. Worth confirming the `profile` scope's data set (name, birthdate, email, previous person ids) matches what consenting users expect to share.
-- **Security (low):** The Authorize block's restricted-group check (`IsAuthenticationNotPermitted`) only restricts members of the configured groups; everyone else is unrestricted by design. Verify the restricted groups + approved providers are configured for any staff/admin roles you intend to constrain.
 - **Improvement:** `OAuthContext`, `RockContext`, and the various services are newed up per request/method (and several per call inside `GrantResourceOwnerCredentials`). Fine for an auth path, but the repeated `clientScopeService.Queryable()...` calls in the grant/authorize loops re-query the same client scopes multiple times.
 - **Improvement:** `AuthToken`/`AuthTokenService` bypass EF and call raw sprocs; the rest of the model uses `OAuthContext`. Two storage idioms in one plugin — intentional (the token table was added much later, in the 2025 migration) but worth a note for maintainers.
 
@@ -190,4 +187,9 @@ Then create a matching **Scope** (Identifier `giving`) in the OAuth Configuratio
 - Server behavior (token lifespans, grant logic, scope claim handling) lives in `Startup.cs`; endpoint paths and SSL are data in the `OAuthSettings` global attribute, edited via the **OAuth Configuration** block (`org_secc/OAuth/Configuration.ascx.cs`).
 - Consent UI and scope-grant persistence are in `org_secc/OAuth/Authorize.ascx.cs`; the login screen is `Login.ascx.cs`.
 - New tables, pages, or seed clients/scopes belong in a new numbered migration under `/Migrations/` — don't hand-edit migrations that have already run.
+- Each `org.secc.OAuth.Tests` test that runs a migration creates a temporary database on `(localdb)\MSSQLLocalDB`, or on the SQL Server named by `ORG_SECC_TEST_SQLSERVER`, and drops it when the test finishes. Building the tests with MSBuild from the command line builds the plugin with `CopyToRockWeb=false`, so nothing is copied into RockWeb.
 - For Rock-acting-as-client (SSO between sites), configure the **OAuth Service Provider** block and `OAuthClient.cs`; pair with **OAuth Session Restorer** / **Auth Logout** for chained login/logout.
+
+---
+
+**Last updated:** 2026-10-29

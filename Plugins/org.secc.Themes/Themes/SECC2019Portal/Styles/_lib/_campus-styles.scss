@@ -1,0 +1,32 @@
+@each $campus, $values in $Campuses {
+	.#{$campus} {
+		@include FontSmoothing;
+		background: map_get($values, "color") !important;
+    	color: #ffffff !important;
+		&.text {
+			@include FontSmoothing(off);
+			color: map_get($values, "color") !important;
+			background: inherit !important;
+		}
+
+		& + * .arrow-down {
+			border-top-color: map_get($values, "color");
+		}
+
+		&.stroke {
+			background: transparent !important;
+			color: map_get($values, "color") !important;
+			border-color: map_get($values, "color") !important;
+
+			a &:hover, button &:hover {
+				background: map_get($values, "color") !important;
+				color: #ffffff !important;
+				border-width: 0;
+			}
+
+		}
+	}
+}
+
+
+

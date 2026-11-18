@@ -1,14 +1,4 @@
-<style>
-    .se-success {
-        background: #f7f7f7;
-		border-radius: 30px;
-		transition: 0.3s;
-		margin-bottom: 10px;
-		padding: 30px;
-		text-align: center;
-    }
-</style>
-<div class="se-success">
+<div class="alert alert-success">
 	<strong>
 	Congratulations!
 	</strong>

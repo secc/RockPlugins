@@ -32,7 +32,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
 {
     public partial class RoomScannerController : ApiController
     {
-        public static AttributeCache volAttribute = AttributeCache.Get( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
+        public static AttributeCache volAttribute => AttributeCache.Get( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
 
         private List<int> VolunteerGroupIds
         {
@@ -43,7 +43,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
         {
             var attendances = AttendanceCache.GetByLocationId( locationId );
             return attendances
-                .Where( a => a.IsVolunteer && a.AttendanceState == AttendanceState.InRoom )
+                // PersonId 0 is attendance with no person; it cannot count as a known adult in the room.
+                .Where( a => a.IsVolunteer && a.AttendanceState == AttendanceState.InRoom && a.PersonId > 0 )
                 .Select( a => a.PersonId )
                 .Distinct()
                 .Count();

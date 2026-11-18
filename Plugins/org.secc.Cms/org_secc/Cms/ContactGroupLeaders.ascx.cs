@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -27,6 +28,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
+using Rock.Logging;
 using Rock.Model;
 using Rock.Tasks;
 using Rock.Web.Cache;
@@ -44,10 +46,14 @@ namespace RockWeb.Plugins.org_secc.Cms
     [GroupField( "Default Contact Group", "A pre-configured group (all leaders will be emailed)", false, "", "", 0, "LeaderGroup" )]
     [PersonField( "Default Recipient ", "A pre-configured person", false, "", "", 2, "DefaultRecipient" )]
     [TextField( "Subject", "The subject line for the email. <span class='tip tip-lava'></span>", true, "New Message For Your Group", "", 3 )]
+    [EmailField( "From Email", "The address the notification is sent from. The visitor's name is used as the display name and the visitor's address is set as Reply-To so leaders can reply directly. Leave blank to use the Organization Email global attribute.", false, "noreply@secc.org", "", 4, "FromEmail" )]
     [CodeEditorField( "Message Body", "The email message body. <span class='tip tip-lava'></span>", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, false, "", "", 7 )]
     [CodeEditorField( "Response Message", "The message the user will see when they submit the form if no response page if provided. Lava merge fields are available for you to use in your message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"<div class=""alert alert-info"">
     Thank you for your interest in this group!
 </div>", "", 8 )]
+    [CodeEditorField( "Error Message", "The message the user will see when the message could not be delivered (no recipient could be resolved, or the send failed). Lava merge fields are available.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"<div class=""alert alert-danger"">
+    We were unable to deliver your message. Please try again later or contact the church office.
+</div>", "", 9, "ErrorMessage" )]
     [TextField( "Submit Button Text", "The text to display for the submit button.", true, "Submit", "", 10 )]
     [TextField( "Submit Button Wrap CSS Class", "CSS class to add to the div wrapping the button.", false, "", "", 11, key: "SubmitButtonWrapCssClass" )]
     [TextField( "Submit Button CSS Class", "The CSS class add to the submit button.", false, "btn btn-primary", "", 12, key: "SubmitButtonCssClass" )]
@@ -59,6 +65,18 @@ namespace RockWeb.Plugins.org_secc.Cms
 
     public partial class ContactGroupLeaders : Rock.Web.UI.RockBlock
     {
+        /// <summary>
+        /// Route/query parameters that may carry a Group or PublishGroup guid. Both entity types
+        /// are tried for each, because the public routes have historically named the parameter
+        /// inconsistently (a PublishGroup guid arriving as {GroupGuid} sent nothing for 20 months).
+        /// </summary>
+        private static readonly string[] GuidParameterKeys = { "GroupGuid", "PublishGroupGuid" };
+
+        /// <summary>
+        /// Route/query parameter that may carry a PublishGroup slug. Slugs survive every edit; guids change
+        /// when a Draft is published over a live listing.
+        /// </summary>
+        private const string SlugParameterKey = "PublishGroupSlug";
 
         #region Base Control Methods
         protected override void OnInit( EventArgs e )
@@ -166,236 +184,431 @@ namespace RockWeb.Plugins.org_secc.Cms
         }
 
         /// <summary>
+        /// Resolves the Group and/or PublishGroup the contact form is for.
+        /// </summary>
+        /// <returns>true when at least one target parameter was supplied in the request (whether or not it resolved).</returns>
+        private bool ResolveTargets( GroupService groupService, PublishGroupService publishGroupService, out Group group, out PublishGroup publishGroup )
+        {
+            group = null;
+            publishGroup = null;
+            bool targetRequested = false;
+
+            foreach ( var key in GuidParameterKeys )
+            {
+                var value = PageParameter( key );
+                if ( value.IsNullOrWhiteSpace() )
+                {
+                    continue;
+                }
+
+                // A malformed value still counts as a request, so a broken link is logged even when a fallback delivers.
+                targetRequested = true;
+
+                var guid = value.AsGuidOrNull();
+                if ( !guid.HasValue )
+                {
+                    continue;
+                }
+
+                // Both parameters may be present (one Group, one PublishGroup); resolve each independently.
+                if ( group == null )
+                {
+                    group = groupService.Get( guid.Value );
+                    if ( group != null )
+                    {
+                        continue;
+                    }
+                }
+
+                if ( publishGroup == null )
+                {
+                    publishGroup = publishGroupService.Get( guid.Value );
+                }
+            }
+
+            if ( group == null && publishGroup == null )
+            {
+                var slug = ( PageParameter( SlugParameterKey ) ?? string.Empty ).Trim().ToLower();
+                if ( slug.IsNotNullOrWhiteSpace() )
+                {
+                    targetRequested = true;
+
+                    // New slugs are saved alphanumeric, but slugs seeded by migration 009 can keep punctuation,
+                    // so match the value as given as well as its normalized form. An empty normalized form
+                    // (e.g. "---") is treated as malformed rather than matched against a blank slug.
+                    var normalizedSlug = slug.RemoveAllNonAlphaNumericCharacters();
+                    if ( normalizedSlug.IsNotNullOrWhiteSpace() )
+                    {
+                        // Slug lookups only reach Approved listings, so a Draft that shares its live row's slug
+                        // is never picked. (Guid lookups accept any status, as they always have.)
+                        publishGroup = publishGroupService.Queryable()
+                            .Where( pg => ( pg.Slug == slug || pg.Slug == normalizedSlug ) && pg.PublishGroupStatus == PublishGroupStatus.Approved )
+                            .OrderByDescending( pg => pg.Id )
+                            .FirstOrDefault();
+                    }
+                }
+            }
+
+            return targetRequested;
+        }
+
+        /// <summary>
+        /// Adds a person to the email or SMS recipient list based on preference,
+        /// skipping (and remembering) anyone with no usable address.
+        /// </summary>
+        private void AddRecipient( Person person, bool allowSMS, List<Person> emailRecipients, List<Person> smsRecipients, List<string> skipped, string sourceLabel )
+        {
+            if ( person == null )
+            {
+                skipped.Add( $"{sourceLabel}: no person record" );
+                return;
+            }
+
+            var phoneNumber = person.PhoneNumbers?.GetFirstSmsNumber();
+            if ( allowSMS && person.CommunicationPreference == CommunicationType.SMS && phoneNumber.IsNotNullOrWhiteSpace() )
+            {
+                smsRecipients.Add( person );
+                return;
+            }
+
+            if ( person.Email.IsNotNullOrWhiteSpace() )
+            {
+                emailRecipients.Add( person );
+                return;
+            }
+
+            skipped.Add( $"{sourceLabel}: {person.FullName} (PersonId {person.Id}) has no email" );
+        }
+
+        /// <summary>
         /// Sends the email.
         /// </summary>
         private bool SendMessage()
         {
-            var rockContext = new RockContext();
-            var personAliasService = new PersonAliasService( rockContext );
-            var groupService = new GroupService( rockContext );
-            var publishGroupService = new PublishGroupService( rockContext );
-            Group group = null;
-            PublishGroup publishGroup = null;
-            bool allowSMS = GetAttributeValue( "EnableSMS" ).AsBoolean();
-            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
-
-            List<Person> emailRecipients = new List<Person>();
-            List<Person> smsRecipients = new List<Person>();
-            // get person from url
-            if ( PageParameter( "PersonGuid" ).IsNotNullOrWhiteSpace() )
-            {
-                Guid? personGuid = this.PageParameter( "PersonGuid" ).AsGuidOrNull();
-                if ( personGuid.HasValue )
-                {
-                    var person = personAliasService.Queryable()
-                        .Where( pa => pa.Guid == personGuid.Value )
-                        .Select( pa => pa.Person )
-                        .FirstOrDefault();
-                    var phoneNumber = person.PhoneNumbers.GetFirstSmsNumber();
-                    if ( person != null && allowSMS && person.CommunicationPreference == CommunicationType.SMS && phoneNumber.IsNotNullOrWhiteSpace() )
-                    {
-                        smsRecipients.Add( person );
-                    }
-                    else
-                    {
-                        emailRecipients.Add( person );
-                    }
-                }
-            }
-
-            // get group members from url
-            if ( PageParameter( "GroupGuid" ).IsNotNullOrWhiteSpace() )
-            {
-                Guid? groupGuid = PageParameter( "GroupGuid" ).AsGuidOrNull();
-
-                if ( groupGuid.HasValue )
-                {
-                    group = groupService.Get( groupGuid.Value );
-
-                    var leaders = GetGroupLeaders( group );
-                    foreach ( var leader in leaders )
-                    {
-                        var phonenumber = leader.PhoneNumbers.GetFirstSmsNumber();
-                        if ( allowSMS && leader.CommunicationPreference == CommunicationType.SMS && phonenumber.IsNotNullOrWhiteSpace() )
-                        {
-                            smsRecipients.Add( leader );
-                        }
-                        else
-                        {
-                            emailRecipients.Add( leader );
-                        }
-
-                    }
-                }
-            }
-
-            // get group members from url
-            if ( PageParameter( "PublishGroupGuid" ).IsNotNullOrWhiteSpace() )
-            {
-                Guid? publishGroupGuid = PageParameter( "PublishGroupGuid" ).AsGuidOrNull();
-
-                if ( publishGroupGuid.HasValue )
-                {
-                    publishGroup = publishGroupService.Get( publishGroupGuid.Value );
-                    if ( publishGroup != null )
-                    {
-                        var person = new Person { Email = publishGroup.ContactEmail };
-                        emailRecipients.Add( person );
-                    }
-                }
-            }
-
-            if ( !emailRecipients.Any() && !smsRecipients.Any() )
-            {
-                Guid defaultRecipient = this.GetAttributeValue( "DefaultRecipient" ).AsGuid();
-                var defaultPerson = personAliasService.Queryable()
-                        .Where( pa => pa.Guid == defaultRecipient )
-                        .Select( pa => pa.Person )
-                        .FirstOrDefault();
-                if ( defaultPerson != null )
-                {
-                    var phonenumber = defaultPerson.PhoneNumbers.GetFirstSmsNumber();
-                    if ( allowSMS && defaultPerson.CommunicationPreference == CommunicationType.SMS && phonenumber.IsNotNullOrWhiteSpace() )
-                    {
-                        smsRecipients.Add( defaultPerson );
-                    }
-                    else
-                    {
-                        emailRecipients.Add( defaultPerson );
-                    }
-                }
-            }
-
-            if ( !emailRecipients.Any() && !smsRecipients.Any() )
-            {
-                Guid defaultGroupGuid = GetAttributeValue( "LeaderGroup" ).AsGuid();
-                var defaultGroup = groupService.Get( defaultGroupGuid );
-                var leaders = GetGroupLeaders( defaultGroup );
-                foreach ( var leader in leaders )
-                {
-                    var phonenumber = leader.PhoneNumbers.GetFirstSmsNumber();
-                    if ( allowSMS && leader.CommunicationPreference == CommunicationType.SMS && phonenumber.IsNotNullOrWhiteSpace() )
-                    {
-                        smsRecipients.Add( leader );
-                    }
-                    else
-                    {
-                        emailRecipients.Add( leader );
-                    }
-                }
-            }
-
-            if ( !cpCaptcha.IsAvailable || cpCaptcha.IsResponseValid() )
-            {
-                mergeFields.Add( "NickName", tbFirstName.Text );
-                mergeFields.Add( "LastName", tbLastName.Text );
-                mergeFields.Add( "Phone", tbPhone.Text );
-                mergeFields.Add( "Email", tbEmail.Text );
-                mergeFields.Add( "PublishGroup", publishGroup );
-                mergeFields.Add( "Group", group );
-                mergeFields.Add( "Message", tbMessage.Text );
-                mergeFields.Add( "FromEmail", tbEmail.Text );
-                mergeFields.Add( "FromName", tbFirstName.Text + " " + tbLastName.Text );
-
-                if ( emailRecipients.Any() )
-                {
-                    SendEmail( emailRecipients, mergeFields );
-                }
-
-                if ( smsRecipients.Any() )
-                {
-                    SendTextMessage( smsRecipients, mergeFields );
-                }
-
-                // display response message
-                lResponse.Visible = true;
-                pnlContactGroupLeaders.Visible = false;
-                lResponse.Text = GetAttributeValue( "ResponseMessage" ).ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
-                return true;
-            }
-            else
+            // Check the captcha before any lookup or logging, so bot posts don't add log entries.
+            if ( cpCaptcha.IsAvailable && !cpCaptcha.IsResponseValid() )
             {
                 lResponse.Visible = true;
                 pnlContactGroupLeaders.Visible = true;
                 lResponse.Text = "<div class='alert alert-danger'>You appear to be a computer. Check the box above and then click Submit.</div>";
                 return false;
             }
-        }
 
-        private void SendEmail( List<Person> emailrecipients, Dictionary<string, object> mergeFields )
-        {
-            var message = new RockEmailMessage();
-            message.EnabledLavaCommands = GetAttributeValue( "EnabledLavaCommands" );
+            var rockContext = new RockContext();
+            var personAliasService = new PersonAliasService( rockContext );
+            var groupService = new GroupService( rockContext );
+            var publishGroupService = new PublishGroupService( rockContext );
+            bool allowSMS = GetAttributeValue( "EnableSMS" ).AsBoolean();
+            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
 
-            foreach ( var person in emailrecipients )
+            List<Person> emailRecipients = new List<Person>();
+            List<Person> smsRecipients = new List<Person>();
+            List<string> skippedRecipients = new List<string>();
+
+            // get person from url
+            if ( PageParameter( "PersonGuid" ).IsNotNullOrWhiteSpace() )
             {
-                if ( person.Id > 0 )
+                Guid? personGuid = this.PageParameter( "PersonGuid" ).AsGuidOrNull();
+                if ( personGuid.HasValue )
                 {
-                    message.AddRecipient( new RockEmailMessageRecipient( person, mergeFields ) );
+                    var person = personAliasService.GetPerson( personGuid.Value );
+                    AddRecipient( person, allowSMS, emailRecipients, smsRecipients, skippedRecipients, "PersonGuid " + personGuid.Value );
+                }
+            }
+
+            // get group and/or publish group from url
+            Group group;
+            PublishGroup publishGroup;
+            bool targetRequested = ResolveTargets( groupService, publishGroupService, out group, out publishGroup );
+            bool targetUnresolved = targetRequested && group == null && publishGroup == null;
+
+            // group route: every active leader
+            if ( group != null )
+            {
+                var leaders = GetGroupLeaders( group );
+                if ( !leaders.Any() )
+                {
+                    skippedRecipients.Add( $"group {group.Id} has no active leaders" );
+                }
+
+                foreach ( var leader in leaders )
+                {
+                    AddRecipient( leader, allowSMS, emailRecipients, smsRecipients, skippedRecipients, $"leader of group {group.Id}" );
+                }
+            }
+
+            // publish group route: the published contact email, else the contact person
+            if ( publishGroup != null )
+            {
+                if ( publishGroup.ContactEmail.IsNotNullOrWhiteSpace() )
+                {
+                    emailRecipients.Add( new Person { Email = publishGroup.ContactEmail.Trim() } );
                 }
                 else
                 {
-                    message.AddRecipient( RockEmailMessageRecipient.CreateAnonymous( person.Email, mergeFields ) );
+                    var contactPerson = publishGroup.ContactPersonAlias?.Person;
+                    AddRecipient( contactPerson, allowSMS, emailRecipients, smsRecipients, skippedRecipients, $"contact person of publish group {publishGroup.Id} (alias {publishGroup.ContactPersonAliasId})" );
                 }
             }
 
-            message.FromEmail = tbEmail.Text;
-            message.FromName = tbFirstName.Text + " " + tbLastName.Text;
-            message.Subject = GetAttributeValue( "Subject" );
-            message.Message = GetAttributeValue( "MessageBody" );
-            message.AppRoot = ResolveRockUrl( "~/" );
-            message.ThemeRoot = ResolveRockUrl( "~~/" );
-            message.CreateCommunicationRecord = GetAttributeValue( "SaveCommunicationHistory" ).AsBoolean();
-            message.Send();
+            bool usedFallback = false;
 
+            if ( !emailRecipients.Any() && !smsRecipients.Any() )
+            {
+                Guid defaultRecipient = this.GetAttributeValue( "DefaultRecipient" ).AsGuid();
+                if ( defaultRecipient != Guid.Empty )
+                {
+                    var defaultPerson = personAliasService.GetPerson( defaultRecipient );
+                    AddRecipient( defaultPerson, allowSMS, emailRecipients, smsRecipients, skippedRecipients, "Default Recipient" );
+                    usedFallback = emailRecipients.Any() || smsRecipients.Any();
+                }
+            }
+
+            if ( !emailRecipients.Any() && !smsRecipients.Any() )
+            {
+                Guid defaultGroupGuid = GetAttributeValue( "LeaderGroup" ).AsGuid();
+                if ( defaultGroupGuid != Guid.Empty )
+                {
+                    var defaultGroup = groupService.Get( defaultGroupGuid );
+                    foreach ( var leader in GetGroupLeaders( defaultGroup ) )
+                    {
+                        AddRecipient( leader, allowSMS, emailRecipients, smsRecipients, skippedRecipients, "Default Contact Group leader" );
+                    }
+                    usedFallback = emailRecipients.Any() || smsRecipients.Any();
+                }
+            }
+
+            // Diagnostics that should be visible but must not flood the Exception Log on a public form.
+            if ( targetUnresolved )
+            {
+                RockLogger.Log.Warning( RockLogDomains.Cms, "ContactGroupLeaders: no Group or PublishGroup matched the request {Url}. Fallback used: {UsedFallback}.", Request.RawUrl, usedFallback );
+            }
+
+            if ( skippedRecipients.Any() )
+            {
+                RockLogger.Log.Warning( RockLogDomains.Cms, "ContactGroupLeaders: skipped {Count} recipient(s) with no usable address on {Url}: {Skipped}", skippedRecipients.Count, Request.RawUrl, skippedRecipients.AsDelimited( "; " ) );
+            }
+
+            mergeFields.Add( "NickName", tbFirstName.Text );
+            mergeFields.Add( "LastName", tbLastName.Text );
+            mergeFields.Add( "Phone", tbPhone.Text );
+            mergeFields.Add( "Email", tbEmail.Text );
+            mergeFields.Add( "PublishGroup", publishGroup );
+            // Existing Message Body templates use {{ Group.Name }}; make that work on the publish group route too.
+            mergeFields.Add( "Group", group ?? publishGroup?.Group );
+            mergeFields.Add( "Message", tbMessage.Text );
+            mergeFields.Add( "FromEmail", tbEmail.Text );
+            mergeFields.Add( "FromName", tbFirstName.Text + " " + tbLastName.Text );
+
+            if ( !emailRecipients.Any() && !smsRecipients.Any() )
+            {
+                // Nothing resolved and no fallback configured: a real failure worth an Exception Log entry.
+                LogWithContext( $"ContactGroupLeaders: no recipient could be resolved for {Request.RawUrl}; message was not sent. Configure Default Recipient on block {BlockId}." );
+                ShowError( mergeFields );
+                return false;
+            }
+
+            var errorMessages = new List<string>();
+            Exception sendException = null;
+            int delivered = 0;
+
+            if ( emailRecipients.Any() )
+            {
+                List<string> emailErrors;
+                delivered += SendEmail( emailRecipients, mergeFields, out emailErrors );
+                errorMessages.AddRange( emailErrors );
+            }
+
+            if ( smsRecipients.Any() )
+            {
+                List<string> smsErrors;
+                delivered += SendTextMessage( smsRecipients, mergeFields, out smsErrors, out sendException );
+                errorMessages.AddRange( smsErrors );
+            }
+
+            if ( errorMessages.Any() )
+            {
+                LogWithContext( $"ContactGroupLeaders: send failed for {( delivered == 0 ? "every" : "some" )} recipient(s) of {Request.RawUrl} ({delivered} delivered). {errorMessages.AsDelimited( " | " )}", sendException );
+            }
+
+            // Only report failure when nobody got the message. If some recipients did, showing the error
+            // would invite a resubmit that sends them a duplicate.
+            if ( delivered == 0 )
+            {
+                ShowError( mergeFields );
+                return false;
+            }
+
+            // display response message
+            lResponse.Visible = true;
+            pnlContactGroupLeaders.Visible = false;
+            lResponse.Text = GetAttributeValue( "ResponseMessage" ).ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
+            return true;
         }
 
-        private void SendTextMessage( List<Person> smsRecipients, Dictionary<string, object> mergeFields )
+        private void ShowError( Dictionary<string, object> mergeFields )
         {
-            var rockContext = new RockContext();
-            var communicationService = new CommunicationService( rockContext );
-            var communicationRecipientService = new CommunicationRecipientService( rockContext );
+            lResponse.Visible = true;
+            pnlContactGroupLeaders.Visible = true;
+            lResponse.Text = GetAttributeValue( "ErrorMessage" ).ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
+        }
 
-            var communication = new Rock.Model.Communication();
-            communication.Status = CommunicationStatus.Approved;
-            communication.SenderPersonAliasId = CurrentPerson.PrimaryAliasId;
-            communicationService.Add( communication );
-            communication.EnabledLavaCommands = GetAttributeValue( "EnabledLavaCommands" );
-            communication.IsBulkCommunication = false;
-            communication.CommunicationType = CommunicationType.SMS;
-            communication.ListGroup = null;
-            communication.ListGroupId = null;
-            communication.ExcludeDuplicateRecipientAddress = true;
-            communication.CommunicationTemplateId = null;
-            communication.FromName = mergeFields["FromName"].ToString().TrimForMaxLength( communication, "FromName" );
-            communication.FromEmail = mergeFields["FromEmail"].ToString().TrimForMaxLength( communication, "FromEmail" );
-            communication.Subject = GetAttributeValue( "Subject" );
-            communication.Message = GetAttributeValue( "MessageBody" );
+        /// <summary>
+        /// Logs to the Rock exception log with the current request attached, so the
+        /// entry carries the page URL (the transports log without request context).
+        /// Reserved for real failures; routine diagnostics go to RockLogger.
+        /// </summary>
+        private void LogWithContext( string message, Exception innerException = null )
+        {
+            ExceptionLogService.LogException( new Exception( message, innerException ), HttpContext.Current );
+        }
 
-            communication.SmsFromSystemPhoneNumberId = SystemPhoneNumberCache.Get( GetAttributeValue( "SMSFromNumber" ).AsGuid() )?.Id;
-            communication.SMSMessage = GetAttributeValue( "SMSMessageBody" );
-            communication.FutureSendDateTime = null;
+        /// <summary>
+        /// Emails each recipient separately (the transport does this anyway) so we know exactly who received it.
+        /// </summary>
+        /// <returns>The number of recipients the message was delivered to.</returns>
+        private int SendEmail( List<Person> emailrecipients, Dictionary<string, object> mergeFields, out List<string> errorMessages )
+        {
+            errorMessages = new List<string>();
 
-            communicationService.Add( communication );
+            var enabledLavaCommands = GetAttributeValue( "EnabledLavaCommands" );
+            var subject = GetAttributeValue( "Subject" );
+            var body = GetAttributeValue( "MessageBody" );
+            var visitorName = ( tbFirstName.Text + " " + tbLastName.Text ).Trim();
+            var visitorEmail = ( tbEmail.Text ?? string.Empty ).Trim();
+            bool saveHistory = GetAttributeValue( "SaveCommunicationHistory" ).AsBoolean();
+            int delivered = 0;
 
-            rockContext.SaveChanges();
-
-            foreach ( var smsPerson in smsRecipients )
+            foreach ( var person in emailrecipients )
             {
-                communication.Recipients.Add( new CommunicationRecipient()
+                var recipient = person.Id > 0
+                    ? new RockEmailMessageRecipient( person, mergeFields )
+                    : RockEmailMessageRecipient.CreateAnonymous( person.Email, mergeFields );
+
+                // Send from a fixed, authenticated address so the visitor's own domain (yahoo, aol, ...) is
+                // never spoofed through Mailgun. The visitor stays reachable via Reply-To. A blank From Email
+                // falls back to the Organization Email inside the transport.
+                var message = new RockEmailMessage();
+                message.EnabledLavaCommands = enabledLavaCommands;
+                message.AddRecipient( recipient );
+                message.FromEmail = GetAttributeValue( "FromEmail" );
+                message.FromName = visitorName;
+                if ( visitorEmail.IsNotNullOrWhiteSpace() )
                 {
-                    PersonAliasId = smsPerson.PrimaryAliasId,
-                    MediumEntityTypeId = EntityTypeCache.Get( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_SMS.AsGuid() ).Id,
-                    AdditionalMergeValues = mergeFields
-                } );
+                    message.ReplyToEmail = visitorEmail;
+                }
+                message.Subject = subject;
+                message.Message = body;
+                message.AppRoot = ResolveRockUrl( "~/" );
+                message.ThemeRoot = ResolveRockUrl( "~~/" );
 
+                // The transport's own history record would show the From address (noreply) as both sender and
+                // Reply-To and lose the visitor, so the record is written below instead.
+                message.CreateCommunicationRecord = false;
+
+                List<string> sendErrors;
+                if ( !message.Send( out sendErrors ) )
+                {
+                    errorMessages.AddRange( sendErrors.Any() ? sendErrors : new List<string> { $"Send to {recipient.EmailAddress} failed." } );
+                    continue;
+                }
+
+                delivered++;
+
+                if ( saveHistory )
+                {
+                    SaveEmailHistory( recipient, visitorName, visitorEmail, subject, body, enabledLavaCommands );
+                }
             }
-            rockContext.SaveChanges();
 
-            var transaction = new ProcessSendCommunication.Message();
-            transaction.CommunicationId = communication.Id;
-            transaction.Send();
+            return delivered;
+        }
 
+        /// <summary>
+        /// Saves the delivered email to the recipient's communication history with the visitor as the
+        /// sender (matched by email, as before) and Reply-To, which is what leaders need from the record.
+        /// </summary>
+        private void SaveEmailHistory( RockEmailMessageRecipient recipient, string visitorName, string visitorEmail, string subject, string body, string enabledLavaCommands )
+        {
+            var transaction = new Rock.Transactions.SaveCommunicationTransaction(
+                recipient,
+                visitorName,
+                visitorEmail,
+                subject.ResolveMergeFields( recipient.MergeFields, CurrentPerson, enabledLavaCommands ),
+                body.ResolveMergeFields( recipient.MergeFields, CurrentPerson, enabledLavaCommands ) );
+            transaction.ReplyTo = visitorEmail;
+            transaction.Enqueue();
+        }
+
+        /// <returns>The number of recipients the text was queued for.</returns>
+        private int SendTextMessage( List<Person> smsRecipients, Dictionary<string, object> mergeFields, out List<string> errorMessages, out Exception exception )
+        {
+            errorMessages = new List<string>();
+            exception = null;
+
+            // Resolve recipients before anything is persisted so a miss never leaves an orphan Communication row.
+            var recipientAliasIds = smsRecipients
+                .Where( p => p.PrimaryAliasId.HasValue )
+                .Select( p => p.PrimaryAliasId.Value )
+                .Distinct()
+                .ToList();
+
+            if ( !recipientAliasIds.Any() )
+            {
+                errorMessages.Add( "No SMS recipient with a person record." );
+                return 0;
+            }
+
+            try
+            {
+                var rockContext = new RockContext();
+                var communicationService = new CommunicationService( rockContext );
+                var smsMediumEntityTypeId = EntityTypeCache.Get( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_SMS.AsGuid() ).Id;
+
+                var communication = new Rock.Model.Communication();
+                communication.Status = CommunicationStatus.Approved;
+                communication.SenderPersonAliasId = CurrentPerson?.PrimaryAliasId;
+                communication.EnabledLavaCommands = GetAttributeValue( "EnabledLavaCommands" );
+                communication.IsBulkCommunication = false;
+                communication.CommunicationType = CommunicationType.SMS;
+                communication.ListGroup = null;
+                communication.ListGroupId = null;
+                communication.ExcludeDuplicateRecipientAddress = true;
+                communication.CommunicationTemplateId = null;
+                communication.FromName = mergeFields["FromName"].ToString().TrimForMaxLength( communication, "FromName" );
+                communication.FromEmail = mergeFields["FromEmail"].ToString().TrimForMaxLength( communication, "FromEmail" );
+                communication.Subject = GetAttributeValue( "Subject" );
+                communication.Message = GetAttributeValue( "MessageBody" );
+
+                communication.SmsFromSystemPhoneNumberId = SystemPhoneNumberCache.Get( GetAttributeValue( "SMSFromNumber" ).AsGuid() )?.Id;
+                communication.SMSMessage = GetAttributeValue( "SMSMessageBody" );
+                communication.FutureSendDateTime = null;
+
+                foreach ( var aliasId in recipientAliasIds )
+                {
+                    communication.Recipients.Add( new CommunicationRecipient()
+                    {
+                        PersonAliasId = aliasId,
+                        MediumEntityTypeId = smsMediumEntityTypeId,
+                        AdditionalMergeValues = mergeFields
+                    } );
+                }
+
+                communicationService.Add( communication );
+                rockContext.SaveChanges();
+
+                var transaction = new ProcessSendCommunication.Message();
+                transaction.CommunicationId = communication.Id;
+                transaction.Send();
+                return recipientAliasIds.Count;
+            }
+            catch ( Exception ex )
+            {
+                // Logged once by the caller, with the page context.
+                exception = ex;
+                errorMessages.Add( ex.Message );
+                return 0;
+            }
         }
 
         private void ShowCommunication()
@@ -422,7 +635,7 @@ namespace RockWeb.Plugins.org_secc.Cms
 
             var communication = communicationService.Get( communicationGuid );
 
-            if ( communication == null || !communication.Recipients.Where( r => r.PersonAlias.PersonId == person.Id ).Any() )
+            if ( communication == null || person == null || !communication.Recipients.Where( r => r.PersonAlias != null && r.PersonAlias.PersonId == person.Id ).Any() )
             {
                 var message = "<div class='alert alert-info'>This message is currently unavailable</div>";
                 lMessageContent.Text = message;
@@ -430,7 +643,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                 return;
             }
 
-            var recipient = communication.Recipients.Where( r => r.PersonAlias.PersonId == person.Id ).FirstOrDefault();
+            var recipient = communication.Recipients.Where( r => r.PersonAlias != null && r.PersonAlias.PersonId == person.Id ).FirstOrDefault();
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
             mergeFields.Add( "Communication", "communication" );
             mergeFields.Add( "Person", person );

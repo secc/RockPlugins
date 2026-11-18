@@ -85,6 +85,9 @@
     <Compile Include="Helpers\Trak1Request.cs" />
     <Compile Include="Helpers\Trak1RequiredField.cs" />
     <Compile Include="Helpers\Trak1Response.cs" />
+    <Compile Include="Helpers\Trak1Client.cs" />
+    <Compile Include="Helpers\Trak1Exception.cs" />
+    <Compile Include="Helpers\Trak1StatusUpdate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Workflow\Trak1Status.cs" />
   </ItemGroup>
@@ -95,9 +98,9 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R /C "$(ProjectDir)bin\Debug\org.secc.Trak1.dll" "$(SolutionDir)RockWeb\bin"
+    <PostBuildEvent>xcopy /Y /R /C "$(TargetDir)org.secc.Trak1.dll" "$(SolutionDir)RockWeb\bin"
 
-xcopy /Y /R /C "$(ProjectDir)bin\Debug\org.secc.Trak1.pdb" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R /C "$(TargetDir)org.secc.Trak1.pdb" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R /E /I /C "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
 using Rock.Bus;
@@ -19,22 +20,27 @@ namespace org.secc.FamilyCheckin.Cache
         private static string AllKey => $"{typeof( T ).Name}:{AllString}";
 
         // Throttle key refreshes to avoid excessive DB calls
-        private static readonly object KeysUpdateLock = new object();
-        private static DateTime _lastKeysRefreshUtc = DateTime.MinValue;
         private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
+        private static readonly Stopwatch Uptime = Stopwatch.StartNew();
+
+        private static readonly CheckinKeyList KeyList = new CheckinKeyList(
+            new RockCacheKeyListStore( AllKey, AllRegion ),
+            KeysRefreshInterval,
+            () => Uptime.Elapsed );
+
+        private static readonly CheckinWriteGuard WriteGuard = new CheckinWriteGuard();
 
         public void PostCached()
         {
         }
 
-        public static List<string> AllKeys( Func<List<string>> keyFactory )
+        /// <summary>
+        /// Returns the cached key list, loading it if needed. The list is a read-only snapshot that is
+        /// never changed after it is published, so it can be enumerated without copying it.
+        /// </summary>
+        public static IReadOnlyList<string> AllKeys( Func<List<string>> keyFactory )
         {
-            var keys = AllKeys();
-            if ( !keys.Any() )
-            {
-                keys = UpdateKeys( keyFactory );
-            }
-            return keys;
+            return KeyList.GetOrLoad( QualifiedKeys( keyFactory ) );
         }
 
         public static T Get( string qualifiedKey, Func<T> itemFactory, Func<List<string>> keyFactory )
@@ -47,24 +53,51 @@ namespace org.secc.FamilyCheckin.Cache
                 return item;
             }
 
-            item = itemFactory();
-            if ( item != null )
+            var readStamp = BeginLoad();
+            try
             {
-                var keys = AllKeys();
-                if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
+                item = itemFactory();
+                if ( item != null )
                 {
-                    UpdateKeys( keyFactory, ensureKey: qualifiedKey );
+                    return AddLoaded( qualifiedKey, item, readStamp, keyFactory );
                 }
-
-                RockCache.AddOrUpdate( qualifiedKey, item );
-                // PublishCacheUpdateMessage( qualifiedKey, item );
             }
-            else
+            finally
             {
-                //This item is gone! Make sure it's not in our key list
-                UpdateKeys( keyFactory, removeKey: qualifiedKey );
+                EndLoad();
             }
 
+            //This item is gone! Make sure it's not in our key list
+            KeyList.Remove( QualifiedKeys( keyFactory ), qualifiedKey );
+            return item;
+        }
+
+        /// <summary>
+        /// Starts a load of items from the database. Call before the query runs, pass the result to
+        /// <see cref="AddLoaded"/>, and call <see cref="EndLoad"/> when the load is done.
+        /// </summary>
+        protected static long BeginLoad()
+        {
+            return WriteGuard.BeginLoad();
+        }
+
+        protected static void EndLoad()
+        {
+            WriteGuard.EndLoad();
+        }
+
+        /// <summary>
+        /// Caches an item read by a load unless the key was updated or removed after the load began,
+        /// and returns the item now in the cache: the loaded one, the newer one, or null if it was removed.
+        /// </summary>
+        protected static T AddLoaded( string qualifiedKey, T item, long readStamp, Func<List<string>> keyFactory )
+        {
+            if ( !WriteGuard.TryWriteLoaded( qualifiedKey, readStamp, () => RockCache.AddOrUpdate( qualifiedKey, item ) ) )
+            {
+                return ( T ) RockCache.Get( qualifiedKey );
+            }
+
+            EnsureKey( qualifiedKey, keyFactory );
             return item;
         }
 
@@ -84,12 +117,9 @@ namespace org.secc.FamilyCheckin.Cache
                 try
                 {
 
-                    var keys = AllKeys();
-                    if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
-                    {
-                        UpdateKeys( keyFactory, ensureKey: qualifiedKey );
-                    }            //RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
-                    RockCache.AddOrUpdate( qualifiedKey, item );
+                    EnsureKey( qualifiedKey, keyFactory );
+                    //RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
+                    WriteGuard.RecordWrite( qualifiedKey, () => RockCache.AddOrUpdate( qualifiedKey, item ) );
                     PublishCacheUpdateMessage( qualifiedKey, item );
                     return;
                 }
@@ -118,27 +148,35 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void Remove( string qualifiedKey, Func<List<string>> keyFactory )
         {
-            RockCache.Remove( qualifiedKey );
+            WriteGuard.RecordWrite( qualifiedKey, () => RockCache.Remove( qualifiedKey ) );
             PublishCacheUpdateMessage( qualifiedKey, default( T ) );
-            UpdateKeys( keyFactory, removeKey: qualifiedKey );
+            KeyList.Remove( QualifiedKeys( keyFactory ), qualifiedKey );
         }
 
         public static void Clear( Func<List<string>> keyFactory )
         {
-            UpdateKeys( keyFactory );
+            // Flush every key we know of: the cached list plus whatever the database says exists.
+            var keys = new HashSet<string>( KeyList.Current ?? new List<string>() );
+            keys.UnionWith( QualifiedKeys( keyFactory )() );
 
-            // Create a copy of the keys to avoid collection modification during enumeration
-            foreach ( var key in AllKeys().ToList() )
+            WriteGuard.RecordClear( () =>
             {
-                FlushItem( key, keyFactory );
-            }
+                foreach ( var key in keys )
+                {
+                    RockCache.Remove( key );
+                }
+            } );
+
+            // Drop the key list once instead of removing keys one at a time; the next read reloads it.
+            // The clear message tells the other nodes to do the same.
+            KeyList.Invalidate();
             PublishCacheUpdateMessage( null, default( T ) );
         }
         public static void FlushItem( string qualifiedKey, Func<List<string>> keyFactory )
         {
             //RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
-            RockCache.Remove( qualifiedKey );
-            UpdateKeys( keyFactory, removeKey: qualifiedKey );
+            WriteGuard.RecordWrite( qualifiedKey, () => RockCache.Remove( qualifiedKey ) );
+            KeyList.Remove( QualifiedKeys( keyFactory ), qualifiedKey );
             PublishCacheUpdateMessage( qualifiedKey, default( T ) );
         }
 
@@ -162,64 +200,71 @@ namespace org.secc.FamilyCheckin.Cache
             return "";
         }
 
-        private static List<string> AllKeys()
+        /// <summary>
+        /// Applies a key change reported by another node (see <see cref="CheckinCacheConsumer"/>).
+        /// </summary>
+        internal static void ApplyRemoteKeyChange( string addedKey, string removedKey )
         {
-
-            var keys = RockCache.Get( AllKey, AllRegion ) as List<string>;
-            return keys ?? new List<string>();
+            KeyList.ApplyRemoteChange( addedKey, removedKey );
         }
 
-        private static List<string> UpdateKeys( Func<List<string>> keyFactory, string ensureKey = null, string removeKey = null )
+        /// <summary>
+        /// Applies an item update reported by another node (see <see cref="CheckinCacheConsumer"/>).
+        /// </summary>
+        internal static void ApplyRemoteItem( string qualifiedKey, string region, T item )
         {
-            lock ( KeysUpdateLock )
+            WriteGuard.RecordWrite( qualifiedKey, () =>
             {
-                var now = DateTime.UtcNow;
-                var currentKeys = AllKeys();
-
-                // If within throttle window and we have existing keys
-                if ( currentKeys.Any() && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
+                if ( region != null )
                 {
-                    bool modified = false;
-
-                    // Ensure the specified key is present
-                    if ( !string.IsNullOrEmpty( ensureKey ) && !currentKeys.Contains( ensureKey ) )
-                    {
-                        currentKeys.Add( ensureKey );
-                        modified = true;
-                    }
-
-                    // Remove the specified key
-                    if ( !string.IsNullOrEmpty( removeKey ) && currentKeys.Contains( removeKey ) )
-                    {
-                        currentKeys.Remove( removeKey );
-                        modified = true;
-                    }
-
-                    if ( modified )
-                    {
-                        RockCache.AddOrUpdate( AllKey, AllRegion, currentKeys );
-                    }
-
-                    return currentKeys;
+                    RockCache.AddOrUpdate( qualifiedKey, region, item );
                 }
-
-                var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
-
-                // Apply ensureKey/removeKey operations to refreshed keys                
-                if ( !string.IsNullOrEmpty( ensureKey ) && !keys.Contains( ensureKey ) )
+                else
                 {
-                    keys.Add( ensureKey );
+                    RockCache.AddOrUpdate( qualifiedKey, item );
                 }
+            } );
+        }
 
-                if ( !string.IsNullOrEmpty( removeKey ) && keys.Contains( removeKey ) )
+        /// <summary>
+        /// Applies an item removal reported by another node (see <see cref="CheckinCacheConsumer"/>).
+        /// </summary>
+        internal static void ApplyRemoteRemove( string qualifiedKey, string region )
+        {
+            WriteGuard.RecordWrite( qualifiedKey, () =>
+            {
+                if ( region != null )
                 {
-                    keys.Remove( removeKey );
+                    RockCache.Remove( qualifiedKey, region );
                 }
+                else
+                {
+                    RockCache.Remove( qualifiedKey );
+                }
+            } );
+        }
 
-                RockCache.AddOrUpdate( AllKey, AllRegion, keys );
-                _lastKeysRefreshUtc = now;
-                return keys;
+        /// <summary>
+        /// Applies a clear reported by another node (see <see cref="CheckinCacheConsumer"/>).
+        /// </summary>
+        internal static void ApplyRemoteClear()
+        {
+            WriteGuard.RecordClear( () => RockCache.ClearCachedItemsForType( typeof( T ) ) );
+            KeyList.Invalidate();
+        }
+
+        private static void EnsureKey( string qualifiedKey, Func<List<string>> keyFactory )
+        {
+            var keys = KeyList.Current;
+            if ( keys == null || !keys.Contains( qualifiedKey ) )
+            {
+                KeyList.Ensure( QualifiedKeys( keyFactory ), qualifiedKey );
             }
+        }
+
+        private static Func<IEnumerable<string>> QualifiedKeys( Func<List<string>> keyFactory )
+        {
+            return () => keyFactory().Select( k => QualifiedKey( k ) );
         }
 
         private static void PublishCacheUpdateMessage( string key, T item )
@@ -244,6 +289,37 @@ namespace org.secc.FamilyCheckin.Cache
         public virtual string ToJson()
         {
             return JsonConvert.SerializeObject( this );
+        }
+    }
+
+    /// <summary>
+    /// Keeps a <see cref="CheckinKeyList"/> in RockCache. RockCache is in-process and stores the
+    /// object by reference, so readers share the published snapshot.
+    /// </summary>
+    internal sealed class RockCacheKeyListStore : IKeyListStore
+    {
+        private readonly string _key;
+        private readonly string _region;
+
+        public RockCacheKeyListStore( string key, string region )
+        {
+            _key = key;
+            _region = region;
+        }
+
+        public IReadOnlyList<string> Get()
+        {
+            return RockCache.Get( _key, _region ) as IReadOnlyList<string>;
+        }
+
+        public void Set( IReadOnlyList<string> keys )
+        {
+            RockCache.AddOrUpdate( _key, _region, keys );
+        }
+
+        public void Remove()
+        {
+            RockCache.Remove( _key, _region );
         }
     }
 }

@@ -170,14 +170,20 @@ namespace RockWeb.Plugins.org_secc.Communication
             GroupService groupService = new GroupService( rockContext );
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
 
-            var tempCommunicationGroups = groupService.Queryable().Where( g => CommunicationGroupIds.Contains( g.Id ) ).ToList();
+            CommunicationMembership = groupMemberService.Queryable().Where( m => CommunicationMembershipIds.Contains( m.Id ) ).ToList();
+            var membershipGroupIds = CommunicationMembership.Select( m => m.GroupId ).ToList();
+
+            // Re-apply the visibility rule: a list deactivated since the page loaded must not
+            // stay subscribable from the IDs cached in ViewState.
+            var tempCommunicationGroups = groupService.Queryable()
+                .Where( g => CommunicationGroupIds.Contains( g.Id ) )
+                .WhereVisible( membershipGroupIds )
+                .ToList();
             CommunicationGroups = new List<Group>();
             foreach ( var id in CommunicationGroupIds )
             {
                 CommunicationGroups.AddRange( tempCommunicationGroups.Where( g => g.Id == id ) );
             }
-
-            CommunicationMembership = groupMemberService.Queryable().Where( m => CommunicationMembershipIds.Contains( m.Id ) ).ToList();
 
             if ( ViewState["KeywordGroupId"] != null && ViewState["KeywordGroupId"] is int )
             {
@@ -243,25 +249,27 @@ namespace RockWeb.Plugins.org_secc.Communication
                 return;
             }
 
+            // Narrow in SQL, then match whole keywords in memory so VBS doesn't match VBSX.
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-            var attributeValue = attributeValueService.Queryable().AsNoTracking()
-                .Where( av => av.AttributeId == attribute.Id &&
-                 ( av.Value == keyword
-                 || av.Value.Contains( "|" + keyword )
-                 || av.Value.Contains( keyword + "|" )
-                 || av.Value.Contains( "|" + keyword + "|" ) )
-                ).FirstOrDefault();
+            var candidateGroupIds = attributeValueService.Queryable().AsNoTracking()
+                .Where( av => av.AttributeId == attribute.Id && av.EntityId.HasValue && av.Value.Contains( keyword ) )
+                .Select( av => new { GroupId = av.EntityId.Value, av.Value } )
+                .ToList()
+                .Where( av => CommunicationLists.KeywordMatches( av.Value, keyword ) )
+                .Select( av => av.GroupId )
+                .ToList();
 
-            if ( attributeValue == null )
-            {
-                pnlKeyword.Visible = false;
-                return;
-            }
-
+            // Same visibility rule as the list below (public, active), so a keyword shared with
+            // an inactive or non-public list resolves to the active public one.
             GroupService groupService = new GroupService( rockContext );
-            var group = groupService.Get( attributeValue.EntityId ?? 0 );
+            var group = groupService.Queryable()
+                .Where( g => candidateGroupIds.Contains( g.Id ) )
+                .WhereVisible()
+                .OrderBy( g => g.Name )
+                .ThenBy( g => g.Id )
+                .FirstOrDefault();
 
-            if ( group == null || !group.IsActive || group.IsArchived )
+            if ( group == null )
             {
                 pnlKeyword.Visible = false;
                 return;
@@ -286,9 +294,16 @@ namespace RockWeb.Plugins.org_secc.Communication
             // switches it to Text Message sees the disclosure twice. That is intentional --
             // each copy sits with its own consent control, and duplicate disclosure is
             // compliant where a missing one is not. Don't "de-duplicate" this away.
-            if ( support.SupportsSms )
+            // Gate on the effective medium, not SupportsSms, so this agrees with the per-list
+            // panels: on a list that carries both Email and Text Message, a person whose
+            // preference resolves to Email is subscribing to email and is not asked to agree
+            // to texts.
+            if ( GetEffectiveMedium( support ) == CommunicationType.SMS )
             {
-                lKeywordSmsDisclosure.Text = SmsDisclosure.Html( "12px 0 4px 0" );
+                cbKeywordSmsConsent.Text = SmsDisclosure.ConsentText();
+                cbKeywordSmsConsent.Visible = true;
+                btnSubscribe.Attributes["data-requires-consent"] = cbKeywordSmsConsent.ClientID;
+                lKeywordSmsDisclosure.Text = SmsDisclosure.Html( "-4px 0 12px 22px" );
             }
 
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
@@ -325,6 +340,15 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             if ( hasActiveMember )
             {
+                // Already a member, so this is a settings update, not an opt-in. Hiding the
+                // consent controls stops the checkbox being left stranded when the Subscribe
+                // button is hidden below, and stops an existing subscriber being asked to
+                // re-consent just to change their subscription settings. The server gate keys
+                // off cbKeywordSmsConsent.Visible, so hiding it here also disables that check --
+                // correct, because no opt-in and no IsMessagingEnabled write happens on this path.
+                cbKeywordSmsConsent.Visible = false;
+                lKeywordSmsDisclosure.Text = string.Empty;
+
                 if ( activeMember.Attributes.Any() )
                 {
                     nbAlreadySubscribed.Visible = true;
@@ -371,9 +395,10 @@ namespace RockWeb.Plugins.org_secc.Communication
                 .ToList();
             var membershipGroupIds = CommunicationMembership.Select( m => m.GroupId ).ToList();
             var tempGroups = groupService.Queryable().AsNoTracking()
-                 .Where( g => g.IsPublic &&
-                     ( g.GroupTypeId == communicationListGroupTypeId
-                     || membershipGroupIds.Contains( g.Id ) && g.GroupTypeId == communicationListGroupTypeId ) )
+                 // Inactive lists are hidden from non-members, but stay visible to their active
+                 // members: Rock still sends to a list's active members regardless of the list's
+                 // IsActive flag, so members need this page to unsubscribe.
+                 .WhereVisible( membershipGroupIds )
                  .OrderBy( g => g.Name )
                  .ToList();
 
@@ -533,10 +558,24 @@ namespace RockWeb.Plugins.org_secc.Communication
                 // GetEffectiveMedium already folded the person's communication preference
                 // into the dual-medium case, with email as the RecipientPreference/unset
                 // fallback so the Subscribe button is never a dead end without an input.
+                Panel consentBlock = null;
+                RockCheckBox consentBox = null;
                 if ( medium == CommunicationType.SMS )
                 {
-                    pnlToggle.Controls.Add( CreatePhoneBox( panelWidget.ID ) );
-                    pnlToggle.Controls.Add( CreateSmsDisclosure( panelWidget.ID ) );
+                    // The consent sentence and disclosures are a paragraph, not a button, so they
+                    // sit in the panel body above pnlToggle rather than inside it. pnlToggle is a
+                    // Bootstrap .btn-group -- inline-block, sized to its widest child -- and a 34em
+                    // block of legal text inside it stretches the whole group.
+                    //
+                    // The phone box moves out with them, ahead of the consent block, so the page
+                    // reads mobile number -> consent + disclosures -> Subscribe: the agreement
+                    // refers to "the mobile number provided", so the number has to come first.
+                    // Subscribe finds the box via pnlWidget.FindControl, and pnlToggle is a plain
+                    // Panel (not a naming container), so its ID and lookup are unchanged.
+                    var insertAt = panelWidget.Controls.IndexOf( pnlToggle );
+                    panelWidget.Controls.AddAt( insertAt, CreatePhoneBox( panelWidget.ID ) );
+                    consentBlock = CreateSmsConsentBlock( panelWidget.ID, out consentBox );
+                    panelWidget.Controls.AddAt( insertAt + 1, consentBlock );
                 }
                 else
                 {
@@ -560,6 +599,15 @@ namespace RockWeb.Plugins.org_secc.Communication
                 };
                 pnlToggle.Controls.Add( on );
                 on.Click += ( s, e ) => { Subscribe( group.Id, panelWidget.ID ); };
+
+                // Affordance only: the button greys out until the box is ticked, so the
+                // requirement is visible before the click instead of as a validation error
+                // after it. Real enforcement stays server-side in HasSmsConsent -- a disabled
+                // anchor is trivially re-enabled in devtools or bypassed by replaying the postback.
+                if ( consentBox != null )
+                {
+                    on.Attributes["data-requires-consent"] = consentBox.ClientID;
+                }
             }
 
             member.LoadAttributes();
@@ -625,6 +673,13 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         }
 
+        private void ShowConsentNotice()
+        {
+            ShowNotice( "Consent Required",
+                "Please check the box agreeing to receive text messages before subscribing.",
+                NotificationBoxType.Validation );
+        }
+
         private void ShowNotice( string heading, string message, NotificationBoxType boxType = NotificationBoxType.Info )
         {
             nbNotice.Heading = heading;
@@ -639,7 +694,13 @@ namespace RockWeb.Plugins.org_secc.Communication
                 .FirstOrDefault();
             PanelWidget pnlWidget = phGroups.FindControl( panelId ) as PanelWidget;
 
-            if ( communicationGroup == null || pnlWidget == null )
+            // An inactive list is only shown so its members can manage or leave it; nobody
+            // (including a member who just unsubscribed) may join it.
+            var isInactiveForPerson = communicationGroup != null
+                && !communicationGroup.IsActive
+                && !CommunicationMembership.Any( m => m.GroupId == groupId );
+
+            if ( communicationGroup == null || pnlWidget == null || isInactiveForPerson )
             {
                 ShowNotice( "Unable to Subscribe",
                     "We were unable to process your subscription. Please reload the page and try again.",
@@ -654,6 +715,13 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             if ( medium == CommunicationType.SMS )
             {
+                // Checked before the phone number is written: UpdateMobilePhone is what sets
+                // IsMessagingEnabled, and that switch is exactly what consent gates.
+                if ( !HasSmsConsent( pnlWidget, panelId ) )
+                {
+                    return;
+                }
+
                 var phoneNumberBox = pnlWidget.FindControl( $"tbPhone{panelId}" ) as PhoneNumberBox;
                 var phoneNumber = string.Empty;
                 if ( phoneNumberBox != null )
@@ -816,6 +884,55 @@ namespace RockWeb.Plugins.org_secc.Communication
             };
         }
 
+        /// <summary>
+        /// The unchecked opt-in checkbox and the disclosures beneath it, as one block. Carriers
+        /// require an affirmative, never-pre-ticked agreement ahead of the disclosures, and
+        /// <see cref="Subscribe"/> refuses to run without it -- this is a gate, not a decoration.
+        /// </summary>
+        private Panel CreateSmsConsentBlock( string panelWidgetId, out RockCheckBox consentBox )
+        {
+            // Bounded so the consent sentence wraps at a readable measure rather than running
+            // the full width of the panel.
+            var wrapper = new Panel
+            {
+                ID = $"pnlSmsConsent{panelWidgetId}",
+                CssClass = "clearfix"
+            };
+            wrapper.Style["display"] = "block";
+            wrapper.Style["max-width"] = "34em";
+
+            consentBox = new RockCheckBox
+            {
+                ID = $"cbSmsConsent{panelWidgetId}",
+                Checked = false,
+                Text = SmsDisclosure.ConsentText()
+            };
+            wrapper.Controls.Add( consentBox );
+            wrapper.Controls.Add( CreateSmsDisclosure( panelWidgetId ) );
+
+            return wrapper;
+        }
+
+        /// <summary>
+        /// Blocks an SMS subscribe while the consent box is unticked.
+        /// </summary>
+        private bool HasSmsConsent( PanelWidget pnlWidget, string panelId )
+        {
+            var consent = pnlWidget != null
+                ? pnlWidget.FindControl( $"cbSmsConsent{panelId}" ) as RockCheckBox
+                : null;
+
+            // Fail closed. A missing checkbox is a rendering bug, and without it there is no
+            // record of consent -- subscribing anyway is the exact thing the carrier audits.
+            if ( consent == null || !consent.Checked )
+            {
+                ShowConsentNotice();
+                return false;
+            }
+
+            return true;
+        }
+
         private void SendConfirmationMessage( int groupId )
         {
             var group = CommunicationGroups.FirstOrDefault( g => g.Id == groupId );
@@ -885,11 +1002,28 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             var groupId = ( int ) ViewState["KeywordGroupId"];
 
+            // Only made visible when the effective medium is SMS, so an unticked box is a
+            // refused opt-in. This panel has no mobile-number input; the number on file is used.
+            if ( cbKeywordSmsConsent.Visible && !cbKeywordSmsConsent.Checked )
+            {
+                ShowConsentNotice();
+                return;
+            }
+
             RockContext rockContext = new RockContext();
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
             GroupService groupService = new GroupService( rockContext );
 
-            var group = groupService.Get( groupId );
+            // Re-check: the list may have been deactivated or made non-public since the page loaded.
+            var group = groupService.Queryable().Where( g => g.Id == groupId ).WhereVisible().FirstOrDefault();
+            if ( group == null )
+            {
+                ShowNotice( "Unable to Subscribe",
+                    "We were unable to process your subscription. Please reload the page and try again.",
+                    NotificationBoxType.Danger );
+                return;
+            }
+
             var defaultGroupRoleId = group.GroupType.DefaultGroupRoleId;
 
 

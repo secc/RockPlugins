@@ -11,13 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-using Rock.Data;
 
 namespace org.secc.ChangeManager.Data
 {
     public class ChangeManagerService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {
-        public ChangeManagerService( RockContext context )
+        public ChangeManagerService( Rock.Data.DbContext context )
            : base( context )
         {
         }

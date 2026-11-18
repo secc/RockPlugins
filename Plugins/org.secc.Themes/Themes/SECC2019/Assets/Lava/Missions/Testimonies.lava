@@ -11,10 +11,10 @@
                 {% assign itemCount = Items | Size %}
                 {% if itemCount > 0 %}
                     {[ simpleimagecarousel sliderscount:'2' fade:'false' ]}  
-                        {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+                        {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
                         {% for item in Items %}
-                            {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
-                            {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
+                            {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
+                            {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsDouble %}
                             {% if itemStartDateTime <= currentDateTime %}
                                 {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
                                     {% comment %} -------------------------------------------------------------------------

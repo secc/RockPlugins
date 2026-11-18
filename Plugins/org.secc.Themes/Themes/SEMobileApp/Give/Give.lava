@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {
 	"header": {
 		"title": "Give"
@@ -31,7 +32,7 @@
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":"{{colors:brand}}"
+	        "brandableElements":""
 	    }
 	},
 	"items": [
@@ -42,8 +43,8 @@
         {% for i in (0..3) %}
         {{ comma }}
         {
-			"title": "{{item.Title | Replace:'"','\"'}}",
-			"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+			"title": "{{item.Title | Replace:'"',bsq }}",
+			"subtitle": "{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
             "images":[
 				{ "width":772, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/give?bgcolor=121314&crop=(0,{{ interY1 }},1544,{{ interY2 }})"  }
 			],

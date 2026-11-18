@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Net.Http;
-using Newtonsoft.Json;
 using org.secc.Trak1.Helpers;
 using Rock;
 using Rock.Attribute;
@@ -66,43 +64,54 @@ namespace org.secc.Trak1.Workflow.Action
                         return true;
                     }
                     var transactionId = backgroundCheck.RequestId;
+                    if ( transactionId.AsGuid() == Guid.Empty )
+                    {
+                        //Trak-1 never accepted the request (no transaction id was returned), so
+                        //polling would never complete. Set the report Status To Error instead.
+                        action.AddLogEntry( "The background check for this workflow has no Trak-1 transaction id", true );
+                        SetWorkflowAttributeValue( action, GetAttributeValue( action, "ReportStatus" ).AsGuid(), "Error" );
+                        backgroundCheck.Status = "Error";
+                        return true;
+                    }
 
                     var statusURL = provider.GetAttributeValue( "StatusURL" );
+                    var reportURL = provider.GetAttributeValue( "ReportURL" );
                     var subscriberCode = Encryption.DecryptString( provider.GetAttributeValue( "SubscriberCode" ) );
                     var companyCode = Encryption.DecryptString( provider.GetAttributeValue( "CompanyCode" ) );
-
-                    Trak1ReportStatus status = null;
                     var resource = string.Format( "/{0}/{1}/{2}", subscriberCode, companyCode, transactionId );
 
-                    using ( var client = new HttpClient( new HttpClientHandler() ) )
+                    Trak1StatusUpdate update;
+                    try
                     {
-                        client.BaseAddress = new Uri( statusURL + resource );
-                        var clientResponse = client.GetAsync( "" ).Result.Content.ReadAsStringAsync().Result;
-                        status = JsonConvert.DeserializeObject<Trak1ReportStatus>( clientResponse );
+                        // Fetches the status, and the report only once it is complete. Nothing is
+                        // written back unless every request succeeds.
+                        update = Trak1StatusUpdate.Fetch( Trak1Client.Default, statusURL + resource, reportURL + resource );
+                    }
+                    catch ( Exception ex )
+                    {
+                        ExceptionLogService.LogException( ex, null );
+                        errorMessages.Add( ex is Trak1Exception ? ex.Message : ex.GetBaseException().Message );
+                        return false;
                     }
 
-                    SetWorkflowAttributeValue( action, GetAttributeValue( action, "ReportStatus" ).AsGuid(), status.ReportStatus );
-                    backgroundCheck.Status = status.ReportStatus;
+                    SetWorkflowAttributeValue( action, GetAttributeValue( action, "ReportStatus" ).AsGuid(), update.ReportStatus );
+                    backgroundCheck.Status = update.ReportStatus.Left( 25 );
 
-                    SetWorkflowAttributeValue( action, GetAttributeValue( action, "HitColor" ).AsGuid(), status.HitColor );
-                    backgroundCheck.RecordFound = status.HitColor == "Green";
+                    SetWorkflowAttributeValue( action, GetAttributeValue( action, "HitColor" ).AsGuid(), update.HitColor );
 
-                    var reportURL = provider.GetAttributeValue( "ReportURL" );
-                    Trak1Report response = null;
-                    using ( var client = new HttpClient( new HttpClientHandler() ) )
+                    if ( update.IsComplete )
                     {
-                        client.BaseAddress = new Uri( reportURL + resource );
-                        var clientResponse = client.GetAsync( "" ).Result.Content.ReadAsStringAsync().Result;
-                        response = JsonConvert.DeserializeObject<Trak1Report>( clientResponse );
-                    }
+                        backgroundCheck.RecordFound = update.RecordFound;
 
-                    SetWorkflowAttributeValue( action, GetAttributeValue( action, "ReportUrl" ).AsGuid(), response.ReportUrl );
-                    backgroundCheck.ResponseDate = Rock.RockDateTime.Now;
-                    backgroundCheck.ResponseData = response.ReportUrl;
+                        SetWorkflowAttributeValue( action, GetAttributeValue( action, "ReportUrl" ).AsGuid(), update.ReportUrl );
+                        if ( !backgroundCheck.ResponseDate.HasValue || backgroundCheck.ResponseData != update.ReportUrl )
+                        {
+                            backgroundCheck.ResponseDate = RockDateTime.Now;
+                        }
+                        backgroundCheck.ResponseData = update.ReportUrl;
+                    }
 
                     return true;
-
-
                 }
                 else
                 {

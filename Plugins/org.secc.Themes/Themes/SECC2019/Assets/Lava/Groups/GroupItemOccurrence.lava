@@ -53,7 +53,8 @@
                      </ul>
                 {% else %}
                      {% if scheduleText == empty %}
-                        {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                        {% assign contactName = EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim %}
+                        {% if contactName != '' %}
                             <h6>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</h6>
                          {% else %}
                             <h6>Date and/or time has not been set yet. Please contact for more details.</h6>
@@ -103,14 +104,14 @@
 
 </div>
 
-{% if (EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '') or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
+{% if contactName != '' or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
     <div class="col-xs-12 g-padding-y-20--xs g-padding-x-60--xs">
 
         <hr class="" style="border-color: rgba(124, 124, 124, 0.68); margin: 0 auto;" />
 
         <h6 class="g-padding-t-40--xs">
             <span class="g-font-weight--800 uppercase">Contact</span><br />
-            {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+            {% if contactName != '' %}
                 {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
             {% endif %}
             {% if EventItemOccurrence.ContactEmail != '' %}
@@ -170,7 +171,7 @@
 
     {% else %}
         {% for linkage in EventItemOccurrence.Linkages %}
-            {% if linkage.RegistrationInstanceId > 0 ) %}
+            {% if linkage.RegistrationInstanceId > 0 %}
 
                 {% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
                 {% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}

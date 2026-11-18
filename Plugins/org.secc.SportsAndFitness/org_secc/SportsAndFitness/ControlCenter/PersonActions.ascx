@@ -72,7 +72,7 @@
                                 <asp:Repeater ID="rptPIN" runat="server" OnItemCommand="rptPIN_ItemCommand"  OnItemDataBound="rptPIN_ItemDataBound">
                                     <ItemTemplate>
                                         <tr>
-                                            <td><%# Eval("PIN") %></td>
+                                            <td><%#: Eval("PIN") %></td>
                                             <td>
                                                 <asp:LinkButton ID="lbDeletePIN" runat="server" CommandName="DeletePIN" CssClass="btn btn-delete"><i class="fa fa-remove"</asp:LinkButton>
                                             </td>

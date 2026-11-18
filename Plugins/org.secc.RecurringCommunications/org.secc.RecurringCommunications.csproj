@@ -100,8 +100,8 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R /C "$(ProjectDir)bin\Debug\org.secc.RecurringCommunications.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R /C "$(ProjectDir)bin\Debug\org.secc.RecurringCommunications.pdb" "$(SolutionDir)RockWeb\bin"
+    <PostBuildEvent>xcopy /Y /R /C "$(TargetDir)org.secc.RecurringCommunications.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R /C "$(TargetDir)org.secc.RecurringCommunications.pdb" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R /E /I /C "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
 </PostBuildEvent>
   </PropertyGroup>

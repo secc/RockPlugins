@@ -169,6 +169,14 @@
 				<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
 			</div>
 		</div>
+
+		<div id="moreOptions">
+			<h3 class="g-font-family--secondary g-font-size-20--xs g-font-size-28--md" style="padding-top: 30px !important; margin-bottom: 5px;">Need more options?</h3>
+			<a class="g-font-weight--700 g-line-height--sm" style="text-decoration: underline; color:#000000; font-size: 1rem;" href="https://my.southeastchristian.org/groups/homegroups">Home Groups</a><br>
+			<div style="height: 10px"></div>
+			<a class="g-font-weight--700 g-line-height--sm" style="text-decoration: underline; color:#000000; font-size: 1rem;" href="https://my.southeastchristian.org/onlinegroups">Online Groups</a>
+		</div>
+
 		{%comment%}
 		Not relevant for on-campus groups
 		<div class="g-padding-y-10--xs" tabindex="0" >
@@ -177,7 +185,6 @@
 			</div>
 		{%endcomment%}
 	</div>
-
 </div>
 
 

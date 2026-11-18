@@ -13,8 +13,6 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.RecurringCommunications.Data
 {
     public class RecurringCommunicationsService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
@@ -22,7 +20,7 @@ namespace org.secc.RecurringCommunications.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="RecurringCommunicationsService{T}"/> class.
         /// </summary>
-        public RecurringCommunicationsService( RockContext context )
+        public RecurringCommunicationsService( Rock.Data.DbContext context )
             : base( context )
         {
         }

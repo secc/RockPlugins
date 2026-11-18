@@ -194,11 +194,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\org.secc.DevLib\org.secc.DevLib.csproj">
+      <Project>{a6e9c252-af5b-4fa6-bce1-91a5540cbfb4}</Project>
+      <Name>org.secc.DevLib</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.PDF.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\NReco.PdfGenerator.*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\iText*.*" "$(SolutionDir)RockWeb\bin"
+    <PostBuildEvent>xcopy /Y /R "$(TargetDir)org.secc.PDF.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)NReco.PdfGenerator.*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)iText*.*" "$(SolutionDir)RockWeb\bin"
 xcopy /Y "$(SolutionDir)packages\BouncyCastle.Cryptography.2.6.2\lib\net461\BouncyCastle.Cryptography.dll" "$(SolutionDir)RockWeb\bin\"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

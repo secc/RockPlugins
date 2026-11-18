@@ -1,0 +1,72 @@
+/*----------------------------------
+  Back To Top
+------------------------------------*/
+
+.s-back-to-top {
+  @include position(fixed, $bottom: -5.125rem, $right: 5.125rem);
+  display: block;
+  @include size(4rem, 4rem);
+  z-index: 9;
+  border: solid 3px $color-dark;
+  background-color: $color-white;
+  text-align: center;
+  @include cubic-transition($delay: 0, $duration: 300ms, $property: (all));
+  // box-shadow: 0px 0px 20px 0px rgba($color-white, 0.3);
+  // -webkit-box-shadow: 0px 0px 20px 0px rgba($color-white, 0.3);
+  // -moz-box-shadow: 0px 0px 20px 0px rgba($color-white, 0.3);
+
+  @include before {
+    width: 8px;
+    height: 8px;
+    content: "";
+    border: solid $color-dark;
+    border-width: 0 2px 2px 0;
+    display: inline-block;
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-135deg);
+    -webkit-transform: translate(-50%, -50%) rotate(-135deg);
+  }
+
+  @include hover {
+    background: $color-dark;
+
+    @include before {
+      border: solid $color-white;
+      border-width: 0 2px 2px 0;
+    }
+  }
+
+  @include hover-focus {
+    text-decoration: none;
+  }
+
+  @include tablets {
+      @include position(fixed, $bottom: -5.125rem, $right: 3.125rem);
+  }
+  @include phones {
+      @include position(fixed, $bottom: -5.125rem, $right: 3.125rem);
+  }
+}
+
+/* The button becomes visible */
+.s-back-to-top.-is-visible {
+  bottom: 5.125rem;
+  opacity: .8;
+
+  @include hover {
+    opacity: 1;
+  }
+  @include tablets {
+      bottom: 3.125rem;
+  }
+  @include phones {
+      bottom: 3.125rem;
+  }
+}
+
+/* If the user keeps scrolling down, the button is out of focus and becomes less visible */
+.s-back-to-top.-zoom-out {
+  opacity: .6;
+}

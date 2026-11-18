@@ -1,0 +1,116 @@
+@import '_lib/init';
+#wrapper {
+    padding-left: 0;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+    position: relative;
+}
+
+#sidebar-wrapper {
+    z-index: 1000;
+    position: absolute;
+    left: 250px;
+    width: 0;
+    height: 100%;
+    margin-left: -250px;
+    overflow-y: auto;
+    background: #ffffff;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+
+#page-content-wrapper {
+    position: relative;
+    background-color: #FFF;
+    padding: 20px;
+    min-height: 400px;
+}
+
+/* Sidebar Styles */
+.sidebar-nav {
+    position: absolute;
+    top: 0;
+    width: 250px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    padding-top: 20px;
+
+    li {
+        border-radius: 5px;
+        line-height: 40px;
+        margin: 20px 20px 20px 30px;
+        padding: 20px 20px 20px 0;
+        text-indent: 20px;
+        -webkit-transition: border .1s ease-out;
+        -moz-transition: border .1s ease-out;
+        -o-transition: border .1s ease-out;
+        transition: border .1s ease-out;
+        &.active {            
+            background-color: $Linen;
+        }
+        &:hover {
+            background-color: $LinenLighter;
+        }
+        i {
+            vertical-align: middle;
+            padding-right: 15px;
+            .fas {
+                font-size: 1.25em!important;
+            }
+        }
+        a {
+            display: block;
+            text-decoration: none;
+            color: #000;
+            &:hover {
+                text-decoration: none;
+                //color: rgba(0,0,0,0.5);
+                //background: rgba(255,255,255,0.2);
+            }
+            &:active,
+            &:focus{
+                text-decoration: none;
+            }
+        }
+    }
+}
+
+.sidebar-nav > .sidebar-brand {
+    height: 65px;
+    font-size: 18px;
+    line-height: 60px;
+    a {
+        color: #999999;
+        &:hover {
+            color: #fff;
+            background: none;
+        }
+    }
+}
+
+.se-panel {
+    border: 1px solid rgba(0, 0, 0, 0.20);
+    border-radius: 4px;
+}
+
+@media(min-width:768px) {
+    #wrapper {
+        padding-left: 250px;
+    }
+
+    #sidebar-wrapper {
+        width: 300px;
+    }
+
+    #page-content-wrapper {
+        min-height: 600px;
+        padding: 4rem;
+        position: relative;
+    }
+}

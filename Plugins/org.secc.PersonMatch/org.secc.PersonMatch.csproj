@@ -69,8 +69,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.PersonMatch.dll" "$(SolutionDir)RockWeb\bin"
+  <!-- The post-build event copies the plugin into RockWeb. Builds that set CopyToRockWeb to false (test builds) skip it. -->
+  <PropertyGroup Condition="'$(CopyToRockWeb)' != 'false'">
+    <PostBuildEvent>xcopy /Y /R "$(TargetDir)org.secc.PersonMatch.dll" "$(SolutionDir)RockWeb\bin"
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

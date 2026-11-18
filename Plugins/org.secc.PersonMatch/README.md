@@ -44,9 +44,10 @@ Matching algorithm:
 | Step | Behavior |
 |------|----------|
 | Required inputs | `firstName` + `lastName` + at least one of (`birthDate`, `email`, `phone`, `street1`). Otherwise returns an empty list — unless `createNameless` and an email/phone are present, in which case it returns a single nameless person (found or created). |
+| Input cleanup | `firstName` is trimmed before any comparison, so the fast path and the name filter see the same value. |
 | Fast path | If `birthDate` or `email` is present, tries an exact query on first/nick name + last name (+ DOB + email). Returns immediately on a single exact match. |
 | Lenient pass | Queries everyone with the same `LastName` (and matching/absent `BirthDate`), then keeps only those where the phone or email appears anywhere in the person's family, **or** the home address `Street1` matches. Address matching only runs when **both** `street1` and `postalCode` are supplied (the supplied address is geocoded once via `LocationService.Verify` if a literal `Street1` compare fails). |
-| Nickname narrowing | Final list is filtered by first name, treating entries in the "Diminutive Names" defined type as equivalent (e.g. "Bob" ≈ "Robert"), comparing against the person's `FirstName`/`NickName`. |
+| Nickname narrowing | Final list is filtered by first name (`FirstNameMatches`). A candidate is kept when the input equals its `FirstName` or `NickName`, or when an active "Diminutive Names" group contains both the input and either name (e.g. "Bob" ≈ "Robert"). Comparisons are trimmed and case-insensitive. A candidate with no first or nick name is kept. A diminutive value with no "Goes By" value counts as a one-name group, and a missing defined type or attribute means only exact names match. |
 
 `createNameless` routes to the private `GetOrCreateNamelessPerson`, which looks up an existing
 nameless-record-type person by email/phone and **creates and saves a new one** (mobile phone with
@@ -74,14 +75,6 @@ Ships one Rock plugin migration that installs the matching reference data:
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** With `createNameless = true`, `GetByMatch` will **insert and `SaveChanges()`
-  a new person** as a side effect of a "lookup" call. Callers driven by public/untrusted input
-  (forms, SMS) can therefore create person records — review which workflows pass that flag.
-- **Improvement:** The nickname-narrowing loop dereferences `av.Value` and
-  `matchingPerson.FirstName`/`NickName` without null guards (`av` from
-  `attributeValues.Where(...).FirstOrDefault()` can be null; FirstName/NickName can be null). A
-  defined value missing its "Goes By" value, or a person with a null name, risks a
-  `NullReferenceException` — worth confirming.
 - **Improvement:** The method opens a second `RockContext` internally for its `LocationService`
   and `AttributeValueService`, while the actual person queries still run on the caller's
   `personService` context — so two contexts are live at once for a single call. The address-match
@@ -97,3 +90,5 @@ Ships one Rock plugin migration that installs the matching reference data:
 - The primary caller is the *Person Attribute From Fields* action in
   [org.secc.Workflow](../org.secc.Workflow/README.md) — changes to the signature or matching
   behavior ripple there.
+
+Last updated: 2026-10-14

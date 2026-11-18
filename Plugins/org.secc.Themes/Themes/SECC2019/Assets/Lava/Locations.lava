@@ -31,10 +31,10 @@
 
 						<div class="campus {{ slug | Downcase }}-info {% if campus.ShortCode == '920' %} active{% endif %}">
 							<div class="campus-map">
-								<a href="https://www.google.com/maps/dir/Current+Location/{{campus.Location.Street1 | | Replace:' ','+' }}+{{campus.Location.City}}+{{campus.Location.State}}+{{campus.Location.PostalCode}}">
+								<a href="https://www.google.com/maps/dir/Current+Location/{{campus.Location.Street1 | Replace:' ','+' }}+{{campus.Location.City}}+{{campus.Location.State}}+{{campus.Location.PostalCode}}">
 									<img src="/Themes/SECC2014/Assets/img/campuses/{{ campus.ShortCode }}/small-map.png" class="img-responsive" />
 								</a>
-								<a href="https://www.google.com/maps/dir/Current+Location/{{campus.Location.Street1 | | Replace:' ','+' }}+{{campus.Location.City}}+{{campus.Location.State}}+{{campus.Location.PostalCode}}">Get Directions to {{ campus.Name }} Campus</a>
+								<a href="https://www.google.com/maps/dir/Current+Location/{{campus.Location.Street1 | Replace:' ','+' }}+{{campus.Location.City}}+{{campus.Location.State}}+{{campus.Location.PostalCode}}">Get Directions to {{ campus.Name }} Campus</a>
 							</div>
 							<div class="campus-details">
 								<h3>{{ campus.Name }} Campus</h3>
@@ -52,12 +52,12 @@
 
 										{% for serviceDay in campusServices.adult %}
 											{{serviceDay.day}}:
-											{% assign timesCount = serviceDay.times | Size %}
+											{% assign timesCount = serviceDay.times | Size %}{% assign secondLast = timesCount | Minus:1 %}
 
 											{% for times in serviceDay.times %}
-												{{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
-												{% if (forloop.rindex0 == 0 %}<br />{% break %}
-												{% elseif (forloop.rindex0 == 1 and timesCount > 2) %} &amp;{% else %},{% endif %}
+												{{times.time}}{% if times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
+												{% if forloop.last %}<br />{% break %}
+												{% elseif forloop.index == secondLast and timesCount > 2 %} &amp;{% else %},{% endif %}
 											{% endfor %}
 
 										{% endfor %}

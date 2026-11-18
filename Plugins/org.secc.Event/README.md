@@ -2,7 +2,7 @@
 
 > Southeast's custom event/registration blocks — calendar Lava, a heavily-customized registration entry/detail pair, QR event passes, SignNow signing, camp-placement import, and the Community Gives Back program.
 
-Last updated: 2026-08-28
+Last updated: 2026-11-05
 
 ## Overview
 
@@ -45,7 +45,7 @@ Category in Rock: **SECC > Event** (Community Gives Back blocks: **SECC > Commun
 | Registration Entry (`RegistrationEntry`) | SECC fork of Rock's stock registration-entry block (register for an instance). | Connection Status, Record Status, plus the stock registration-entry settings |
 | Registration Detail (`RegistrationDetail`) | SECC fork of Rock's registration-detail block (view/manage a registration). | (stock registration-detail settings) |
 | Event Pass (`EventPass`) | Displays a QR "Event Pass" for registrants of an event. | Include Registrants on Waitlist, Include Registrar's Registrations, Pass Not Found Header/Message |
-| Generate Event Pass (`RequestEventPass`) | Public form that launches a workflow to request an Event Pass. Shows the carrier-required SMS disclosures (via `org.secc.Communication.SmsDisclosure.Html()` — program name, short code 733733, frequency, rates, STOP/HELP, linked se.church Privacy Policy and Mobile Terms) directly beneath the Mobile Phone field, per the Twilio audit of short code 733733. Requires `org.secc.Communication.dll` to be deployed. | Block Title, Event Pass Workflow Type, Pass Person Attribute, Contact Fields Editable |
+| Generate Event Pass (`RequestEventPass`) | Public form that launches a workflow to request an Event Pass. Shows an unchecked SMS consent checkbox (`SmsDisclosure.OneTimeConsentText()` — an event pass is a single text, so the recurring-program wording is not used) above the carrier-required disclosures (`SmsDisclosure.Html()` — program name, short code 733733, frequency, rates, STOP/HELP, linked se.church Privacy Policy and Mobile Terms) directly beneath the Mobile Phone field, per the Twilio audit of short code 733733. The checkbox is enforced only on the Text Message delivery path. Requires `org.secc.Communication.dll` to be deployed. | Block Title, Event Pass Workflow Type, Pass Person Attribute, Contact Fields Editable |
 | Family Registration List Lava (`FamilyRegistrationLava`) | Lava sidebar listing a family's children's registrations. | Lava Template, Max Results, Date Range, Limit To Owed |
 | SignNow (`SignNow`) | Embedded sub-control (a plain `System.Web.UI.UserControl`, **not** a registerable Rock block — no `[DisplayName]`/`[Category]`) that hosts the SignNow digital-signature flow inside registration; parses the returned `document_id` (falls back to the referer on iOS). | (none — driven by the registration's digital-signature component) |
 | Camp Placement Import (`CampPlacementImport`) | Imports a CSV to place camp registrants into placement groups; queues a background import run. Supports both camper imports and leader imports. | Default Group Member Status, Batch Size |
@@ -55,6 +55,18 @@ Category in Rock: **SECC > Event** (Community Gives Back blocks: **SECC > Commun
 
 `RegistrationEntry` (6,091 lines) and `RegistrationDetail` (2,799 lines) are large SECC-maintained
 copies of the corresponding stock Rock blocks; treat them as forks kept in sync with upstream.
+
+### Community Gives Back registration behavior
+
+- The School Selection step requires a school and sibling-group choice. If either is missing, the
+  visitor stays on that step with a warning instead of seeing an error. Schools with no sponsorships
+  left are not listed.
+- The school list and seat counts are loaded once when the visitor opens the page and kept for that
+  visit. Finish checks the school and sibling answer again against that list, but it does not re-count
+  seats, so a school can still be oversubscribed if several visitors register at the same time.
+- If the registration workflow reports an error, it is written to the Rock exception log. The visitor
+  still sees the Complete step when the workflow was saved, because a saved workflow already counts as
+  a registration. If nothing was saved, the visitor stays on the Confirmation step with an error.
 
 ### Camp Placement Import behavior
 
@@ -84,14 +96,6 @@ copies of the corresponding stock Rock blocks; treat them as forks kept in sync 
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** `EventPass` builds a public QR URL of the form
-  `…/GetQRCode.ashx?data={alternateId}` using each registrant's **person search-key** (alternate id),
-  read-only. The pass surfaces registrant identity for an event instance — confirm the page hosting
-  this block is access-controlled and that "Include Registrants on Waitlist" is intentional where set.
-- **Improvement:** `SignNow` recovers a missing `document_id` by regex-parsing
-  `Request.UrlReferrer` (an iOS workaround, per the inline comment). Referer is client-supplied and
-  can be absent/spoofed; the block already returns early when it can't recover the id, but this path
-  is worth keeping an eye on as SignNow's behavior changes.
 - **Improvement:** `RegistrationEntry` / `RegistrationDetail` are large forks of stock Rock blocks.
   When upgrading Rock, diff these against the upstream versions so SECC customizations aren't lost
   and upstream fixes are picked up.

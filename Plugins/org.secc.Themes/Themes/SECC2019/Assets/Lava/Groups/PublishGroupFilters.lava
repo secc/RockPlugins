@@ -285,6 +285,7 @@ $(document).ready(function() {
 		collapsedHeight: 0,
 		beforeToggle: function(tr, el, ex) {
 			$(el).show();
+			$('.isotope_wrap').isotope(isoOptions); // re-initialize
 		},
 		afterToggle: function(trigger, element, expanded) {
 			$('.isotope_wrap').isotope(isoOptions); // re-initialize
@@ -668,6 +669,7 @@ function InitLoadedRequest(visstring, elem, msg) {
                 collapsedHeight: 0,
                 beforeToggle: function(tr, el, ex) {
                     $(el).show();
+					$('.isotope_wrap').isotope(isoOptions); // re-initialize
                 },
                 afterToggle: function(trigger, element, expanded) {
 					$('.isotope_wrap').isotope(isoOptions); // re-initialize

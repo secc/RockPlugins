@@ -53,13 +53,6 @@ Category in Rock: **SECC > Administration**.
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** `System Information`'s diagnostics dump and restart/clear-cache actions are
-  high-privilege operations (it can `UnloadAppDomain`, delete `App_Data/Cache`, and emit server
-  variables/DB details). Confirm the page hosting this block is locked to admins. The dump explicitly
-  skips `HTTP_COOKIE` but still includes all other server variables.
-- **Security (low):** `Personal Devices` reaches the Front Porch API with a token from the
-  `FrontporchAPIToken` Global Attribute. Confirm that attribute is stored encrypted and not broadly
-  readable, and that MAC addresses (PII-adjacent) are only exposed to authorized staff.
 - **Improvement:** Several blocks open multiple `new RockContext()` instances within one operation and
   call `SaveChanges()` mid-flow (e.g. `GroupTypeChanger` loads `group` on one context but resolves the
   new group type on a throwaway context in `OnLoad`; `NeighborhoodGroupMerge` saves between steps).

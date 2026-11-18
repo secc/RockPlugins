@@ -1,0 +1,35 @@
+                {%- assign role = partition -%}
+				{%- assign spotsLeft = role.Limit | Minus: role.Filled -%}
+				<div class="col-sm-6 col-md-4">
+					{% if spotsLeft > 0 and role.Limit > 0 %}
+						{% if partitionSize > 0 %}
+							<a href="#" onclick="doSlide('#{{divId}}_{{role.Value}}'); return false;">
+						{% else %}
+							<a href="{{partition.Url}}&GroupId={{partition.GroupId}}">
+						{% endif %}
+					{% endif %}
+					<div class="serve-card" style="height: 230px;">
+                        <div class="box text-center">
+							<div class="clearfix">
+								<span class="label label-default pull-right" style="margin: 10px">{% if role.Limit == null %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
+							</div>
+							{% assign icon = role.Entity | Attribute:"Icon" %}
+							{% if icon != '' and icon != empty %}
+								<i class="{{icon}} fa-5x"></i>
+							{% endif %}
+                            <h3>{{ role.Entity.Name }}</h3>
+							{%- comment -%}
+								ROCK-FOODPACK: specialty roles (greeter, clean-up, etc.) serve outside the
+								pack session window shown on the Schedule step. Show the role's ScheduleNote
+								before they commit to the role, not just after.
+							{%- endcomment -%}
+							{% assign roleNote = role.Entity | Attribute:'ScheduleNote' %}
+							{% if roleNote != '' and roleNote != empty %}
+								<p class="text-muted" style="padding: 0 12px; font-size: 12px; line-height: 1.35; margin: 0;">{{ roleNote }}</p>
+							{% endif %}
+                        </div>
+					</div>
+					{% if spotsLeft > 0 and role.Limit > 0 %}
+						</a>
+					{% endif %}
+                </div>

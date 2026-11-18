@@ -2,26 +2,30 @@
 
 > A grab-bag of SECC security/identity Rock **blocks** — Wi-Fi captive portals, SAML/SSO redirects to third-party services (WellRight, Church Online), PIN management, and self-service account blocks — plus a small reusable SAML 2.0 assertion library.
 
-> **Doc tier: deep.** This plugin brokers credentials and identity to external systems (it builds and signs SAML assertions, derives SSO tokens, and stands up public Wi-Fi onboarding pages), so it's documented at the deeper technical tier — the SSO/redirect flow, per-block config attributes, and the security-sensitive edges. Most SECC plugins use the lighter standard tier.
+> **Doc tier: deep.** This plugin brokers credentials and identity to external systems (it builds and signs SAML assertions, derives SSO tokens, and stands up public Wi-Fi onboarding pages), so it's documented at the deeper technical tier — the SSO/redirect flow and per-block config attributes. Most SECC plugins use the lighter standard tier.
 
 ## Overview
 
-This is Southeast's catch-all **security and identity** plugin. Most of it is RockWeb-compiled blocks (`.ascx` + code-behind) under `org_secc/Security/`, grouped loosely into three jobs: (1) **Wi-Fi captive portals** that register a guest/staff device and bounce the browser back to the FrontPorch controller; (2) **outbound SSO redirects** that log a Rock user into an external service by POSTing a signed SAML assertion (WellRight) or a signed SSO token (Church Online / Tymio-style MultiPass); and (3) **self-service account blocks** (view/edit profile, login-status menu, PIN management). The only csproj-compiled code is a tiny **SAML 2.0** helper library (`SAML2/`) consumed by the WellRight block.
+This is Southeast's catch-all **security and identity** plugin. Most of it is RockWeb-compiled blocks (`.ascx` + code-behind) under `org_secc/Security/`, grouped loosely into three jobs: (1) **Wi-Fi captive portals** that register a guest/staff device and bounce the browser back to the FrontPorch controller; (2) **outbound SSO redirects** that log a Rock user into an external service by POSTing a signed SAML assertion (WellRight) or a signed SSO token (Church Online / Tymio-style MultiPass); and (3) **self-service account blocks** (view/edit profile, login-status menu, PIN management). The csproj compiles a tiny **SAML 2.0** helper library (`SAML2/`) consumed by the WellRight block, and the PIN Manager's PIN rules (`Utility/PinManagerRules.cs`).
 
 ## Project Info
 
-- **Project file:** `org.secc.Security.csproj` — compiles **only** the `SAML2/` library (`CertificateUtility`, `SAML20Assertion`, `SAMLSchema`). The blocks under `org_secc/` are RockWeb-compiled (`.ascx`/`.ascx.cs`), not in the csproj.
+- **Project file:** `org.secc.Security.csproj` — compiles the `SAML2/` library (`CertificateUtility`, `SAML20Assertion`, `SAMLSchema`) and `Utility/PinManagerRules.cs` (the PIN Manager's PIN rules). The blocks under `org_secc/` are RockWeb-compiled (`.ascx`/`.ascx.cs`), not in the csproj.
 - **Root namespace:** `org.secc.Security` (library) / `RockWeb.Plugins.org_secc.Security` (blocks)
 - **Target framework:** .NET Framework 4.7.2
-- **Deploys to:** `RockWeb/bin/` (the `org.secc.Security.dll` SAML library), `RockWeb/Plugins/org_secc/` (block markup + code-behind), and `RockWeb/Themes/` (the `my-secc` theme) — all via the PostBuildEvent xcopy.
-- **Cross-plugin dependency:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by the Captive Portal block).
+- **Deploys to:** `RockWeb/bin/` (`org.secc.Security.dll`: the SAML library and the PIN rules), `RockWeb/Plugins/org_secc/` (block markup + code-behind), and `RockWeb/Themes/` (the `my-secc` theme) — all via the PostBuildEvent xcopy. Building with `-p:CopyToRockWeb=false` skips the copy; `org.secc.Security.Tests` passes that property to the plugin.
+- **Cross-plugin dependencies:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by the Captive Portal block); [org.secc.DevLib](../org.secc.DevLib/README.md) (`ReadContentBytes`, used by the WellRight Redirect and SignNow Test blocks to read binary files through their storage provider).
 
 ## Project Layout
 
 ```
-/                       org.secc.Security.csproj (compiles SAML2/ only)
+/                       org.secc.Security.csproj (compiles SAML2/ and Utility/)
 /SAML2/                 SAML 2.0 assertion library: SAML20Assertion (build+sign Response),
                         CertificateUtility (X509 XML signing), SAMLSchema (xsd-generated OASIS types)
+/Utility/               PinManagerRules: the PIN Manager's PIN display and its login and PIN checks
+                        (DisplayPin, IsPersonPin, CheckPin)
+/org.secc.Security.Tests/ xUnit tests for PinManagerRules (Tools/add-plugins-to-solution.ps1 adds it to
+                        Rock.sln with the plugin projects)
 /org_secc/Security/     RockWeb blocks (.ascx + .ascx.cs) — the bulk of the plugin (see Components)
 /Themes/my-secc/        A full Rock theme (Layouts, Styles/less, Lava asset partials, logo)
 ```
@@ -68,7 +72,7 @@ Category in Rock: **SECC > Security** (the Captive Portal block uses the plain *
 | PIN Manager | Person-context block to add/edit/remove PIN logins (`PINAuthentication`), tagged by a "purpose" defined type. |
 | ChurchOnline SSO Redirect | Logs the user into Church Online via an encrypted+signed MultiPass token; also posts a check-in `Attendance` record. |
 | Wellright Redirect | Logs the user into WellRight by POSTing a signed SAML 2.0 assertion. |
-| SignNow Test | Developer/test harness that pushes a hardcoded Binary File to SignNow and resolves an invite link. Not a production block (see Observations). |
+| SignNow Test | Developer/test harness that pushes a hardcoded Binary File to SignNow and resolves an invite link. Not a production block. |
 
 #### Captive Portal  *(Security)*
 Keys in **bold** are the block attribute keys.
@@ -104,7 +108,7 @@ Reads the `FrontporchAPIToken` / `FrontporchHost` global attributes for the API 
 | **RequestUrl** | text | `Recipient`/request URL put in the SAML assertion. |
 | **PostUrl** | text | Where the signed `SAMLResponse` form auto-POSTs. |
 | **CertificateFile** | file (Binary File) | PFX certificate used to sign the assertion. |
-| **CertificatePassword** | text | PFX password (stored as a plain block setting — see Observations). |
+| **CertificatePassword** | text | PFX password. |
 | **DaysValid** | integer (default 30) | Assertion lifetime (converted to minutes). |
 | **ShowDebug** | bool (default false) | Show admins the formatted XML before forwarding. |
 
@@ -125,9 +129,11 @@ On load it posts an `Attendance` record (if group+campus+active schedule resolve
 | Setting | Type | Notes |
 |---------|------|-------|
 | **PurposeDefinedType** | defined type | Source of the PIN "purpose" checkbox list (stored on the `PINPurpose` UserLogin attribute). |
-| **MinimumPINLength** | integer (default 6) | Minimum PIN digit count enforced on save. |
+| **MinimumPINLength** | integer (default 6) | Minimum number of digits for a new or changed PIN; leading zeros count. |
 
-A `PersonBlock`; add/edit/delete are gated on `PINAuthentication` entity-type `ADMINISTRATE` authorization, and the code guards against editing a non-PIN `UserLogin`.
+A `PersonBlock`; add/edit/delete are gated on `PINAuthentication` entity-type `ADMINISTRATE` authorization. Edit, save and remove act only on PIN logins of the person on the page; any other login is left unchanged. The list shows each PIN's value to users with that authorization and a fixed mask (`••••`) to everyone else; each PIN's purposes are shown to everyone who can view the block.
+
+A new or changed PIN has its surrounding whitespace removed and must be digits 0-9 only, at least **MinimumPINLength** digits (leading zeros count and are kept), not all zeros, and not the user name of any existing login. Saving without changing the PIN only updates its purposes and keeps the stored value as it is.
 
 #### Account Detail / Account Edit  *(SECC > Security)*
 Both `RockBlock`s with a **Detail Page** (`LinkedPage`, Detail only), a **Show (Home) Address** toggle, a **Location Type** (`GroupLocationTypeField`, family), and (Edit) an **Address Required** toggle.
@@ -147,26 +153,21 @@ Both `RockBlock`s with a **Detail Page** (`LinkedPage`, Detail only), a **Show (
 
 - **Rock:** `RockBlock` / `PersonBlock`, `RockContext`, `PersonService` / `PersonalDeviceService` / `UserLoginService` / `AttendanceService`, `RockPage.LinkPersonAliasToDevice`, `Rock.Security.Authorization`, `DefinedValueCache` / `DefinedTypeCache`, `GlobalAttributesCache`, `Rock.SignNow` (`SignNow`, `SignNowSDK`), block-attribute framework, Lava merge-field resolution.
 - **Third-party:** `System.Security.Cryptography.Xml` (SAML signing), `UAParser` (device/OS parsing in captive portals), `Newtonsoft.Json` (MultiPass + SignNow), external services **WellRight**, **Church Online**, **SignNow**, and the SECC **FrontPorch** captive-portal cloud.
-- **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) — imported by the Captive Portal block.
+- **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) — imported by the Captive Portal block; [org.secc.DevLib](../org.secc.DevLib/README.md) — `ReadContentBytes` imported by `WellrightRedirect` and `SignNowTest`. Since these blocks are RockWeb-compiled, the deployed `org.secc.DevLib.dll` must include that method.
 
 ## Edge Cases & Constraints
 
 - **WellRight requires a birthdate.** `GetResponse()` calls `CurrentPerson.BirthDate.Value.ToString("o")` with no null check — a logged-in person without a DOB throws. Confirm the WellRight audience always has DOB, or guard it.
-- **Captive Portal `CreateRedirectUrl` appends `Request.QueryString` verbatim** onto the release link. The release link itself is validated as an absolute http/https URL, but the trailing query string is the raw inbound one.
 - **Admin users never actually SSO.** WellRight, Church Online and the Captive Portal all short-circuit for `ADMINISTRATE` users into a debug message rather than redirecting — testing SSO end-to-end requires a non-admin account (or, for WellRight, `?Continue=true`).
-- **Church Online MultiPass tokens are short-lived** (`Expires = now + 5 minutes`, UTC) and the init vector is the fixed string `"OpenSSL for Ruby"` — a MultiPass/Tymio convention, not a per-request IV.
-- **PIN Manager parses PINs as numbers.** A PIN is converted via `AsDouble()`; a PIN of `0` (or non-numeric) is rejected, and uniqueness is checked against existing usernames before save.
+- **Church Online MultiPass tokens are short-lived** (`Expires = now + 5 minutes`, UTC).
 
 ## Observations
 
-*Noticed while documenting — not a full audit; the SSO/redirect blocks and the test block stood out.*
+*Noticed while documenting — not a full audit.*
 
-- **Security (review):** `WellrightRedirect.CertificatePassword` is a plain `TextField` block setting (the PFX itself is a Binary File). Anyone who can administer the block can read the signing-cert password, and it isn't an `EncryptedTextField` like Staff Captive Portal's `SECCSecure`. Worth confirming block security is locked to trusted staff and considering an encrypted attribute.
-- **Security (review):** Church Online's SSO scheme uses a **fixed IV** (`"OpenSSL for Ruby"`) and HMAC-**SHA1**. Both are dictated by the Church Online/MultiPass spec, so they likely can't change unilaterally, but they're weak primitives worth noting if the integration is ever revisited. The `SSOKey` is a non-encrypted password `TextField`.
-- **Security (low):** `SignNowTest` is a "Test for sign now" block with a **hardcoded document Guid** (`5bb17a5b-…`) that creates a SignNow document/invite for `CurrentPerson` on every page load, writes a temp PDF to disk, and has no auth gating beyond page security. It looks like dev scaffolding; confirm it isn't deployed on a reachable production page.
-- **Security (low):** `CertificateUtility` exports the signing cert's private key to an XML string (`PrivateKey.ToXmlString(true)`) and re-imports it into a CSP on every sign. Functional, but the private key transits managed memory in the clear; fine for an internal signing path, noted for awareness.
+- **Key storage (ROCK-9041):** `WellrightRedirect` loads the PFX with `Exportable | MachineKeySet` (no `PersistKeySet`) and disposes the `X509Certificate2` after signing, and `CertificateUtility` disposes its `RSACryptoServiceProvider` (`PersistKeyInCsp = false`).
 - **Improvement:** Several blocks `new RockContext()` repeatedly within a single request (e.g. Captive Portal creates a fresh context in `DoesPersonalDeviceExist`, `CreateDevice`, `VerifyDeviceInfo`, `Prefill`). Minor, but consolidating to one context per request would be cleaner.
-- **Improvement:** The compiled assembly contains only the SAML2 library; everything else is RockWeb-compiled. A maintainer touching a block won't see it in the csproj — note that when adding files.
+- **Improvement:** The compiled assembly contains the SAML2 library and the PIN Manager's PIN rules; the blocks are RockWeb-compiled. A maintainer touching a block won't see it in the csproj — note that when adding files. `PINManager.ascx.cs` uses `PinManagerRules` from `org.secc.Security.dll`, so the code-behind and the DLL deploy together.
 
 ## Extending
 
@@ -203,7 +204,11 @@ There is no MEF/registration step — these are Rock blocks, placed on a page vi
 ## Making Changes
 
 - Block behavior lives in `org_secc/Security/<Block>.ascx.cs` (markup in the matching `.ascx`); these are RockWeb-compiled, not in the csproj.
-- SAML payload/signing changes go in `SAML2/SAML20Assertion.cs` / `CertificateUtility.cs` (the only csproj-compiled code, shipped as `org.secc.Security.dll`).
+- The PIN Manager's choice between a PIN's value and the mask in its list, and its checks of which login it may edit, save or remove and of a typed PIN, live in `Utility/PinManagerRules.cs` (compiled into `org.secc.Security.dll`) and are tested in `org.secc.Security.Tests`.
+- SAML payload/signing changes go in `SAML2/SAML20Assertion.cs` / `CertificateUtility.cs` (compiled into `org.secc.Security.dll`).
 - Captive-portal person matching delegates to the `GetByMatch` extension method in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (invoked on `PersonService`) — change matching there, not here.
 - The bundled `Themes/my-secc` theme (Layouts/Styles/Lava partials) is deployed by the same PostBuildEvent; theme edits live under `Themes/my-secc/`.
-- `SignNowTest` is test scaffolding — don't extend it for production; build a proper block instead.
+- `SignNowTest` is test scaffolding — don't extend it for production; build a proper block instead. It writes its temp PDF into a per-request directory and deletes it in a `finally`.
+- Building `org.secc.Security.Tests` with MSBuild from the command line builds the plugin with `CopyToRockWeb=false` and without its `PostBuildEvent`, so nothing is copied into RockWeb. In Visual Studio, a solution that also contains the plugin builds the plugin as its own project, with its copy into RockWeb, whenever Visual Studio finds the plugin out of date. The tests don't use a database.
+
+Last updated: 2026-10-28

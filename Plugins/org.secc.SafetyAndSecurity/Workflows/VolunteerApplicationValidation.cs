@@ -148,13 +148,10 @@ namespace org.secc.SafetyAndSecurity
 
                     if ( !GetAttributeValue( action, "IsMinorApplication", true ).AsBoolean() )
                     {
-                        // Verify the SSN using regex
-                        string ssn = Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) + "-" +
-                            Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN2" ) ) + "-" +
-                            Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN3" ) );
+                        // Verify the SSN. null means the boxes still match the stored SSN.
+                        string ssn = SsnHelper.ResolveSsn( rockContext, action.Activity.Workflow );
 
-                        if ( Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) != "***"
-                            && !Regex.Match( ssn, @"^(?!(123[ -]?45[ -]?6789)|((\d)\3\3[ -]?\3\3[ -]?\3\3\3\3))(\d{3}[- ]?\d{2}[- ]?\d{4})$" ).Success )
+                        if ( ssn != null && !SsnHelper.IsValidSsnFormat( ssn ) )
                         {
                             sbErrorMessages.AppendLine( "<li>Social Security Number is Required and must be in a valid format (XXX-XX-XXXX).</li>" );
                         }

@@ -1,0 +1,106 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Prayer' componententityid:'31635' operation:'View' summary:'Prayer Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+Prayer Page
+{% endinteractionwrite %}
+{%- assign prayerLink = 'Global' | Attribute:'PublicApplicationRoot' | Append:'howcanwehelp' -%}
+{%- assign prayerCell = '502-253-8144' -%}
+{%- assign prayerEmail = 'prayer@secc.org' -%}
+{
+    "header": {
+        "title": "Prayer"
+        },
+    "blocks": [
+        {
+            "type":"image",
+            "props": {
+                "aspectRatio": "1.33",
+                "averageColor": "#000",
+                "imageUrl": "https://my.southeastchristian.org/Content/SEApp/prayer-gradient.png",
+                "horizontalSpacing": "medium",
+                "topSpacing": "medium",
+                "bottomSpacing": "medium",
+                "imageRadius": "medium",
+                "action":{
+                    "handler": "browser",
+                    "style": "external",
+                    "contentUrl": "{{ prayerLink }}"
+                }
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Request Prayer",
+                "color": "#28A5BB",
+                "width": "content",
+                "action": {
+                    "handler": "browser",
+                    "style": "external",
+                    "contentUrl": "{{ prayerLink }}"
+                }
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "h1": true,
+                "expandable": false,
+                "topSpacing": "medium",
+                "bottomSpacing": "medium",
+                "averageColor": "#262626",
+                "content": "“Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.”\nPhilippians 4:6 NIV"
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "expandable": false,
+                "topSpacing": "medium",
+                "bottomSpacing": "medium",
+                "content": "As a church, we believe that prayer is important and that it changes lives. We would love to join with you to pray over any needs that you have.\n\nThere are three ways to share your prayer need:"
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Call us: {{ prayerCell }}",
+                "color": "#28A5BB",
+                "align": "start",
+                "topSpacing": "medium",
+                "action": {
+                    "handler":"phone",
+                    "type":"navigation",
+                    "number":"{{prayerCell}}"
+                }
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Email Us: {{prayerEmail}}",
+                "color": "#28A5BB",
+                "topSpacing": "medium",
+                "action": {
+                    "handler":"email",
+                    "type":"navigation",
+                    "address":"{{prayerEmail}}",
+                    "subject":"Prayer Request",
+                    "contentUrl": ""
+                }
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Submit Online: Request Prayer",
+                "color": "#28A5BB",
+                "topSpacing": "medium",
+                "bottomSpacing": "medium",
+                "action": {
+                    "handler": "browser",
+                    "style": "external",
+                    "contentUrl": "{{ prayerLink }}"
+                }
+            }
+        }
+    ]
+}

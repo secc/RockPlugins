@@ -186,7 +186,7 @@
     <Compile Include="Model\AlertMessage.cs" />
     <Compile Include="Model\AlertNotification.cs" />
     <Compile Include="Model\AlertMessageService.cs" />
-    <Compile Include="Model\AlertNotificationServiceService.cs" />
+    <Compile Include="Model\AlertNotificationService.cs" />
     <Compile Include="Workflows\DigitalIncidentReportMerge.cs" />
     <Compile Include="Workflows\MedicalIncidentReportMerge.cs" />
     <Compile Include="Workflows\MinorVolunteerApplicationMerge.cs" />
@@ -196,6 +196,7 @@
     <Compile Include="Workflows\MinistrySafeUpdate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Workflows\VolunteerApplicationMerge.cs" />
+    <Compile Include="Workflows\SsnHelper.cs" />
     <Compile Include="Workflows\VolunteerApplicationSSN.cs" />
     <Compile Include="Workflows\VolunteerApplicationValidation.cs" />
   </ItemGroup>
@@ -211,7 +212,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.SafetyAndSecurity.*" "$(SolutionDir)RockWeb\bin"
+    <PostBuildEvent>xcopy /Y /R "$(TargetDir)org.secc.SafetyAndSecurity.*" "$(SolutionDir)RockWeb\bin"
 xcopy /Y "$(SolutionDir)packages\BouncyCastle.Cryptography.2.6.2\lib\net461\BouncyCastle.Cryptography.dll" "$(SolutionDir)RockWeb\bin\"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

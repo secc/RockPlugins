@@ -288,3 +288,8 @@
   @include border-top-right-radius(3.125rem !important);
   @include border-bottom-right-radius(3.125rem !important);
 }
+
+/*----------------------------------
+  Radio Button Fix on iOS Mobile
+------------------------------------*/
+input[type="checkbox"],input[type="radio"] { font-size: inherit; }

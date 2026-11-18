@@ -22,7 +22,7 @@
         {% assign opportunityString = opportunity.Id | ToString %}
         {% assign opportunityId = "|" | Append: opportunityString | Append: "|" %}
 
-        {% if (approvedIds contains opportunityId) %}
+        {% if approvedIds contains opportunityId %}
         <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
             <div class="clearfix card">
 

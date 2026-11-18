@@ -3,7 +3,7 @@
 //
 // Licensed under the  Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// A copy of the License should be included with this file.
+// A copy of the License shoud be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
+// System.Data is imported piecemeal so ConnectionState stays unambiguous on Rock v19+,
+// where Rock.Model.ConnectionState would otherwise clash with System.Data.ConnectionState.
+using DataColumn = System.Data.DataColumn;
+using DataRow = System.Data.DataRow;
+using DataTable = System.Data.DataTable;
+using static System.Data.DataRowExtensions;
+using static System.Data.DataTableExtensions;
 using System.Data.Entity;
 using System.Diagnostics;
 using System.Dynamic;

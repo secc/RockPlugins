@@ -114,16 +114,13 @@ Ships a single Rock plugin migration under `/Migrations/`:
 - **One-time gifts only.** Every scheduled-payment method is a stub; `SupportedPaymentSchedules` returns only the one-time frequency, and the block hides the PayPal tab for any scheduled/future-dated gift.
 - **`PayPalURL` must end with `...webscr?cmd=`.** The redirect is built by string-concatenating `"_express-checkout&token=" + token`; a mis-set base URL silently produces a broken redirect.
 - **`Charge` returns `null` on no/failed payment.** A `SUCCESS` ack with no `PaymentInfo` rows falls through to `return null` with an empty error message; the block treats a null transaction as "Invalid Transaction".
-- **Errors are surfaced as raw PayPal `LongMessage` text** (and, on exceptions, `ex.Message`) directly into the giving UI's notification box.
 - **Refund is always FULL.** `Credit` ignores the requested `amount` for `RefundType` (sends `RefundType.FULL`) while still passing the amount as `Amount` — partial refunds aren't really supported.
 - **Classic API is legacy.** The underlying PayPal Merchant SDK / Classic Express Checkout API is deprecated by PayPal; this is a maintenance/long-term-viability constraint, not a code bug.
 
 ## Observations
 
-*Noticed while documenting — not a full audit; payment + credential paths flagged for confirmation.*
+*Noticed while documenting — not a full audit.*
 
-- **Security (review):** The return flow trusts the `token`/`PayerID` query-string parameters and re-fetches details from PayPal with them, but the captured amount comes from `GetExpressCheckoutDetails`/the selected accounts rather than being re-validated against the original `SetExpressCheckout` request server-side. Worth confirming that a tampered token can't be used to capture against a different/short amount, and that the confirm→capture step is tied to the current user/session.
-- **Security (review):** `Charge` swallows all exceptions into the `errorMessage` string and returns `null`, and `Credit` likewise returns raw PayPal/exception messages to the UI. Confirm no sensitive API detail leaks to end users, and that failed/partial captures can't leave an orphaned Rock-side record.
 - **Improvement:** `GetPaymentInfo` / `GetSelectedAccounts` each make a **separate** `GetExpressCheckoutDetails` round-trip, and the block calls them repeatedly across the page lifecycle — the same PayPal call is made multiple times per confirmation render. Caching the response once per token would cut API calls (the block already memoizes accounts via `TokenSelectedAccounts`, but not payment info across both methods).
 - **Improvement:** `populateRequestObject` mixes `double` arithmetic for `OrderTotal`/`ItemTotal` (`Convert.ToDouble(paymentInfo.Amount)`) while `Charge` uses `decimal` — floating-point money math is fragile; prefer `decimal` throughout.
 - **Improvement:** `Credit` sends `RefundType.FULL` regardless of the `amount` argument, so a partial refund requested from Rock would still attempt a full refund — verify that's intended or guard it.

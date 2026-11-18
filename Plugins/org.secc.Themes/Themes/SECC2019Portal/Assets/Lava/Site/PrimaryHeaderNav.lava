@@ -1,42 +1,50 @@
 <style>
+  /* ROCK-8650: render search trigger as a FA magnifying glass, matched to the news bell */
   .cd-header-buttons .cd-search-trigger {
     width: auto; height: auto; overflow: visible;
-    color: inherit !important;
-    padding: 9px;
-    line-height: 1;
+    color: inherit !important;   /* undo the theme's color:transparent */
+    padding: 9px;                /* match the bell button's spacing */
+    line-height: 1;   
   }
   .cd-header-buttons .cd-search-trigger::before,
-  .cd-header-buttons .cd-search-trigger::after { content: none; }
+  .cd-header-buttons .cd-search-trigger::after { content: none; }  /* remove old CSS glass */
   .cd-header-buttons .cd-search-trigger i {
-    font-size: 16px;
+    font-size: 16px;           
   }
-</style>
-<!--========== HEADER ==========-->
-<header class="cd-main-header transparent-menu-enabled transparent-header">
-  <a class="cd-logo" href="/">
-     <img class="img-responsive default-logo g-width-275--xs g-width-350--sm" src="/Themes/SECC2019Portal/Assets/img/OnePoint/SE_One_Point_black.svg" alt="One Point">
-  </a>
-  <ul class="cd-header-buttons">
-    {[ portalnews ]}
-  {% assign personGuid = CurrentPerson.Guid %}
+  </style>  
+  <!--========== HEADER ==========-->
+  <header class="cd-main-header transparent-menu-enabled transparent-header">
+    <a class="cd-logo" href="/">
+       <img class="img-responsive default-logo g-width-275--xs g-width-350--sm"
+  src="/Themes/SECC2019Portal/Assets/img/OnePoint/SE_One_Point_black.svg" alt="One Point">
+    </a>    
+    <ul class="cd-header-buttons">
+      {[ portalnews ]}
+    {% assign personGuid = CurrentPerson.Guid %}
 
-  {% if CurrentPerson.Guid %}
-    {% comment %}
-    *** Use this if a logout icon is going back in the menu as requested ***
-    <li id="LogOut">
-        <a href="/?logout=true" class="cd-nav-logout" title="Log Out" rel="nofollow"><i class="fas fa-sign-out"></i><span class="sr-only">Log Out</span></a>
-    </li>
-    {% endcomment %}
-    <li><a class="cd-search-trigger" href="#cd-search" title="Search" aria-label="Search" style="color:#000 !important;width:auto;height:auto;overflow:visible;padding:9px;line-height:1;margin-top:4px;"><i class="fas fa-search"></i></a></li>
-  {% endif %}
 
-  {% unless personGuid != null %}
-    <li>
-        <a class="cd-nav-login" title="Log In" href="/onepoint-login">Login to Your Account</a>
-    </li>
-  {% endunless %}
+    {% if CurrentPerson.Guid %}
+      {% comment %}
+      *** Use this if a logout icon is going back in the menu as requested ***
+      <li id="LogOut">
+          <a href="/?logout=true" class="cd-nav-logout" title="Log Out" rel="nofollow"><i class="fas
+  fa-sign-out"></i><span class="sr-only">Log Out</span></a>
+      </li>
+      {% endcomment %}
 
-    <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
-  </ul> <!-- cd-header-buttons -->
-</header>
-<!--========== END HEADER ==========-->
+      <li><a class="cd-search-trigger" href="#cd-search" title="Search" aria-label="Search" style="color:#000
+  !important;width:auto;height:auto;overflow:visible;padding:9px;line-height:1;margin-top:4px;"><i class="fas fa-search"></i></a></li>
+
+    {% endif %}
+  
+    {% unless personGuid != null %}
+      <li>
+          <a class="cd-nav-login" title="Log In" href="/onepoint-login">Login to Your Account</a>
+      </li>
+    {% endunless %}   
+
+
+      <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
+    </ul> <!-- cd-header-buttons -->
+  </header>
+  <!--========== END HEADER ==========-->

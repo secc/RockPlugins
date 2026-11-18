@@ -58,7 +58,7 @@
     		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.WeeklyDayOfWeek}}" data-online="{{ publishGroup | Attribute: 'IsOnlineGroup', 'RawValue'}}">
                 <div class="clearfix card">
 					<div class="img-hover">
-						<img src="/GetImage.ashx?id={{ publishGroup.ImageId }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+						<img src="/GetImage.ashx?id={{ publishGroup.ImageId }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'" loading="lazy">
 					</div>
                     <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
                         <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">

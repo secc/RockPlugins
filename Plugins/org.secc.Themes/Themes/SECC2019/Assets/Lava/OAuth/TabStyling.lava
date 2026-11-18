@@ -12,7 +12,7 @@
     }
     .btn.btn-action {
         border: none !important;
-        width: 48%;
+        width: 100%;
         border: none;
         padding: 5px 0px;
         margin: 0px;

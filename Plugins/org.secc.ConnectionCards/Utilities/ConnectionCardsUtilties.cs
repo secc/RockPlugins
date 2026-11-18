@@ -18,6 +18,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using Ghostscript.NET.Rasterizer;
+using org.secc.DevLib.Extensions;
 using Rock.Data;
 using Rock.Model;
 
@@ -30,84 +31,115 @@ namespace org.secc.ConnectionCards.Utilities
             int desired_x_dpi = 96;
             int desired_y_dpi = 96;
 
+            // ROCK-9041: Copy the content into memory through a fresh provider stream (disposed) so the
+            // caller can delete the source BinaryFile without a provider handle still open on it.
+            byte[] pdfBytes = inputFile.ReadContentBytes( "Connection card sheet PDF" );
+
             using ( GhostscriptRasterizer rasterizer = new GhostscriptRasterizer() )
+            using ( MemoryStream pdfStream = new MemoryStream( pdfBytes ) )
             {
+                rasterizer.Open( pdfStream );
+                if ( rasterizer.PageCount > 0 )
+                {
+                    string filename = "ImageConvertedPDF.png";
 
-
-                    rasterizer.Open( inputFile.ContentStream );
-                    if ( rasterizer.PageCount > 0 )
+                    using ( Image img = rasterizer.GetPage( desired_x_dpi, desired_y_dpi, 1 ) )
+                    using ( MemoryStream m = new MemoryStream() )
                     {
-                        string filename = "ImageConvertedPDF.png";
+                        img.Save( m, ImageFormat.Png );
+                        var data = m.ToArray();
 
-                        Image img = rasterizer.GetPage( desired_x_dpi, desired_y_dpi, 1 );
-                        using ( MemoryStream m = new MemoryStream() )
+                        // ROCK-9041: Assign ContentStream (not DatabaseData) so whichever storage
+                        // provider the file type uses receives the content on save.
+                        var outputFile = new BinaryFile()
                         {
-                            img.Save( m, ImageFormat.Png );
-                            var data = m.ToArray();
-                            var databaseData = new BinaryFileData()
-                            {
-                                Content = data
-                            };
-                            var outputFile = new BinaryFile()
-                            {
-                                FileName = filename,
-                                MimeType = "image/png",
-                                DatabaseData = databaseData,
-                            };
-                            return outputFile;
-                        }
+                            FileName = filename,
+                            MimeType = "image/png",
+                            FileSize = data.Length,
+                            ContentStream = new MemoryStream( data ),
+                        };
+                        return outputFile;
                     }
-
-
+                }
             }
-            return new BinaryFile();
+
+            // No pages: return null so the caller's null check handles it. An empty BinaryFile (no MimeType)
+            // made Rock's save hook throw a NullReferenceException.
+            return null;
         }
 
         public static BinaryFile RotateImage( BinaryFile inputFile, RotateFlipType rotateFlipType, RockContext rockContext )
         {
-                Image image = Image.FromStream( inputFile.ContentStream );
+            // ROCK-9041: Read through a fresh provider stream (disposed) and dispose the Image; the old code
+            // left both open.
+            byte[] imageBytes = inputFile.ReadContentBytes( "Connection card sheet image" );
+
+            using ( MemoryStream inMS = new MemoryStream( imageBytes ) )
+            using ( Image image = Image.FromStream( inMS ) )
+            using ( var outMS = new MemoryStream() )
+            {
                 image.RotateFlip( rotateFlipType );
-                using ( var outMS = new MemoryStream() )
-                {
-                    image.Save( outMS, ImageFormat.Png );
-                    inputFile.ContentStream = outMS;
-                    rockContext.SaveChanges();
-                    return inputFile;
-                }
+                image.Save( outMS, ImageFormat.Png );
+
+                // Copy the PNG out so the stream handed to the provider outlives this using block.
+                var data = outMS.ToArray();
+                inputFile.FileSize = data.Length;
+                inputFile.ContentStream = new MemoryStream( data );
+                rockContext.SaveChanges();
+                return inputFile;
+            }
         }
 
 
         public static List<BinaryFile> ChopImage( BinaryFile inputFile, int cols, int rows, RockContext rockContext )
         {
-            using ( MemoryStream ms = new MemoryStream( inputFile.DatabaseData.Content ) )
+            // ROCK-9041: Read through the storage provider so this works for any provider,
+            // not just Database (DatabaseData is null for files stored elsewhere).
+            byte[] imageBytes = inputFile.ReadContentBytes( "Connection card sheet image" );
+
+            using ( MemoryStream ms = new MemoryStream( imageBytes ) )
+            using ( Image originalImage = Image.FromStream( ms ) )
+            using ( Bitmap sourceBitmap = new Bitmap( originalImage ) )
             {
-                List<BinaryFile> output = new List<BinaryFile>();
-                Image originalImage = Image.FromStream( ms );
-                Bitmap sourceBitmap = new Bitmap( originalImage );
-                int width = originalImage.Width;
-                int height = originalImage.Height;
-                int elementWidth = width / cols;
-                int elementHeight = height / rows;
-                for ( var x = 0; x < width; x += elementWidth )
+                // Fail loudly on a bad grid before anything is saved, so the caller keeps the source scan.
+                // The 4px inset below needs each cell to be more than 4px in both directions.
+                if ( cols < 1 || rows < 1 )
                 {
-                    for ( var y = 0; y < height; y += elementHeight )
+                    throw new InvalidOperationException( string.Format( "Rows and Columns must both be at least 1 (got {0} rows, {1} columns).", rows, cols ) );
+                }
+
+                int elementWidth = sourceBitmap.Width / cols;
+                int elementHeight = sourceBitmap.Height / rows;
+                if ( elementWidth <= 4 || elementHeight <= 4 )
+                {
+                    throw new InvalidOperationException( string.Format( "A {0} x {1} grid is too fine for this {2} x {3} pixel sheet.", rows, cols, sourceBitmap.Height, sourceBitmap.Width ) );
+                }
+
+                List<BinaryFile> output = new List<BinaryFile>();
+
+                // Exactly cols x rows cells. Stepping x/y by the element size until the edge added an extra
+                // partial column/row when the size wasn't evenly divisible, and its rectangle ran past the
+                // bitmap (Clone throws OutOfMemoryException). Integer division keeps every cell inside the
+                // bitmap. The 4px inset trims scan borders between cards.
+                for ( var col = 0; col < cols; col++ )
+                {
+                    for ( var row = 0; row < rows; row++ )
                     {
+                        var cell = new Rectangle( col * elementWidth + 4, row * elementHeight + 4, elementWidth - 4, elementHeight - 4 );
+
                         using ( MemoryStream outMS = new MemoryStream() )
+                        using ( Bitmap clone = sourceBitmap.Clone( cell, sourceBitmap.PixelFormat ) )
+                        using ( Bitmap cropped = Crop( clone ) )
                         {
-                            var clone = sourceBitmap.Clone( new Rectangle( x + 4, y + 4, elementWidth - 4, elementHeight - 4 ), sourceBitmap.PixelFormat );
-                            clone = Crop( clone );
-                            clone.Save( outMS, ImageFormat.Png );
+                            cropped.Save( outMS, ImageFormat.Png );
                             var data = outMS.ToArray();
-                            var databaseData = new BinaryFileData()
-                            {
-                                Content = data
-                            };
                             var element = new BinaryFile()
                             {
                                 BinaryFileTypeId = inputFile.BinaryFileTypeId,
                                 FileName = "Connection Card",
                                 MimeType = "image/png",
-                                DatabaseData = databaseData
+                                FileSize = data.Length,
+                                ContentStream = new MemoryStream( data )
                             };
                             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
                             binaryFileService.Add( element );

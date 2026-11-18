@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/layout.css", true) %>" />
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/main.css", true) %>" />
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>" />
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>" />
 
     <style>
         html, body {

@@ -198,9 +198,9 @@ namespace org.secc.Rest.Controllers
             if ( attendanceItem == null )
             {
                 // No existing attendance for this person/group/date — create one marked present.
-                // Keep the original location fallback for creation so new rows land where they did before
-                // (the group's location when it has one); the match above stays location-agnostic.
-                var createLocationId = locationId ?? group.GroupLocations?.FirstOrDefault()?.Location?.Id;
+                // Create at the group's location (the same one "did not meet" uses); the match above stays
+                // location-agnostic.
+                var createLocationId = locationId ?? GetGroupLocationId( group );
                 var attendancePerson = new PersonService( _context ).Get( groupMember.PersonId );
                 if ( attendancePerson != null && attendancePerson.PrimaryAliasId.HasValue )
                 {
@@ -413,10 +413,7 @@ namespace org.secc.Rest.Controllers
             }
 
             // Get the group's location
-            locationId = locationId ?? ( group.GroupLocations.Any() ? ( int? ) group.GroupLocations
-                        .Where( l => l.GroupLocationTypeValueId == 19 || l.GroupLocationTypeValueId == 209 )
-                        .Select( l => l.LocationId ).FirstOrDefault()
-                    : null );
+            locationId = locationId ?? GetGroupLocationId( group );
 
             // Find or create the AttendanceOccurrence
             var attendanceOccurrenceService = new AttendanceOccurrenceService( _context );
@@ -484,10 +481,7 @@ namespace org.secc.Rest.Controllers
             if ( !isGroupLeader )
                 return StatusCode( HttpStatusCode.Forbidden );
 
-            locationId = locationId ?? ( group.GroupLocations.Any() ? ( int? ) group.GroupLocations
-                        .Where( l => l.GroupLocationTypeValueId == 19 || l.GroupLocationTypeValueId == 209 )
-                        .Select( l => l.LocationId ).FirstOrDefault()
-                    : null );
+            locationId = locationId ?? GetGroupLocationId( group );
 
             scheduleId = scheduleId ?? group.ScheduleId ?? null;
 
@@ -622,6 +616,30 @@ namespace org.secc.Rest.Controllers
             return Ok( sortedOccurrences );
         }
 
+        /// <summary>
+        /// The location the Group App records a group's attendance against, chosen the same way the Group App's
+        /// location endpoint (GroupAppGroupLocationController) chooses the address it shows: Meeting Location
+        /// first, then Home, then the group's first location; null when the group has none. Every location pick
+        /// in this controller uses it, so attendance, "did not meet" and self check-in land on the same occurrence.
+        /// </summary>
+        /// <remarks>
+        /// Never returns 0. The old pick selected the non-nullable LocationId before FirstOrDefault(), so a group
+        /// whose only location had no type got 0 and every "did not meet" and self check-in failed with an
+        /// AttendanceOccurrence -> Location foreign key error (ROCK-9170).
+        /// </remarks>
+        internal static int? GetGroupLocationId( Group group )
+        {
+            var meetingTypeId = Rock.Web.Cache.DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION.AsGuid() )?.Id;
+            var homeTypeId = Rock.Web.Cache.DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() )?.Id;
+
+            return group.GroupLocations
+                .OrderByDescending( l => meetingTypeId.HasValue && l.GroupLocationTypeValueId == meetingTypeId )
+                .ThenByDescending( l => homeTypeId.HasValue && l.GroupLocationTypeValueId == homeTypeId )
+                .ThenBy( l => l.Id )
+                .Select( l => ( int? ) l.LocationId )
+                .FirstOrDefault();
+        }
+
         internal List<GroupScheduleOccurence> GetListOfOccurrences( Group group )
         {
             RockContext rockContext = _context;
@@ -638,6 +656,8 @@ namespace org.secc.Rest.Controllers
 
             var occurrences = new List<GroupScheduleOccurence>();
 
+            var groupLocationId = GetGroupLocationId( group );
+
             if ( group.Schedule != null )
             {
                 if ( group.Schedule.ScheduleType == ScheduleType.Custom || group.Schedule.ScheduleType == ScheduleType.Named )
@@ -653,7 +673,7 @@ namespace org.secc.Rest.Controllers
                             OccurrenceDate = p,
                             GroupId = group.Id,
                             ScheduleId = group.ScheduleId,
-                            LocationId = group.GroupLocations.Any() ? ( int? ) group.GroupLocations.Select( l => l.LocationId ).FirstOrDefault() : null,
+                            LocationId = groupLocationId,
                             StartDateTime = group.Schedule.GetNextStartDateTime( p ),
                             DidNotMeet = false // Default value
                         } )
@@ -692,7 +712,7 @@ namespace org.secc.Rest.Controllers
                             OccurrenceDate = lastSchedule,
                             GroupId = group.Id,
                             ScheduleId = group.ScheduleId,
-                            LocationId = group.GroupLocations.Any() ? ( int? ) group.GroupLocations.Select( l => l.LocationId ).FirstOrDefault() : null,
+                            LocationId = groupLocationId,
                             StartDateTime = lastSchedule.Add( group.Schedule.WeeklyTimeOfDay ?? new TimeSpan( 0, 0, 0 ) ),
                             DidNotMeet = false // Default value
                         } );

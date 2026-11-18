@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermons' componententityid:'27191' operation:'View' summary:'Sermons Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' %}
 Sermons Page
 {% endinteractionwrite %}
@@ -34,7 +35,7 @@ Sermons Page
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":"{{colors:brand}}"
+	        "brandableElements":""
 	    }
 	},
 	{%- if page != empty -%}
@@ -50,8 +51,8 @@ Sermons Page
             {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
             {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
 		        {{ comma }}
-				{%- assign itemActionHandler = "list" -%}
-				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
+				{%- assign itemActionHandler = "blockPage" -%}
+				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/sermons/series-2/" | Append:item.Id -%}
 				{%- assign resourcesCount = 0 -%}
 				{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
 				{%- for messages in itemChildItems -%}
@@ -62,11 +63,11 @@ Sermons Page
 				{%- endfor -%}
 				{%- if resourcesCount != 0 -%}
 				{%- assign itemActionHandler = "subtabs" -%}
-				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
+				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/tabs/series/" | Append:item.Id -%}
 				{%- endif -%}
 		        {
-					"title": "{{item.Title | Replace:'"','\"'}}",
-					"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+					"title": "{{item.Title | Replace:'"',bsq }}",
+					"subtitle": "{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 		            "images":[
 						{%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
 						{%- if seriesImageGuid != empty -%}

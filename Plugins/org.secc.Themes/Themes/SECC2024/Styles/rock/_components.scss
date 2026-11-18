@@ -2391,3 +2391,158 @@ iframe.file-browser {
     background-color: $grid-row-odd-bg;
   }
 }
+
+// 41. Progress Tracker
+// -------------------------
+// Rock 16's Obsidian blocks (Registration Entry, Sign-Up Register) render a
+// progress tracker whose step separators are inline <svg> elements with no
+// width/height attributes -- they are sized entirely by CSS. Those rules ship
+// only in Rock's own Styles/theme.css, which Site.Master does not load, so
+// without them the separator SVG falls back to its viewBox aspect ratio
+// (22:80) and stretches to several thousand pixels tall.
+
+.progress-tracker {
+  display: flex;
+  background: #fff;
+  border: 1px solid #efefef;
+  border-radius: 0px;
+
+  // Rock's markup uses the Bootstrap 4 display utilities (`d-none d-md-flex`)
+  // to hide the tracker on small screens. This theme is Bootstrap 3 and does
+  // not ship them, so reproduce that behavior scoped to the tracker.
+  &.d-none {
+    display: none;
+  }
+
+  @media (min-width: $screen-sm-min) {
+    &.d-md-flex {
+      display: flex;
+    }
+  }
+
+  // Same story for `text-truncate` on the step title and subtitle.
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.progress-tracker-container {
+  flex-grow: 1;
+  overflow: auto;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.progress-steps {
+  display: flex;
+  flex-grow: 1;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.progress-step {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 140px;
+  overflow: hidden;
+}
+
+.progress-tracker-arrow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: block;
+  width: 14px;
+  height: 100%;
+  color: #efefef;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.progress-step-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 6px 12px 6px 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: #777;
+}
+
+.progress-tracker-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 1px 0 0;
+  margin-right: 6px;
+  font-size: 12px;
+  color: #fff;
+  background: #7c7c7c;
+  border-radius: 999px;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+
+  &.current {
+    background: #fff;
+    border: 2px solid #7c7c7c;
+  }
+
+  &.upcoming {
+    background: #fff;
+    border: 2px solid #777;
+  }
+}
+
+.progress-tracker-more {
+  flex: 0 1 auto;
+  min-width: 56px;
+
+  .progress-step-link {
+    padding: 4px 14px;
+    font-size: 24px;
+  }
+
+  & + .progress-tracker-more {
+    display: none;
+  }
+}
+
+.progress-tracker-details {
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.current + .progress-tracker-details {
+  .progress-tracker-title,
+  .progress-tracker-subtitle {
+    color: #7c7c7c;
+  }
+}
+
+.progress-tracker-title {
+  color: #333;
+}
+
+.progress-tracker-subtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1rem;
+  color: #777;
+}

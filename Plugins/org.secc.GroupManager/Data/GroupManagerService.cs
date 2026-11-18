@@ -13,8 +13,6 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.GroupManager.Data
 {
     public class GroupManagerService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
@@ -22,7 +20,7 @@ namespace org.secc.GroupManager.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="GroupManagerService{T}"/> class.
         /// </summary>
-        public GroupManagerService( RockContext context )
+        public GroupManagerService( Rock.Data.DbContext context )
             : base( context )
         {
         }

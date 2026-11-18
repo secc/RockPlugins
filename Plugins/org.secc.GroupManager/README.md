@@ -47,6 +47,22 @@ user preference), the current group member, and an optional member-attribute fil
 access. Block settings: **Home Page** (redirect target), **GroupType** (restrict to one type),
 **Leaders Only** (leaders-only access).
 
+**Member filter.** The filter turns on only when the current group's type inherits directly
+(`InheritedGroupTypeId`) from the group type named by the `FilterGroupType` **global** attribute.
+The member-attribute key comes from the `FilterAttribute` **group-type** attribute on that group
+type:
+
+- The value is a comma-separated list of GroupMember attribute keys. Keys are trimmed and blank
+  entries dropped; a null or blank value means no filter.
+- Only the **first** key is used. In `Grade,Campus`, members are filtered by `Grade` and `Campus`
+  is ignored.
+- Leaders see only members whose value for that key equals their own. A leader with a blank value
+  sees only members whose value is also blank.
+- Keys are case-sensitive and must name a GroupMember attribute on the group.
+
+In production (2026-10-14), `FilterGroupType` is type 178 "Filtered Group Parent", and its
+children 176 (`TableLeader`) and 375 (`TableNumber`) are the only filtered types.
+
 ### Blocks
 
 Categories in Rock: **SECC > Groups**, **SECC > Camp**, and **Groups**.
@@ -72,8 +88,8 @@ Categories in Rock: **SECC > Groups**, **SECC > Camp**, and **Groups**.
 | Camp Allergies | RockBlock | Campers in a group who have allergies (backed by a stored proc). |
 | Publish Groups Lava | RockBlock | Output PublishGroups via Lava. Settings: `Lava Template`, `Campus Parameter Name` (default `CampusId`), `Category Parameter Name` (default `CategoryId`), `Filter Categories` (defined-value guid list limiting the category filter), `Category Filter Display Mode` (1 = hidden, 2+ = shown). Hides groups whose **Active** member count has reached `GroupCapacity`; group/publish-group attributes load via Rock's bulk `LoadAttributes` (qualifier filtering, inherited attributes, default values). |
 | Publish Group List | RockBlock | List of PublishGroups. |
-| Publish Group Registration | RockBlock | Register a person for a published group. |
-| Publish Group Request | RockBlock | Display a publish-group request. Schedule fields are populated from the Group's Schedule for every group type, including Home Groups; a Group with no Schedule loads with blank, disabled schedule fields. Block settings: **Home Group Types** (groups of these types get postal-code-only location, forced registration, no childcare, and locked confirmation email fields; blank disables Home Group handling, so set it on the block after deploy), **Home Group Confirmation From Name**, **Home Group Confirmation From Email**, **Home Group Confirmation Subject**, **Home Group Confirmation Body** (`{{ GroupName }}` is replaced with the group name; other Lava is left for the confirmation email). |
+| Publish Group Registration | RockBlock | Register a person for a published group. The confirmation email is sent **From `noreply@secc.org`** with the publish group's `ConfirmationFromName`; the publish group's stored `ConfirmationEmail` is used as the **Reply-To**, falling back to `ContactEmail` when blank. Home groups pre-fill it from `ContactEmail` (legacy rows may still store `noreply@secc.org`). |
+| Publish Group Request | RockBlock | Display a publish-group request. Saving keeps the listing's Guid in every case but one (see *Publishing lifecycle* below). Schedule fields are populated from the Group's Schedule for every group type, including Home Groups; a Group with no Schedule loads with blank, disabled schedule fields. Block settings: **Home Group Types** (groups of these types get postal-code-only location, forced registration, no childcare, and locked confirmation From Name, Subject, and Body; the confirmation email field stays editable because it is the Reply-To; blank disables Home Group handling, so set it on the block after deploy), **Home Group Confirmation From Name**, **Home Group Confirmation Subject**, **Home Group Confirmation Body** (`{{ GroupName }}` is replaced with the group name; other Lava is left for the confirmation email). |
 
 ### Models
 
@@ -83,6 +99,26 @@ Categories in Rock: **SECC > Groups**, **SECC > Camp**, and **Groups**.
 
 Enums on the model: `PublishGroupStatus` (PendingApproval/Approved/Denied/Draft/PendingIT),
 `RegistrationRequirement`, `ChildcareOptions`.
+
+#### Publishing lifecycle (Publish Group Request save)
+
+A group can have one live (Approved) listing and, while it is being edited, a Draft beside it.
+What a save does to the listing's row, and so to its Guid:
+
+- **Saving a non-Approved listing** (Draft, PendingApproval, PendingIT, Denied) edits that row in
+  place. The Guid doesn't change.
+- **Saving an Approved listing as anything but Draft** (an approver edit, or a leader edit that
+  goes to PendingApproval/PendingIT) edits the live row in place. The Guid doesn't change.
+  (Before ROCK-9153 this cloned the row with a new Guid and deleted the original.)
+- **Saving an Approved listing as a Draft** clones it: the live row stays published and the Draft
+  is a new row with a new Guid.
+- **Publishing a Draft that sits beside a live listing** keeps the Draft row and deletes every
+  other listing for the group, so the public Guid changes to the Draft's. This is the one case
+  that still breaks Guid-based links, which is why contact and registration links should use the
+  listing's **Slug** (it is the same on both rows).
+
+Audience links are updated on the existing row: deselected audiences are removed and kept ones
+are not re-inserted.
 
 `PublishGroupService` (and the generic `GroupManagerService<T>`) provide standard Rock service
 access; `GroupManagerContext` is a `Rock.Data.DbContext` with a null initializer (no EF-managed
@@ -118,11 +154,6 @@ Ships Rock plugin migrations under `/Migrations/` that build up the `PublishGrou
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (medium):** The Camp Allergies block surfaces camper medical/allergy PII, and roster
-  blocks expose member contact details. Confirm the Rock **page/block security** on these is
-  scoped to the appropriate leader/staff roles. The `Leaders Only` block setting on
-  `GroupManagerBlock` gates member-facing pages — worth verifying it's set on every page that
-  should be leader-restricted, since it defaults off.
 - **Improvement:** `GetFilteredMembers` / `GetCurrentGroupFilterValues` call `member.LoadAttributes()`
   inside a loop over `CurrentGroup.Members`, so attribute loading is per-member (N round-trips) on
   every render of the filtered roster blocks. Fine for small groups, costly for large ones.
@@ -144,4 +175,4 @@ Ships Rock plugin migrations under `/Migrations/` that build up the `PublishGrou
 - The Camp Allergies stored procedure is defined inline in `011_AddCampAllergyReportProc`; change
   it with a new migration rather than editing the proc in the database directly.
 
-**Last updated:** 2026-09-01
+**Last updated:** 2026-11-18

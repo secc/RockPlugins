@@ -1,0 +1,25 @@
+
+.link--hover-underscore {
+  position: relative;
+  display: inline-block;
+
+  &:after{
+    content: '';
+    position: absolute;
+    z-index: 1000;
+    width: 0; height: 2px;
+    display: block;
+    margin-top: -20px;
+    right: 15%;
+    background: rgba($LightGreyColor, 0.68);
+    transition: width .2s ease;
+    -webkit-transition: width .2s ease;
+  }
+
+  &:hover:after{
+        width: 70%;
+        left: 15%;
+        background: rgba($LightGreyColor, 0.68);
+
+  }
+}
