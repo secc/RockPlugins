@@ -578,6 +578,25 @@ namespace org.secc.LinkList.Blocks
                     // from the incoming list, and reorders by list position.
                     service.PersistMatrixItems( item, bag.Items );
 
+                    // ROCK-9361: card images are uploaded as TEMPORARY BinaryFiles
+                    // too (same ImageUploader as the header images above); mark the
+                    // ones now referenced by a card row permanent. Only card rows
+                    // persist an image, mirroring PersistMatrixItems.
+                    var cardImages = ( bag.Items ?? new List<LinkItemBag>() )
+                        .Where( i => LinkListService.NormalizeItemType( i.ItemType ) == LinkListGuids.ItemTypeValue.Link
+                            && LinkListService.NormalizeDisplayStyle( i.DisplayStyle ) == LinkListGuids.DisplayStyleValue.Card )
+                        .Select( i => i.CardImage )
+                        .Where( g => g.AsGuidOrNull().HasValue )
+                        .ToList();
+                    if ( cardImages.Count > 0 )
+                    {
+                        foreach ( var cardImage in cardImages )
+                        {
+                            PersistBinaryFile( rockContext, cardImage );
+                        }
+                        rockContext.SaveChanges();
+                    }
+
                     // Slug deletions go LAST. Everything above commits as it goes, so a
                     // failure anywhere earlier used to leave a slug's URL permanently
                     // dead while the user was told the save failed. Deferring them means
