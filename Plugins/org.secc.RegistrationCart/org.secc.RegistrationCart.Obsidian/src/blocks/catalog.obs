@@ -1,0 +1,392 @@
+<template>
+    <div class="regcart">
+        <FieldGuide />
+        <header class="rc-header">
+            <div class="rc-header-text">
+                <a v-if="openCamp" class="rc-back" href="#" @click.prevent="closeCamp">
+                    <svg class="rc-ico" style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                    All registrations
+                </a>
+                <span v-else-if="config.intro" class="rc-eyebrow">{{ config.intro }}</span>
+                <h1>{{ openCamp ? openCamp.title : config.heading }}</h1>
+                <span v-if="openCamp && (openCamp.year || openCamp.typeText)" class="rc-muted">{{ openCamp.isServing ? "Serving · " : "" }}{{ openCamp.year || openCamp.typeText }}</span>
+            </div>
+            <CartNav :navigation="navigation" />
+        </header>
+        <PendingCheckoutNotice :navigation="navigation" />
+
+        <!-- One camp: campus, then who is going, then what that person can register for. -->
+        <template v-if="openCamp">
+            <p v-if="openCamp.description" class="rc-lead" style="margin-bottom: 24px;">{{ openCamp.description }}</p>
+
+            <section v-if="campCampuses.length > 1" class="rc-step">
+                <div class="rc-step-title"><span class="rc-step-num">{{ stepNumber("campus") }}</span><h2>Which campus?</h2></div>
+                <div class="rc-chips" role="radiogroup" aria-label="Campus">
+                    <button v-for="c in campCampuses" :key="c.id" type="button" role="radio" :aria-checked="selectedCampusId === c.id"
+                            :class="['rc-chip', 'rc-chip-plain', selectedCampusId === c.id ? 'rc-chip-selected' : '']" @click="selectedCampusId = c.id">
+                        {{ c.name }}
+                    </button>
+                </div>
+                <p v-if="isFamilyCampusSelected" class="rc-small rc-muted">Your family's campus is selected. Pick another if your camper attends elsewhere.</p>
+            </section>
+
+            <section class="rc-step">
+                <div class="rc-step-title"><span class="rc-step-num">{{ stepNumber("person") }}</span><h2>Who's going?</h2></div>
+                <SignInNotice v-if="!navigation.isSignedIn" :loginUrl="navigation.loginUrl" />
+                <div v-else class="rc-chips" role="radiogroup" aria-label="Family member">
+                    <button v-for="p in campPeople" :key="p.personAliasId" type="button" role="radio" :aria-checked="selectedPersonAliasId === p.personAliasId"
+                            :class="['rc-chip', selectedPersonAliasId === p.personAliasId ? 'rc-chip-selected' : '', p.canRegister ? '' : 'rc-chip-dim']" @click="selectedPersonAliasId = p.personAliasId">
+                        <span class="rc-avatar">
+                            <svg v-if="p.statusText === 'Registered' || p.statusText === 'On wait list'" class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+                            <template v-else>{{ initials(p.fullName) }}</template>
+                        </span>
+                        <span class="rc-chip-text"><b>{{ p.fullName }}</b><span>{{ p.gradeText }}{{ p.statusText ? " · " + p.statusText : "" }}</span></span>
+                    </button>
+                    <button v-if="config.canAddFamilyMembers" type="button" class="rc-btn rc-dashed" @click="isAddPersonOpen = true">
+                        <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Add a child
+                    </button>
+                </div>
+                <p v-if="navigation.isSignedIn && config.canAddFamilyMembers" class="rc-small rc-muted">Don't see your child? Use Add a child and they'll appear here.</p>
+            </section>
+
+            <section v-if="selectedPerson" class="rc-step">
+                <div class="rc-step-title"><span class="rc-step-num">{{ stepNumber("option") }}</span><h2>{{ firstName(selectedPerson.fullName) }}'s registration</h2></div>
+
+                <div v-if="registeredText" class="rc-notice" style="margin-bottom: 4px;">
+                    <svg class="rc-ico" style="margin-top: 3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+                    <span>{{ registeredText }}</span>
+                </div>
+
+                <div v-if="needsCampus" class="rc-notice">
+                    <span>Choose a campus above to see {{ firstName(selectedPerson.fullName) }}'s registration.</span>
+                </div>
+                <div v-else-if="!matches.length" class="rc-notice">
+                    <div>
+                        <span>{{ noMatchText }}</span>
+                        <div v-if="otherCampuses.length" class="rc-chips" style="margin-top: 10px;">
+                            <button v-for="c in otherCampuses" :key="c.id" type="button" class="rc-chip rc-chip-plain" @click="selectedCampusId = c.id">{{ c.name }}</button>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="rc-options">
+                    <div v-for="o in matches" :key="o.instanceId" class="rc-option rc-option-link">
+                        <div class="rc-option-main">
+                            <b>{{ optionTitle(o) }}</b>
+                            <span>{{ optionDetail(o) }}</span>
+                        </div>
+                        <span class="rc-option-price">{{ money(o.price) }}</span>
+                        <span v-if="optionStatus(o)" class="rc-muted rc-small">{{ optionStatus(o) }}</span>
+                        <a v-else-if="canRegister(o)" :class="['rc-btn', matches.length === 1 ? 'rc-btn-primary' : '']" :href="registerUrl(o)">
+                            {{ isFull(o) ? "Join wait list" : "Register " + firstName(selectedPerson.fullName) }}
+                            <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                        <span v-else class="rc-muted rc-small">Full</span>
+                    </div>
+                </div>
+            </section>
+        </template>
+
+        <!-- The catalog: one card per camp. -->
+        <template v-else>
+            <div v-if="!camps.length" class="rc-notice">
+                <svg class="rc-ico" style="margin-top: 3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
+                <span>Nothing is open for registration right now. Please check back soon.</span>
+            </div>
+
+            <template v-for="section in sections" :key="section.title">
+                <h2 v-if="section.title" class="rc-section-title">{{ section.title }}</h2>
+                <p v-if="section.intro" class="rc-muted" style="margin-bottom: 16px;">{{ section.intro }}</p>
+                <div class="rc-grid">
+                    <article v-for="c in section.camps" :key="c.key ?? ''" class="rc-card rc-tile">
+                        <span class="rc-eyebrow">{{ c.year || c.typeText || "Open" }}</span>
+                        <h2>{{ c.title }}</h2>
+                        <p v-if="c.description" style="color: var(--rc-ink-soft);">{{ c.description }}</p>
+                        <p class="rc-small rc-muted">{{ campSummary(c) }}</p>
+                        <div class="rc-tile-foot">
+                            <span class="rc-from">{{ hasOnePrice(c) ? "" : "from " }}<span class="rc-price">{{ money(c.minPrice) }}</span></span>
+                            <a class="rc-btn rc-btn-primary" href="#" @click.prevent="showCamp(c)" :aria-label="`Register for ${c.title}`">
+                                Register
+                                <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </a>
+                        </div>
+                    </article>
+                </div>
+            </template>
+        </template>
+
+        <Modal v-model="isAddPersonOpen" title="Add a child to your family" saveText="Add" :isSaveButtonDisabled="isAddingPerson" @save="addFamilyMember">
+            <NotificationBox v-if="addPersonError" alertType="danger">{{ addPersonError }}</NotificationBox>
+            <p class="text-muted">This creates the person in our system and adds them to your family.</p>
+            <div class="row">
+                <div class="col-sm-6"><TextBox v-model="newFirstName" label="First name" rules="required" /></div>
+                <div class="col-sm-6"><TextBox v-model="newLastName" label="Last name" rules="required" /></div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6"><BirthdayPicker v-model="newBirthDate" label="Birthday" rules="required" /></div>
+                <div class="col-sm-6"><DropDownList v-model="newGradeOffset" label="Grade" :items="gradeOptions" blankValue="Not in school yet" help="The grade they are in this school year." /></div>
+            </div>
+        </Modal>
+
+        <p class="rc-small rc-muted" style="margin-top: 24px; display: flex; gap: 8px; align-items: center;">
+            <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-5-6.3"/></svg>
+            Add each family member to your cart, then pay for everyone at once.
+        </p>
+    </div>
+</template>
+
+<script setup lang="ts">
+    import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+    import BirthdayPicker from "@Obsidian/Controls/birthdayPicker.obs";
+    import DropDownList from "@Obsidian/Controls/dropDownList.obs";
+    import Modal from "@Obsidian/Controls/modal.obs";
+    import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import TextBox from "@Obsidian/Controls/textBox.obs";
+    import { BirthdayPickerBag } from "@Obsidian/ViewModels/Controls/birthdayPickerBag";
+    import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
+    import FieldGuide from "../shared/fieldGuide.partial.obs";
+    import CartNav from "../shared/cartNav.partial.obs";
+    import PendingCheckoutNotice from "../shared/pendingCheckoutNotice.partial.obs";
+    import SignInNotice from "../shared/signInNotice.partial.obs";
+    import { initials, isEligible, money } from "../shared/registrationCart.partial";
+    import { CampBag, CampCampusBag, CampOptionBag, CampPersonBag, CampRegistrationBag, CatalogInitializationBox, NavigationBag } from "../viewModels";
+
+    // Families see one card per camp (High School Camp, 3rd-5th Grade Camp, ...), not one per
+    // Rock template. A card opens the camp here: campus (the family's is preselected), then who
+    // is going, then the registration that person qualifies for, which links to its offering
+    // page with the person and option already chosen.
+    const config = useConfigurationValues<CatalogInitializationBox>();
+
+    const navigation = computed<NavigationBag>(() => config.navigation ?? { isSignedIn: false, cartItemCount: 0 });
+    const camps = computed<CampBag[]>(() => config.camps ?? []);
+    const people = ref<CampPersonBag[]>(config.people ?? []);
+    const invokeBlockAction = useInvokeBlockAction();
+
+    type Section = { title: string; intro: string; camps: CampBag[] };
+    const sections = computed<Section[]>(() => {
+        const campers = camps.value.filter(c => !c.isServing && c.year);
+        const serving = camps.value.filter(c => c.isServing);
+        const other = camps.value.filter(c => !c.isServing && !c.year);
+        const result: Section[] = [];
+        if (campers.length) result.push({ title: "", intro: "", camps: campers });
+        if (other.length) result.push({ title: campers.length ? "More registrations" : "", intro: "", camps: other });
+        if (serving.length) result.push({ title: "Serving at camp", intro: "Leader and operations team registrations.", camps: serving });
+        return result;
+    });
+
+    // #region The open camp
+
+    const campParameter = "Camp";
+    const openCampKey = ref<string | null>(null);
+    const selectedCampusId = ref<number | null>(null);
+    const selectedPersonAliasId = ref<number | null>(null);
+
+    const openCamp = computed<CampBag | null>(() => camps.value.find(c => c.key === openCampKey.value) ?? null);
+    const campCampuses = computed<CampCampusBag[]>(() => openCamp.value?.campuses ?? []);
+    const campOptions = computed<CampOptionBag[]>(() => openCamp.value?.options ?? []);
+    const selectedPerson = computed<CampPersonBag | null>(() => people.value.find(p => p.personAliasId === selectedPersonAliasId.value) ?? null);
+    const isFamilyCampusSelected = computed<boolean>(() => selectedCampusId.value !== null && selectedCampusId.value === config.familyCampusId);
+
+    function openCampState(key: string | null): void {
+        openCampKey.value = camps.value.some(c => c.key === key) ? key : null;
+        const campuses = campCampuses.value;
+        // The family's campus when the camp is offered there; the only campus when there is one.
+        selectedCampusId.value = campuses.some(c => c.id === config.familyCampusId) ? (config.familyCampusId ?? null)
+            : campuses.length === 1 ? campuses[0].id : null;
+        // The one family member the camp is for (right grade and age, not yet registered or in
+        // the cart) is chosen already; with several, the family picks.
+        const ready = campPeople.value.filter(p => p.canRegister && !p.statusText);
+        selectedPersonAliasId.value = ready.length === 1 ? ready[0].personAliasId : null;
+    }
+
+    function campUrl(key: string | null): string {
+        const url = new URL(window.location.href);
+        if (key) url.searchParams.set(campParameter, key); else url.searchParams.delete(campParameter);
+        return url.toString();
+    }
+
+    function showCamp(camp: CampBag): void {
+        window.history.pushState({}, "", campUrl(camp.key ?? null));
+        openCampState(camp.key ?? null);
+        window.scrollTo({ top: 0 });
+    }
+
+    function closeCamp(): void {
+        window.history.pushState({}, "", campUrl(null));
+        openCampState(null);
+    }
+
+    function fromUrl(): void {
+        openCampState(new URL(window.location.href).searchParams.get(campParameter));
+    }
+
+    onMounted(() => {
+        fromUrl();
+        window.addEventListener("popstate", fromUrl);
+    });
+    onBeforeUnmount(() => window.removeEventListener("popstate", fromUrl));
+
+    /** May this person register for the option, whatever its campus? */
+    function isFor(o: CampOptionBag, p: CampPersonBag): boolean {
+        if (!isEligible(o.eligibleGradeBands, p.gradeBand)) return false;
+        // The age a role names ("Under 18") only narrows the choice when the age is on file.
+        if (p.age === null || p.age === undefined) return true;
+        return (o.minAge === null || o.minAge === undefined || p.age >= o.minAge)
+            && (o.maxAge === null || o.maxAge === undefined || p.age <= o.maxAge);
+    }
+
+    // The family as this camp sees them: who it is for, and who is already going.
+    type CampPerson = CampPersonBag & { canRegister: boolean; statusText: string };
+    const campPeople = computed<CampPerson[]>(() => people.value
+        .map(p => {
+            const registrations = campRegistrations(p);
+            const inCart = campOptions.value.some(o => (p.inCartInstanceIds ?? []).includes(o.instanceId));
+            return {
+                ...p,
+                canRegister: campOptions.value.some(o => isFor(o, p)),
+                statusText: registrations.length ? (registrations.every(r => r.isWaitList) ? "On wait list" : "Registered") : inCart ? "In your cart" : ""
+            };
+        })
+        // Those the camp is for come first; the family's own order is kept within each group.
+        .sort((a, b) => Number(b.canRegister) - Number(a.canRegister)));
+
+    function campRegistrations(p: CampPersonBag): CampRegistrationBag[] {
+        return (p.registrations ?? []).filter(r => r.campKey === openCampKey.value);
+    }
+
+    const registeredText = computed<string>(() => {
+        const p = selectedPerson.value;
+        if (!p) return "";
+        const registrations = campRegistrations(p);
+        if (!registrations.length) return "";
+        const campuses = registrations.map(r => r.campusName).filter(n => !!n);
+        const where = campuses.length ? ` (${campuses.join(", ")})` : "";
+        return registrations.every(r => r.isWaitList)
+            ? `${firstName(p.fullName)} is already on the wait list for ${openCamp.value?.title ?? "this camp"}${where}.`
+            : `${firstName(p.fullName)} is already registered for ${openCamp.value?.title ?? "this camp"}${where}.`;
+    });
+
+    /** Why the selected person can't be added for this option again ("" when they can). */
+    function optionStatus(o: CampOptionBag): string {
+        const p = selectedPerson.value;
+        if (!p) return "";
+        if ((p.inCartInstanceIds ?? []).includes(o.instanceId)) return "In your cart";
+        const registration = (p.registrations ?? []).find(r => r.instanceId === o.instanceId);
+        if (registration && config.preventDuplicateRegistrations) return registration.isWaitList ? "On wait list" : "Already registered";
+        return "";
+    }
+
+    const isAtCampus = (o: CampOptionBag, campusId: number | null): boolean =>
+        o.campusId === null || o.campusId === undefined || campusId === null || o.campusId === campusId;
+
+    const personOptions = computed<CampOptionBag[]>(() => selectedPerson.value ? campOptions.value.filter(o => isFor(o, selectedPerson.value as CampPersonBag)) : []);
+    // Several campuses and none chosen: ask, rather than list every campus's option.
+    const needsCampus = computed<boolean>(() => campCampuses.value.length > 1 && selectedCampusId.value === null && personOptions.value.length > 0);
+    const matches = computed<CampOptionBag[]>(() => personOptions.value.filter(o => isAtCampus(o, selectedCampusId.value)));
+    const otherCampuses = computed<CampCampusBag[]>(() => campCampuses.value.filter(c => c.id !== selectedCampusId.value && personOptions.value.some(o => o.campusId === c.id)));
+
+    const noMatchText = computed<string>(() => {
+        const name = firstName(selectedPerson.value?.fullName);
+        if (!personOptions.value.length) return `Nothing in ${openCamp.value?.title ?? "this camp"} is open to ${name} (${selectedPerson.value?.gradeText ?? "grade not set"}).`;
+        const campus = campCampuses.value.find(c => c.id === selectedCampusId.value)?.name ?? "that campus";
+        return `Nothing is open for ${name} at ${campus}. It is open at:`;
+    });
+
+    function stepNumber(step: "campus" | "person" | "option"): number {
+        const hasCampus = campCampuses.value.length > 1;
+        return step === "campus" ? 1 : step === "person" ? (hasCampus ? 2 : 1) : (hasCampus ? 3 : 2);
+    }
+
+    const isFull = (o: CampOptionBag): boolean => o.spotsRemaining !== null && o.spotsRemaining !== undefined && o.spotsRemaining <= 0;
+    const canRegister = (o: CampOptionBag): boolean => !isFull(o) || o.waitListEnabled;
+
+    function optionTitle(o: CampOptionBag): string {
+        if (!openCamp.value?.year) return o.name ?? "";
+        return [o.campusName ?? "All campuses", o.roleText].filter(t => !!t).join(" · ");
+    }
+
+    function optionDetail(o: CampOptionBag): string {
+        const parts: string[] = [];
+        if (o.sessionText) parts.push(o.sessionText);
+        if (isFull(o)) parts.push(o.waitListEnabled ? "Full: wait list open" : "Full");
+        else if (o.spotsRemaining !== null && o.spotsRemaining !== undefined && o.spotsRemaining <= 10) parts.push(`${o.spotsRemaining} spot${o.spotsRemaining === 1 ? "" : "s"} left`);
+        return parts.join(" · ");
+    }
+
+    /** The option's offering page, with this person and option already chosen. */
+    function registerUrl(o: CampOptionBag): string {
+        const url = new URL(o.detailUrl ?? "", window.location.href);
+        url.searchParams.set("Person", String(selectedPersonAliasId.value));
+        url.searchParams.set("Option", String(o.instanceId));
+        return url.toString();
+    }
+
+    // #endregion
+
+    // #region Add a child
+
+    const isAddPersonOpen = ref(false);
+    const isAddingPerson = ref(false);
+    const addPersonError = ref("");
+    const newFirstName = ref("");
+    const newLastName = ref("");
+    const newBirthDate = ref<BirthdayPickerBag | undefined>(undefined);
+    const newGradeOffset = ref("");
+    const gradeOptions = config.gradeOptions ?? [];
+
+    async function addFamilyMember(): Promise<void> {
+        addPersonError.value = "";
+        if (!newFirstName.value.trim() || !newLastName.value.trim()) {
+            addPersonError.value = "First and last name are required.";
+            return;
+        }
+        const born = newBirthDate.value;
+        if (!born || !born.year || !born.month || !born.day) {
+            addPersonError.value = "Please enter the child's birthday.";
+            return;
+        }
+        isAddingPerson.value = true;
+        try {
+            const pad = (n: number): string => String(n).padStart(2, "0");
+            const result = await invokeBlockAction<{ people: CampPersonBag[]; newPersonAliasId: number | null }>("AddFamilyMember", {
+                request: {
+                    firstName: newFirstName.value,
+                    lastName: newLastName.value,
+                    birthDate: `${born.year}-${pad(born.month)}-${pad(born.day)}`,
+                    gradeOffset: newGradeOffset.value === "" ? null : parseInt(newGradeOffset.value, 10)
+                },
+                // The camp being looked at decides the new person's connection status.
+                registrationInstanceId: campOptions.value[0]?.instanceId ?? null
+            });
+            if (result.isSuccess && result.data) {
+                people.value = result.data.people ?? [];
+                if (result.data.newPersonAliasId) selectedPersonAliasId.value = result.data.newPersonAliasId;
+                newFirstName.value = "";
+                newLastName.value = "";
+                newBirthDate.value = undefined;
+                newGradeOffset.value = "";
+                isAddPersonOpen.value = false;
+            }
+            else {
+                addPersonError.value = result.errorMessage || "The person could not be added.";
+            }
+        }
+        finally {
+            isAddingPerson.value = false;
+        }
+    }
+
+    // #endregion
+
+    const firstName = (fullName?: string | null): string => (fullName ?? "").split(" ")[0] || "them";
+
+    const hasOnePrice = (c: CampBag): boolean => (c.options ?? []).every(o => o.price === c.minPrice);
+
+    function campSummary(c: CampBag): string {
+        const count = c.campuses?.length ?? 0;
+        if (count > 1) return `${count} campuses`;
+        if (count === 1) return c.campuses?.[0].name ?? "";
+        const options = c.options?.length ?? 0;
+        return c.year ? "All campuses" : `${options} option${options === 1 ? "" : "s"}`;
+    }
+</script>

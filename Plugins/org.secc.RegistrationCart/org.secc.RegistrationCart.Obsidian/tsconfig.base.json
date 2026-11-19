@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        "baseUrl": "./",
+        "outDir": "./dist",
+        "rootDir": "./",
+        "incremental": false,
+        "noImplicitAny": false,
+        "noImplicitOverride": true,
+        "noEmitOnError": false,
+        "removeComments": true,
+        "allowUnreachableCode": false,
+        "forceConsistentCasingInFileNames": true,
+        "sourceMap": true,
+        "target": "ES2016",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "esModuleInterop": true,
+        "strict": true,
+        "importHelpers": true,
+        "jsx": "preserve",
+        "skipLibCheck": true,
+        "lib": [
+            "DOM",
+            "DOM.Iterable",
+            "ES2016",
+            "ES2020.Symbol.WellKnown"
+        ],
+        "paths": {
+            "@Obsidian/*": [
+                "./node_modules/@rockrms/obsidian-framework/types/*"
+            ]
+        }
+    },
+    "vueCompilerOptions": {
+        "extensions": [
+            ".obs"
+        ]
+    }
+}
