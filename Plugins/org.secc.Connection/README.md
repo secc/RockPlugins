@@ -61,6 +61,10 @@ Category in Rock: **SECC > Connection**.
 | **Lava** | code | Output template; defaults to a switch that `include`s `VolunteerGenius`, `CardPage`, or `CardWizard`. |
 | **Enable Debug** | bool (default false) | Show available Lava merge fields. |
 
+If the connection opportunity (or group) chosen in **Settings** is later deleted, the wizard shows a
+warning ("This signup isn't configured: its connection opportunity no longer exists.") instead of
+rendering, and the settings panel still opens so an admin can pick a new one (issue #57).
+
 **Volunteer Signup Form - Connections** — standard block attributes:
 
 | Setting | Type | Notes |

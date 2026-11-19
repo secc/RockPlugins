@@ -6,10 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Web.UI.WebControls;
 
+using org.secc.Security.Utility;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Security;
 using Rock.Security.Authentication;
 using Rock.Web.Cache;
 using Rock.Web.UI;
@@ -59,6 +61,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         CreditType? _creditType = null;
 
         List<ActionCommands> _enabledActions = null;
+
+        bool _canManagePins = false;
 
         protected Person SelectedPerson
         {
@@ -135,6 +139,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         private void lbSavePIN_Click( object sender, EventArgs e )
         {
+            if ( !CanManagePins( CanAdministratePins() ) )
+            {
+                ShowPinNotAuthorized();
+                return;
+            }
+
             var personId = SelectedPerson.Id;
             var pin = tbPIN.Text.Trim();
 
@@ -249,6 +259,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             if(lbRemove != null)
             {
                 lbRemove.CommandArgument = item.UserLoginId.ToString();
+                lbRemove.Visible = _canManagePins;
             }
 
 
@@ -262,11 +273,18 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             {
                 return;
             }
+
+            if ( !CanManagePins( CanAdministratePins() ) )
+            {
+                ShowPinNotAuthorized();
+                return;
+            }
+
             using (var rockContext = new RockContext())
             {
                 var loginService = new UserLoginService( rockContext );
                 var login = loginService.Get( id );
-                if(login == null)
+                if ( !PinManagerRules.IsPersonPin( login, SelectedPerson.Id, EntityTypeCache.Get( typeof( PINAuthentication ) ).Id ) )
                 {
                     return;
                 }
@@ -274,6 +292,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 login.LoadAttributes( rockContext );
                 var pinTypesIds = login.GetAttributeValue( "PINPurpose" ).SplitDelimitedValues()
                     .Select( v => v.AsInteger() )
+                    .Distinct()
                     .ToList();
 
                 if(pinTypesIds.Count() > 1 && pinTypesIds.Contains(sportsPINDV.Id))
@@ -306,6 +325,37 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 }
                 return person;
             }
+        }
+
+        /// <summary>
+        /// Returns true when the current person can administrate PIN Authentication, the same check as the PIN Manager block.
+        /// </summary>
+        private bool CanAdministratePins()
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                return new EntityTypeService( rockContext ).Get( EntityTypeCache.Get( typeof( PINAuthentication ) ).Id )
+                    .IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson );
+            }
+        }
+
+        /// <summary>
+        /// Returns true when the current person can add and remove the selected person's PINs: they can administrate
+        /// PIN Authentication (<paramref name="canAdministratePins"/>, from CanAdministratePins) and edit the selected person.
+        /// </summary>
+        private bool CanManagePins( bool canAdministratePins )
+        {
+            return SelectedPerson != null
+                && canAdministratePins
+                && SelectedPerson.IsAuthorized( Authorization.EDIT, CurrentPerson );
+        }
+
+        private void ShowPinNotAuthorized()
+        {
+            nbPIN.Title = "<strong>Not Authorized</strong>";
+            nbPIN.Text = "You are not authorized to manage PINs for this person.";
+            nbPIN.NotificationBoxType = Rock.Web.UI.Controls.NotificationBoxType.Warning;
+            nbPIN.Visible = true;
         }
 
         private void LoadActionCommands()
@@ -578,6 +628,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             nbPIN.Visible = false;
             tbPIN.Text = string.Empty;
 
+            var canAdministratePins = CanAdministratePins();
+            _canManagePins = CanManagePins( canAdministratePins );
+            tbPIN.Visible = _canManagePins;
+            lbSavePIN.Visible = _canManagePins;
+
             var pinAuthenticationET = EntityTypeCache.Get( typeof( PINAuthentication ) );
             var userloginET = EntityTypeCache.Get( typeof( UserLogin ) );
             var sportsPINDV = DefinedValueCache.Get( new Guid( "e98517ec-1805-456b-8453-ef8480bd487f" ) );
@@ -602,7 +657,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Select(l => new PINSummary
                     {
                         PersonId = l.PersonId,
-                        PIN = l.UserName,
+                        PIN = PinManagerRules.DisplayPin( l.UserName, canAdministratePins ),
                         UserLoginId = l.Id
                     } )
                     .ToList();

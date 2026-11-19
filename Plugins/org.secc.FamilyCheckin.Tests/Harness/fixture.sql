@@ -1,6 +1,7 @@
 -- AttendanceCache harness fixture (LOCAL DEV DATABASES ONLY). See README.md in this folder.
 -- Inserts @count Attendance rows created today on 5 AttendanceOccurrences (@groupId / @scheduleId at @locationIds),
--- plus 3 rows with no PersonAlias. Every row is tagged ForeignKey = 'attendance-cache-harness'; cleanup.sql removes them.
+-- plus 3 rows with no PersonAlias and 4 rows created today but dated yesterday or tomorrow (which the cache must
+-- leave out). Every row is tagged ForeignKey = 'attendance-cache-harness'; cleanup.sql removes them.
 -- @groupId must be a check-in group whose group locations have @scheduleId, so the rows map to an OccurrenceCache entry.
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
@@ -59,8 +60,16 @@ LEFT JOIN @codes c ON c.n = (i % 10) + 1;
 INSERT INTO Attendance (OccurrenceId, PersonAliasId, StartDateTime, DidAttend, Guid, CreatedDateTime, ModifiedDateTime, ForeignKey)
 SELECT o.Id, NULL, @now, 1, NEWID(), @now, @now, @fk FROM @occ o WHERE o.n <= 3;
 
+-- Entered today for another date (a leader recording last week's group, or next week's): not cached.
+INSERT INTO Attendance (OccurrenceId, PersonAliasId, StartDateTime, DidAttend, Guid, CreatedDateTime, ModifiedDateTime, ForeignKey)
+SELECT o.Id, pa.Id, DATEADD(day, CASE WHEN o.n <= 2 THEN -1 ELSE 1 END, @now), 1, NEWID(), @now, @now, @fk
+FROM @occ o JOIN @pa pa ON pa.n = o.n WHERE o.n <= 4;
+
 SELECT 'attendance' k, COUNT(*) v FROM Attendance WHERE ForeignKey = @fk
 UNION ALL SELECT 'null_alias', COUNT(*) FROM Attendance WHERE ForeignKey = @fk AND PersonAliasId IS NULL
-UNION ALL SELECT 'today_attendance_total', COUNT(*) FROM Attendance WHERE CreatedDateTime >= @today;
+UNION ALL SELECT 'out_of_day', COUNT(*) FROM Attendance WHERE ForeignKey = @fk AND (StartDateTime < @today OR StartDateTime >= DATEADD(day, 1, @today))
+-- Same rule as AttendanceCache.TodayFilter.
+UNION ALL SELECT 'today_attendance_total', COUNT(*) FROM Attendance
+    WHERE CreatedDateTime >= @today AND StartDateTime >= @today AND StartDateTime < DATEADD(day, 1, @today);
 
 COMMIT;

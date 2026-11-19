@@ -19,6 +19,7 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.Attributes.FieldTypes;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -29,8 +30,9 @@ namespace org.secc.Attributes.Controls
     /// <summary>
     /// Edit control for MultiFileFieldType. Renders an HTML5 multi-file picker that
     /// uploads each selected file via Rock's FileUploader handler, tracks the resulting
-    /// BinaryFile Ids in a hidden field, and renders a removable list of currently
-    /// attached files.
+    /// BinaryFile Guids in a hidden field, and renders a removable list of currently
+    /// attached files. Guids, not Ids: Ids are sequential, so a hidden field of Ids lets a
+    /// visitor claim someone else's pending upload by guessing a nearby number.
     /// </summary>
     public class MultiFileUpload : CompositeControl, IRockControl
     {
@@ -84,6 +86,7 @@ namespace org.secc.Attributes.Controls
             {
                 ViewState["ValidationGroup"] = value;
                 if ( RequiredFieldValidator != null ) { RequiredFieldValidator.ValidationGroup = value; }
+                if ( _cvFiles != null ) { _cvFiles.ValidationGroup = value; }
             }
         }
 
@@ -91,11 +94,17 @@ namespace org.secc.Attributes.Controls
         {
             get
             {
+                // Only once the validator has run and failed, so a postback that merely recorded a
+                // rejection (e.g. a visibility-rule postback) doesn't show a red field with no message.
+                if ( _cvFiles != null && !_cvFiles.IsValid )
+                {
+                    return false;
+                }
                 if ( !Required )
                 {
                     return true;
                 }
-                return GetCurrentFileIds().Any();
+                return GetCurrentFileGuids().Any();
             }
         }
 
@@ -132,8 +141,8 @@ namespace org.secc.Attributes.Controls
         }
 
         /// <summary>
-        /// The persisted AttributeMatrix Guid. Set by the field type before render;
-        /// returned (potentially updated) after postback by the field type's GetEditValue.
+        /// The persisted attribute value (comma-separated BinaryFile Guids, or a legacy
+        /// AttributeMatrix Guid). Set by the field type's SetEditValue before render.
         /// </summary>
         public string Value
         {
@@ -141,11 +150,57 @@ namespace org.secc.Attributes.Controls
             set { ViewState["Value"] = value ?? string.Empty; }
         }
 
+        /// <summary>
+        /// The value as SetEditValue loaded it. Unlike <see cref="Value"/>, GetEditValue never
+        /// overwrites it, so it still says how many files the saved value held before this edit.
+        /// </summary>
+        public string LoadedValue
+        {
+            get { return ViewState["LoadedValue"] as string ?? string.Empty; }
+            set { ViewState["LoadedValue"] = value ?? string.Empty; }
+        }
+
+        /// <summary>True once SetEditValue has set <see cref="LoadedValue"/> for this control.</summary>
+        public bool HasLoadedValue
+        {
+            get { return ViewState["LoadedValue"] != null; }
+        }
+
         #endregion
 
         #region Private State
 
         private HiddenField _hfFileIds;
+        private CustomValidator _cvFiles;
+
+        /// <summary>
+        /// Posted Guids that were rejected (and stripped from the hidden field) but not yet reported
+        /// to the visitor. Kept in ViewState because WorkflowEntry calls GetEditValue on postbacks
+        /// that don't validate (e.g. conditional-visibility postbacks): the strip persists, so the
+        /// rejection must too, or the next submit would pass and save without the file. The
+        /// validator reports it once and clears it.
+        /// </summary>
+        private List<Guid> PendingRejectedFileGuids
+        {
+            get
+            {
+                return ( ViewState["PendingRejectedFileGuids"] as string ?? string.Empty )
+                    .Split( new[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
+                    .Select( s => s.AsGuid() )
+                    .ToList();
+            }
+            set { ViewState["PendingRejectedFileGuids"] = value == null ? string.Empty : string.Join( ",", value ); }
+        }
+
+        /// <summary>
+        /// Files GetEditValue switched from temporary to permanent during this request. If this
+        /// request's validation fails, OnPreRender switches them back, so an abandoned form doesn't
+        /// leave permanent files nothing points at.
+        /// </summary>
+        private readonly List<Guid> _filesMadePermanent = new List<Guid>();
+
+        /// <summary>True once this control's validator has run in this request.</summary>
+        private bool _validatedThisRequest;
 
         #endregion
 
@@ -158,29 +213,63 @@ namespace org.secc.Attributes.Controls
         }
 
         /// <summary>
-        /// Seeds the hidden field with the BinaryFile Ids currently attached to this attribute.
-        /// Called by the field type's SetEditValue on initial page load.
+        /// Sets the hidden field to the BinaryFile Guids attached to this attribute, in order.
+        /// Called by the field type's SetEditValue on initial load, and by GetEditValue to drop
+        /// any posted entries it rejected so they are not re-rendered.
         /// </summary>
-        public void SetCurrentFileIds( IEnumerable<int> ids )
+        public void SetCurrentFileGuids( IEnumerable<Guid> guids )
         {
             EnsureChildControls();
-            _hfFileIds.Value = ids == null ? string.Empty : string.Join( ",", ids );
+            _hfFileIds.Value = guids == null ? string.Empty : string.Join( ",", guids.Select( g => g.ToString() ) );
         }
 
         /// <summary>
-        /// Reads the BinaryFile Ids that the user has chosen (initial set plus any uploaded,
-        /// minus any removed). The field type calls this from GetEditValue.
+        /// Reads the BinaryFile Guids that the user has chosen (initial set plus any uploaded,
+        /// minus any removed), in order. The field type calls this from GetEditValue.
         /// </summary>
-        public List<int> GetCurrentFileIds()
+        public List<Guid> GetCurrentFileGuids()
         {
             EnsureChildControls();
             return ( _hfFileIds.Value ?? string.Empty )
                 .Split( new[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
-                .Select( s => s.Trim().AsIntegerOrNull() )
-                .Where( i => i.HasValue && i.Value > 0 )
-                .Select( i => i.Value )
+                .Select( s => s.Trim().AsGuidOrNull() )
+                .Where( g => g.HasValue && g.Value != Guid.Empty )
+                .Select( g => g.Value )
                 .Distinct()
                 .ToList();
+        }
+
+        /// <summary>
+        /// Records posted Guids that were not accepted, so the next validating submit fails instead
+        /// of the value silently saving without them. GetEditValue strips rejected entries from the
+        /// hidden field (and WorkflowEntry calls it before it validates), so the validator can't
+        /// rediscover them itself and relies on this record.
+        /// </summary>
+        internal void MarkFilesRejected( IEnumerable<Guid> guids )
+        {
+            var pending = PendingRejectedFileGuids;
+            var added = false;
+            foreach ( var guid in guids )
+            {
+                if ( !pending.Contains( guid ) )
+                {
+                    pending.Add( guid );
+                    added = true;
+                }
+            }
+
+            if ( added )
+            {
+                PendingRejectedFileGuids = pending;
+            }
+        }
+
+        /// <summary>
+        /// Records files GetEditValue just made permanent, so a failed submit can undo it.
+        /// </summary>
+        internal void MarkFilesMadePermanent( IEnumerable<Guid> guids )
+        {
+            _filesMadePermanent.AddRange( guids );
         }
 
         protected override void OnLoad( EventArgs e )
@@ -205,6 +294,127 @@ namespace org.secc.Attributes.Controls
                 RequiredFieldValidator.Enabled = Required;
                 RequiredFieldValidator.ValidationGroup = ValidationGroup;
             }
+
+            // Server-only: the accept rule needs the database.
+            _cvFiles = new CustomValidator
+            {
+                ID = "cvFiles",
+                Display = ValidatorDisplay.Dynamic,
+                CssClass = "validation-error help-inline",
+                EnableClientScript = false,
+                ValidationGroup = ValidationGroup
+            };
+            _cvFiles.ServerValidate += cvFiles_ServerValidate;
+            Controls.Add( _cvFiles );
+        }
+
+        /// <summary>
+        /// Fails when a posted file can't be attached: it no longer exists (e.g. Cleanup removed a
+        /// stale temporary upload), is the wrong file type, or is someone else's saved file. The
+        /// rejected entries are dropped from the hidden field, so the re-rendered list shows only
+        /// the files that will save, and the visitor can upload the missing ones again.
+        /// </summary>
+        private void cvFiles_ServerValidate( object source, ServerValidateEventArgs args )
+        {
+            _validatedThisRequest = true;
+            var postedGuids = GetCurrentFileGuids();
+            if ( postedGuids.Any() )
+            {
+                using ( var rockContext = new RockContext() )
+                {
+                    var acceptedGuids = MultiFileFieldType.GetAcceptableFiles( postedGuids, BinaryFileTypeGuid, Value, rockContext ).Keys;
+                    var rejectedGuids = postedGuids.Where( g => !acceptedGuids.Contains( g ) ).ToList();
+                    if ( rejectedGuids.Any() )
+                    {
+                        MarkFilesRejected( rejectedGuids );
+                        SetCurrentFileGuids( postedGuids.Where( g => acceptedGuids.Contains( g ) ) );
+                    }
+                }
+            }
+
+            // ValidationSummary renders ErrorMessage as HTML.
+            var name = HttpUtility.HtmlEncode( string.IsNullOrWhiteSpace( Label ) ? "Files" : Label );
+            var messages = new List<string>();
+
+            // Worded for a rejection recorded on an earlier postback, when the visitor may already
+            // have noticed and re-uploaded. The list is cleared in OnPreRender, not here, so a
+            // second Validate() of the same group in this request still fails.
+            var rejectedCount = PendingRejectedFileGuids.Count;
+            if ( rejectedCount > 0 )
+            {
+                messages.Add( string.Format(
+                    "{0}: {1} could not be attached and {2} removed from the list. Check the list and upload any missing files again.",
+                    name,
+                    rejectedCount == 1 ? "one file" : rejectedCount + " files",
+                    rejectedCount == 1 ? "was" : "were" ) );
+            }
+
+            // The browser enforces MaxFiles too, but the hidden field can be edited. A value saved
+            // before an admin lowered MaxFiles may keep what it has, just not grow.
+            var fileCount = postedGuids.Count == 0 ? 0 : GetCurrentFileGuids().Count;
+            var limit = MaxFiles > 0 && fileCount > MaxFiles
+                ? Math.Max( MaxFiles, MultiFileFieldType.CountFilesInValue( LoadedValue ) )
+                : MaxFiles;
+            if ( limit > 0 && fileCount > limit )
+            {
+                messages.Add( string.Format(
+                    "{0}: no more than {1} {2} can be attached. Remove {3} and submit again.",
+                    name,
+                    limit,
+                    limit == 1 ? "file" : "files",
+                    fileCount - limit == 1 ? "one file" : ( fileCount - limit ) + " files" ) );
+            }
+
+            args.IsValid = !messages.Any();
+            if ( !args.IsValid )
+            {
+                _cvFiles.ErrorMessage = string.Join( " ", messages );
+            }
+        }
+
+        private bool ValidationFailedThisRequest()
+        {
+            return _validatedThisRequest
+                && Page.GetValidators( ValidationGroup ).Cast<IValidator>().Any( v => !v.IsValid );
+        }
+
+        protected override void OnPreRender( EventArgs e )
+        {
+            // The visitor has now been told, so a resubmit goes through with the files still listed.
+            if ( _cvFiles != null && !_cvFiles.IsValid )
+            {
+                PendingRejectedFileGuids = new List<Guid>();
+            }
+
+            // GetEditValue runs before validation (WorkflowEntry reads values first), so it may have
+            // made new uploads permanent for a submit that then failed validation. Put them back to
+            // temporary: if the visitor abandons the form, Rock Cleanup removes them as it does any
+            // stale upload, and a resubmit still accepts them as fresh uploads.
+            // Only when this request certainly saved nothing: this validator ran and its group
+            // failed (WorkflowEntry and Workflow Detail both stop before saving then). Any other
+            // request may have saved the value, e.g. a form button with Causes Validation off, and
+            // undoing there would let Cleanup delete files a saved value points at. Leaking an
+            // abandoned upload is the lesser failure.
+            if ( _filesMadePermanent.Any() && Page != null && ValidationFailedThisRequest() )
+            {
+                using ( var rockContext = new RockContext() )
+                {
+                    var guids = _filesMadePermanent.Distinct().ToList();
+                    var files = new BinaryFileService( rockContext ).Queryable()
+                        .Where( bf => guids.Contains( bf.Guid ) && !bf.IsTemporary )
+                        .ToList();
+                    foreach ( var file in files )
+                    {
+                        file.IsTemporary = true;
+                    }
+
+                    rockContext.SaveChanges();
+                }
+
+                _filesMadePermanent.Clear();
+            }
+
+            base.OnPreRender( e );
         }
 
         public override void RenderControl( HtmlTextWriter writer )
@@ -219,17 +429,20 @@ namespace org.secc.Attributes.Controls
         {
             EnsureChildControls();
 
-            // Look up the file names for currently-attached ids so we can render the list server-side.
-            var currentIds = GetCurrentFileIds();
+            // Look up the file names for the attached Guids so we can render the list server-side,
+            // in the stored order.
+            var currentGuids = GetCurrentFileGuids();
             var files = new List<FileDisplay>();
-            if ( currentIds.Any() )
+            if ( currentGuids.Any() )
             {
                 using ( var rockContext = new RockContext() )
                 {
-                    files = new BinaryFileService( rockContext ).Queryable()
-                        .Where( bf => currentIds.Contains( bf.Id ) )
-                        .Select( bf => new FileDisplay { Id = bf.Id, Guid = bf.Guid, FileName = bf.FileName } )
-                        .ToList();
+                    var filesByGuid = new BinaryFileService( rockContext ).Queryable()
+                        .Where( bf => currentGuids.Contains( bf.Guid ) )
+                        .Select( bf => new FileDisplay { Guid = bf.Guid, FileName = bf.FileName } )
+                        .ToList()
+                        .ToDictionary( f => f.Guid );
+                    files = currentGuids.Where( filesByGuid.ContainsKey ).Select( g => filesByGuid[g] ).ToList();
                 }
             }
 
@@ -245,7 +458,7 @@ namespace org.secc.Attributes.Controls
             writer.RenderBeginTag( HtmlTextWriterTag.Ul );
             foreach ( var f in files )
             {
-                RenderListItem( writer, f.Id, f.Guid, f.FileName );
+                RenderListItem( writer, f.Guid, f.FileName );
             }
             writer.RenderEndTag(); // ul
 
@@ -265,14 +478,16 @@ namespace org.secc.Attributes.Controls
             writer.RenderBeginTag( HtmlTextWriterTag.Input );
             writer.RenderEndTag();
 
+            _cvFiles.RenderControl( writer );
+
             writer.RenderEndTag(); // div
 
             RegisterClientScript();
         }
 
-        private void RenderListItem( HtmlTextWriter writer, int id, Guid guid, string fileName )
+        private void RenderListItem( HtmlTextWriter writer, Guid guid, string fileName )
         {
-            writer.AddAttribute( "data-file-id", id.ToString() );
+            writer.AddAttribute( "data-file-guid", guid.ToString() );
             writer.RenderBeginTag( HtmlTextWriterTag.Li );
 
             writer.AddAttribute( HtmlTextWriterAttribute.Href, "/GetFile.ashx?guid=" + guid );
@@ -303,8 +518,11 @@ namespace org.secc.Attributes.Controls
 
             var allowedExtsJs = ( AllowedExtensions ?? string.Empty ).Replace( "\\", "\\\\" ).Replace( "'", "\\'" );
 
+            // Leading ";" because ASP.NET emits the previous startup script (e.g. a validator
+            // declaration) without a trailing semicolon; without it "(function" parses as a call
+            // on that expression and throws, so the uploader never attaches.
             var script = @"
-(function() {
+;(function() {
     var clientId = '" + ClientID + @"';
     var hf = document.getElementById('" + _hfFileIds.ClientID + @"');
     var list = document.getElementById(clientId + '_list');
@@ -317,7 +535,7 @@ namespace org.secc.Attributes.Controls
     var uploadUrl = '/FileUploader.ashx" + uploadQs + @"';
 
     function getIds() {
-        return (hf.value || '').split(',').filter(function(s){ return s.length > 0; });
+        return (hf.value || '').toLowerCase().split(',').filter(function(s){ return s.length > 0; });
     }
     function setIds(arr) { hf.value = arr.join(','); }
     function makeRemoveBtn() {
@@ -365,8 +583,8 @@ namespace org.secc.Attributes.Controls
         if (!btn || btn === list) { return; }
         e.preventDefault();
         var li = btn.parentNode;
-        var id = li.getAttribute('data-file-id');
-        setIds(getIds().filter(function(x){ return x !== id; }));
+        var guid = (li.getAttribute('data-file-guid') || '').toLowerCase();
+        setIds(getIds().filter(function(x){ return x !== guid; }));
         li.parentNode.removeChild(li);
     });
 
@@ -429,18 +647,17 @@ namespace org.secc.Attributes.Controls
                 var resp;
                 try { resp = JSON.parse(xhr.responseText); }
                 catch (err) { showWarning('Upload response parse error: ' + err); return; }
-                var id = (resp.Id || resp.id || '').toString();
-                var guid = resp.Guid || resp.guid || '';
+                var guid = (resp.Guid || resp.guid || '').toString().toLowerCase();
                 var fileName = resp.FileName || resp.fileName || file.name;
-                if (!id) { showWarning('Upload response missing Id.'); return; }
+                if (!guid) { showWarning('Upload response missing Guid.'); return; }
                 var ids = getIds();
-                if (ids.indexOf(id) !== -1) { return; }
-                ids.push(id);
+                if (ids.indexOf(guid) !== -1) { return; }
+                ids.push(guid);
                 setIds(ids);
                 var li = document.createElement('li');
-                li.setAttribute('data-file-id', id);
+                li.setAttribute('data-file-guid', guid);
                 var a = document.createElement('a');
-                a.href = guid ? ('/GetFile.ashx?guid=' + guid) : ('/GetFile.ashx?id=' + id);
+                a.href = '/GetFile.ashx?guid=' + guid;
                 a.target = '_blank';
                 a.textContent = fileName;
                 li.appendChild(a);
@@ -462,7 +679,6 @@ namespace org.secc.Attributes.Controls
 
         private class FileDisplay
         {
-            public int Id { get; set; }
             public Guid Guid { get; set; }
             public string FileName { get; set; }
         }

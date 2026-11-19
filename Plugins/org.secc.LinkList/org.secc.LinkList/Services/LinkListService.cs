@@ -14,6 +14,9 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 
 using org.secc.LinkList.SystemGuids;
@@ -432,10 +435,12 @@ namespace org.secc.LinkList.Services
         /// because this same bag is serialized to ANONYMOUS callers by the public REST
         /// controller: the full slug list would expose retired/alternate URLs and raw
         /// row ids that no public consumer reads (the web component and viewer use only
-        /// the scalar <see cref="LinkListBag.Slug"/>).
+        /// the scalar <see cref="LinkListBag.Slug"/>). <paramref name="includeFileNames"/>
+        /// (editor only, ROCK-9362) adds uploaded files' original names - see
+        /// AttachFileInfo.
         /// </summary>
         public LinkListBag BuildBag( ContentChannelItem item, Person currentPerson, bool requirePublic,
-            bool includeMembers = false, bool includeSlugs = false )
+            bool includeMembers = false, bool includeSlugs = false, bool includeFileNames = false )
         {
             if ( item == null )
             {
@@ -498,7 +503,7 @@ namespace org.secc.LinkList.Services
                 HeaderVideo = item.GetAttributeValue( LinkListGuids.TypeAttributeKey.HeaderVideo ),
                 HeaderVideoVimeoId = item.GetAttributeValue( LinkListGuids.TypeAttributeKey.HeaderVideoVimeoId ),
 
-                Items = LoadMatrixItems( item )
+                Items = LoadMatrixItems( item, includeFileNames )
             };
 
             // Resolve the optional design preset as the BASE colors. Per-list
@@ -652,7 +657,7 @@ namespace org.secc.LinkList.Services
         /// Finds the AttributeMatrix referenced by the LinkList item, returning
         /// matrix rows mapped to LinkItemBag with null-safe legacy defaults.
         /// </summary>
-        private List<LinkItemBag> LoadMatrixItems( ContentChannelItem item )
+        private List<LinkItemBag> LoadMatrixItems( ContentChannelItem item, bool includeFileNames = false )
         {
             var template = GetMatrixTemplate();
             if ( template == null || item.Attributes == null )
@@ -712,9 +717,13 @@ namespace org.secc.LinkList.Services
                     Subtitle = SafeAttr( row, LinkListGuids.MatrixAttributeKey.Subtitle, string.Empty ),
                     Description = SafeAttr( row, LinkListGuids.MatrixAttributeKey.Description, string.Empty ),
                     IsFeatured = SafeAttr( row, LinkListGuids.MatrixAttributeKey.IsFeatured, "False" ).AsBoolean(),
+                    DisplayStyle = NormalizeDisplayStyle( SafeAttr( row, LinkListGuids.MatrixAttributeKey.DisplayStyle, LinkListGuids.DisplayStyleValue.Button ) ),
+                    CardImage = SafeAttr( row, LinkListGuids.MatrixAttributeKey.CardImage, string.Empty ),
                     Order = displayOrder++
                 } );
             }
+
+            AttachFileInfo( bags, item.Guid, includeFileNames );
             return bags;
         }
 
@@ -957,7 +966,15 @@ namespace org.secc.LinkList.Services
                     var bagRow = incoming[i];
                     var normalizedType = NormalizeItemType( bagRow.ItemType );
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.ItemType, normalizedType );
-                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.Url, bagRow.Url ?? string.Empty );
+                    // ROCK-9362: a file link's URL is always derived server-side from its
+                    // file guid, never taken from the client.
+                    var fileGuid = normalizedType == LinkListGuids.ItemTypeValue.Link
+                        ? ResolveFileGuid( bagRow, item.Guid )
+                        : null;
+                    var url = fileGuid.HasValue
+                        ? LinkListFiles.BuildFileUrl( item.Guid, fileGuid.Value )
+                        : bagRow.Url ?? string.Empty;
+                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.Url, url );
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.LinkText, bagRow.Text ?? string.Empty );
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.Target, bagRow.Target ?? string.Empty );
                     // WS7 fix 5: IndentLevel is reused as the per-link "nested" flag
@@ -978,6 +995,21 @@ namespace org.secc.LinkList.Services
                     }
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.IsFeatured, isFeatured.ToString() );
 
+                    // ROCK-9361: display style + card image. Only link rows carry a
+                    // style (sections/separators are always "button"), and only a
+                    // card keeps its image - switching a link back to a button clears
+                    // it, so a row never references an image it doesn't show. The
+                    // CardImage value is re-serialized from a parsed guid (never raw
+                    // client text).
+                    var displayStyle = normalizedType == LinkListGuids.ItemTypeValue.Link
+                        ? NormalizeDisplayStyle( bagRow.DisplayStyle )
+                        : LinkListGuids.DisplayStyleValue.Button;
+                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.DisplayStyle, displayStyle );
+                    var cardImage = displayStyle == LinkListGuids.DisplayStyleValue.Card
+                        ? bagRow.CardImage.AsGuidOrNull()?.ToString() ?? string.Empty
+                        : string.Empty;
+                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.CardImage, cardImage );
+
                     row.SaveAttributeValues( _rockContext );
                 }
             }
@@ -991,7 +1023,19 @@ namespace org.secc.LinkList.Services
             }
         }
 
-        private static string NormalizeItemType( string raw )
+        /// <summary>
+        /// ROCK-9361: canonical DisplayStyle value. Anything other than "card"
+        /// (case-insensitive) - including blank, which is every row saved before
+        /// migration 012 - is a button, so existing lists render unchanged.
+        /// </summary>
+        public static string NormalizeDisplayStyle( string raw )
+        {
+            return string.Equals( raw?.Trim(), LinkListGuids.DisplayStyleValue.Card, StringComparison.OrdinalIgnoreCase )
+                ? LinkListGuids.DisplayStyleValue.Card
+                : LinkListGuids.DisplayStyleValue.Button;
+        }
+
+        public static string NormalizeItemType( string raw )
         {
             if ( raw.IsNullOrWhiteSpace() ) return LinkListGuids.ItemTypeValue.Link;
             var lower = raw.Trim().ToLowerInvariant();
@@ -1004,6 +1048,564 @@ namespace org.secc.LinkList.Services
                 default:
                     return LinkListGuids.ItemTypeValue.Link;
             }
+        }
+
+        // ---------------------------------------------------------------------
+        // ROCK-9362: uploaded link files (PDF / JPG / PNG)
+        // ---------------------------------------------------------------------
+
+        /// <summary>Guids per statement in the set-based file updates (well under SQL Server's 2,100-parameter cap).</summary>
+        private const int FileGuidBatchSize = 500;
+
+        /// <summary>
+        /// FROM / WHERE shared by the stored-row file queries: the LINK rows of the
+        /// matrix @MatrixGuid (section and separator rows never carry a file - the same
+        /// rule as <see cref="NormalizeItemType"/>), with each row's URL value as
+        /// <c>uv</c>. Reads the two attribute values directly instead of loading the
+        /// matrix (<see cref="LoadMatrixItems"/> loads every row and all of its
+        /// attributes). The attributes are the template's own (Rock keys a matrix
+        /// item's attributes by AttributeMatrixTemplateId). A null @MatrixGuid matches
+        /// nothing.
+        /// </summary>
+        private const string StoredLinkRowsSql = @"
+FROM [AttributeMatrix] am
+JOIN [AttributeMatrixItem] ami ON ami.[AttributeMatrixId] = am.[Id]
+JOIN [Attribute] ua ON ua.[EntityTypeId] = @MatrixItemEntityTypeId
+    AND ua.[EntityTypeQualifierColumn] = 'AttributeMatrixTemplateId'
+    AND ua.[EntityTypeQualifierValue] = CONVERT( nvarchar(50), am.[AttributeMatrixTemplateId] )
+    AND ua.[Key] = @UrlKey
+JOIN [AttributeValue] uv ON uv.[AttributeId] = ua.[Id] AND uv.[EntityId] = ami.[Id]
+WHERE am.[Guid] = @MatrixGuid
+  AND NOT EXISTS (
+      SELECT 1
+      FROM [Attribute] ta
+      JOIN [AttributeValue] tv ON tv.[AttributeId] = ta.[Id] AND tv.[EntityId] = ami.[Id]
+      WHERE ta.[EntityTypeId] = @MatrixItemEntityTypeId
+        AND ta.[EntityTypeQualifierColumn] = 'AttributeMatrixTemplateId'
+        AND ta.[EntityTypeQualifierValue] = CONVERT( nvarchar(50), am.[AttributeMatrixTemplateId] )
+        AND ta.[Key] = @ItemTypeKey
+        AND LTRIM( RTRIM( tv.[Value] ) ) IN ( 'section', 'separator' ) )";
+
+        /// <summary>
+        /// Who may upload link files: EDIT on the Link List File type (admins, Rock Edit
+        /// Access and Staff Like Workers by default; managed on the type's security in
+        /// Rock). Read from the cache, so it costs no query. The upload endpoint
+        /// enforces it; the editor config only uses it to hide the upload button.
+        /// </summary>
+        public static bool CanUploadLinkFiles( Person person )
+        {
+            if ( person == null )
+            {
+                return false;
+            }
+            var fileType = BinaryFileTypeCache.Get( LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+            return fileType != null && fileType.IsAuthorized( Authorization.EDIT, person );
+        }
+
+        /// <summary>
+        /// The uploaded file a link row points at, or null. Prefers the explicit
+        /// <see cref="LinkItemBag.FileGuid"/>; falls back to parsing a file URL for THIS
+        /// list out of <see cref="LinkItemBag.Url"/> (so a client that only round-trips
+        /// the URL keeps the attachment). Non-link rows never carry a file.
+        /// </summary>
+        public static Guid? ResolveFileGuid( LinkItemBag bag, Guid listGuid )
+        {
+            if ( bag == null )
+            {
+                return null;
+            }
+            // Same normalization PersistMatrixItems applies, so validation, the stored
+            // URL and the lifetime sync all agree on which rows carry a file.
+            if ( NormalizeItemType( bag.ItemType ) != LinkListGuids.ItemTypeValue.Link )
+            {
+                return null;
+            }
+            return bag.FileGuid.AsGuidOrNull() ?? LinkListFiles.TryParseFileGuid( bag.Url, listGuid );
+        }
+
+        /// <summary>Distinct file guids referenced by the given rows.</summary>
+        public static HashSet<Guid> ReferencedFileGuids( IEnumerable<LinkItemBag> rows, Guid listGuid )
+        {
+            var result = new HashSet<Guid>();
+            foreach ( var row in rows ?? Enumerable.Empty<LinkItemBag>() )
+            {
+                var fileGuid = ResolveFileGuid( row, listGuid );
+                if ( fileGuid.HasValue )
+                {
+                    result.Add( fileGuid.Value );
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Gives a file link saved without text the file's name minus its extension
+        /// (the default the editor fills in on upload). The public bag never carries
+        /// the file name (see <see cref="AttachFileInfo"/>), so without this a file
+        /// link with blank text would render under its raw URL.
+        /// <paramref name="fileNames"/> comes from <see cref="ValidateLinkFiles"/>.
+        /// </summary>
+        public static void FillBlankFileLinkText( IEnumerable<LinkItemBag> rows, Guid listGuid, IDictionary<Guid, string> fileNames )
+        {
+            if ( fileNames == null || fileNames.Count == 0 )
+            {
+                return;
+            }
+            foreach ( var row in rows ?? Enumerable.Empty<LinkItemBag>() )
+            {
+                if ( row == null || !string.IsNullOrWhiteSpace( row.Text ) )
+                {
+                    continue;
+                }
+                var fileGuid = ResolveFileGuid( row, listGuid );
+                if ( fileGuid.HasValue && fileNames.TryGetValue( fileGuid.Value, out var name ) )
+                {
+                    row.Text = LinkListFiles.DefaultLinkText( name );
+                }
+            }
+        }
+
+        /// <summary>The AttributeMatrix guid holding the item's link rows, or null.</summary>
+        private Guid? GetMatrixGuid( ContentChannelItem item )
+        {
+            if ( item == null || item.Id == 0 )
+            {
+                return null;
+            }
+            if ( item.Attributes == null )
+            {
+                item.LoadAttributes( _rockContext );
+            }
+            var pointerKey = ResolveMatrixPointerKey( item, GetMatrixTemplate() );
+            return pointerKey == null ? null : item.GetAttributeValue( pointerKey ).AsGuidOrNull();
+        }
+
+        /// <summary>Parameters for <see cref="StoredLinkRowsSql"/> (fresh per command: a SqlParameter can't be shared).</summary>
+        private static List<SqlParameter> StoredLinkRowsParameters( Guid? matrixGuid, Guid listGuid )
+        {
+            return new List<SqlParameter>
+            {
+                new SqlParameter( "@MatrixGuid", SqlDbType.UniqueIdentifier ) { Value = matrixGuid.HasValue ? ( object ) matrixGuid.Value : DBNull.Value },
+                new SqlParameter( "@MatrixItemEntityTypeId", EntityTypeCache.GetId<AttributeMatrixItem>() ?? 0 ),
+                new SqlParameter( "@UrlKey", LinkListGuids.MatrixAttributeKey.Url ),
+                new SqlParameter( "@ItemTypeKey", LinkListGuids.MatrixAttributeKey.ItemType ),
+                new SqlParameter( "@UrlPrefix", LinkListFiles.FileUrlPrefix( listGuid ) )
+            };
+        }
+
+        /// <summary>
+        /// The file guids the item's SAVED link rows reference right now. One query over
+        /// the stored URL values (<see cref="StoredLinkRowsSql"/>), so it is cheap enough
+        /// for every save and every file request.
+        /// </summary>
+        public HashSet<Guid> GetSavedFileGuids( ContentChannelItem item )
+        {
+            var result = new HashSet<Guid>();
+            var matrixGuid = GetMatrixGuid( item );
+            if ( !matrixGuid.HasValue )
+            {
+                return result;
+            }
+
+            // The prefix holds only hex digits, '-' and '/', so it needs no LIKE escaping.
+            var urls = _rockContext.Database.SqlQuery<string>(
+                    "SELECT uv.[Value]" + StoredLinkRowsSql + " AND uv.[Value] LIKE @UrlPrefix + '%'",
+                    StoredLinkRowsParameters( matrixGuid, item.Guid ).ToArray<object>() )
+                .ToList();
+            foreach ( var url in urls )
+            {
+                var fileGuid = LinkListFiles.TryParseFileGuid( url, item.Guid );
+                if ( fileGuid.HasValue )
+                {
+                    result.Add( fileGuid.Value );
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Sets FileGuid on file link rows (parsed from the URL, no query) and, for the
+        /// editor only (<paramref name="includeFileNames"/>), the stored FileName in one
+        /// query. The name stays out of the public bag: it is the uploader's original
+        /// file name, which can say more than the link text does. A file link whose
+        /// file is gone keeps a null FileName, which the editor shows as missing.
+        /// </summary>
+        private void AttachFileInfo( List<LinkItemBag> bags, Guid listGuid, bool includeFileNames )
+        {
+            var guids = new List<Guid>();
+            foreach ( var bag in bags )
+            {
+                var fileGuid = ResolveFileGuid( bag, listGuid );
+                bag.FileGuid = fileGuid?.ToString();
+                if ( fileGuid.HasValue )
+                {
+                    guids.Add( fileGuid.Value );
+                }
+            }
+            if ( !includeFileNames || guids.Count == 0 )
+            {
+                return;
+            }
+
+            var names = new BinaryFileService( _rockContext ).Queryable().AsNoTracking()
+                .Where( f => guids.Contains( f.Guid ) )
+                .Select( f => new { f.Guid, f.FileName } )
+                .ToList()
+                .ToDictionary( f => f.Guid, f => f.FileName );
+            foreach ( var bag in bags )
+            {
+                var fileGuid = bag.FileGuid.AsGuidOrNull();
+                if ( fileGuid.HasValue && names.TryGetValue( fileGuid.Value, out var name ) )
+                {
+                    bag.FileName = name;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates every uploaded file the incoming rows reference, BEFORE SaveList
+        /// writes anything. Returns a user-facing error, or null.
+        /// <paramref name="fileNames"/> receives the stored name of each referenced file
+        /// that exists (for <see cref="FillBlankFileLinkText"/>).
+        ///
+        /// Files the list already references (<paramref name="savedFileGuids"/>) passed
+        /// every check when they were attached and are not re-checked. One that has
+        /// since disappeared doesn't block the save either - that would lock every
+        /// editor out of the list over one dead link; the editor marks the row instead.
+        /// A NEWLY attached file must exist and be:
+        /// - of the Link List File type;
+        /// - still temporary (a fresh upload) and uploaded by <paramref name="person"/>.
+        ///   Without this an editor could attach another list's file by guid and serve
+        ///   it under this list's (possibly public) visibility;
+        /// - an allowed extension with a consistent stored MIME type, within the size
+        ///   cap, and with a matching magic-byte signature.
+        /// The upload endpoint (LinkListController.PostUpload) already enforced the same
+        /// rules and stamped the uploader; they are re-checked here because staff with
+        /// EDIT on the type can also create files through FileUploader.ashx (with no
+        /// uploader stamped and no content checks), and SaveList is the point where a
+        /// file becomes publicly reachable.
+        /// </summary>
+        public string ValidateLinkFiles( Guid listGuid, HashSet<Guid> savedFileGuids, IEnumerable<LinkItemBag> incoming, Person person, out Dictionary<Guid, string> fileNames )
+        {
+            fileNames = new Dictionary<Guid, string>();
+
+            // Each file's first link text, to name the row in an error.
+            var linkTextByFile = new Dictionary<Guid, string>();
+            foreach ( var row in incoming ?? Enumerable.Empty<LinkItemBag>() )
+            {
+                var fileGuid = ResolveFileGuid( row, listGuid );
+                if ( fileGuid.HasValue && !linkTextByFile.ContainsKey( fileGuid.Value ) )
+                {
+                    linkTextByFile[fileGuid.Value] = row.Text;
+                }
+            }
+            if ( linkTextByFile.Count == 0 )
+            {
+                return null;
+            }
+
+            var fileTypeId = BinaryFileTypeCache.GetId( LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+            if ( !fileTypeId.HasValue )
+            {
+                return "File uploads are not set up on this server (the Link List File type is missing).";
+            }
+
+            var guids = linkTextByFile.Keys.ToList();
+            var files = new BinaryFileService( _rockContext ).Queryable().AsNoTracking()
+                .Where( f => guids.Contains( f.Guid ) )
+                .Select( f => new
+                {
+                    f.Guid,
+                    f.FileName,
+                    f.MimeType,
+                    f.FileSize,
+                    f.IsTemporary,
+                    f.BinaryFileTypeId,
+                    CreatedByPersonId = f.CreatedByPersonAlias != null ? ( int? ) f.CreatedByPersonAlias.PersonId : null
+                } )
+                .ToList()
+                .ToDictionary( f => f.Guid );
+
+            foreach ( var guid in guids )
+            {
+                var isSaved = savedFileGuids != null && savedFileGuids.Contains( guid );
+                if ( !files.TryGetValue( guid, out var file ) )
+                {
+                    if ( isSaved )
+                    {
+                        continue;
+                    }
+                    var text = linkTextByFile[guid];
+                    return string.IsNullOrWhiteSpace( text )
+                        ? "A file you attached is no longer available. Upload it again."
+                        : $"The file for the link '{text.Trim()}' is no longer available. Upload it again.";
+                }
+
+                fileNames[guid] = file.FileName;
+                if ( isSaved )
+                {
+                    continue;
+                }
+
+                if ( file.BinaryFileTypeId != fileTypeId.Value
+                    || !file.IsTemporary
+                    || person == null
+                    || file.CreatedByPersonId != person.Id )
+                {
+                    return $"The file '{file.FileName}' can't be attached to this list. Upload it again.";
+                }
+
+                var metadataError = LinkListFiles.ValidateMetadata( file.FileName, file.MimeType, file.FileSize );
+                if ( metadataError != null )
+                {
+                    return metadataError;
+                }
+
+                if ( !LinkListFiles.MatchesSignature( file.FileName, ReadFileSignature( guid ) ) )
+                {
+                    return $"'{file.FileName}' does not look like a {LinkListFiles.AllowedTypesDescription} file.";
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// The first bytes of a stored file, or null when its content is missing (Azure
+        /// returns a null stream for a missing blob).
+        ///
+        /// Deliberately uses its OWN RockContext and entity instance: BinaryFile caches
+        /// the provider stream it hands out, and Azure's stream still reports CanSeek
+        /// after disposal, so a later save of a tracked entity whose stream we had
+        /// disposed would throw ObjectDisposedException (finding from the 2026-08
+        /// storage-provider landmine audit).
+        /// </summary>
+        private static byte[] ReadFileSignature( Guid fileGuid )
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                var binaryFile = new BinaryFileService( rockContext ).Get( fileGuid );
+                using ( var stream = binaryFile?.ContentStream )
+                {
+                    return LinkListFiles.ReadSignature( stream );
+                }
+            }
+        }
+
+        /// <summary>
+        /// File lifetimes around SaveList, step 1 - call BEFORE the link rows are
+        /// written: makes every file the save will reference permanent, so there is no
+        /// moment (and no partial-failure outcome) where a linked file is still
+        /// temporary and could be cleaned up. Set-based, like
+        /// <see cref="ReconcileLinkFiles"/> (see there for why), in its own RockContext
+        /// so a failed save's pending changes are never re-submitted here.
+        /// </summary>
+        public static void MarkLinkFilesPermanent( IEnumerable<Guid> fileGuids )
+        {
+            var guids = fileGuids?.Distinct().ToList() ?? new List<Guid>();
+            var fileTypeId = BinaryFileTypeCache.GetId( LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+            if ( guids.Count == 0 || !fileTypeId.HasValue )
+            {
+                return;
+            }
+
+            using ( var rockContext = new RockContext() )
+            {
+                for ( var start = 0; start < guids.Count; start += FileGuidBatchSize )
+                {
+                    var parameters = new List<SqlParameter>
+                    {
+                        new SqlParameter( "@TypeId", fileTypeId.Value ),
+                        new SqlParameter( "@Now", RockDateTime.Now )
+                    };
+                    var inList = AddGuidParameters( parameters, guids.Skip( start ).Take( FileGuidBatchSize ) );
+                    rockContext.Database.ExecuteSqlCommand( $@"
+UPDATE [BinaryFile]
+SET [IsTemporary] = 0, [ModifiedDateTime] = @Now
+WHERE [BinaryFileTypeId] = @TypeId
+  AND [IsTemporary] = 1
+  AND [Guid] IN ( {inList} );", parameters.ToArray<object>() );
+                }
+            }
+        }
+
+        /// <summary>
+        /// File lifetimes, step 2 - call AFTER a save wrote its rows (or failed part-way),
+        /// and after a list is deleted. Each candidate file becomes permanent when one of
+        /// the list's STORED link rows points at it, and temporary otherwise (Rock
+        /// Cleanup deletes a temporary file a day after its ModifiedDateTime).
+        /// Candidates are the files the list referenced before the save plus the ones it
+        /// meant to reference; a deleted list has no item, so all of its files go
+        /// temporary. Judging the stored rows rather than the request is what makes it
+        /// right after a partial failure. No candidates, no queries.
+        ///
+        /// Concurrency: the check and the write are ONE UPDATE, run under an exclusive
+        /// per-list app lock (sp_getapplock, released at commit), so reconciles of the
+        /// same list run one at a time, each reading the rows as committed when it got
+        /// the lock. Every save reconciles after writing its own rows, so a save that
+        /// links a file always judges it after its link is stored: a linked file can't
+        /// end up temporary. (One save adding a file while an overlapping stale save
+        /// that never saw it removes it can leave that file unlinked but permanent -
+        /// wasted storage only; nothing serves it.)
+        ///
+        /// Scope of the lock: ONLY this reconcile step. The rest of a save or delete
+        /// (item, slugs, matrix rows, MarkLinkFilesPermanent) runs outside it, in its
+        /// own contexts, so two saves of one list can still interleave their row
+        /// writes. That is safe for file lifetimes because each save marks its files
+        /// permanent before writing rows and reconciles last, against the committed
+        /// rows; do not rely on this lock to serialize anything else.
+        ///
+        /// Set-based rather than through BinaryFile entities: saving a modified image
+        /// BinaryFile runs Rock's save hook, which reads the whole content stream (on
+        /// Azure, a full download) to measure the image. ModifiedDateTime is written as
+        /// Rock local time, which is what Rock Cleanup compares against (GETDATE() is
+        /// UTC on Azure SQL).
+        /// </summary>
+        public static void ReconcileLinkFiles( Guid listGuid, IEnumerable<Guid> candidateFileGuids )
+        {
+            var guids = candidateFileGuids?.Distinct().ToList() ?? new List<Guid>();
+            var fileTypeId = BinaryFileTypeCache.GetId( LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+            if ( guids.Count == 0 || !fileTypeId.HasValue )
+            {
+                return;
+            }
+
+            using ( var rockContext = new RockContext() )
+            {
+                var service = new LinkListService( rockContext );
+                var matrixGuid = service.GetMatrixGuid( service.ResolveItem( listGuid.ToString() ) );
+
+                for ( var start = 0; start < guids.Count; start += FileGuidBatchSize )
+                {
+                    var parameters = StoredLinkRowsParameters( matrixGuid, listGuid );
+                    parameters.Add( new SqlParameter( "@TypeId", fileTypeId.Value ) );
+                    parameters.Add( new SqlParameter( "@Now", RockDateTime.Now ) );
+                    parameters.Add( new SqlParameter( "@LockResource", $"org.secc.LinkList.Files:{listGuid:D}" ) );
+                    var inList = AddGuidParameters( parameters, guids.Skip( start ).Take( FileGuidBatchSize ) );
+
+                    // EnsureTransaction: the app lock is owned by (and released with) the
+                    // transaction EF wraps this batch in.
+                    rockContext.Database.ExecuteSqlCommand( TransactionalBehavior.EnsureTransaction, $@"
+DECLARE @LockResult int;
+EXEC @LockResult = sp_getapplock @Resource = @LockResource, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 15000;
+IF @LockResult < 0
+BEGIN
+    RAISERROR( 'Timed out waiting for the Link List file lock.', 16, 1 );
+    RETURN;
+END
+
+UPDATE bf
+SET bf.[IsTemporary] = s.[IsTemporary], bf.[ModifiedDateTime] = @Now
+FROM [BinaryFile] bf
+CROSS APPLY (
+    SELECT CAST( CASE WHEN EXISTS (
+        SELECT 1{StoredLinkRowsSql}
+          AND uv.[Value] = @UrlPrefix + LOWER( CONVERT( nvarchar(36), bf.[Guid] ) )
+    ) THEN 0 ELSE 1 END AS bit ) AS [IsTemporary]
+) s
+WHERE bf.[BinaryFileTypeId] = @TypeId
+  AND bf.[Guid] IN ( {inList} )
+  AND bf.[IsTemporary] <> s.[IsTemporary];", parameters.ToArray<object>() );
+                }
+            }
+        }
+
+        /// <summary>Adds one @g{n} parameter per guid and returns the comma-separated names for an IN list.</summary>
+        private static string AddGuidParameters( List<SqlParameter> parameters, IEnumerable<Guid> guids )
+        {
+            var names = new List<string>();
+            foreach ( var guid in guids )
+            {
+                var name = $"@g{names.Count}";
+                parameters.Add( new SqlParameter( name, SqlDbType.UniqueIdentifier ) { Value = guid } );
+                names.Add( name );
+            }
+            return string.Join( ", ", names );
+        }
+
+        /// <summary>
+        /// Deletes a list (the caller has checked ADMINISTRATE and CanDelete), then lets
+        /// Rock Cleanup collect its uploaded files. Finding the files and releasing them
+        /// are both best-effort and logged, so neither can fail a delete that would
+        /// otherwise succeed: a file left permanent is only wasted storage, since nothing
+        /// serves a deleted list's files.
+        /// </summary>
+        public void DeleteList( ContentChannelItem item )
+        {
+            var listGuid = item.Guid;
+            var fileGuids = new HashSet<Guid>();
+            try
+            {
+                fileGuids = GetSavedFileGuids( item );
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+            }
+
+            new ContentChannelItemService( _rockContext ).Delete( item );
+            _rockContext.SaveChanges();
+
+            try
+            {
+                ReconcileLinkFiles( listGuid, fileGuids );
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+            }
+        }
+
+        /// <summary>
+        /// The file to serve for <c>GET api/secc/linklist/{listGuid}/file/{fileGuid}</c>,
+        /// or null (the caller answers 404 - never 403, so nothing is enumerable).
+        /// Served only when ALL hold:
+        /// - the list exists in the Link List channel and is public, or the person
+        ///   (resolved through <paramref name="getPerson"/> only for a private list, so a
+        ///   public file costs no login lookup) can edit it - the in-Rock preview;
+        /// - one of the list's saved link rows points at this file - so a file stops
+        ///   being served the moment it is removed from the list;
+        /// - the file is a non-temporary Link List File with an allowed extension.
+        /// <paramref name="isPublic"/> tells the caller how to set caching.
+        /// </summary>
+        public BinaryFile GetServableLinkFile( Guid listGuid, Guid fileGuid, Func<Person> getPerson, out bool isPublic )
+        {
+            isPublic = false;
+
+            var item = ResolveItem( listGuid.ToString() );
+            if ( item == null )
+            {
+                return null;
+            }
+
+            item.LoadAttributes( _rockContext );
+            isPublic = ReadIsPublic( item );
+            if ( !isPublic )
+            {
+                var person = getPerson?.Invoke();
+                if ( person == null || !CanEditItem( item, person ) )
+                {
+                    return null;
+                }
+            }
+
+            if ( !GetSavedFileGuids( item ).Contains( fileGuid ) )
+            {
+                return null;
+            }
+
+            var fileTypeId = BinaryFileTypeCache.GetId( LinkListGuids.BinaryFileTypeLinkListFile.AsGuid() );
+            var binaryFile = new BinaryFileService( _rockContext ).Get( fileGuid );
+            if ( binaryFile == null
+                || !fileTypeId.HasValue
+                || binaryFile.BinaryFileTypeId != fileTypeId.Value
+                || binaryFile.IsTemporary
+                || LinkListFiles.GetContentType( binaryFile.FileName ) == null )
+            {
+                return null;
+            }
+
+            return binaryFile;
         }
 
         // ---------------------------------------------------------------------
