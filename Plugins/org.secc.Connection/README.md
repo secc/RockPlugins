@@ -15,8 +15,10 @@ opportunity-search variant kept in source but excluded from the packaged plugin.
 
 - **Packaged plugin:** `SignupWizard.plugin` (built by `BuildPlugin.ps1`, zipped via 7-Zip)
 - **Root namespace:** `org.secc.Connection`
-- **Build model:** No `.csproj` / compiled assembly — block code-behind (`.ascx.cs`) compiles in
-  RockWeb; the plugin ships markup + Lava only.
+- **Build model:** No plugin `.csproj` or compiled assembly — block code-behind (`.ascx.cs`)
+  compiles in RockWeb; the plugin ships markup + Lava only. `org.secc.Connection.Tests.csproj` at the
+  plugin root is a test project only: it compiles the Volunteer Signup Form - Connections code-behind
+  for its tests and is not packaged or deployed.
 - **Deploys to:** `RockWeb/Plugins/org_secc/Connection/` (block `.ascx`/`.ascx.cs`, Lava templates,
   CSS)
 
@@ -32,6 +34,8 @@ opportunity-search variant kept in source but excluded from the packaged plugin.
   CardPage.lava       / CardPage/            Single-page card-panel output
   CardWizard.lava     / CardWizard/          Animated left-to-right card output (Single/Multiple mode)
 BuildPlugin.ps1                              Packages /org_secc into SignupWizard.plugin
+org.secc.Connection.Tests.csproj             Test project (xUnit): links VolunteerSignupFormConnections.ascx.cs
+/org.secc.Connection.Tests/                  Tests and a test-only partial declaring the block's controls
 ```
 
 ## Components
@@ -57,6 +61,10 @@ Category in Rock: **SECC > Connection**.
 | **Lava** | code | Output template; defaults to a switch that `include`s `VolunteerGenius`, `CardPage`, or `CardWizard`. |
 | **Enable Debug** | bool (default false) | Show available Lava merge fields. |
 
+If the connection opportunity (or group) chosen in **Settings** is later deleted, the wizard shows a
+warning ("This signup isn't configured: its connection opportunity no longer exists.") instead of
+rendering, and the settings panel still opens so an admin can pick a new one (issue #57).
+
 **Volunteer Signup Form - Connections** — standard block attributes:
 
 | Setting | Type | Notes |
@@ -70,6 +78,23 @@ Category in Rock: **SECC > Connection**.
 | **UrlKeys** / **FormKeys** | text (CSV) | Group-member attribute keys set from the URL / shown as edit controls. |
 | Display Add Another | bool (default false) | Show "Connect and Add Another". |
 | Comment label text / Comments Required | text / bool | Comment box label and requirement. |
+
+#### How a signup is placed
+
+- Signups are taken only when the opportunity and its connection type are both active. Otherwise
+  the form shows "This opportunity isn't taking signups right now." (or "The requested opportunity
+  does not exist." when there is no such opportunity) and Connect creates nothing.
+- Each request's group and role come from the link: `GroupId` with `GroupTypeRoleId` or
+  `GroupTypeRole` (a role Guid; the group type's default role when neither is given), or the
+  `RoleRequests` JSON, whose entries carry `GroupId` with `GroupTypeRoleId` or `GroupTypeRole`.
+- A request is placed (`AssignedGroup`, role and member status set) only when the group is active,
+  not archived, not a role group, and its group type plus the requested role match one of the
+  opportunity's group configs. The member status comes from that config. The group must also be on
+  the opportunity's group list, unless any of the opportunity's group configs for that group type
+  (for any role) has **Use All Groups of This Type** set to Yes.
+- Otherwise the request is still created, with no group, role or member status.
+- **Signup-Blocking Requirement Types** and group member attribute values apply only to placed
+  requests.
 
 #### How `UrlKeys` values reach a connection request
 
@@ -88,7 +113,9 @@ the `RoleRequests` collection before the form binds. Two details matter:
   over the same key spelled differently in the block setting.
 
 A key must also exist as an attribute on the target group member, and hold a non-empty value, to be
-applied — see `AddGroupMemberAttributes` in `VolunteerSignupFormConnections.ascx.cs`.
+applied — see `AddGroupMemberAttributes` in `VolunteerSignupFormConnections.ascx.cs`. Member
+attribute values, from the link or the form, are written to a request only when that request gets a
+placement group; a request created without a group carries none.
 
 **Connection Opportunity Search** — `Lava Template`, `Enable Debug`, `Enable Campus Context`,
 `Set Page Title`, `Display Name/Campus/Attribute Filters`, `Detail Page` (linked page),
@@ -160,9 +187,11 @@ Content share and are copied there by hand, so a change to the partials here has
   file and never replaces one (only the signed-in person may change their own) — SECC keeps the
   account-protection duplicate-ignore list empty on purpose, so this is the guard against an
   anonymous post redirecting someone's mobile.
+- Placement rules live in `ResolvePlacement`; the per-request build (placement, then the
+  signup-blocking requirement check, then member attribute values) is `BuildConnectionRequest`.
 - Re-package with `BuildPlugin.ps1` (Windows + 7-Zip) — note it intentionally excludes
   `ConnectionOpportunitySearch.ascx*` from the `.plugin`.
 - If a URL-supplied attribute value isn't landing on the connection request, check the merge in the
   `RoleRequests` getter and the apply step in `AddGroupMemberAttributes` — a key has to survive both.
 
-Last updated: 2026-10-30
+Last updated: 2026-11-13

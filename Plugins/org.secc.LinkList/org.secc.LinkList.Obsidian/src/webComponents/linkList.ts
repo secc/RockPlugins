@@ -1,6 +1,7 @@
 import type { LinkItemBag, LinkListBag } from "../types";
 import {
     backgroundImageUrl,
+    cardImageUrl,
     headerBackgroundImageUrl,
     headerImageUrl,
     safeColor,
@@ -10,7 +11,8 @@ import {
     vimeoEmbedUrl,
     youTubeEmbedUrl
 } from "../linkListParity";
-import { groupIntoSections, hoistFeatured, isFeaturedLink, type SectionBlock } from "../linkListItems";
+import { resolveLinkHref } from "../linkListFiles";
+import { groupIntoSections, hoistFeatured, isCardLink, isFeaturedLink, type SectionBlock } from "../linkListItems";
 
 // <secc-link-list> — the single, self-contained renderer for a Link List, used
 // BOTH on external embeds (Webflow, self-fetches by slug) and in-Rock (the Viewer
@@ -311,19 +313,48 @@ ${this.styles()}
         } ) );
     }
 
-    /** A top-level row: separator -> rule; featured/normal link -> pill. */
+    /** A top-level row: separator -> rule; card link -> card; featured/normal link -> pill. */
     private renderTopItem( item: LinkItemBag ): string {
         if ( ( item.itemType ?? "link" ) === "separator" ) {
             return `<div class="rule" part="separator"></div>`;
         }
-        return this.renderTopLink( item );
+        return isCardLink( item ) ? this.renderCard( item, false ) : this.renderTopLink( item );
+    }
+
+    /**
+     * ROCK-9361: a card-style link. The WHOLE card is one anchor (title,
+     * description, image all clickable) and keeps part="link" + data-link-id so
+     * the delegated click-beacon listener records it like any other link. The
+     * subtitle doubles as the card description. In a section (inSection) it
+     * takes the inner-pill colors; a featured card takes the featured colors.
+     */
+    private renderCard( item: LinkItemBag, inSection: boolean ): string {
+        const classes = [
+            "link-card",
+            inSection ? "in-section" : "",
+            !inSection && isFeaturedLink( item ) ? "featured" : ""
+        ].filter( c => !!c ).join( " " );
+        const label = safeText( item.text || item.fileName || item.url || "Link" );
+        const img = cardImageUrl( this.baseUrl, item.cardImage );
+        const imgMarkup = img
+            ? `<img class="card-img" part="card-image" src="${safeText( img )}" alt="" loading="lazy" />`
+            : "";
+        const desc = item.subtitle ? `<div class="card-desc" part="card-description">${safeText( item.subtitle )}</div>` : "";
+        const url = safeUrl( resolveLinkHref( this.baseUrl, item.url ) );
+        const target = safeTarget( item.target );
+        const rel = target === "_blank" ? ` rel="noopener noreferrer"` : "";
+        const linkId = safeText( item.guid || item.matrixItemGuid || "" );
+        return `<a class="${classes}" part="link" href="${safeText( url )}" target="${target}"${rel}${linkId ? ` data-link-id="${linkId}"` : ""}>`
+            + imgMarkup
+            + `<div class="card-body"><div class="card-text"><div class="card-title" part="card-title">${label}</div>${desc}</div>`
+            + `<span class="card-arrow" aria-hidden="true">&rsaquo;</span></div></a>`;
     }
 
     private renderTopLink( item: LinkItemBag ): string {
         const featuredClass = isFeaturedLink( item ) ? " featured" : "";
-        const label = safeText( item.text || item.url || "Link" );
+        const label = safeText( item.text || item.fileName || item.url || "Link" );
         const sub = item.subtitle ? `<div class="btn-sub" part="link-subtitle">${safeText( item.subtitle )}</div>` : "";
-        const url = safeUrl( item.url );
+        const url = safeUrl( resolveLinkHref( this.baseUrl, item.url ) );
         const target = safeTarget( item.target );
         const rel = target === "_blank" ? ` rel="noopener noreferrer"` : "";
         const linkId = safeText( item.guid || item.matrixItemGuid || "" );
@@ -345,17 +376,20 @@ ${this.styles()}
             + `<button class="accord-trigger" type="button" aria-expanded="${open}" aria-controls="${bodyId}">`
             + `<span class="accord-heading">${heading}</span>`
             + `<span class="accord-chevron">${CHEVRON_SVG}</span></button>`
-            + `<div class="accord-body" id="${bodyId}"><div class="accord-divider"></div>`
-            + `<div class="accord-inner">${desc}<div class="accord-links">${links}</div></div></div></div>`;
+            + `<div class="accord-body" id="${bodyId}"><div class="accord-clip"><div class="accord-divider"></div>`
+            + `<div class="accord-inner">${desc}<div class="accord-links">${links}</div></div></div></div></div>`;
     }
 
     private renderAccordChild( item: LinkItemBag ): string {
         if ( ( item.itemType ?? "link" ) === "separator" ) {
             return `<div class="rule" part="separator"></div>`;
         }
-        const label = safeText( item.text || item.url || "Link" );
+        if ( isCardLink( item ) ) {
+            return this.renderCard( item, true );
+        }
+        const label = safeText( item.text || item.fileName || item.url || "Link" );
         const sub = item.subtitle ? `<span class="accord-link-sub" part="link-subtitle">${safeText( item.subtitle )}</span>` : "";
-        const url = safeUrl( item.url );
+        const url = safeUrl( resolveLinkHref( this.baseUrl, item.url ) );
         const target = safeTarget( item.target );
         const rel = target === "_blank" ? ` rel="noopener noreferrer"` : "";
         const linkId = safeText( item.guid || item.matrixItemGuid || "" );
@@ -404,7 +438,7 @@ ${this.styles()}
 .ll-root {
     --white:#FFFFFF; --page-bg:#F5F4F2; --black:#0F0F0F; --charcoal:#1C1C1C;
     --dark-gray:#3A3A3A; --mid-gray:#888888; --light-gray:#D4D2CE; --hairline:#E4E2DE;
-    --radius-btn:100px; --radius-accord:10px;
+    --radius-btn:100px; --radius-accord:10px; --radius-card:14px;
     --shadow-card:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
     --shadow-hover:0 6px 20px rgba(0,0,0,.11),0 2px 6px rgba(0,0,0,.05);
     font-family:'Inter',system-ui,-apple-system,sans-serif;
@@ -474,6 +508,34 @@ ${this.styles()}
 .btn-sub { font-weight:400; font-size:.85rem; color:var(--mid-gray); letter-spacing:.01em; }
 .btn-arrow { font-size:1.3rem; color:var(--light-gray); line-height:1; margin-left:4px; transition:transform .18s,color .18s; }
 .link-btn:hover .btn-arrow { transform:translateX(2px); color:var(--mid-gray); }
+/* ROCK-9361: card-style links, per Steven Estes' design (se-church-links_8):
+   optional 16:9 image, left-aligned uppercase title + description, arrow at the
+   right, whole card clickable. Same theming vars as the pills (button colors at
+   top level, section colors inside an accordion, featured colors when featured). */
+.link-card {
+    width:100%; display:flex; flex-direction:column; overflow:hidden;
+    background:var(--ll-btn-bg, var(--white)); color:var(--ll-btn-fg, var(--charcoal));
+    border:1px solid var(--hairline); border-radius:var(--radius-card);
+    box-shadow:var(--shadow-card); text-decoration:none; text-align:left;
+    transition:box-shadow .18s, background .18s, border-color .18s, transform .14s;
+}
+.link-card:hover { box-shadow:var(--shadow-hover); border-color:var(--light-gray); transform:translateY(-2px); }
+.link-card:focus-visible { outline:2px solid var(--charcoal); outline-offset:3px; }
+.card-img { display:block; width:100%; aspect-ratio:16/9; height:auto; object-fit:cover; background:var(--light-gray); }
+.card-body { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px 20px 18px; }
+.card-text { display:flex; flex-direction:column; gap:6px; text-align:left; min-width:0; }
+.card-title { font-weight:600; font-size:.95rem; letter-spacing:.13em; text-transform:uppercase; line-height:1.2; color:inherit; }
+.card-desc { font-weight:400; font-size:.9rem; line-height:1.5; color:var(--mid-gray); }
+.card-arrow { font-size:1.3rem; line-height:1; color:var(--light-gray); flex-shrink:0; transition:transform .18s, color .18s; }
+.link-card:hover .card-arrow { transform:translateX(2px); color:var(--mid-gray); }
+.link-card.featured { background:var(--ll-feat-bg, var(--charcoal)); border-color:var(--ll-feat-bg, var(--charcoal)); color:var(--ll-feat-fg, var(--white)); }
+.link-card.featured .card-desc { color:rgba(255,255,255,.55); }
+.link-card.featured .card-arrow { color:rgba(255,255,255,.25); }
+.link-card.featured:hover { filter:brightness(1.12); box-shadow:0 8px 28px rgba(0,0,0,.22); }
+.link-card.featured:hover .card-arrow { color:rgba(255,255,255,.5); }
+.link-card.in-section { background:var(--ll-bg, var(--page-bg)); color:var(--ll-fg, var(--charcoal)); box-shadow:none; border-radius:12px; }
+.link-card.in-section:hover { box-shadow:var(--shadow-hover); transform:translateY(-1px); }
+.link-card.in-section .card-body { padding:14px 18px 16px; }
 .rule { width:100%; height:1px; background:var(--hairline); margin:4px 0 0; }
 /* WS7 fix 8 (supersedes fix 4): accordions are themed cards. The card surface uses
    the button color with button-text-color heading/chevron/description; inner pills
@@ -486,8 +548,11 @@ ${this.styles()}
 .accord-chevron { width:20px; height:20px; color:inherit; opacity:.6; transition:transform .26s ease,opacity .18s; flex-shrink:0; }
 .accord-chevron svg { width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
 .accordion.open .accord-chevron { transform:rotate(180deg); opacity:.95; }
-.accord-body { max-height:0; overflow:hidden; transition:max-height .32s cubic-bezier(.4,0,.2,1); }
-.accordion.open .accord-body { max-height:1600px; }
+/* ROCK-9361: the open height follows the content (grid 0fr -> 1fr) instead of a
+   fixed max-height cap, which clipped sections holding several image cards. */
+.accord-body { display:grid; grid-template-rows:0fr; transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1); }
+.accordion.open .accord-body { grid-template-rows:1fr; }
+.accord-clip { min-height:0; overflow:hidden; }
 .accord-divider { height:1px; background:currentColor; opacity:.18; margin:0 22px; }
 .accord-inner { padding:16px 22px 20px; }
 .accord-desc { font-weight:400; font-size:.95rem; color:inherit; opacity:.8; line-height:1.6; margin-bottom:12px; text-align:center; }

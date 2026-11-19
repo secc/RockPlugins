@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- org.secc.Connection has no project of its own: its blocks are compiled by RockWeb. This test
+       project sits in the plugin folder and compiles the Volunteer Signup Form - Connections code-behind
+       directly, together with a test-only partial (org.secc.Connection.Tests\BlockControls.cs) that
+       declares the controls the .ascx file would generate. Only the files listed below are compiled. -->
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- Test project: do not copy anything into RockWeb. It has no post-build event and no project
+         references, so nothing it builds is copied there. -->
+    <CopyToRockWeb>false</CopyToRockWeb>
+    <!-- RockWeb compiles the code-behind with C# 7.3; build it the same way here. -->
+    <LangVersion>7.3</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <RootNamespace>org.secc.Connection.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Resolve RockWeb: honor an explicit /p:RockWebPath, then the Rock solution layout (SolutionDir),
+       then a Rock checkout in the Plugins folder (the layout FamilyCheckin.Tests probes). -->
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('..\Rock\RockWeb\Bin')">..\Rock\RockWeb</RockWebPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="org_secc\Connection\VolunteerSignupFormConnections.ascx.cs" Link="Blocks\VolunteerSignupFormConnections.ascx.cs" />
+    <Compile Include="org.secc.Connection.Tests\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The block is a Rock Web Forms block. The tests build it with no page or database: they
+         replace the group lookup and the page parameters, and put the few cache entries the block
+         reads (phone types, the security role group type) into Rock's in-memory cache. -->
+    <Reference Include="Rock">
+      <HintPath>$(RockWebPath)\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common">
+      <HintPath>$(RockWebPath)\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Enums">
+      <HintPath>$(RockWebPath)\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
+    <Reference Include="DotLiquid">
+      <HintPath>$(RockWebPath)\Bin\DotLiquid.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Lava.Shared">
+      <HintPath>$(RockWebPath)\Bin\Rock.Lava.Shared.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>$(RockWebPath)\Bin\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+</Project>

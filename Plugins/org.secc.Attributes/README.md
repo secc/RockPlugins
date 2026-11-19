@@ -9,7 +9,7 @@ standard Rock attribute editor (configure once, then attach to any entity) and p
 control and value-formatting logic. The three types are a **cascading dropdown** (chained dropdowns
 filtered by the prior selection, driven by a key^value matrix or a SQL query), a **dynamic phone
 number** (phone-type defined value + number), and a **multi-file upload** (multiple `BinaryFile`s
-stored behind a single attribute via an `AttributeMatrix`). Two of them ship a strongly-typed
+stored behind a single attribute as a comma-separated list of their Guids). Two of them ship a strongly-typed
 `FieldAttribute` subclass so they can be applied to blocks/components in code.
 
 ## Project Info
@@ -38,7 +38,7 @@ Each extends `Rock.Field.FieldType` and is registered with Rock by class name (n
 |--------------------|--------------|-------------|--------------|
 | `CascadingDropDownFieldType` | `\|`-joined selected keys (one per level) | `configuration` (the data matrix) | `CascadingDropDownList` |
 | `DynamicPhoneNumberFieldType` | `{phoneTypeDefinedValueId}\|{number}` | (none) | `DynamicPhoneNumberPicker` |
-| `MultiFileFieldType` | an `AttributeMatrix` Guid (rows reference `BinaryFile`s) | `binaryfiletype`, `maxfiles`, `allowedextensions` | `MultiFileUpload` |
+| `MultiFileFieldType` | comma-separated `BinaryFile` Guids (legacy values: an `AttributeMatrix` Guid) | `binaryfiletype`, `maxfiles`, `allowedextensions` | `MultiFileUpload` |
 
 **`CascadingDropDownFieldType`** — one config textarea (**`configuration`**, the "Data Matrix")
 defines the option tree. `KeyValueMatrix` parses it three ways (tried in order): JSON, a SQL `SELECT`
@@ -52,10 +52,24 @@ from the `PERSON_PHONE_TYPE` defined type) with a `PhoneNumberBox`. `FormatValue
 defined-value Id back to its label (e.g. `Mobile: 555-1234`).
 
 **`MultiFileFieldType`** — the most involved. Uploaded files become `BinaryFile`s; the attribute value
-is the Guid of an `AttributeMatrix` whose items each hold one file in a `File` column. On first use it
-auto-provisions a single shared `AttributeMatrixTemplate` (well-known Guid `D95683B6-…-F48A79340175`,
-cached in a static field). `GetEditValue` reconciles rows against the picker's current file Ids
-(adds new, deletes removed). Media embeds render from **both `FormatValue` and `FormatValueAsHtml`**:
+is a comma-separated list of their Guids, in display order. `GetEditValue` keeps only files of the
+configured binary file type that are fresh uploads or already in the value, and marks them permanent (`IsTemporary = false`), because the upload
+handler creates them as temporary and Rock only does that for core File/Image fields. A posted file
+that fails that check (gone, wrong type, or someone else's saved file) drops out of the list, and the
+next validating submit fails once with a message rather than silently saving without it. The
+rejection is kept in ViewState because WorkflowEntry reads edit values on postbacks that don't
+validate (visibility rules). A non-validating action button (Cancel) still saves without it.
+Because Rock reads edit values before it validates, uploads are made permanent early; if that submit
+then fails validation, the control sets them back to temporary so Cleanup can remove abandoned uploads.
+It does not undo on any other request (a visibility postback, a non-validating button), since that
+request may have saved the value, so those abandoned uploads can still be left permanent. Files already
+in the value are kept even if the attribute's binary file type has since changed. `MaxFiles` is enforced
+on the server as well as in the browser; a value saved before an admin lowered it may keep its files
+but not add more. Values saved
+before Nov 2026 hold the Guid of an `AttributeMatrix` (shared template `D95683B6-…-F48A79340175`,
+one `File` row per file); they are still read but never written. Rock Cleanup's
+`spCore_DeleteOrphanedAttributeMatrices` only keeps matrices referenced by a core Matrix field, so it
+deleted every MultiFile matrix as an orphan. Media embeds render from **both `FormatValue` and `FormatValueAsHtml`**:
 video files embed as a native `<video>` player and images as an `<img>` thumbnail, each with its
 `GetFile.ashx` download link directly beneath; non-media files render as a plain link. Both paths
 embed because Rock resolves attribute display through `FormatValue` on some surfaces (Workflow Entry
@@ -79,7 +93,7 @@ a link. Condensed/grid contexts show an `"N files"` count rather than embedded m
 |---------|------------|---------|
 | `CascadingDropDownList` | `CompositeControl`, `IRockControl` | N chained `RockDropDownList`s, re-filtered on `SelectedIndexChanged` postback. |
 | `DynamicPhoneNumberPicker` | `CompositeControl`, `IRockControl` | Phone-type `RockDropDownList` + `PhoneNumberBox` in a Bootstrap row. |
-| `MultiFileUpload` | `CompositeControl`, `IRockControl` | HTML5 multi-file `<input>` + a server-rendered removable file list; uploads each file to `/FileUploader.ashx` over XHR and tracks resulting Ids in a hidden field. |
+| `MultiFileUpload` | `CompositeControl`, `IRockControl` | HTML5 multi-file `<input>` + a server-rendered removable file list; uploads each file to `/FileUploader.ashx` over XHR and tracks the resulting Guids (never the guessable integer Ids) in a hidden field. |
 
 ### Field Attributes
 
@@ -99,20 +113,16 @@ a link. Condensed/grid contexts show an `"N files"` count rather than embedded m
   `BinaryFile` / `BinaryFileType`, `AttributeMatrix` / `AttributeMatrixTemplate` / `AttributeMatrixItem`,
   `FieldTypeCache` / `EntityTypeCache`, `Rock.Data.DbService` (raw SQL), and the `/FileUploader.ashx` /
   `/GetFile.ashx` handlers.
-- **Third-party:** Newtonsoft.Json (matrix (de)serialization), EntityFramework (transitive via Rock).
+- **Third-party:** Newtonsoft.Json (cascading-dropdown matrix (de)serialization), EntityFramework (transitive via Rock).
 - No REST endpoints, jobs, migrations, or Lava filters.
 
 ## Observations
 
 *Noticed while documenting — not a full audit.*
 
-- **Improvement:** `MultiFileFieldType.GetEditValue` performs several `SaveChanges()` calls and
-  per-row `LoadAttributes()` inside a loop — workable for a handful of files, but chatty for large
-  sets. The shared-template Id is cached statically (`_sharedTemplateIdCache`), which is fine, but the
-  template is never re-validated if deleted out from under the cache.
-- **Improvement:** Removing files from a `MultiFileUpload` deletes the `AttributeMatrixItem` rows but
-  does not delete the orphaned `BinaryFile`s themselves; they remain in storage unless cleaned up
-  elsewhere.
+- **Improvement:** Removing a file from a `MultiFileUpload` leaves the `BinaryFile` in storage. It is
+  not marked temporary on purpose: workflows copy the same value between attributes, so another value
+  may still point at it.
 
 ## Making Changes
 
@@ -122,10 +132,10 @@ a link. Condensed/grid contexts show an `"N files"` count rather than embedded m
   `<Compile>` list. Follow an existing trio (e.g. `DynamicPhoneNumber*`) as a template.
 - Cascading-dropdown parsing/filtering lives entirely in `Helpers/KeyValueMatrix.cs`
   (`BuildFromConfiguration` for parsing, `FormatValue` for display).
-- The multi-file template provisioning and row reconciliation live in `MultiFileFieldType`
-  (`EnsureSharedTemplate`, `GetEditValue`); the client-side upload/remove behavior is the inline JS in
+- Multi-file value parsing (including legacy matrix values) and saving live in `MultiFileFieldType`
+  (`GetFileGuids`, `GetEditValue`); the client-side upload/remove behavior is the inline JS in
   `Controls/MultiFileUpload.cs` (`RegisterClientScript`).
 
 ---
 
-**Last updated:** 2026-06-29
+**Last updated:** 2026-11-11

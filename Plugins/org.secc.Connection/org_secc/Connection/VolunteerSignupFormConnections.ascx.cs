@@ -111,8 +111,7 @@ namespace org.secc.Connection
                         roleRequest.GroupTypeRoleId = PageParameter( "GroupTypeRoleId" ).AsInteger();
                         if ( roleRequest.GroupTypeRoleId == 0 && PageParameter( "GroupTypeRole" ).AsGuidOrNull().HasValue )
                         {
-                            GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
-                            roleRequest.GroupTypeRoleId = groupTypeRoleService.Get( PageParameter( "GroupTypeRole" ).AsGuid() ).Id;
+                            roleRequest.GroupTypeRoleId = LoadGroupTypeRole( PageParameter( "GroupTypeRole" ).AsGuid() ).Id;
                         }
                         _roleRequests.Add( roleRequest );
                     }
@@ -165,20 +164,18 @@ namespace org.secc.Connection
                 // Handle any situation where we have a 0 role id
                 if ( _roleRequests.Any( rr => rr.GroupId > 0 && rr.GroupTypeRoleId == 0 ) )
                 {
-                    GroupService groupService = new GroupService( new RockContext() );
                     foreach ( var roleRequest in _roleRequests )
                     {
 
                         if ( roleRequest.GroupId > 0 && roleRequest.GroupTypeRole.AsGuidOrNull().HasValue )
                         {
-                            GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
-                            roleRequest.GroupTypeRoleId = groupTypeRoleService.Get( roleRequest.GroupTypeRole.AsGuid() ).Id;
+                            roleRequest.GroupTypeRoleId = LoadGroupTypeRole( roleRequest.GroupTypeRole.AsGuid() ).Id;
                         }
 
                         // Get the Default role from this group
                         if ( roleRequest.GroupId > 0 && roleRequest.GroupTypeRoleId == 0 )
                         {
-                            Group group = groupService.Get( roleRequest.GroupId );
+                            Group group = new GroupService( new RockContext() ).Get( roleRequest.GroupId );
                             if ( group != null && group.GroupType.DefaultGroupRoleId.HasValue )
                             {
                                 roleRequest.GroupTypeRoleId = group.GroupType.DefaultGroupRoleId.Value;
@@ -288,26 +285,29 @@ namespace org.secc.Connection
             lRequirementBlockMessage.Text = string.Empty;
             lRequirementBlockMessage.Visible = false;
 
-            using ( var rockContext = new RockContext() )
+            using ( var rockContext = CreateRockContext() )
             {
-                var opportunityService = new ConnectionOpportunityService( rockContext );
                 var connectionRequestService = new ConnectionRequestService( rockContext );
                 var personService = new PersonService( rockContext );
 
                 // Get the opportunity and default status
                 int opportunityId = PageParameter( "OpportunityId" ).AsInteger();
-                var opportunity = opportunityService
-                    .Queryable()
-                    .Where( o => o.Id == opportunityId )
-                    .FirstOrDefault();
+                var opportunity = LoadOpportunity( rockContext, opportunityId );
 
-                int defaultStatusId = opportunity == null ? 0 : opportunity.ConnectionType.ConnectionStatuses
+                if ( !IsOpenForSignup( opportunity ) )
+                {
+                    pnlSignup.Visible = false;
+                    ShowError( "Incorrect Opportunity Type", opportunity == null ? "The requested opportunity does not exist." : "This opportunity isn't taking signups right now." );
+                    return;
+                }
+
+                int defaultStatusId = opportunity.ConnectionType.ConnectionStatuses
                     .Where( s => s.IsDefault )
                     .Select( s => s.Id )
                     .FirstOrDefault();
 
                 // If opportunity is valid and has a default status
-                if ( opportunity != null && defaultStatusId > 0 )
+                if ( defaultStatusId > 0 )
                 {
                     Person person = null;
 
@@ -507,7 +507,6 @@ namespace org.secc.Connection
                             connectionRequest.CampusId = campusId;
                             connectionRequest.ConnectorPersonAliasId = opportunity.GetDefaultConnectorPersonAliasId( campusId );
                             if ( campusId.HasValue &&
-                                opportunity != null &&
                                 opportunity.ConnectionOpportunityCampuses != null )
                             {
                                 var campus = opportunity.ConnectionOpportunityCampuses
@@ -519,158 +518,9 @@ namespace org.secc.Connection
                                 }
                             }
 
-                            var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
-                            var hdnGroupRoleTypeId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) );
-
-
-                            if ( hdnGroupId.Value.AsInteger() > 0 && hdnGroupRoleTypeId.Value.AsInteger() > 0 )
+                            if ( !BuildConnectionRequest( rockContext, connectionRequest, opportunity, RepeaterIndex, person, firstName, enteredForHouseholdMember, birthDateFilledFromForm ) )
                             {
-                                connectionRequest.AssignedGroupId = hdnGroupId.Value.AsInteger();
-                                connectionRequest.AssignedGroupMemberRoleId = hdnGroupRoleTypeId.Value.AsInteger();
-                                var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == hdnGroupRoleTypeId.Value.AsInteger() ).FirstOrDefault();
-                                connectionRequest.AssignedGroupMemberStatus = groupConfig.GroupMemberStatus;
-
-                            }
-
-                            // ROCK-8790: Enforce the assigned role's Group Requirements at signup — but
-                            // OPT-IN per requirement type, per block instance. This block is shared across
-                            // ~30+ signup instances; only Group Requirement Types explicitly named in the
-                            // "Signup-Blocking Requirement Types" setting hard-block a signup at the form.
-                            // Blank => block nothing, so every other instance is unaffected by default and
-                            // its requirements still evaluate/pass through onto the connection request.
-                            var blockingRequirementTypeNames = ( GetAttributeValue( "SignupBlockingRequirementTypes" ) ?? string.Empty )
-                                .Split( ',' )
-                                .Select( n => n.Trim() )
-                                .Where( n => !string.IsNullOrWhiteSpace( n ) )
-                                .ToList();
-
-                            // The person prospect has already been created/matched and committed above, so
-                            // requirement DataViews/SQL evaluate against the person's persisted data (including
-                            // any birthday just filled in from the form — see the SaveChanges above). If any
-                            // listed requirement for this group + role is not met, hard-block the submit BEFORE
-                            // rockContext.SaveChanges() so that no ConnectionRequest (and nothing downstream)
-                            // is created for an ineligible volunteer.
-                            if ( blockingRequirementTypeNames.Any() && connectionRequest.AssignedGroupId.HasValue )
-                            {
-                                var assignedGroup = new GroupService( rockContext ).Get( connectionRequest.AssignedGroupId.Value );
-                                if ( assignedGroup != null )
-                                {
-                                    // Personalize the block message: "[Name] isn't eligible for the [Role] role — [reason]."
-                                    // The message renders in lRequirementBlockMessage (just above the submit buttons),
-                                    // NOT lResponseMessage (top), which is reserved for the normal connect response.
-                                    // HTML-encode every data-derived value interpolated into the alert-danger
-                                    // markup below (name / role / requirement labels) so values containing
-                                    // &, ', or < don't break the markup. .EncodeHtml() is Rock's string
-                                    // extension (via using Rock;) and is null-safe. Literal markup in the
-                                    // format strings (the div wrapper, <br />) stays un-encoded.
-                                    // Someone reached through their family is named as entered: the nickname on
-                                    // file would tell an anonymous poster something they did not type.
-                                    var registrantName = enteredForHouseholdMember
-                                        ? firstName.EncodeHtml()
-                                        : ( !string.IsNullOrWhiteSpace( person.NickName ) ? person.NickName : person.FirstName ).EncodeHtml();
-                                    var assignedRoleName = connectionRequest.AssignedGroupMemberRoleId.HasValue
-                                        ? new GroupTypeRoleService( rockContext ).Get( connectionRequest.AssignedGroupMemberRoleId.Value )?.Name.EncodeHtml()
-                                        : null;
-                                    var roleClause = !string.IsNullOrWhiteSpace( assignedRoleName )
-                                        ? string.Format( "the {0} role", assignedRoleName )
-                                        : "this role";
-
-                                    List<string> blockingMessages;
-                                    try
-                                    {
-                                        blockingMessages = assignedGroup
-                                            .PersonMeetsGroupRequirements( rockContext, person.Id, connectionRequest.AssignedGroupMemberRoleId )
-                                            .Where( r =>
-                                                r.GroupRequirement != null &&
-                                                r.GroupRequirement.GroupRequirementType != null &&
-                                                // The explicit name allowlist (case-insensitive) is the intent
-                                                // control, so a listed type gates regardless of its
-                                                // MustMeetRequirementToAddMember flag (that filter is intentionally
-                                                // dropped). The non-Manual guard stays so a mistakenly-listed Manual
-                                                // type can't blanket-block every new signup (Manual returns NotMet
-                                                // for anyone with no GroupMember row).
-                                                blockingRequirementTypeNames.Contains( r.GroupRequirement.GroupRequirementType.Name, StringComparer.OrdinalIgnoreCase ) &&
-                                                r.GroupRequirement.GroupRequirementType.RequirementCheckType != RequirementCheckType.Manual &&
-                                                // Fail closed: block on NotMet AND on Error (a SQL requirement
-                                                // that threw). Do not block on Meets/MeetsWithWarning/NotApplicable.
-                                                ( r.MeetsGroupRequirement == MeetsGroupRequirement.NotMet ||
-                                                  r.MeetsGroupRequirement == MeetsGroupRequirement.Error ) )
-                                            .Select( r =>
-                                            {
-                                                var requirementType = r.GroupRequirement.GroupRequirementType;
-                                                return ( !string.IsNullOrWhiteSpace( requirementType.NegativeLabel )
-                                                    ? requirementType.NegativeLabel
-                                                    : requirementType.Name ).EncodeHtml();
-                                            } )
-                                            .Distinct()
-                                            .ToList();
-                                    }
-                                    catch ( Exception ex )
-                                    {
-                                        // Fail closed: if requirement evaluation itself throws (e.g. a deleted
-                                        // or renamed DataView, a bad SQL filter), do NOT let the signup through.
-                                        // Generic message (no role/reason format).
-                                        ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
-                                        lRequirementBlockMessage.Text = string.Format(
-                                            "<div class='alert alert-danger'>We couldn't verify {0}'s eligibility for this role. No signup was submitted. Please try again or contact us.</div>",
-                                            registrantName );
-                                        lRequirementBlockMessage.Visible = true;
-
-                                        // ROCK-8790: revert a birthday we filled from the form this request so a
-                                        // corrected resubmit re-reads the form value (on-file birthday untouched).
-                                        if ( birthDateFilledFromForm )
-                                        {
-                                            RevertFormBirthDate( person.Id );
-                                        }
-
-                                        pnlSignup.Visible = true;
-                                        return;
-                                    }
-
-                                    if ( blockingMessages.Any() )
-                                    {
-                                        string messageBody;
-                                        if ( blockingMessages.Count == 1 )
-                                        {
-                                            messageBody = string.Format( "{0} isn't eligible for {1} — {2}. No signup was submitted.", registrantName, roleClause, blockingMessages[0] );
-                                        }
-                                        else
-                                        {
-                                            messageBody = string.Format( "{0} isn't eligible for {1}:<br />{2}<br />No signup was submitted.", registrantName, roleClause, string.Join( "<br />", blockingMessages ) );
-                                        }
-
-                                        lRequirementBlockMessage.Text = string.Format(
-                                            "<div class='alert alert-danger'>{0}</div>",
-                                            messageBody );
-                                        lRequirementBlockMessage.Visible = true;
-
-                                        // ROCK-8790: revert a birthday we filled from the form this request so a
-                                        // corrected resubmit re-reads the form value (on-file birthday untouched).
-                                        if ( birthDateFilledFromForm )
-                                        {
-                                            RevertFormBirthDate( person.Id );
-                                        }
-
-                                        // Keep the signup form visible and return before SaveChanges().
-                                        // Any ConnectionRequest added in a prior loop iteration is discarded
-                                        // because SaveChanges() is never reached for this submit.
-                                        pnlSignup.Visible = true;
-                                        return;
-                                    }
-                                }
-                            }
-
-                            var connectionAttributes = GetGroupMemberAttributes( rockContext, RepeaterIndex );
-
-                            if ( connectionAttributes != null && connectionAttributes.Keys.Any() )
-                            {
-                                var connectionDictionary = new Dictionary<string, string>();
-                                foreach ( var kvp in connectionAttributes )
-                                {
-                                    connectionDictionary.Add( kvp.Key, kvp.Value.Value );
-                                }
-
-                                connectionRequest.AssignedGroupMemberAttributeValues = connectionDictionary.ToJson();
+                                return;
                             }
 
                             if ( !connectionRequest.IsValid )
@@ -740,15 +590,15 @@ namespace org.secc.Connection
         /// <param name="addAnother">Is this a request to add Another person?  If so always show a blank form.</param>
         public void ShowDetail( int opportunityId, Boolean addAnother )
         {
-            using ( var rockContext = new RockContext() )
+            using ( var rockContext = CreateRockContext() )
             {
                 BindPhoneTypeDropdown();
                 
-                var opportunity = new ConnectionOpportunityService( rockContext ).Get( opportunityId );
-                if ( opportunity == null )
+                var opportunity = LoadOpportunity( rockContext, opportunityId );
+                if ( !IsOpenForSignup( opportunity ) )
                 {
                     pnlSignup.Visible = false;
-                    ShowError( "Incorrect Opportunity Type", "The requested opportunity does not exist." );
+                    ShowError( "Incorrect Opportunity Type", opportunity == null ? "The requested opportunity does not exist." : "This opportunity isn't taking signups right now." );
                     return;
                 }
 
@@ -911,7 +761,6 @@ namespace org.secc.Connection
                         var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId || gc.GroupMemberRole.Guid.ToString() == roleRequest.GroupTypeRole ).FirstOrDefault();
                         ( ( Literal ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "ltRole" ) ) ).Text = groupConfig.GroupType.Name + " - " + groupConfig.GroupMemberRole.Name;
                         ( ( Literal ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "ltRole" ) ) ).Visible = true;
-                        ( ( HiddenField ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) ).Value = groupConfig.GroupMemberRole.Id.ToString();
 
                     }
                     repeaterIndex++;
@@ -1140,6 +989,283 @@ namespace org.secc.Connection
             }
         }
 
+        /// <summary>
+        /// Fills in a new connection request's placement and group member attribute values from the role request at
+        /// the given index, after checking the signup-blocking group requirements of the placement group. Returns false
+        /// when a requirement blocks the signup; the message is then shown and nothing should be saved.
+        /// </summary>
+        protected bool BuildConnectionRequest( RockContext rockContext, ConnectionRequest connectionRequest, ConnectionOpportunity opportunity, int requestIndex, Person person, string firstName, bool enteredForHouseholdMember, bool birthDateFilledFromForm )
+        {
+            ApplyPlacement( connectionRequest, opportunity, requestIndex );
+
+            // ROCK-8790: Enforce the assigned role's Group Requirements at signup — but
+            // OPT-IN per requirement type, per block instance. This block is shared across
+            // ~30+ signup instances; only Group Requirement Types explicitly named in the
+            // "Signup-Blocking Requirement Types" setting hard-block a signup at the form.
+            // Blank => block nothing, so every other instance is unaffected by default and
+            // its requirements still evaluate/pass through onto the connection request.
+            var blockingRequirementTypeNames = ( GetAttributeValue( "SignupBlockingRequirementTypes" ) ?? string.Empty )
+                .Split( ',' )
+                .Select( n => n.Trim() )
+                .Where( n => !string.IsNullOrWhiteSpace( n ) )
+                .ToList();
+
+            // The person prospect has already been created/matched and committed above, so
+            // requirement DataViews/SQL evaluate against the person's persisted data (including
+            // any birthday just filled in from the form — see the SaveChanges above). If any
+            // listed requirement for this group + role is not met, hard-block the submit BEFORE
+            // rockContext.SaveChanges() so that no ConnectionRequest (and nothing downstream)
+            // is created for an ineligible volunteer.
+            if ( blockingRequirementTypeNames.Any() && connectionRequest.AssignedGroupId.HasValue )
+            {
+                var assignedGroup = LoadAssignedGroup( rockContext, connectionRequest.AssignedGroupId.Value );
+                if ( assignedGroup != null )
+                {
+                    // Personalize the block message: "[Name] isn't eligible for the [Role] role — [reason]."
+                    // The message renders in lRequirementBlockMessage (just above the submit buttons),
+                    // NOT lResponseMessage (top), which is reserved for the normal connect response.
+                    // HTML-encode every data-derived value interpolated into the alert-danger
+                    // markup below (name / role / requirement labels) so values containing
+                    // &, ', or < don't break the markup. .EncodeHtml() is Rock's string
+                    // extension (via using Rock;) and is null-safe. Literal markup in the
+                    // format strings (the div wrapper, <br />) stays un-encoded.
+                    // Someone reached through their family is named as entered: the nickname on
+                    // file would tell an anonymous poster something they did not type.
+                    var registrantName = enteredForHouseholdMember
+                        ? firstName.EncodeHtml()
+                        : ( !string.IsNullOrWhiteSpace( person.NickName ) ? person.NickName : person.FirstName ).EncodeHtml();
+                    var assignedRoleName = connectionRequest.AssignedGroupMemberRoleId.HasValue
+                        ? GetRoleName( rockContext, connectionRequest.AssignedGroupMemberRoleId.Value ).EncodeHtml()
+                        : null;
+                    var roleClause = !string.IsNullOrWhiteSpace( assignedRoleName )
+                        ? string.Format( "the {0} role", assignedRoleName )
+                        : "this role";
+
+                    List<string> blockingMessages;
+                    try
+                    {
+                        blockingMessages = CheckGroupRequirements( rockContext, assignedGroup, person.Id, connectionRequest.AssignedGroupMemberRoleId )
+                            .Where( r =>
+                                r.GroupRequirement != null &&
+                                r.GroupRequirement.GroupRequirementType != null &&
+                                // The explicit name allowlist (case-insensitive) is the intent
+                                // control, so a listed type gates regardless of its
+                                // MustMeetRequirementToAddMember flag (that filter is intentionally
+                                // dropped). The non-Manual guard stays so a mistakenly-listed Manual
+                                // type can't blanket-block every new signup (Manual returns NotMet
+                                // for anyone with no GroupMember row).
+                                blockingRequirementTypeNames.Contains( r.GroupRequirement.GroupRequirementType.Name, StringComparer.OrdinalIgnoreCase ) &&
+                                r.GroupRequirement.GroupRequirementType.RequirementCheckType != RequirementCheckType.Manual &&
+                                // Fail closed: block on NotMet AND on Error (a SQL requirement
+                                // that threw). Do not block on Meets/MeetsWithWarning/NotApplicable.
+                                ( r.MeetsGroupRequirement == MeetsGroupRequirement.NotMet ||
+                                  r.MeetsGroupRequirement == MeetsGroupRequirement.Error ) )
+                            .Select( r =>
+                            {
+                                var requirementType = r.GroupRequirement.GroupRequirementType;
+                                return ( !string.IsNullOrWhiteSpace( requirementType.NegativeLabel )
+                                    ? requirementType.NegativeLabel
+                                    : requirementType.Name ).EncodeHtml();
+                            } )
+                            .Distinct()
+                            .ToList();
+                    }
+                    catch ( Exception ex )
+                    {
+                        // Fail closed: if requirement evaluation itself throws (e.g. a deleted
+                        // or renamed DataView, a bad SQL filter), do NOT let the signup through.
+                        // Generic message (no role/reason format).
+                        ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+                        lRequirementBlockMessage.Text = string.Format(
+                            "<div class='alert alert-danger'>We couldn't verify {0}'s eligibility for this role. No signup was submitted. Please try again or contact us.</div>",
+                            registrantName );
+                        lRequirementBlockMessage.Visible = true;
+
+                        // ROCK-8790: revert a birthday we filled from the form this request so a
+                        // corrected resubmit re-reads the form value (on-file birthday untouched).
+                        if ( birthDateFilledFromForm )
+                        {
+                            RevertFormBirthDate( person.Id );
+                        }
+
+                        pnlSignup.Visible = true;
+                        return false;
+                    }
+
+                    if ( blockingMessages.Any() )
+                    {
+                        string messageBody;
+                        if ( blockingMessages.Count == 1 )
+                        {
+                            messageBody = string.Format( "{0} isn't eligible for {1} — {2}. No signup was submitted.", registrantName, roleClause, blockingMessages[0] );
+                        }
+                        else
+                        {
+                            messageBody = string.Format( "{0} isn't eligible for {1}:<br />{2}<br />No signup was submitted.", registrantName, roleClause, string.Join( "<br />", blockingMessages ) );
+                        }
+
+                        lRequirementBlockMessage.Text = string.Format(
+                            "<div class='alert alert-danger'>{0}</div>",
+                            messageBody );
+                        lRequirementBlockMessage.Visible = true;
+
+                        // ROCK-8790: revert a birthday we filled from the form this request so a
+                        // corrected resubmit re-reads the form value (on-file birthday untouched).
+                        if ( birthDateFilledFromForm )
+                        {
+                            RevertFormBirthDate( person.Id );
+                        }
+
+                        // Keep the signup form visible and return before SaveChanges().
+                        // Any ConnectionRequest added in a prior loop iteration is discarded
+                        // because SaveChanges() is never reached for this submit.
+                        pnlSignup.Visible = true;
+                        return false;
+                    }
+                }
+            }
+
+            var connectionAttributes = connectionRequest.AssignedGroupId.HasValue
+                ? GetGroupMemberAttributes( rockContext, requestIndex )
+                : null;
+
+            if ( connectionAttributes != null && connectionAttributes.Keys.Any() )
+            {
+                var connectionDictionary = new Dictionary<string, string>();
+                foreach ( var kvp in connectionAttributes )
+                {
+                    connectionDictionary.Add( kvp.Key, kvp.Value.Value );
+                }
+
+                connectionRequest.AssignedGroupMemberAttributeValues = connectionDictionary.ToJson();
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Creates the database context for a signup.
+        /// </summary>
+        protected virtual RockContext CreateRockContext()
+        {
+            return new RockContext();
+        }
+
+        /// <summary>
+        /// Loads a connection opportunity by Id.
+        /// </summary>
+        protected virtual ConnectionOpportunity LoadOpportunity( RockContext rockContext, int opportunityId )
+        {
+            return new ConnectionOpportunityService( rockContext ).Get( opportunityId );
+        }
+
+        /// <summary>
+        /// Loads a placement group by Id.
+        /// </summary>
+        protected virtual Group LoadAssignedGroup( RockContext rockContext, int groupId )
+        {
+            return new GroupService( rockContext ).Get( groupId );
+        }
+
+        /// <summary>
+        /// The name of a group role, or null when there is no such role.
+        /// </summary>
+        protected virtual string GetRoleName( RockContext rockContext, int groupRoleId )
+        {
+            return new GroupTypeRoleService( rockContext ).Get( groupRoleId )?.Name;
+        }
+
+        /// <summary>
+        /// Evaluates the person's group requirements for the group and role.
+        /// </summary>
+        protected virtual IEnumerable<GroupRequirementStatus> CheckGroupRequirements( RockContext rockContext, Group group, int personId, int? groupRoleId )
+        {
+            return group.PersonMeetsGroupRequirements( rockContext, personId, groupRoleId );
+        }
+
+        /// <summary>
+        /// Whether the opportunity takes signups: it exists, and both it and its connection type are active.
+        /// </summary>
+        protected static bool IsOpenForSignup( ConnectionOpportunity opportunity )
+        {
+            return opportunity != null &&
+                opportunity.IsActive &&
+                opportunity.ConnectionType != null &&
+                opportunity.ConnectionType.IsActive;
+        }
+
+        /// <summary>
+        /// Sets the connection request's group, role and member status from the role request at the given
+        /// index, or leaves them unset when that request has no placement on this opportunity.
+        /// </summary>
+        protected void ApplyPlacement( ConnectionRequest connectionRequest, ConnectionOpportunity opportunity, int requestIndex )
+        {
+            var placement = ResolvePlacement( opportunity, RoleRequests[requestIndex] );
+            if ( placement.HasValue )
+            {
+                connectionRequest.AssignedGroupId = placement.Value.GroupId;
+                connectionRequest.AssignedGroupMemberRoleId = placement.Value.GroupMemberRoleId;
+                connectionRequest.AssignedGroupMemberStatus = placement.Value.GroupMemberStatus;
+            }
+        }
+
+        /// <summary>
+        /// The group, role and member status a role request places the person with on this opportunity: the
+        /// group must exist, be active, not be archived and not be a security role, and the opportunity must
+        /// have a group config for the group's type and the requested role (its member status is used). The
+        /// group must also be on the opportunity's group list unless a group config of the group's type on the
+        /// opportunity uses all groups of that type.
+        /// Returns null otherwise.
+        /// </summary>
+        protected (int GroupId, int GroupMemberRoleId, GroupMemberStatus GroupMemberStatus)? ResolvePlacement( ConnectionOpportunity opportunity, ConnectionRoleRequest roleRequest )
+        {
+            if ( opportunity == null || roleRequest == null || roleRequest.GroupId <= 0 || roleRequest.GroupTypeRoleId <= 0 )
+            {
+                return null;
+            }
+
+            var group = LoadGroup( roleRequest.GroupId );
+            if ( group == null || !group.IsActive || group.IsArchived || group.IsSecurityRoleOrSecurityGroupType() )
+            {
+                return null;
+            }
+
+            var groupConfig = opportunity.ConnectionOpportunityGroupConfigs
+                .FirstOrDefault( gc => gc.GroupTypeId == group.GroupTypeId && gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId );
+            if ( groupConfig == null )
+            {
+                return null;
+            }
+
+            var usesAllGroupsOfType = opportunity.ConnectionOpportunityGroupConfigs
+                .Any( gc => gc.GroupTypeId == group.GroupTypeId && gc.UseAllGroupsOfType );
+            if ( !usesAllGroupsOfType && !opportunity.ConnectionOpportunityGroups.Any( og => og.GroupId == group.Id ) )
+            {
+                return null;
+            }
+
+            return (group.Id, roleRequest.GroupTypeRoleId, groupConfig.GroupMemberStatus);
+        }
+
+        /// <summary>
+        /// Loads a group type role by Guid.
+        /// </summary>
+        protected virtual GroupTypeRole LoadGroupTypeRole( Guid groupTypeRoleGuid )
+        {
+            return new GroupTypeRoleService( new RockContext() ).Get( groupTypeRoleGuid );
+        }
+
+        /// <summary>
+        /// Loads a group by Id, archived groups included.
+        /// </summary>
+        protected virtual Group LoadGroup( int groupId )
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                return new GroupService( rockContext ).Get( groupId );
+            }
+        }
+
         private void ShowError( string title, string message )
         {
             nbErrorMessage.Title = title;
@@ -1215,7 +1341,7 @@ namespace org.secc.Connection
         }
 
 
-        private Dictionary<string, AttributeValueCache> GetGroupMemberAttributes( RockContext rockContext = null, int RepeaterIndex = 0 )
+        protected virtual Dictionary<string, AttributeValueCache> GetGroupMemberAttributes( RockContext rockContext = null, int RepeaterIndex = 0 )
         {
             // Group
             if ( RoleRequests.Count > 0 )

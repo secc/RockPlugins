@@ -31,6 +31,12 @@ namespace org.secc.LinkList.ViewModels
         /// <summary>Default design preset (DefinedValue GUID) applied to new lists.</summary>
         public string DefaultDesignGuid { get; set; }
 
+        /// <summary>
+        /// ROCK-9362: whether the current person may upload link files (EDIT on the Link
+        /// List File type). Only hides the upload button; the upload endpoint enforces it.
+        /// </summary>
+        public bool CanUploadFiles { get; set; }
+
         public Dictionary<string, string> NavigationUrls { get; set; } = new Dictionary<string, string>();
     }
 }
