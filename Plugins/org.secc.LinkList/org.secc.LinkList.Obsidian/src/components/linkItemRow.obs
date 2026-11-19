@@ -1,6 +1,7 @@
 <template>
     <div class="link-item-row" :class="[rowClass, { 'is-child': isChild }]">
-        <!-- Link row: text + URL, subtitle inline; gear reveals "Opens in" (target). -->
+        <!-- Link row: text + URL (or an uploaded file, ROCK-9362), subtitle inline;
+             gear reveals "Opens in" (target). -->
         <div v-if="itemType === 'link'" class="li-row">
             <span class="reorder-handle" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa fa-grip-vertical"></i></span>
             <span class="li-icon" aria-hidden="true"><i class="fa fa-link"></i></span>
@@ -10,14 +11,32 @@
                         <TextBox :modelValue="modelValue.text" @update:modelValue="update('text', $event)" label="" placeholder="Text" />
                     </div>
                     <div class="li-field li-url">
-                        <TextBox :modelValue="modelValue.url" @update:modelValue="update('url', $event)" label="" placeholder="https://..." />
+                        <div v-if="hasFile" class="li-file" :class="{ 'is-missing': isFileMissing }" :title="fileLabel">
+                            <i :class="fileIconClass" aria-hidden="true"></i>
+                            <span class="li-file-name">{{ fileLabel }}</span>
+                            <button v-if="canUpload" type="button" class="btn btn-link btn-xs" :disabled="!canStartUpload" @click="pickFile" aria-label="Replace the uploaded file">Replace</button>
+                            <button type="button" class="btn btn-link btn-xs" :disabled="isUploading" @click="removeFile" aria-label="Remove the uploaded file and enter a URL instead">Use a URL</button>
+                        </div>
+                        <TextBox v-else :modelValue="modelValue.url" @update:modelValue="update('url', $event)" label="" placeholder="https://..." />
                     </div>
                     <div class="li-field li-sub">
-                        <TextBox :modelValue="modelValue.subtitle || ''" @update:modelValue="update('subtitle', $event)" label="" placeholder="Subtitle (optional)" />
+                        <TextBox :modelValue="modelValue.subtitle || ''" @update:modelValue="update('subtitle', $event)" label="" :placeholder="isCard ? 'Card description (optional)' : 'Subtitle (optional)'" />
                     </div>
                 </div>
+                <!-- ROCK-9361: card-style links get an optional image above the title. -->
+                <div v-if="isCard" class="li-card-line">
+                    <span class="li-card-tag"><i class="fa fa-id-card"></i> Card</span>
+                    <div class="li-card-image">
+                        <ImageUploader :modelValue="cardImageValue" @update:modelValue="onCardImageChange" label="" help="Optional image shown at the top of the card." />
+                    </div>
+                </div>
+                <div v-if="isUploading" class="li-upload-status text-muted small" role="status">Uploading&hellip; {{ uploadProgress }}</div>
+                <div v-else-if="uploadError" class="li-upload-status text-danger small" role="alert">{{ uploadError }}</div>
+                <input ref="fileInput" type="file" class="li-file-input" :accept="fileAccept" @change="onFilePicked" tabindex="-1" aria-hidden="true" />
             </div>
             <div class="li-actions">
+                <button type="button" class="btn btn-default btn-xs li-card-toggle" :class="{ 'is-card': isCard }" :aria-pressed="isCard" @click="toggleCard" :title="isCard ? 'Show as a button' : 'Show as a card'" aria-label="Show as card"><i class="fa fa-id-card"></i></button>
+                <button v-if="canUpload && !hasFile" type="button" class="btn btn-default btn-xs" :disabled="!canStartUpload" @click="pickFile" title="Upload a PDF, JPG, or PNG instead of a URL" aria-label="Upload a file instead of a URL"><i :class="isUploading ? 'fa fa-spinner fa-spin' : 'fa fa-paperclip'"></i></button>
                 <button type="button" class="btn btn-default btn-xs li-feature" :class="{ 'is-featured': modelValue.isFeatured }" :aria-pressed="!!modelValue.isFeatured" @click="toggleFeatured" title="Featured button (one per list)" aria-label="Featured button"><i class="fa fa-star"></i></button>
                 <button v-if="canNest || isNested" type="button" class="btn btn-default btn-xs" :class="{ 'is-nested': isNested }" @click="toggleNest" :title="isNested ? 'Move out of the section' : 'Nest under the section above'" :aria-label="isNested ? 'Un-nest link' : 'Nest link'"><i :class="isNested ? 'fa fa-outdent' : 'fa fa-indent'"></i></button>
                 <button type="button" class="btn btn-default btn-xs" @click="$emit('moveUp')" title="Move up" aria-label="Move up"><i class="fa fa-chevron-up"></i></button>
@@ -69,11 +88,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import TextBox from "@Obsidian/Controls/textBox.obs";
+import { uploadBinaryFile } from "@Obsidian/Utility/http";
 import DropDownList from "@Obsidian/Controls/dropDownList.obs";
 import CheckBox from "@Obsidian/Controls/checkBox.obs";
+import ImageUploader from "@Obsidian/Controls/imageUploader.obs";
+import type { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
 import type { LinkItemBag } from "../types";
+import { FILE_ACCEPT, LINK_FILE_UPLOAD_URL, LINK_LIST_FILE_TYPE_GUID, MAX_FILE_SIZE_BYTES, fileExtension, validateLinkFile } from "../linkListFiles";
+import { isCardLink } from "../linkListItems";
 
 const props = defineProps<{
     modelValue: LinkItemBag;
@@ -81,9 +105,15 @@ const props = defineProps<{
     isChild?: boolean;
     /** True when a section group is open at this row, so a link can be nested into it. */
     canNest?: boolean;
+    /** ROCK-9362: the person may upload link files (hides the upload controls only). */
+    canUpload?: boolean;
+    /** ROCK-9362: a save is in flight - no upload may start (its result would be lost). */
+    uploadsBlocked?: boolean;
 }>();
 const emit = defineEmits<{
     (e: "update:modelValue", value: LinkItemBag): void;
+    /** ROCK-9362: an upload started (true) or ended (false); the editor holds Save meanwhile. */
+    (e: "uploading", value: boolean): void;
     (e: "remove"): void;
     (e: "moveUp"): void;
     (e: "moveDown"): void;
@@ -119,6 +149,145 @@ function onTargetChange(value: string | string[] | undefined): void {
     update("target", t);
 }
 
+// ROCK-9362: upload a PDF/JPG/PNG as the link target instead of typing a URL.
+// Rock's uploadBinaryFile helper is pointed at the plugin's own upload endpoint
+// (not FileUploader.ashx), which validates the file (type, MIME, size, magic
+// bytes) and stores it as a TEMPORARY BinaryFile of the Link List File type;
+// SaveList re-validates, makes it permanent, and derives the link URL from
+// fileGuid. The checks here are only early feedback.
+const fileAccept = FILE_ACCEPT;
+const fileInput = ref<HTMLInputElement | null>(null);
+const isUploading = ref(false);
+const uploadProgress = ref("");
+const uploadError = ref("");
+
+const hasFile = computed(() => !!props.modelValue.fileGuid);
+// The editor bag carries the file's name whenever the file exists, and an upload
+// fills it in, so a file link with no name is one whose file is gone (deleted, or
+// cleaned up). It no longer blocks saving the list; flag it so it can be fixed.
+const isFileMissing = computed(() => hasFile.value && !props.modelValue.fileName);
+const fileLabel = computed(() => isFileMissing.value
+    ? "File no longer available - replace it or use a URL"
+    : props.modelValue.fileName || "Uploaded file");
+const fileIconClass = computed(() => isFileMissing.value
+    ? "fa fa-exclamation-triangle"
+    : fileExtension(props.modelValue.fileName) === "pdf" ? "fa fa-file-pdf" : "fa fa-file-image");
+const canStartUpload = computed(() => !isUploading.value && !props.uploadsBlocked);
+
+// The editor counts uploads in flight and holds Save until they finish: a save sent
+// mid-upload would store the row without its file, and the save response replaces
+// the editor's rows, so the finished upload would have nowhere to land.
+let isUnmounted = false;
+watch(isUploading, value => emit("uploading", value));
+onBeforeUnmount(() => {
+    isUnmounted = true;
+    if (isUploading.value) {
+        emit("uploading", false);
+    }
+});
+
+function pickFile(): void {
+    if (canStartUpload.value) {
+        fileInput.value?.click();
+    }
+}
+
+/**
+ * The server's JSON { message } on a rejected upload (axios throws on 4xx), else
+ * a generic text. A non-JSON body (e.g. IIS's HTML page when the request exceeds
+ * maxRequestLength) is never shown.
+ */
+function uploadErrorMessage(e: unknown): string {
+    const response = (e as { response?: { status?: number; data?: unknown } } | null)?.response;
+    const data = response?.data;
+    if (data && typeof data === "object" && typeof (data as { message?: unknown }).message === "string") {
+        return (data as { message: string }).message;
+    }
+    if (response?.status === 413) {
+        return `The file is larger than the ${MAX_FILE_SIZE_BYTES / (1024 * 1024)} MB limit.`;
+    }
+    return "The file could not be uploaded.";
+}
+
+/** "Spring Retreat Flyer.pdf" -> "Spring Retreat Flyer" (default link text). */
+function baseName(name: string): string {
+    return name.replace(/\.[^.]+$/, "");
+}
+
+async function onFilePicked(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    // Clear so picking the same file again still fires change.
+    input.value = "";
+    if (!file || !canStartUpload.value) {
+        return;
+    }
+
+    const error = validateLinkFile(file);
+    if (error) {
+        uploadError.value = error;
+        return;
+    }
+
+    uploadError.value = "";
+    uploadProgress.value = "0%";
+    isUploading.value = true;
+    try {
+        const result = await uploadBinaryFile(file, LINK_LIST_FILE_TYPE_GUID, {
+            baseUrl: LINK_FILE_UPLOAD_URL,
+            isTemporary: true,
+            progress: (_loaded, _total, percent) => { uploadProgress.value = `${percent}%`; }
+        });
+        if (!result?.value) {
+            throw new Error("No file was returned.");
+        }
+        if (isUnmounted) {
+            // The row was removed mid-upload; the unattached file is cleaned up server-side.
+            return;
+        }
+        const name = result.text || file.name;
+        const target = props.modelValue.target;
+        emit("update:modelValue", {
+            ...props.modelValue,
+            fileGuid: result.value,
+            fileName: name,
+            // The server derives the URL from fileGuid on save.
+            url: "",
+            text: props.modelValue.text || baseName(name),
+            // A document reads best in its own tab; keep any explicit non-default choice.
+            target: !target || target === "_self" ? "_blank" : target
+        });
+    }
+    catch (e) {
+        uploadError.value = uploadErrorMessage(e);
+    }
+    finally {
+        isUploading.value = false;
+    }
+}
+
+/** Back to a typed URL. The file is cleaned up server-side once the list is saved without it. */
+function removeFile(): void {
+    uploadError.value = "";
+    emit("update:modelValue", { ...props.modelValue, fileGuid: null, fileName: null, url: "" });
+}
+
+// ROCK-9361: per-link display style. A card reuses Text (title) + Subtitle
+// (description) and adds an optional image. The image is kept in the bag when
+// toggling back to a button (so an accidental toggle loses nothing before save);
+// the server only persists it for card rows.
+const isCard = computed(() => isCardLink(props.modelValue));
+function toggleCard(): void {
+    update("displayStyle", isCard.value ? "button" : "card");
+}
+
+// ImageUploader's modelValue is a ListItemBag whose value is the BinaryFile guid
+// (same mapping the editor uses for the header images).
+const cardImageValue = computed((): ListItemBag | null => props.modelValue.cardImage ? { value: props.modelValue.cardImage } : null);
+function onCardImageChange(v: ListItemBag | undefined | null): void {
+    update("cardImage", v?.value ?? "");
+}
+
 // Featured is a per-link toggle; the editor enforces "at most one" (radio-like).
 function toggleFeatured(): void {
     update("isFeatured", !props.modelValue.isFeatured);
@@ -151,12 +320,25 @@ function toggleFeatured(): void {
 .li-url { flex: 1.5 1 200px; }
 .li-sub { flex: 1 1 160px; }
 .li-desc { flex: 1.5 1 200px; }
+/* ROCK-9362: uploaded-file chip shown in place of the URL box. */
+.li-file { display: flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 8px; border: 1px solid #d5d7d9; border-radius: 4px; background: #f8fafc; color: #5b6770; }
+.li-file-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #2b3138; }
+.li-file.is-missing { border-color: #e4a2a2; background: #fdf3f3; }
+.li-file.is-missing .li-file-name, .li-file.is-missing .fa { color: #a94442; }
+.li-file .btn-link { padding: 0 2px; }
+.li-file-input { display: none; }
+.li-upload-status { padding-left: 2px; }
 .li-collapsed { flex: 0 0 auto; white-space: nowrap; }
 .li-spacer { flex: 1 1 auto; }
 .li-actions { flex: 0 0 auto; display: flex; gap: 4px; align-items: center; margin-top: 2px; }
 .li-actions .options-open { background: #e7eef5; }
 .li-actions .is-nested { background: #e7eef5; color: #4a6b8a; }
 .li-feature { color: #b3bbc4; }
+.li-card-toggle { color: #b3bbc4; }
+.li-card-toggle.is-card { background: #e3effa; color: #2f6fa8; border-color: #b6d3ec; }
+.li-card-line { display: flex; gap: 10px; align-items: flex-start; }
+.li-card-tag { flex: 0 0 auto; margin-top: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #2f6fa8; display: inline-flex; align-items: center; gap: 5px; }
+.li-card-image { flex: 1 1 auto; min-width: 0; }
 .li-feature.is-featured { background: #fde9c8; color: #d98324; border-color: #f0c98a; }
 
 /* Compact the Rock controls inside a row (drop the form-group margin). */

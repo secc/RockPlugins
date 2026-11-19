@@ -1,4 +1,4 @@
-import { hoistFeatured, clearOtherFeatured, isFeaturedLink, groupIntoSections, sectionNestingMeta } from "../src/linkListItems";
+import { hoistFeatured, clearOtherFeatured, isFeaturedLink, groupIntoSections, sectionNestingMeta, displayStyleOf, isCardLink } from "../src/linkListItems";
 import type { LinkItemBag } from "../src/types";
 
 function link(guid: string, over: Partial<LinkItemBag> = {}): LinkItemBag {
@@ -114,5 +114,28 @@ describe("sectionNestingMeta", () => {
             { isChild: false, canNest: true },  // c — non-nested closes the group
             { isChild: false, canNest: false }  // d — group closed, nothing to nest into
         ]);
+    });
+});
+
+describe("ROCK-9361 displayStyleOf / isCardLink", () => {
+    it("defaults to button when unset or blank (existing rows stay buttons)", () => {
+        expect(displayStyleOf(link("a"))).toBe("button");
+        expect(displayStyleOf(link("a", { displayStyle: "" }))).toBe("button");
+        expect(displayStyleOf(link("a", { displayStyle: "button" }))).toBe("button");
+    });
+
+    it("is card only for an explicit card value (case/space-insensitive)", () => {
+        expect(displayStyleOf(link("a", { displayStyle: "card" }))).toBe("card");
+        expect(displayStyleOf(link("a", { displayStyle: " Card " }))).toBe("card");
+        expect(isCardLink(link("a", { displayStyle: "card" }))).toBe(true);
+    });
+
+    it("treats unknown values as button", () => {
+        expect(displayStyleOf(link("a", { displayStyle: "tile" }))).toBe("button");
+    });
+
+    it("never treats a section or separator as a card", () => {
+        expect(isCardLink(section("s", { displayStyle: "card" }))).toBe(false);
+        expect(isCardLink({ guid: "x", itemType: "separator", displayStyle: "card" })).toBe(false);
     });
 });

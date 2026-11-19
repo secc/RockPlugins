@@ -153,3 +153,8 @@ export function backgroundImageUrl(baseUrl: string, guid: string | null | undefi
 export function headerBackgroundImageUrl(baseUrl: string, guid: string | null | undefined): string | null {
     return getImageUrl(baseUrl, guid, "w=2400");
 }
+
+/** ROCK-9361: card image URL (16:9 crop sized for the 480px content column at 2x). */
+export function cardImageUrl(baseUrl: string, guid: string | null | undefined): string | null {
+    return getImageUrl(baseUrl, guid, "w=960&h=540&mode=crop");
+}
