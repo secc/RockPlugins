@@ -717,6 +717,8 @@ namespace org.secc.LinkList.Services
                     Subtitle = SafeAttr( row, LinkListGuids.MatrixAttributeKey.Subtitle, string.Empty ),
                     Description = SafeAttr( row, LinkListGuids.MatrixAttributeKey.Description, string.Empty ),
                     IsFeatured = SafeAttr( row, LinkListGuids.MatrixAttributeKey.IsFeatured, "False" ).AsBoolean(),
+                    DisplayStyle = NormalizeDisplayStyle( SafeAttr( row, LinkListGuids.MatrixAttributeKey.DisplayStyle, LinkListGuids.DisplayStyleValue.Button ) ),
+                    CardImage = SafeAttr( row, LinkListGuids.MatrixAttributeKey.CardImage, string.Empty ),
                     Order = displayOrder++
                 } );
             }
@@ -993,6 +995,21 @@ namespace org.secc.LinkList.Services
                     }
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.IsFeatured, isFeatured.ToString() );
 
+                    // ROCK-9361: display style + card image. Only link rows carry a
+                    // style (sections/separators are always "button"), and only a
+                    // card keeps its image - switching a link back to a button clears
+                    // it, so a row never references an image it doesn't show. The
+                    // CardImage value is re-serialized from a parsed guid (never raw
+                    // client text).
+                    var displayStyle = normalizedType == LinkListGuids.ItemTypeValue.Link
+                        ? NormalizeDisplayStyle( bagRow.DisplayStyle )
+                        : LinkListGuids.DisplayStyleValue.Button;
+                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.DisplayStyle, displayStyle );
+                    var cardImage = displayStyle == LinkListGuids.DisplayStyleValue.Card
+                        ? bagRow.CardImage.AsGuidOrNull()?.ToString() ?? string.Empty
+                        : string.Empty;
+                    SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.CardImage, cardImage );
+
                     row.SaveAttributeValues( _rockContext );
                 }
             }
@@ -1006,7 +1023,19 @@ namespace org.secc.LinkList.Services
             }
         }
 
-        private static string NormalizeItemType( string raw )
+        /// <summary>
+        /// ROCK-9361: canonical DisplayStyle value. Anything other than "card"
+        /// (case-insensitive) - including blank, which is every row saved before
+        /// migration 012 - is a button, so existing lists render unchanged.
+        /// </summary>
+        public static string NormalizeDisplayStyle( string raw )
+        {
+            return string.Equals( raw?.Trim(), LinkListGuids.DisplayStyleValue.Card, StringComparison.OrdinalIgnoreCase )
+                ? LinkListGuids.DisplayStyleValue.Card
+                : LinkListGuids.DisplayStyleValue.Button;
+        }
+
+        public static string NormalizeItemType( string raw )
         {
             if ( raw.IsNullOrWhiteSpace() ) return LinkListGuids.ItemTypeValue.Link;
             var lower = raw.Trim().ToLowerInvariant();
@@ -1418,6 +1447,13 @@ WHERE [BinaryFileTypeId] = @TypeId
         /// end up temporary. (One save adding a file while an overlapping stale save
         /// that never saw it removes it can leave that file unlinked but permanent -
         /// wasted storage only; nothing serves it.)
+        ///
+        /// Scope of the lock: ONLY this reconcile step. The rest of a save or delete
+        /// (item, slugs, matrix rows, MarkLinkFilesPermanent) runs outside it, in its
+        /// own contexts, so two saves of one list can still interleave their row
+        /// writes. That is safe for file lifetimes because each save marks its files
+        /// permanent before writing rows and reconciles last, against the committed
+        /// rows; do not rely on this lock to serialize anything else.
         ///
         /// Set-based rather than through BinaryFile entities: saving a modified image
         /// BinaryFile runs Rock's save hook, which reads the whole content stream (on

@@ -141,14 +141,17 @@ flight: a save sent mid-upload would store the row without its file.
 - **Projects:** `org.secc.LinkList` (C# plugin), `org.secc.LinkList.Obsidian` (Vue/TypeScript
   frontend), `org.secc.LinkList.Tests` (xunit)
 - **Root namespace:** `org.secc.LinkList`
-- **Target framework:** .NET Framework 4.7.2 (SDK-style csproj; `RockRMS.Rock` /
-  `Rock.Blocks` / `Rock.Rest` NuGet packages, `1.16.9-rc.1`)
-- **Deploys to:** `RockWeb/Bin/` (assembly — a custom `CopyPluginToRockWebBin` MSBuild target,
-  since the Spark build task no-ops without a rock-dev-tool layout) and
+- **Target framework:** .NET Framework 4.7.2 (SDK-style csproj, `IsRockPlugin`; Rock assemblies
+  referenced from `RockWeb\Bin`, not NuGet — see [README-SdkStyle](../README-SdkStyle.md))
+- **Deploys to:** `RockWeb/Bin/` (assembly — the shared `CopyRockPluginToRockWeb` target in the
+  repo-root `Directory.Build.targets`) and
   `RockWeb/Plugins/org_secc/LinkList/` (built Obsidian JS — `npm run deploy` in the
   `.Obsidian` project; a solution rebuild does **not** copy the JS)
 - **Packaging:** `plugin.json` + `BuildPlugin.ps1` bundle the Release DLL and the Obsidian
-  `dist/**` output into a Rock plugin package.
+  `dist/**` output into a Rock plugin package. Locally, run
+  `BuildPlugin.ps1 -RockWebPath <path to RockWeb>` to target a specific RockWeb (for example
+  a private copy, so a running site isn't recycled); with no argument it finds the pipeline's
+  RockWeb as before.
 
 ## Project Layout
 
@@ -157,7 +160,7 @@ org.secc.LinkList/            C# plugin assembly
   Blocks/                     Three Obsidian block types (List, Detail, Viewer)
   Services/                   LinkListService (bags, slugs, security groups), LinkListInteractionService (analytics)
   Rest/Controllers/           Public anonymous REST endpoint (GET list + click beacon) with CORS allowlist
-  Migrations/                 Rock plugin migrations 001-011, 013 (channel/type/matrix, design presets, analytics channel, file type, ...)
+  Migrations/                 001-013 Rock plugin migrations (channel/type/matrix, design presets, analytics channel, file type, ...)
   SystemGuids/                LinkListGuids — every well-known GUID and attribute key
   Utility/                    SlugReconciler, AnalyticsSeries, ClickPayload, ClientIpResolver, InteractionRateLimiter, LinkListHtmlSanitizer, LinkListFiles
   ViewModels/                 Bags/boxes shared with the Obsidian frontend (LinkListBag, GroupMemberBag, ...)
@@ -215,29 +218,61 @@ slug from the REST endpoint) and in-Rock (the Viewer block hands it a pre-fetche
 entire design — global header → hero → featured button → intro → accordion sections → footer —
 ships inside a shadow root with no host-CSS dependency; it also sends the click beacons.
 
+#### Link display styles (ROCK-9361)
+
+Each **link row** has a `DisplayStyle` (matrix attribute, migration 012):
+
+| Style | Renders as | Fields used |
+|-------|-----------|-------------|
+| `button` (default) | The rounded pill button. | Text, Subtitle (second line), URL, Target |
+| `card` | A card (per Steven Estes' design): optional 16:9 image on top, then a left-aligned uppercase title with the description below it and a `›` arrow at the right. The **whole card is one `<a>`**, so clicking anywhere on it follows the link and sends the click beacon. | Text (title), Subtitle (shown as the card description), `CardImage` (optional BinaryFile guid), URL, Target |
+
+- The style is **per link**, not per list, matching how other per-link presentation (Subtitle,
+  IsFeatured) is already stored on matrix rows. A list can mix buttons and cards.
+- Blank/unknown values, including every row saved before migration 012, read as `button`
+  (`LinkListService.NormalizeDisplayStyle` server-side, `displayStyleOf` in
+  `linkListItems.ts` client-side), so existing lists render unchanged with no data backfill.
+  Sections and separators are always `button`.
+- Cards use the same theme colors as buttons: button colors at top level, the inner-pill
+  colors inside a section accordion, and the featured colors when the card is the featured
+  link. No new design-preset colors.
+- Editor: the card toggle (`fa-id-card` icon) on a link row switches it to a card. A card row shows an
+  image uploader, and its subtitle placeholder becomes "Card description". The server saves
+  `CardImage` only for card rows (switching back to a button clears it on save) and marks
+  uploaded card images permanent, as it does for the header images.
+- Shadow-DOM hooks for embed styling: `a.link-card` (with `.featured` / `.in-section`),
+  `part="card-image"`, `part="card-title"`, `part="card-description"`. The anchor keeps
+  `part="link"` + `data-link-id` for click analytics.
+
 ### Migrations
 
-Rock plugin migrations (`MigrationNumber` 1-11 and 13, `1.16.0`): 001 creates the content
+Thirteen Rock plugin migrations (`MigrationNumber` 1-13, `1.16.0`): 001 creates the content
 channel type/channel/matrix template with the **production GUIDs** and legacy attributes
 (idempotent upserts); 002-010 add matrix-row attributes (item type, indent, subtitle,
 featured), design-preset Defined Type/Values, the CORS-origins Defined Type, header media, the
 global header/footer channel attributes, and the title color; 011 creates the "Link Lists"
-Interaction medium/channel for analytics; 013 (ROCK-9362) creates the "Link List File"
-BinaryFileType and its auth rules (insert-only, so an admin's storage-provider change
-survives). 012 is claimed by ROCK-9361 on a parallel branch; Rock runs any migration number
-not yet recorded, so the gap is harmless.
+Interaction medium/channel for analytics; 012 adds the per-link `DisplayStyle` (SingleSelect,
+`button`/`card`, default `button`) and `CardImage` (Image) matrix attributes (ROCK-9361); 013
+(ROCK-9362) creates the "Link List File" BinaryFileType and its auth rules (insert-only, so an
+admin's storage-provider change survives).
 
 ## Dependencies & Integrations
 
 - **Rock:** `RockBlockType` (Obsidian blocks), ContentChannel/Item/Slug services, Attribute
   Matrix, `Authorization`/`AuthService` (per-list `Auth` rules), Group/GroupMember services
   (security role groups), Interactions (`InteractionTransaction`, channel/component caches),
-  Defined Types/Values, `Rock.Plugin` migrations, BinaryFile (header images via
+  Defined Types/Values, `Rock.Plugin` migrations, BinaryFile (header and card images via
   `FileUploader.ashx`; uploaded link files via the plugin's own upload endpoint, on Rock's
   Azure Blob Storage provider).
-- **NuGet:** `RockRMS.Rock` / `Rock.Blocks` / `Rock.Rest` `1.16.9-rc.1`,
-  `Microsoft.AspNet.WebApi.Core`; `DotLiquid` and `HtmlAgilityPack` referenced from
-  `RockWeb\Bin` with `Private=false` (compile against Rock's copy, never ship it).
+- **Rock assemblies:** the shared defaults (`Rock`, `Rock.Common`, `Rock.Enums`,
+  `Rock.Lava.Shared`, `Rock.ViewModels`, `DotLiquid`, `EntityFramework`, `Newtonsoft.Json`) plus
+  `Rock.Blocks`, `Rock.Rest`, `HtmlAgilityPack`, `System.Web.Http` and
+  `System.Net.Http.Formatting`, all from `RockWeb\Bin` with `Private=false` (compile against the
+  Rock we deploy, never ship it). No `RockRMS.*` packages: Spark doesn't publish one for every
+  hotfix (there is none for 16.12).
+- **NuGet:** `SparkDevNetwork.Rock.Analyzers` only. (`SparkDevNetwork.Rock.Build.Tasks` was
+  removed: its copy step no-ops outside a rock-dev-tool layout, and its props blank out
+  `RockWebPath`.)
 - **Frontend:** `@rockrms/obsidian-framework`, Vue 3, chart.js (analytics panel), rollup (web
   component bundle), jest (frontend tests). External fonts: Google Fonts always; the Adobe
   IvyJournal kit only when the org-wide toggle is on (licensed domains).
@@ -260,10 +295,10 @@ not yet recorded, so the gap is harmless.
   `SlugValidationTests`, `SlugReconciliationTests`, `SecurityGroupNameTests`,
   `ClickPayloadTests`, `ClickBodyLimitTests`, `ClientIpResolverTests`,
   `InteractionRateLimiterTests`, `OriginValidationTests`, `AnalyticsSeriesTests`,
-  `LinkListHtmlSanitizerTests`, `LinkListFilesTests`.
+  `LinkListHtmlSanitizerTests`, `DisplayStyleTests`, `LinkListFilesTests`.
 - `org.secc.LinkList.Obsidian/tests` — jest specs for the web component (rendering, clicks,
-  behavior, file-link hrefs), slug canonicalizer parity, uploaded-file rules
-  (`linkListFiles.spec.ts`), item grouping, and theming.
+  behavior, button/card display styles, file-link hrefs), slug canonicalizer parity,
+  uploaded-file rules (`linkListFiles.spec.ts`), item grouping, and theming.
 
 ## Observations
 
@@ -282,9 +317,10 @@ not yet recorded, so the gap is harmless.
 
 ## Making Changes
 
-- **Backend:** edit the C# project and rebuild — the `CopyPluginToRockWebBin` target drops the
-  DLL into `RockWeb\Bin`. Pass `/p:CopyToRockWeb=false` to build without copying (what
-  `Tools/build-plugin.ps1 -NoCopy` does). New schema/attributes belong in a **new numbered migration**; never
+- **Backend:** edit the C# project and rebuild — the shared `CopyRockPluginToRockWeb` target drops
+  the DLL into `RockWeb\Bin`. Pass `/p:CopyToRockWeb=false` to build without copying.
+  `Tools/build-plugin.ps1` always passes it and copies the DLL/PDB itself, unless you give it
+  `-NoCopy`. New schema/attributes belong in a **new numbered migration**; never
   change the GUIDs in `LinkListGuids` (many match production data that predates the plugin).
 - **Frontend:** edit `src/**` in `org.secc.LinkList.Obsidian`, then `npm run deploy` (builds
   via `obsidian-build` + rollup and copies `dist` into RockWeb; hard-refresh the browser).
@@ -306,4 +342,4 @@ not yet recorded, so the gap is harmless.
 - Related: [org.secc.Cms](../org.secc.Cms/README.md) (legacy `LinkListEditUsers` block over the
   same security groups).
 
-Last updated: 2026-11-18
+Last updated: 2026-11-19

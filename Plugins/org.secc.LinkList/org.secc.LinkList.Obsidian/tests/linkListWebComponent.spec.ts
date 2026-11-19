@@ -318,6 +318,26 @@ describe("ROCK-9362 — uploaded file links", () => {
         expect(out).toContain("Spring Flyer.pdf");
     });
 
+    it("points a card-style file link at Rock too, top-level and inside a section", async () => {
+        const out = html(await mount(baseBag({
+            items: [
+                { guid: "1", itemType: "link", text: "Flyer", url: fileUrl, fileGuid, displayStyle: "card", target: "_blank", order: 0 },
+                { guid: "s", itemType: "section", text: "Docs", order: 1 },
+                { guid: "2", itemType: "link", text: "Guide", url: fileUrl, fileGuid, displayStyle: "card", indentLevel: 1, order: 2 }
+            ]
+        })));
+        const cardHrefs = out.match(/<a class="link-card[^"]*"[^>]*href="[^"]*"/g) || [];
+        expect(cardHrefs).toHaveLength(2);
+        cardHrefs.forEach(a => expect(a).toContain(`href="https://rock.example.org${fileUrl}"`));
+    });
+
+    it("falls back to the file name for a card with no text", async () => {
+        const out = html(await mount(baseBag({
+            items: [{ guid: "1", itemType: "link", text: "", url: fileUrl, fileGuid, fileName: "Spring Flyer.pdf", displayStyle: "card", order: 0 }]
+        })));
+        expect(out).toMatch(/class="card-title"[^>]*>Spring Flyer\.pdf</);
+    });
+
     it("leaves ordinary relative and absolute URLs alone", async () => {
         const out = html(await mount(baseBag({
             items: [
@@ -327,5 +347,132 @@ describe("ROCK-9362 — uploaded file links", () => {
         })));
         expect(out).toContain('href="/page/123"');
         expect(out).toContain('href="https://x.test/a"');
+    });
+});
+
+describe("ROCK-9361 — card display style", () => {
+    const imgGuid = "C9F920B9-B462-447B-ABC8-CE150A135F8D";
+
+    it("renders links as buttons by default (no displayStyle = unchanged markup)", async () => {
+        const el = await mount(baseBag({
+            items: [{ guid: "1", itemType: "link", text: "Plain", url: "https://a.test", subtitle: "Sub", order: 0 }]
+        }));
+        const out = html(el);
+        expect(out).toContain('class="link-btn"');
+        expect(out).not.toContain('class="link-card');
+    });
+
+    it("renders a card link as ONE anchor wrapping title, description and image", async () => {
+        const el = await mount(baseBag({
+            items: [{
+                guid: "1", itemType: "link", text: "Serve", url: "https://serve.test", target: "_blank",
+                subtitle: "Find a team", displayStyle: "card", cardImage: imgGuid, order: 0
+            }]
+        }));
+        const card = el.shadowRoot!.querySelector("a.link-card") as HTMLAnchorElement;
+        expect(card).not.toBeNull();
+        expect(card.getAttribute("href")).toBe("https://serve.test");
+        expect(card.getAttribute("target")).toBe("_blank");
+        expect(card.getAttribute("rel")).toBe("noopener noreferrer");
+        expect(card.getAttribute("part")).toBe("link");
+        expect(card.querySelector('[part="card-title"]')?.textContent).toContain("Serve");
+        expect(card.querySelector('[part="card-description"]')?.textContent).toBe("Find a team");
+        const img = card.querySelector('img[part="card-image"]') as HTMLImageElement;
+        expect(img.getAttribute("src")).toBe(`https://rock.example.org/getimage.ashx?guid=${imgGuid}&w=960&h=540&mode=crop`);
+        // a card is not also rendered as a pill
+        expect(el.shadowRoot!.querySelector("a.link-btn")).toBeNull();
+    });
+
+    it("lays out the card body as text column + trailing arrow (design se-church-links_8)", async () => {
+        const el = await mount(baseBag({
+            items: [{ guid: "1", itemType: "link", text: "Serve", url: "https://a.test", subtitle: "Find a team", displayStyle: "card", order: 0 }]
+        }));
+        const body = el.shadowRoot!.querySelector("a.link-card > .card-body")!;
+        const kids = Array.from(body.children).map(c => c.className);
+        expect(kids).toEqual(["card-text", "card-arrow"]);
+        expect(body.querySelector('.card-text > [part="card-title"]')?.textContent).toBe("Serve");
+        expect(body.querySelector('.card-text > [part="card-description"]')).not.toBeNull();
+    });
+
+    it("omits the image and description when not set", async () => {
+        const el = await mount(baseBag({
+            items: [{ guid: "1", itemType: "link", text: "Bare", url: "https://a.test", displayStyle: "card", cardImage: "not-a-guid", order: 0 }]
+        }));
+        const card = el.shadowRoot!.querySelector("a.link-card")!;
+        expect(card.querySelector("img")).toBeNull();
+        expect(card.querySelector('[part="card-description"]')).toBeNull();
+    });
+
+    it("mixes cards and buttons in list order", async () => {
+        const el = await mount(baseBag({
+            items: [
+                { guid: "1", itemType: "link", text: "Btn", url: "https://a.test", order: 0 },
+                { guid: "2", itemType: "link", text: "Crd", url: "https://b.test", displayStyle: "card", order: 1 }
+            ]
+        }));
+        const anchors = Array.from(el.shadowRoot!.querySelectorAll("a[part=link]"));
+        expect(anchors.map(a => a.className)).toEqual(["link-btn", "link-card"]);
+    });
+
+    it("a featured card is hoisted and takes the featured class", async () => {
+        const el = await mount(baseBag({
+            items: [
+                { guid: "1", itemType: "link", text: "First", url: "https://a.test", order: 0 },
+                { guid: "2", itemType: "link", text: "Star", url: "https://b.test", displayStyle: "card", isFeatured: true, order: 1 }
+            ]
+        }));
+        const first = el.shadowRoot!.querySelector("a[part=link]")!;
+        expect(first.className).toBe("link-card featured");
+        expect(first.textContent).toContain("Star");
+    });
+
+    it("renders a nested card inside its section with the in-section style", async () => {
+        const el = await mount(baseBag({
+            items: [
+                { guid: "s", itemType: "section", text: "Explore", order: 0 },
+                { guid: "c", itemType: "link", text: "Child", url: "https://c.test", indentLevel: 1, displayStyle: "card", order: 1 }
+            ]
+        }));
+        const card = el.shadowRoot!.querySelector(".accord-links a.link-card");
+        expect(card).not.toBeNull();
+        expect(card!.className).toBe("link-card in-section");
+    });
+
+    it("sizes an open section to its content, with no fixed height cap", async () => {
+        const el = await mount(baseBag({
+            items: [
+                { guid: "s", itemType: "section", text: "Explore", order: 0 },
+                { guid: "c", itemType: "link", text: "Child", url: "https://c.test", indentLevel: 1, displayStyle: "card", cardImage: "11111111-1111-1111-1111-111111111111", order: 1 }
+            ]
+        }));
+        // The clip wrapper is the single grid row that collapses to 0fr.
+        expect(el.shadowRoot!.querySelector(".accord-body > .accord-clip .accord-links a.link-card")).not.toBeNull();
+        const css = el.shadowRoot!.querySelector("style")!.textContent!;
+        expect(css).toContain(".accordion.open .accord-body { grid-template-rows:1fr; }");
+        expect(css).not.toMatch(/\.accord-body\s*\{[^}]*max-height/);
+    });
+
+    it("escapes card title/description and blocks unsafe urls", async () => {
+        const el = await mount(baseBag({
+            items: [{
+                guid: "1", itemType: "link", text: "<b>x</b>", url: "javascript:alert(1)",
+                subtitle: "<img src=x onerror=alert(1)>", displayStyle: "card", order: 0
+            }]
+        }));
+        const out = html(el);
+        expect(out).not.toContain("<img src=x");
+        expect(out).not.toContain("<b>x</b>");
+        expect(out).not.toContain("javascript:");
+    });
+
+    it("themes cards with the button vars (featured with the featured vars)", async () => {
+        const el = await mount(baseBag({
+            effectiveButtonColor: "#0c1116",
+            items: [{ guid: "1", itemType: "link", text: "C", url: "https://a.test", displayStyle: "card", order: 0 }]
+        }));
+        const out = html(el);
+        expect(out).toContain("--ll-btn-bg:#0c1116");
+        expect(out).toMatch(/\.link-card \{[^}]*background:var\(--ll-btn-bg, var\(--white\)\)/);
+        expect(out).toMatch(/\.link-card\.featured \{[^}]*background:var\(--ll-feat-bg/);
     });
 });

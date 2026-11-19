@@ -14,6 +14,8 @@ export interface LinkItemBag {
     isFeatured?: boolean; // link rows: the (single) featured button, hoisted to the top
     fileGuid?: string | null; // ROCK-9362: link rows: uploaded file (server derives url from it)
     fileName?: string | null; // ROCK-9362: display name of the uploaded file (read-only)
+    displayStyle?: string; // ROCK-9361 link rows: "button" (default) | "card"
+    cardImage?: string; // ROCK-9361 card links: optional BinaryFile guid shown at the top of the card
     order?: number;
 }
 

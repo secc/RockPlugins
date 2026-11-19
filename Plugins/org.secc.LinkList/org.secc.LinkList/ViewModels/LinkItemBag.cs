@@ -51,11 +51,18 @@ namespace org.secc.LinkList.ViewModels
 
         /// <summary>
         /// ROCK-9362: original name of the uploaded file, for the editor's file chip.
-        /// Editor bags only (BuildBag includeFileNames) - never sent by the public REST
-        /// endpoint, since an uploader's file name can say more than the link text. Null
-        /// in an editor bag when the file no longer exists. Read-only; ignored on save.
+        /// Editor bags only (BuildBag includeFileNames) - the public list JSON leaves it
+        /// out, so a list does not advertise file names. It is not a secret: the file
+        /// endpoint sends the name in Content-Disposition to anyone who opens the file,
+        /// so a saved download keeps a useful name. Null in an editor bag when the file
+        /// no longer exists. Read-only; ignored on save.
         /// </summary>
         public string FileName { get; set; }
+        /// <summary>ROCK-9361: "button" (default; pill) or "card" (title + Subtitle as description + optional image). Link rows only.</summary>
+        public string DisplayStyle { get; set; }
+
+        /// <summary>ROCK-9361: optional BinaryFile guid for the image at the top of a card. Card-style link rows only.</summary>
+        public string CardImage { get; set; }
 
         public int Order { get; set; }
     }
