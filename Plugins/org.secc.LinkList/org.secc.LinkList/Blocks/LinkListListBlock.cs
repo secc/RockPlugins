@@ -169,8 +169,9 @@ namespace org.secc.LinkList.Blocks
                 {
                     return ActionBadRequest( error );
                 }
-                itemService.Delete( item );
-                rockContext.SaveChanges();
+
+                // ROCK-9362: also releases the list's uploaded files (best-effort).
+                service.DeleteList( item );
 
                 return ActionOk();
             }

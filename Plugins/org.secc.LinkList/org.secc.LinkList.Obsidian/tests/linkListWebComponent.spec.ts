@@ -288,6 +288,68 @@ describe("WS7 — fonts", () => {
     });
 });
 
+describe("ROCK-9362 — uploaded file links", () => {
+    const listGuid = "0b6f5a1e-2c3d-4e5f-8a9b-1c2d3e4f5a6b";
+    const fileGuid = "7d8e9fa0-1b2c-4d3e-9f40-5a6b7c8d9e0f";
+    const fileUrl = `/api/secc/linklist/${listGuid}/file/${fileGuid}`;
+
+    it("points a top-level file link at Rock (base-url), not the embedding site", async () => {
+        const out = html(await mount(baseBag({
+            items: [{ guid: "1", itemType: "link", text: "Flyer", url: fileUrl, fileGuid, fileName: "flyer.pdf", target: "_blank", order: 0 }]
+        })));
+        expect(out).toContain(`href="https://rock.example.org${fileUrl}"`);
+        expect(out).toContain('rel="noopener noreferrer"');
+    });
+
+    it("prefixes file links inside a section accordion too", async () => {
+        const out = html(await mount(baseBag({
+            items: [
+                { guid: "s", itemType: "section", text: "Docs", order: 0 },
+                { guid: "1", itemType: "link", text: "Flyer", url: fileUrl, fileGuid, indentLevel: 1, order: 1 }
+            ]
+        })));
+        expect(out).toContain(`href="https://rock.example.org${fileUrl}"`);
+    });
+
+    it("falls back to the file name when the link has no text", async () => {
+        const out = html(await mount(baseBag({
+            items: [{ guid: "1", itemType: "link", text: "", url: fileUrl, fileGuid, fileName: "Spring Flyer.pdf", order: 0 }]
+        })));
+        expect(out).toContain("Spring Flyer.pdf");
+    });
+
+    it("points a card-style file link at Rock too, top-level and inside a section", async () => {
+        const out = html(await mount(baseBag({
+            items: [
+                { guid: "1", itemType: "link", text: "Flyer", url: fileUrl, fileGuid, displayStyle: "card", target: "_blank", order: 0 },
+                { guid: "s", itemType: "section", text: "Docs", order: 1 },
+                { guid: "2", itemType: "link", text: "Guide", url: fileUrl, fileGuid, displayStyle: "card", indentLevel: 1, order: 2 }
+            ]
+        })));
+        const cardHrefs = out.match(/<a class="link-card[^"]*"[^>]*href="[^"]*"/g) || [];
+        expect(cardHrefs).toHaveLength(2);
+        cardHrefs.forEach(a => expect(a).toContain(`href="https://rock.example.org${fileUrl}"`));
+    });
+
+    it("falls back to the file name for a card with no text", async () => {
+        const out = html(await mount(baseBag({
+            items: [{ guid: "1", itemType: "link", text: "", url: fileUrl, fileGuid, fileName: "Spring Flyer.pdf", displayStyle: "card", order: 0 }]
+        })));
+        expect(out).toMatch(/class="card-title"[^>]*>Spring Flyer\.pdf</);
+    });
+
+    it("leaves ordinary relative and absolute URLs alone", async () => {
+        const out = html(await mount(baseBag({
+            items: [
+                { guid: "1", itemType: "link", text: "Rel", url: "/page/123", order: 0 },
+                { guid: "2", itemType: "link", text: "Abs", url: "https://x.test/a", order: 1 }
+            ]
+        })));
+        expect(out).toContain('href="/page/123"');
+        expect(out).toContain('href="https://x.test/a"');
+    });
+});
+
 describe("ROCK-9361 — card display style", () => {
     const imgGuid = "C9F920B9-B462-447B-ABC8-CE150A135F8D";
 
