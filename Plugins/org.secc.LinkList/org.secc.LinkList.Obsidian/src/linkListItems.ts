@@ -8,6 +8,21 @@ export function isFeaturedLink(item: LinkItemBag): boolean {
     return !!item.isFeatured && (item.itemType ?? "link") === "link";
 }
 
+/** ROCK-9361: link display styles. Anything that isn't "card" renders as a button. */
+export type LinkDisplayStyle = "button" | "card";
+
+/** Canonical display style for a row: "card" only for a link row explicitly set to card (case-insensitive). */
+export function displayStyleOf(item: LinkItemBag): LinkDisplayStyle {
+    return (item.itemType ?? "link") === "link" && (item.displayStyle ?? "").trim().toLowerCase() === "card"
+        ? "card"
+        : "button";
+}
+
+/** True when a row renders as a card (ROCK-9361). */
+export function isCardLink(item: LinkItemBag): boolean {
+    return displayStyleOf(item) === "card";
+}
+
 /**
  * Render-time hoist: returns a NEW array with the single featured link moved to
  * the front and everything else left in its existing order. Does not mutate, and

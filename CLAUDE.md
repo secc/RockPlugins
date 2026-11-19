@@ -25,11 +25,10 @@ plugin. Read the plugin's README before changing it.
 ## Building
 
 Plugins reference Rock as a prebuilt DLL (`$(SolutionDir)RockWeb\Bin\Rock.dll`), so there is
-no need to rebuild Rock to build a plugin. The exception is LinkList: it still gets Rock from the
-`RockRMS.*` NuGet packages (`1.16.9-rc.1`) until PR #348 moves it to `RockWeb\Bin`, so the
-stale-Rock check doesn't apply to it. Don't add `RockRMS.*` packages to any project: Spark doesn't
-publish a package for every Rock version or hotfix, and plugins must compile against the Rock we
-deploy.
+no need to rebuild Rock to build a plugin. Every plugin references Rock from `RockWeb\Bin`,
+including the SDK-style projects (see `Plugins/README-SdkStyle.md`). Don't add `RockRMS.*`
+packages to any project: Spark doesn't publish a package for every Rock version or hotfix, and
+plugins must compile against the Rock we deploy.
 
 - Build with `Tools/build-plugin.ps1` (PowerShell). No arguments builds the plugins changed vs
   `origin/master`; or pass names (`Workflow`, `LinkList,Event`). It warns when `../Rock`

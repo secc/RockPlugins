@@ -1,7 +1,8 @@
 <template>
     <div class="ll-editor-actions">
         <RockButton btnType="default" @click="$emit('cancel')">Cancel</RockButton>
-        <RockButton btnType="primary" :isLoading="isSaving" @click="$emit('save')">Save</RockButton>
+        <span v-if="isUploading && !isSaving" class="text-muted small" role="status">Waiting for upload&hellip;</span>
+        <RockButton btnType="primary" :isLoading="isSaving" :disabled="isUploading" @click="$emit('save')">Save</RockButton>
         <RockButton v-if="canDelete" btnType="danger" @click="$emit('delete')">Delete</RockButton>
     </div>
 </template>
@@ -14,6 +15,8 @@ import RockButton from "@Obsidian/Controls/rockButton.obs";
 // the host theme (no hardcoded colors).
 defineProps<{
     isSaving?: boolean;
+    /** ROCK-9362: a link-file upload is in flight - Save waits for it. */
+    isUploading?: boolean;
     canDelete?: boolean;
 }>();
 defineEmits<{

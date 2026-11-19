@@ -4,9 +4,9 @@
     without rebuilding the Rock solution.
 
 .DESCRIPTION
-    Plugins reference Rock as a DLL ($(SolutionDir)RockWeb\Bin\Rock.dll), so they only need
-    Rock to have been built once. LinkList still gets Rock from the RockRMS.* NuGet packages
-    until PR #348 lands, so the stale-Rock warning doesn't apply to it. This script:
+    Plugins reference Rock as a DLL from RockWeb\Bin (legacy projects via
+    $(SolutionDir)RockWeb\Bin\Rock.dll, SDK-style projects via Directory.Build.props), so they
+    only need Rock to have been built once. This script:
       1. Warns when a Rock assembly in RockWeb\Bin is older than its source (stale Rock build).
       2. Builds the requested plugin csproj files with MSBuild, SolutionDir pointed at ..\Rock.
       3. Unless -NoCopy: copies the plugin's org.secc.* DLL/PDB into RockWeb\Bin and runs the
@@ -316,8 +316,12 @@ foreach ($csproj in $targets) {
         '/p:PostBuildEvent='
         '/v:m', '/nologo', '/clp:ErrorsOnly;Summary'
     )
-    # SDK-style plugins (LinkList) copy to RockWeb\Bin in their own target; honor -NoCopy there too.
-    if ($NoCopy) { $msArgs += '/p:CopyToRockWeb=false' }
+    # SDK-style plugins (LinkList, Search) would otherwise deploy in the shared
+    # CopyRockPluginToRockWeb target (Directory.Build.targets), and that target also copies
+    # org_secc\** into RockWeb\Plugins\org_secc - through the symlinks into the main
+    # checkout (see .DESCRIPTION). Always turn it off; the copy loop below deploys the
+    # DLL/PDB and honors -NoCopy.
+    $msArgs += '/p:CopyToRockWeb=false'
     & $msbuild @msArgs
     if ($LASTEXITCODE -ne 0) {
         $failed += $csproj.BaseName

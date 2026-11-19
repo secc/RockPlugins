@@ -1,0 +1,95 @@
+<Project>
+
+  <!--
+    Shared build behavior for SDK-style Rock plugins. Nothing here applies
+    unless the project is SDK-style AND opts in with one of:
+
+      <IsRockPlugin>true</IsRockPlugin>          a plugin that deploys to RockWeb
+      <IsRockPluginTest>true</IsRockPluginTest>  a test project for a plugin
+
+    Legacy projects import this file too (via Microsoft.Common.targets), so
+    every item and target below is gated on that opt-in.
+    See Plugins/README-SdkStyle.md.
+  -->
+
+  <PropertyGroup>
+    <_RockPluginsParentTargets>$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)..'))</_RockPluginsParentTargets>
+  </PropertyGroup>
+  <Import Project="$(_RockPluginsParentTargets)" Condition="'$(_RockPluginsParentTargets)' != ''" />
+
+  <PropertyGroup Condition="'$(UsingMicrosoftNETSdk)' == 'true' And ('$(IsRockPlugin)' == 'true' Or '$(IsRockPluginTest)' == 'true')">
+    <_UsesRockReferences>true</_UsesRockReferences>
+    <!-- Plugins compile against Rock's copies and must never ship/overwrite
+         them (Private=false). Test projects need real copies next to the test
+         host so the code can load (Private=true). -->
+    <_RockReferencePrivate Condition="'$(IsRockPluginTest)' == 'true'">true</_RockReferencePrivate>
+    <_RockReferencePrivate Condition="'$(IsRockPluginTest)' != 'true'">false</_RockReferencePrivate>
+  </PropertyGroup>
+
+  <!--
+    Rock assemblies, resolved from RockWeb\Bin. The default set below covers
+    what nearly every plugin uses. Add others from your project with e.g.
+      <RockReference Include="Rock.Rest;Rock.Blocks" />
+    Any DLL that ships in RockWeb\Bin can be listed (HtmlAgilityPack, Quartz...).
+    Set <RockDefaultReferences>false</RockDefaultReferences> to list everything yourself.
+  -->
+  <ItemGroup Condition="'$(_UsesRockReferences)' == 'true' And '$(RockDefaultReferences)' != 'false'">
+    <RockReference Include="Rock;Rock.Common;Rock.Enums;Rock.Lava.Shared;Rock.ViewModels;DotLiquid;EntityFramework;Newtonsoft.Json" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(_UsesRockReferences)' == 'true'">
+    <Reference Include="@(RockReference)" HintPath="$(RockBin)\%(Identity).dll" Private="$(_RockReferencePrivate)" />
+  </ItemGroup>
+
+  <!-- Fail early with a useful message instead of hundreds of CS0246s. -->
+  <Target Name="EnsureRockWebForPlugin"
+          BeforeTargets="ResolveAssemblyReferences"
+          Condition="'$(_UsesRockReferences)' == 'true' And '$(DesignTimeBuild)' != 'true'">
+    <Error Condition="'$(RockBin)' == '' Or !Exists('$(RockBin)\Rock.dll')"
+           Text="$(MSBuildProjectName): Rock.dll not found. Build secc/Rock first (expected at ..\Rock\RockWeb\Bin next to RockPlugins), or pass /p:RockWebPath=&lt;path to RockWeb&gt;." />
+  </Target>
+
+  <!--
+    WebForms blocks: .ascx/.ascx.cs under org_secc\ use CodeFile=, so ASP.NET
+    compiles them at runtime from RockWeb\Plugins. They must NOT be compiled
+    into the plugin DLL (legacy projects never listed them). SDK projects
+    compile every *.cs by default, so take them back out.
+  -->
+  <ItemGroup Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(IsRockPlugin)' == 'true'">
+    <Compile Remove="org_secc\**" />
+    <None Remove="org_secc\**" />
+    <Content Include="org_secc\**" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
+  <!--
+    Deploy to RockWeb after every build (replaces the legacy xcopy
+    PostBuildEvents and works on any OS):
+      - the plugin DLL + PDB          -> RockWeb\Bin
+      - org_secc\**                   -> RockWeb\Plugins\org_secc
+      - any RockWebContent item       -> RockWeb\%(RockWebDir)\<relative path>
+        e.g. <RockWebContent Include="Themes\**" RockWebDir="Themes" />
+    Set <CopyToRockWeb>false</CopyToRockWeb> to skip.
+  -->
+  <Target Name="CopyRockPluginToRockWeb"
+          AfterTargets="Build"
+          Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(IsRockPlugin)' == 'true' And '$(CopyToRockWeb)' != 'false' And '$(RockWebPath)' != ''">
+    <ItemGroup>
+      <_RockPluginBinFile Include="$(TargetPath)" />
+      <_RockPluginBinFile Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+      <_RockPluginBlockFile Include="$(MSBuildProjectDirectory)\org_secc\**\*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(_RockPluginBinFile)"
+          DestinationFolder="$(RockBin)"
+          SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
+    <Copy SourceFiles="@(_RockPluginBlockFile)"
+          DestinationFiles="@(_RockPluginBlockFile->'$(RockWebPath)\Plugins\org_secc\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
+    <Copy SourceFiles="@(RockWebContent)"
+          DestinationFiles="@(RockWebContent->'$(RockWebPath)\%(RockWebDir)\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
+
+    <Message Importance="high" Text="$(MSBuildProjectName): deployed to $(RockWebPath)" />
+  </Target>
+
+</Project>
