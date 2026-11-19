@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web.UI;
 using org.secc.GroupManager.Model;
 using Rock;
@@ -72,7 +73,7 @@ namespace RockWeb.Plugins.GroupManager
 
     [GroupTypesField(
         "Home Group Types",
-        Description = "Groups of these types get the Home Group treatment: location shown as postal code only, registration forced on, childcare disabled, and the confirmation From Name, Subject, and Body locked to the Home Group values below. Leave blank to disable.",
+        Description = "Groups of these types get the Home Group treatment: location shown as postal code only, registration forced on, childcare disabled, the confirmation From Name and Subject locked to the Home Group values below, and the Body reset to the Home Group value each time the form loads. Leave blank to disable.",
         IsRequired = false,
         Key = AttributeKeys.HomeGroupTypes,
         Category = "Home Groups",
@@ -155,14 +156,9 @@ namespace RockWeb.Plugins.GroupManager
 
                 if ( publishGroup.Group != null )
                 {
-                    var homeGroupTypeIds = GetAttributeValue( AttributeKeys.HomeGroupTypes )
-                        .SplitDelimitedValues()
-                        .Select( g => GroupTypeCache.GetId( g.AsGuid() ) )
-                        .Where( id => id.HasValue )
-                        .Select( id => id.Value )
-                        .ToList();
-
-                    isHomeGroup = homeGroupTypeIds.Contains( publishGroup.Group.GroupTypeId );
+                    var groupTypeGuid = GroupTypeCache.Get( publishGroup.Group.GroupTypeId )?.Guid;
+                    isHomeGroup = groupTypeGuid.HasValue
+                        && GetAttributeValues( AttributeKeys.HomeGroupTypes ).AsGuidList().Contains( groupTypeGuid.Value );
                 }
             }
         }
@@ -256,7 +252,9 @@ namespace RockWeb.Plugins.GroupManager
                     tTimeOfDay.SelectedTime = null;
                     tbCustomSchedule.Text = PublishGroup.FormatScheduleDates( schedule );
                 }
-                dpStartDate.SelectedDate = schedule.EffectiveStartDate;
+                // Simple weekly schedules have no iCal, so no EffectiveStartDate; keep the stored
+                // start date rather than clearing it on the next save.
+                dpStartDate.SelectedDate = schedule.EffectiveStartDate ?? publishGroup.StartDate;
             }
             else
             {
@@ -317,11 +315,15 @@ namespace RockWeb.Plugins.GroupManager
                 tbLocationName.ReadOnly = true;
                 ddlRegistration.SelectedValue = "1";
                 ddlRegistration.Enabled = false;
-                // Plain token replace, not Lava: the body keeps its Global attribute
-                // merge fields for the confirmation email to resolve at send time.
                 var groupName = publishGroup.Group.Name;
-                tbConfirmationFromName.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationFromName );
-                tbConfirmationFromName.ReadOnly = true;
+                // A blank setting leaves the stored value editable instead of locking an
+                // empty required field the leader could never fill in.
+                var homeGroupFromName = GetAttributeValue( AttributeKeys.HomeGroupConfirmationFromName );
+                if ( homeGroupFromName.IsNotNullOrWhiteSpace() )
+                {
+                    tbConfirmationFromName.Text = homeGroupFromName;
+                    tbConfirmationFromName.ReadOnly = true;
+                }
                 // ROCK-8991: this field is now the Reply-To, so let the leader supply an address. Pre-fill from the contact
                 // email only when nothing usable is stored (blank, or the legacy forced noreply@secc.org value).
                 if ( publishGroup.ContactEmail.IsNotNullOrWhiteSpace()
@@ -330,13 +332,34 @@ namespace RockWeb.Plugins.GroupManager
                 {
                     tbConfirmationFromEmail.Text = publishGroup.ContactEmail;
                 }
-                tbConfirmationSubject.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationSubject ).Replace( "{{ GroupName }}", groupName );
-                tbConfirmationSubject.ReadOnly = true;
-                ceConfirmationBody.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationBody ).Replace( "{{ GroupName }}", groupName );
+                var homeGroupSubject = GetAttributeValue( AttributeKeys.HomeGroupConfirmationSubject );
+                if ( homeGroupSubject.IsNotNullOrWhiteSpace() )
+                {
+                    tbConfirmationSubject.Text = ReplaceGroupNameToken( homeGroupSubject, groupName );
+                    tbConfirmationSubject.ReadOnly = true;
+                }
+                // The body is reset to the Home Group value on every load, but the HTML editor
+                // stays editable, so a leader can still change it before saving.
+                var homeGroupBody = GetAttributeValue( AttributeKeys.HomeGroupConfirmationBody );
+                if ( homeGroupBody.IsNotNullOrWhiteSpace() )
+                {
+                    ceConfirmationBody.Text = ReplaceGroupNameToken( homeGroupBody, groupName );
+                }
                 SwitchRegistrationRequirement( RegistrationRequirement.RegistrationAvailable );
                 ddlChildcareOptions.SelectedValue = "0";
                 ddlChildcareOptions.Enabled = false;
             }
+        }
+
+        /// <summary>
+        /// Replaces the {{ GroupName }} token (any inner spacing) with the group name. Plain token
+        /// replace, not Lava: the template keeps its other merge fields (Global attributes etc.)
+        /// for the confirmation email to resolve at send time.
+        /// </summary>
+        private static string ReplaceGroupNameToken( string template, string groupName )
+        {
+            // MatchEvaluator so a "$" in the group name is not read as a substitution pattern.
+            return Regex.Replace( template, @"\{\{\s*GroupName\s*\}\}", m => groupName ?? string.Empty );
         }
 
         private string GetSlug( PublishGroup publishGroup )
