@@ -316,14 +316,9 @@ namespace RockWeb.Plugins.GroupManager
                 ddlRegistration.SelectedValue = "1";
                 ddlRegistration.Enabled = false;
                 var groupName = publishGroup.Group.Name;
-                // A blank setting leaves the stored value editable instead of locking an
-                // empty required field the leader could never fill in.
-                var homeGroupFromName = GetAttributeValue( AttributeKeys.HomeGroupConfirmationFromName );
-                if ( homeGroupFromName.IsNotNullOrWhiteSpace() )
-                {
-                    tbConfirmationFromName.Text = homeGroupFromName;
-                    tbConfirmationFromName.ReadOnly = true;
-                }
+                // Rock substitutes the setting's default when it is cleared, so these are never blank.
+                tbConfirmationFromName.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationFromName );
+                tbConfirmationFromName.ReadOnly = true;
                 // ROCK-8991: this field is now the Reply-To, so let the leader supply an address. Pre-fill from the contact
                 // email only when nothing usable is stored (blank, or the legacy forced noreply@secc.org value).
                 if ( publishGroup.ContactEmail.IsNotNullOrWhiteSpace()
@@ -332,19 +327,11 @@ namespace RockWeb.Plugins.GroupManager
                 {
                     tbConfirmationFromEmail.Text = publishGroup.ContactEmail;
                 }
-                var homeGroupSubject = GetAttributeValue( AttributeKeys.HomeGroupConfirmationSubject );
-                if ( homeGroupSubject.IsNotNullOrWhiteSpace() )
-                {
-                    tbConfirmationSubject.Text = ReplaceGroupNameToken( homeGroupSubject, groupName );
-                    tbConfirmationSubject.ReadOnly = true;
-                }
+                tbConfirmationSubject.Text = ReplaceGroupNameToken( GetAttributeValue( AttributeKeys.HomeGroupConfirmationSubject ), groupName );
+                tbConfirmationSubject.ReadOnly = true;
                 // The body is reset to the Home Group value on every load, but the HTML editor
                 // stays editable, so a leader can still change it before saving.
-                var homeGroupBody = GetAttributeValue( AttributeKeys.HomeGroupConfirmationBody );
-                if ( homeGroupBody.IsNotNullOrWhiteSpace() )
-                {
-                    ceConfirmationBody.Text = ReplaceGroupNameToken( homeGroupBody, groupName );
-                }
+                ceConfirmationBody.Text = ReplaceGroupNameToken( GetAttributeValue( AttributeKeys.HomeGroupConfirmationBody ), groupName );
                 SwitchRegistrationRequirement( RegistrationRequirement.RegistrationAvailable );
                 ddlChildcareOptions.SelectedValue = "0";
                 ddlChildcareOptions.Enabled = false;
@@ -359,7 +346,7 @@ namespace RockWeb.Plugins.GroupManager
         private static string ReplaceGroupNameToken( string template, string groupName )
         {
             // MatchEvaluator so a "$" in the group name is not read as a substitution pattern.
-            return Regex.Replace( template, @"\{\{\s*GroupName\s*\}\}", m => groupName ?? string.Empty );
+            return Regex.Replace( template ?? string.Empty, @"\{\{\s*GroupName\s*\}\}", m => groupName ?? string.Empty );
         }
 
         private string GetSlug( PublishGroup publishGroup )
