@@ -265,9 +265,15 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
 
             WorkflowService workflowService = new WorkflowService( rockContext );
 
-            var workflowQueryable = workflowService.Queryable();
+            var entitySetItems = new EntitySetItemService( rockContext ).Queryable()
+                .Where( i => i.EntitySetId == entitySet.Id )
+                .OrderBy( i => i.Id )
+                .ToList();
+            var workflowIds = entitySetItems.Select( i => i.EntityId ).ToList();
 
-            var workflows = entitySet.Items
+            var workflowQueryable = workflowService.Queryable().Where( w => workflowIds.Contains( w.Id ) );
+
+            var workflows = entitySetItems
                 .Join( workflowQueryable,
                     i => i.EntityId,
                     w => w.Id,
