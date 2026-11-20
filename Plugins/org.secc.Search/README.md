@@ -8,7 +8,7 @@ Search supplies Southeast's custom person-search extensions. The compiled assemb
 three Rock `SearchComponent`s — search people by home/previous **address**, **date of birth**, or
 **giving envelope number** — that appear in Rock's universal search alongside the built-in ones. The
 plugin also ships several RockWeb admin blocks (a richer person-results grid, a bulk email/phone
-lookup, and an Apple-Pass generator/test pair) under `org_secc/Crm/`. Staff use these to find people
+lookup, and an Apple-Pass generator) under `org_secc/Crm/`. Staff use these to find people
 during data work and to issue event passes.
 
 ## Project Info
@@ -28,7 +28,7 @@ during data work and to issue event passes.
 
 ```
 /Person/        SearchComponent exports — Address, DOB, Envelope (compiled into the assembly)
-/org_secc/Crm/  RockWeb blocks (.ascx + .ascx.cs) — PersonSearch, BulkSearch, GenerateApplePass, ApplePassTest
+/org_secc/Crm/  RockWeb blocks (.ascx + .ascx.cs) — PersonSearch, BulkSearch, GenerateApplePass
 ```
 
 ## Components
@@ -52,8 +52,7 @@ RockWeb blocks under `org_secc/Crm/`. Categories below are taken from each block
 |-------|----------|---------|--------------|
 | Person Search (`PersonSearch`) | SECC > CRM | Results grid for a `SearchType` + `SearchTerm` (name, phone, address, email, envelope, dob) passed as page parameters; redirects to the person if a single match. | Person Detail Page (linked page), Show Performance (bool) |
 | Bulk Search (`BulkSearch`) | SECC > Search | Paste a newline-delimited list of emails and/or phone numbers into a grid of matching people. | (none) |
-| My Account - Generate Apple Pass (`GenerateApplePass`) | SECC > CRM | Headless block (hidden field + hidden button, no person picker): a client-side `GeneratePass(personAliasGuid)` script stuffs the alias guid into `hfPassInfo` and clicks the hidden button; the block then returns the person's existing pass file, or runs the configured pass workflow if the person's pass attribute is empty, and redirects to `GetFile.ashx`. | Pass Template Id (`PassTemplateId`, int, optional), Apple Pass Workflow (`ApplePassWorkflow`, workflow type, required), Event Pass Person Attribute (`EventPassAttribute`, person attribute, required) |
-| Apple Pass Test (`ApplePassTest`) | SECC > CRM | Test harness: pick a person, then it emits the `GeneratePass("<primaryAliasGuid>")` startup script (the same hook the `GenerateApplePass` block listens for). Has no `[Description]` attribute. | (none) |
+| My Account - Generate Apple Pass (`GenerateApplePass`) | SECC > CRM | Headless block (hidden field + hidden button, no person picker): a client-side `GeneratePass(personAliasGuid)` script puts a value into `hfPassInfo` and clicks the hidden button; the block then works on the signed-in person only (the posted value does not choose the person; a blank value or no signed-in person does nothing): it returns that person's existing pass file, or runs the configured pass workflow if their pass attribute is empty, and redirects to `GetFile.ashx`. | Pass Template Id (`PassTemplateId`, int, optional), Apple Pass Workflow (`ApplePassWorkflow`, workflow type, required), Event Pass Person Attribute (`EventPassAttribute`, person attribute, required) |
 
 ## Dependencies & Integrations
 
@@ -93,4 +92,4 @@ RockWeb blocks under `org_secc/Crm/`. Categories below are taken from each block
 - Apple-Pass generation is driven by the workflow configured on the `GenerateApplePass` block, not by
   code here — change the pass output by editing that workflow type.
 
-Last updated: 2026-11-03
+Last updated: 2026-11-20

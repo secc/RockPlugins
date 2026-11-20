@@ -61,22 +61,15 @@ namespace RockWeb.Plugins.org_secc.Crm
         protected void lbGeneratePass_Click( object sender, EventArgs e )
         {
             Guid fileGuid = Guid.Empty;
-            if (hfPassInfo.Value.IsNullOrWhiteSpace())
-            {
-                return;
-            }
-
-            var personAliasGuid = hfPassInfo.Value.AsGuidOrNull();
-
-            if (!personAliasGuid.HasValue)
+            if (hfPassInfo.Value.IsNullOrWhiteSpace() || CurrentPerson == null)
             {
                 return;
             }
 
             using (var rockContext = new RockContext())
             {
-                var personAliasService = new PersonAliasService( rockContext );
-                var person = personAliasService.GetPerson( personAliasGuid.Value );
+                // The pass is always for the signed-in person; the posted value only starts the request.
+                var person = new PersonService( rockContext ).Get( CurrentPerson.Id );
                 if (person == null)
                 {
                     return;
