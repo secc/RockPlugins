@@ -148,6 +148,7 @@ namespace RockWeb.Plugins.org_secc.Security
         protected void EditPin( int UserLoginId, RockContext rockContext = null )
         {
             nbError.Visible = false;
+            cblPurpose.ClearSelection();
             if ( rockContext == null )
             {
                 rockContext = new RockContext();
