@@ -127,23 +127,20 @@ namespace Rock.Security.ExternalAuthentication
                     return false;
                 }
 
-                // A successful login gives its attempt back.
-                try
+                // A code signs in once: use it up in one statement, and succeed only if this call did,
+                // while the stored code is still the one that was checked.
+                if ( ExecuteSql(
+                    "UPDATE [UserLogin] SET [Password] = NULL WHERE [Id] = @id AND [Password] = @loadedHash",
+                    new SqlParameter( "@id", user.Id ),
+                    new SqlParameter( "@loadedHash", loadedHash ) ) != 1 )
                 {
-                    ExecuteSql(
-                        "UPDATE [UserLogin] SET [FailedPasswordAttemptCount] = [FailedPasswordAttemptCount] - 1 WHERE [Id] = @id AND [Password] = @loadedHash AND [FailedPasswordAttemptCount] > 0",
-                        new SqlParameter( "@id", user.Id ),
-                        new SqlParameter( "@loadedHash", loadedHash ) );
-                }
-                catch ( Exception ex )
-                {
-                    // The attempt stays used; the login still succeeds.
-                    ExceptionLogService.LogException( ex );
+                    return false;
                 }
                 return true;
             }
-            catch
+            catch ( Exception ex )
             {
+                Log( ex );
                 return false;
             }
 
@@ -294,8 +291,7 @@ namespace Rock.Security.ExternalAuthentication
             string personKey = "SMS_" + person.Id.ToString();   // matches the UserLogin username
             var ipAddress = GetIpAddress();
 
-            // Check both person and raw number so reformatting the number can't sidestep the cap, and
-            // reserve the IP and number, before the login's current code is replaced and the new one sent.
+            // Check both the person and the raw number, and reserve the IP and number, before the login's current code is replaced and the new one sent.
             var issuance = SMSRecords.IssueIfAllowed( personKey, phoneNumber, ipAddress, maxRequests, windowMins, () => ReplaceCodeAndSend( rockContext, person, phoneNumber, ipAddress ) );
 
             if ( issuance == SMSRecords.IssuanceResult.BudgetExceeded )
@@ -405,7 +401,6 @@ namespace Rock.Security.ExternalAuthentication
         /// <summary>
         /// Generates a cryptographically-secure 6-digit one-time code (100000-999999 inclusive)
         /// using the negligible-bias float-scaling pattern used by Rock core (KeyHelper / Security.Password).
-        /// Replaces System.Random, which is non-cryptographic and clock-seeded (ROCK-8764).
         /// </summary>
         private static int GenerateSecureOtp()
         {
@@ -526,6 +521,15 @@ namespace Rock.Security.ExternalAuthentication
         protected virtual void Log( string message )
         {
             ExceptionLogService.LogException( new Exception( message ) );
+        }
+
+        /// <summary>
+        /// Writes an exception to the Exception Log.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        protected virtual void Log( Exception exception )
+        {
+            ExceptionLogService.LogException( exception );
         }
 
         /// <summary>

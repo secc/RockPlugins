@@ -133,6 +133,17 @@ namespace org.secc.Authentication.Tests
             }
         }
 
+        public string GetPassword( int id )
+        {
+            using ( var connection = Open( ConnectionString ) )
+            using ( var command = new SqlCommand( "SELECT [Password] FROM [UserLogin] WHERE [Id] = @id", connection ) )
+            {
+                command.Parameters.AddWithValue( "@id", id );
+                var value = command.ExecuteScalar();
+                return value == DBNull.Value ? null : ( string ) value;
+            }
+        }
+
         /// <summary>
         /// Runs a statement on its own connection and returns the number of rows it affected.
         /// </summary>
@@ -200,12 +211,18 @@ namespace org.secc.Authentication.Tests
         /// </summary>
         public List<string> Logged { get; private set; }
 
+        /// <summary>
+        /// The exceptions written through Log.
+        /// </summary>
+        public List<Exception> LoggedExceptions { get; private set; }
+
         public static TestSMSAuthentication Create( UserLoginTestDatabase database )
         {
             var authentication = ( TestSMSAuthentication ) FormatterServices.GetUninitializedObject( typeof( TestSMSAuthentication ) );
             authentication._database = database;
             authentication.Request = new FakeRequest( remoteAddress: FakeRequest.NewAddress() );
             authentication.Logged = new List<string>();
+            authentication.LoggedExceptions = new List<Exception>();
             return authentication;
         }
 
@@ -225,6 +242,14 @@ namespace org.secc.Authentication.Tests
             lock ( Logged )
             {
                 Logged.Add( message );
+            }
+        }
+
+        protected override void Log( Exception exception )
+        {
+            lock ( LoggedExceptions )
+            {
+                LoggedExceptions.Add( exception );
             }
         }
     }

@@ -23,7 +23,7 @@ Authentication lets a person sign in to Rock with their cell phone instead of a 
 /                              CallerAddress.cs — the caller address the per-caller limits count against
 /org_secc/Authentication/      SMSLogin.ascx (+ .ascx.cs) — the two-step phone-number / code login block
 /Properties/                   AssemblyInfo.cs
-/org.secc.Authentication.Tests/ xUnit tests for SMSRecords, SendSMSAuthentication, SendSMS, CallerAddress, and Authenticate's attempt counting and code entry limit (Tools/add-plugins-to-solution.ps1 adds it to Rock.sln with the plugin projects)
+/org.secc.Authentication.Tests/ xUnit tests for SMSRecords, SendSMSAuthentication, SendSMS, CallerAddress, and Authenticate's attempt counting, single use and code entry limit (Tools/add-plugins-to-solution.ps1 adds it to Rock.sln with the plugin projects)
 ```
 
 ## How SMS Login Works
@@ -53,18 +53,21 @@ flowchart TD
     P -->|no| N
     P -->|yes| Q{BCrypt.Verify?}
     Q -->|no| N
-    Q -->|yes| R[Give the attempt back]
+    Q -->|yes| U{UPDATE uses up the code:<br/>still the same code?}
+    U -->|no| N
+    U -->|yes| R[Code accepted]
     R --> O[CheckUser -> Authorization.SetAuthCookie<br/>redirect returnurl / RedirectPage]
 ```
 
 **Conventions / contracts:**
 - The component is discovered by MEF: `[Export(typeof(AuthenticationComponent))]` + `[ExportMetadata("ComponentName", "SMS Authentication")]`, registered under the type name `Rock.Security.ExternalAuthentication.SMSAuthentication` (note: the class lives in the Rock namespace, not `org.secc`).
 - `ServiceType` is `External` and `RequiresRemoteAuthentication` is `true` — Rock treats it like a third-party provider.
-- The OTP is the `UserLogin.Password`: a random six-digit value (100000–999999) from a cryptographic RNG (`RandomNumberGenerator`), BCrypt-hashed via the **BCrypt Cost Factor** attribute. The code's validity window is enforced off `LastPasswordChangedDateTime` (30 minutes), and the attempt cap off `FailedPasswordAttemptCount` (5 per code). Each entry is counted before the code is checked, by one SQL `UPDATE` that applies only while the login still holds that code and has fewer than 5 attempts; a correct entry then gives its attempt back, so only wrong entries use up the 5. A login with no stored code is refused without counting.
+- The OTP is the `UserLogin.Password`: a random six-digit value (100000–999999) from a cryptographic RNG (`RandomNumberGenerator`), BCrypt-hashed via the **BCrypt Cost Factor** attribute. The code's validity window is enforced off `LastPasswordChangedDateTime` (30 minutes), and the attempt cap off `FailedPasswordAttemptCount` (5 per code). Each entry is counted before the code is checked, by one SQL `UPDATE` that applies only while the login still holds that code and has fewer than 5 attempts; a correct entry then clears the stored code in a second `UPDATE` that applies only while the login still holds that code, and succeeds only if that `UPDATE` changed the row. So a code signs in once: entering it again, from any device or web server, is refused, and the person requests a new code. A login with no stored code is refused without counting.
 - One `UserLogin` per person, keyed `SMS_<person.Id>`. It is upserted on each allowed generate (resets failed-attempt count, re-stamps the timestamp, sets `IsConfirmed = true`).
 - Phone-number ownership must resolve to **exactly one** living person; 0, >1, or deceased fails closed with a generic "There was an issue with your request" message.
 - Code requests (`SMSRecords.IssueIfAllowed`, which checks with `TryBeginIssuance`): at most **Max Code Requests** per **Code Request Window Minutes** for the person and for the number, and one send in progress per caller address and per number. Both are decided in one locked step, and only an allowed request replaces the code and sends it; a refused request leaves the current code and attempt count as they are and is not counted. An allowed request counts toward **Max Code Requests** as soon as it is allowed, before its new code is saved, so a request whose code can't be saved still counts. Over budget, the block shows the Resolve panel; while a send is in progress, it shows the Code panel and no new code is sent.
 - Code entries (`Authenticate`, which counts with `SMSRecords.TryRegisterCodeEntry`): at most 30 per caller address in a 15-minute window that starts at the address's first counted entry. An entry is counted after the code-age and stored-code checks and before the login's attempt, in one locked step; correct entries count too, and nothing is given back. A refused entry fails the same way as a wrong code and doesn't use the login's attempt; the first refusal in a window writes "SMS login code entry limit reached. IP: <address>" to the Exception Log. At most 20,000 addresses are tracked; past that, the oldest tenth of the windows is dropped.
+- An error while counting or using up a code entry (for example a database error) refuses the entry and is written to the Exception Log.
 - The caller address (`CallerAddress.ForRequest`) is the address in the last `X-Forwarded-For` entry, with its port and IPv6 brackets removed; if none is left (missing, blank, only a port or brackets), the connecting address (`REMOTE_ADDR`); if that is blank too, or there is no request, `unknown`.
 - `SMSRecords` state is held in memory on each web server and starts empty when the application restarts.
 
@@ -106,7 +109,7 @@ Category in Rock: **SECC > Security**. Three panels (phone → code → resolve)
 ## Edge Cases & Constraints
 
 - **Number must map to exactly one living person.** `GetNumberOwner` rejects 0 matches, >1 matches, and deceased people — all with the same generic error (the **Resolve Number Page** is the escape hatch for shared/duplicate numbers).
-- **Code lifetime is 30 minutes, hard-coded.** `Authenticate` rejects any code whose `LastPasswordChangedDateTime` is older than 30 minutes (or null). Not configurable.
+- **Code lifetime is 30 minutes, hard-coded.** `Authenticate` rejects any code whose `LastPasswordChangedDateTime` is older than 30 minutes (or null). Not configurable. A code also stops working once it has been entered correctly.
 - **Send is fire-and-forget.** The text goes out on a `Task.Run(...)` `async void` (`SendSMS`); failures are logged but never surfaced to the user, who still sees the code-entry panel.
 - **Page is referenced, not created.** The default **SMS Login Page** Guid must already exist in the target Rock instance; this plugin ships no migration to create it.
 
@@ -128,7 +131,7 @@ if ( sms.SendSMSAuthentication( phone ) )      // issues + texts the code
 {
     // ... collect the code from the user ...
     var userLogin = new UserLoginService( rockContext ).GetByUserName( "SMS_" + personId );
-    if ( sms.Authenticate( userLogin, code ) ) // verifies window + attempts + BCrypt
+    if ( sms.Authenticate( userLogin, code ) ) // verifies window + attempts + BCrypt, then uses up the code
     {
         Rock.Security.Authorization.SetAuthCookie( userLogin.UserName, true, false );
     }
@@ -145,4 +148,4 @@ No registration step is needed for the component — MEF discovers `[Export(type
 - org.secc.OAuth's resource-owner grant accepts this provider by type name (`Startup.cs`) — coordinate changes to the `Rock.Security.ExternalAuthentication.SMSAuthentication` type name with that plugin.
 - Building `org.secc.Authentication.Tests` with MSBuild from the command line builds the plugin without its `PostBuildEvent`, so nothing is copied into RockWeb. In Visual Studio, a solution that also contains the plugin builds the plugin as its own project, with its copy into RockWeb, whenever Visual Studio finds the plugin out of date; after a command-line build of the tests, Visual Studio can find the plugin up to date and skip the copy until the plugin changes or is rebuilt. The `Authenticate` tests create a temporary database on `(localdb)\MSSQLLocalDB`, or on the SQL Server named by the `ORG_SECC_TEST_SQLSERVER` environment variable, and drop it when they finish.
 
-_Last updated: 2026-10-23_
+_Last updated: 2026-11-20_
