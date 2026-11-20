@@ -280,6 +280,10 @@ admin's storage-provider change survives).
   (once per page), never as `@import` inside its shadow root: Chromium ignores `@font-face`
   declared in a shadow tree, which silently fell back to Georgia (ROCK-9475). With the toggle
   on, the serif stack also lists `'Ivy Journal'`, the face the SECC2024 theme self-hosts.
+  Links go into the element's own `ownerDocument`, and are skipped when the host already links
+  the same stylesheet or already declares that family (so an embed never overrides a host's
+  self-hosted Inter/Cormorant). Once added a link stays for the page's lifetime; flipping the
+  toggle off later only removes IvyJournal from the serif stack.
 - **npm `overrides`** (security fixes for dev-only build deps; `vue` stays pinned at `3.2.35`
   to match Rock's Obsidian runtime):
   - `postcss-selector-parser` pinned to exactly `7.1.6`, the first patched release (Dependabot

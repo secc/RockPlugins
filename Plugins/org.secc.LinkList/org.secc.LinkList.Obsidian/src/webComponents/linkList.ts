@@ -41,17 +41,46 @@ const INTER_HREF = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;
 const CORMORANT_HREF = "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap";
 const IVYJOURNAL_HREF = "https://use.typekit.net/cjf8ejp.css";
 
+/** True when the document already declares an @font-face for `family`. */
+function documentDeclaresFamily( doc: Document, family: string ): boolean {
+    const target = family.toLowerCase();
+    try {
+        const fonts = ( doc as Document & { fonts?: Iterable<FontFace> } ).fonts;
+        if ( !fonts ) {
+            return false;
+        }
+        for ( const face of fonts ) {
+            if ( face.family.replace( /^["']|["']$/g, "" ).toLowerCase() === target ) {
+                return true;
+            }
+        }
+    }
+    catch {
+        // FontFaceSet unavailable/unsupported: fall through and load ours.
+    }
+    return false;
+}
+
 /**
- * Adds a font stylesheet <link> to the host document's <head> once per page,
- * keyed by `key` so multiple <secc-link-list> elements (or re-renders) don't
- * stack duplicate requests.
+ * Adds a font stylesheet <link> to `doc`'s <head> once per document, keyed by
+ * `key` so multiple <secc-link-list> elements (or re-renders) don't stack
+ * duplicates. Skipped when the host already links the same stylesheet or
+ * already declares `family` itself, so an embed never overrides a host page's
+ * own (e.g. self-hosted) faces for that family. Once added, the link stays for
+ * the document's lifetime: a later render with the IvyJournal toggle off just
+ * drops it from the serif stack.
  */
-function ensureDocumentFont( key: string, href: string ): void {
-    const head = document.head;
+function ensureDocumentFont( doc: Document, key: string, href: string, family: string ): void {
+    const head = doc.head;
     if ( !head || head.querySelector( `link[${FONT_LINK_ATTRIBUTE}="${key}"]` ) ) {
         return;
     }
-    const link = document.createElement( "link" );
+    const alreadyLinked = Array.from( doc.querySelectorAll<HTMLLinkElement>( "link[rel~='stylesheet']" ) )
+        .some( l => l.href === href );
+    if ( alreadyLinked || documentDeclaresFamily( doc, family ) ) {
+        return;
+    }
+    const link = doc.createElement( "link" );
     link.rel = "stylesheet";
     link.href = href;
     link.setAttribute( FONT_LINK_ATTRIBUTE, key );
@@ -268,10 +297,13 @@ class SeccLinkListElement extends HTMLElement {
         const serifStack = list.useIvyJournalFont
             ? "'ivyjournal', 'Ivy Journal', 'Cormorant Garamond', Georgia, serif"
             : "'Cormorant Garamond', Georgia, serif";
-        ensureDocumentFont( "inter", INTER_HREF );
-        ensureDocumentFont( "cormorant", CORMORANT_HREF );
+        // ownerDocument, not the global document: an embed adopted into an
+        // iframe must install its fonts where it renders.
+        const doc = this.ownerDocument;
+        ensureDocumentFont( doc, "inter", INTER_HREF, "Inter" );
+        ensureDocumentFont( doc, "cormorant", CORMORANT_HREF, "Cormorant Garamond" );
         if ( list.useIvyJournalFont ) {
-            ensureDocumentFont( "ivyjournal", IVYJOURNAL_HREF );
+            ensureDocumentFont( doc, "ivyjournal", IVYJOURNAL_HREF, "ivyjournal" );
         }
 
         // --- Hero band ---
