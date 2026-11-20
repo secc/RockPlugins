@@ -311,6 +311,30 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
+        /// The characters <see cref="IsPrintableAscii"/> and <see cref="FoldAsciiCase"/> ignore around an
+        /// address: space and tab.
+        /// </summary>
+        private static readonly char[] SpaceAndTab = { ' ', '\t' };
+
+        /// <summary>
+        /// Whether every character of the address, apart from surrounding spaces and tabs, is one of the
+        /// visible ASCII characters, <c>!</c> through <c>~</c>.
+        /// </summary>
+        internal static bool IsPrintableAscii( string address )
+        {
+            return address.Trim( SpaceAndTab ).All( c => c >= '!' && c <= '~' );
+        }
+
+        /// <summary>
+        /// The address without surrounding spaces and tabs and with the letters A to Z in lower case. Every
+        /// other character is unchanged.
+        /// </summary>
+        internal static string FoldAsciiCase( string address )
+        {
+            return new string( address.Trim( SpaceAndTab ).Select( c => c >= 'A' && c <= 'Z' ? ( char ) ( c + ( 'a' - 'A' ) ) : c ).ToArray() );
+        }
+
+        /// <summary>
         /// The cached attribute with this Guid, or null when there is none.
         /// </summary>
         protected virtual AttributeCache GetAttributeCache( Guid guid )
@@ -1524,11 +1548,11 @@ namespace org.secc.Rest.Controllers
                 var recipients = new List<RockEmailMessageRecipient>();
                 var confirmAccountUrl = ConfirmAccountUrlFrom( ApplicationRootFrom( GetPublicApplicationRootSetting() ) );
 
-                // Each email goes to the stored address of the people it lists, one email per stored address.
                 var people = GetPeopleByEmail( personService, email ).OrderBy( p => p.Id ).ToList();
 
-                // Stored addresses that share a budget key are counted once per request and share the outcome.
-                var storedAddressAllowed = new Dictionary<string, bool>();
+                // The stored addresses that have a person with a resettable login, in the Id order of their
+                // first person, each with the results of its people.
+                var resettableAddresses = new List<KeyValuePair<string, List<IDictionary<string, object>>>>();
                 foreach ( var addressGroup in people.GroupBy( p => p.Email, StringComparer.Ordinal ) )
                 {
                     bool hasAccountWithPasswordResetAbility = false;
@@ -1549,26 +1573,32 @@ namespace org.secc.Rest.Controllers
                         results.Add( resultsDictionary );
                     }
 
-                    if ( !hasAccountWithPasswordResetAbility )
+                    if ( hasAccountWithPasswordResetAbility )
                     {
-                        continue;
+                        resettableAddresses.Add( new KeyValuePair<string, List<IDictionary<string, object>>>( addressGroup.Key, results ) );
                     }
+                }
 
-                    var storedKey = StoredRecipientKey( addressGroup.Key );
-                    bool allowed;
-                    if ( !storedAddressAllowed.TryGetValue( storedKey, out allowed ) )
-                    {
-                        allowed = TryRegisterForgotPasswordStoredAddress( clientId, addressGroup.Key );
-                        storedAddressAllowed[storedKey] = allowed;
-                    }
+                // Stored addresses that share a budget key get one email per request, counted once. It goes to
+                // the first of them that is all printable ASCII, or else to the first, without its surrounding
+                // spaces and tabs, and lists the people whose stored address is the same apart from surrounding
+                // spaces and tabs and the case of A to Z.
+                foreach ( var budgetGroup in resettableAddresses.GroupBy( stored => StoredRecipientKey( stored.Key ) ) )
+                {
+                    var address = budgetGroup.Select( stored => stored.Key ).FirstOrDefault( IsPrintableAscii ) ?? budgetGroup.First().Key;
 
                     // A stored address whose budget is spent gets no email; the response stays the same.
-                    if ( allowed )
+                    if ( TryRegisterForgotPasswordStoredAddress( clientId, address ) )
                     {
+                        var foldedAddress = FoldAsciiCase( address );
                         var mergeFields = new Dictionary<string, object>();
-                        mergeFields.Add( "Results", results.ToArray() );
+                        mergeFields.Add( "Results", budgetGroup
+                            .Where( stored => FoldAsciiCase( stored.Key ) == foldedAddress )
+                            .SelectMany( stored => stored.Value )
+                            .OrderBy( r => ( ( Person ) r["Person"] ).Id )
+                            .ToArray() );
                         mergeFields.Add( "ConfirmAccountUrl", confirmAccountUrl );
-                        recipients.Add( RockEmailMessageRecipient.CreateAnonymous( addressGroup.Key, mergeFields ) );
+                        recipients.Add( RockEmailMessageRecipient.CreateAnonymous( address.Trim( SpaceAndTab ), mergeFields ) );
                     }
                 }
 
