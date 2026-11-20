@@ -24,7 +24,7 @@
          "destination" (the part after "RockWeb/").
       4. Copies the org_secc\ blocks and Themes\ of every top-level plugin folder into RockWeb,
          for block-only plugins that have no project.
-      5. Fails the build if an SDK-style plugin's DLL did not land in RockWeb\Bin.
+      5. Fails the build if an SDK-style plugin's DLL in RockWeb\Bin doesn't match its build output.
 
     Per-plugin BuildPlugin.ps1 scripts are NOT run. They only package .plugin zips, and
     anything a plugin needs in RockWeb belongs in its project (see Plugins\README-SdkStyle.md).
@@ -48,6 +48,7 @@ $started = Get-Date
 if (-not $SourcesDirectory) { throw "SourcesDirectory not set (pass -SourcesDirectory or set BUILD_SOURCESDIRECTORY)." }
 $pluginsRoot = Join-Path $SourcesDirectory 'RockPlugins\Plugins'
 $rockWeb = Join-Path $SourcesDirectory 'RockWeb'
+$rockWebFull = [IO.Path]::GetFullPath($rockWeb)
 if (-not (Test-Path $pluginsRoot)) { throw "Plugins folder not found: $pluginsRoot" }
 if (-not (Test-Path (Join-Path $rockWeb 'Bin\Rock.dll'))) { throw "RockWeb\Bin\Rock.dll not found under $rockWeb. Build Rock first." }
 
@@ -57,6 +58,28 @@ if (-not $msbuild) { throw "MSBuild.exe not found" }
 
 # Matches paths inside build output and npm folders, which never hold plugin sources.
 $ignoredPath = '\\(bin|obj|node_modules)\\'
+
+function Copy-Tree {
+    # xcopy with its exit code checked: 0 = copied, 1 = nothing to copy (an empty folder),
+    # 2+ = failure (access denied, disk full, ...).
+    param([string] $Source, [string] $Destination, [switch] $AllowEmpty)
+    xcopy /Y /R /E /I /Q "$Source" "$Destination" | Out-Null
+    $code = $LASTEXITCODE
+    if ($code -eq 0 -or ($code -eq 1 -and $AllowEmpty)) { return }
+    throw "xcopy '$Source' -> '$Destination' failed with exit code $code"
+}
+
+function Get-EvaluatedProperties {
+    # The project's properties as MSBuild evaluates them (imports and conditions included),
+    # with the same global properties as the build. -noAutoResponse skips Directory.Build.rsp,
+    # whose -restore isn't needed to read properties.
+    param([string] $ProjectPath, [string[]] $Names)
+    $msbuildArgs = @($ProjectPath, '-noAutoResponse', '-nologo', "/p:Configuration=$Configuration", "/p:RockWebPath=$rockWeb") +
+        @($Names | ForEach-Object { "-getProperty:$_" })
+    $output = & $msbuild @msbuildArgs
+    if ($LASTEXITCODE -ne 0) { throw "Evaluating $ProjectPath failed with exit code $LASTEXITCODE`: $($output -join ' ')" }
+    return ($output -join "`n" | ConvertFrom-Json).Properties
+}
 
 function Get-ProjectInfo {
     param([IO.FileInfo] $File)
@@ -136,8 +159,10 @@ try {
     & nuget.exe restore $sln -SolutionDirectory $SourcesDirectory -NonInteractive
     if ($LASTEXITCODE -ne 0) { throw "nuget restore failed with exit code $LASTEXITCODE" }
 
+    # nuget.exe restores packages.config projects. /restore then restores PackageReference
+    # (SDK-style) projects again with the same global properties the build uses.
     Write-Host "Building plugins ($Configuration) . . ."
-    & $msbuild $sln /t:Build "/p:Configuration=$Configuration" "/p:Platform=Any CPU" "/p:RockWebPath=$rockWeb" /m /nr:false /v:m /clp:Summary /nologo
+    & $msbuild $sln /restore /t:Build "/p:Configuration=$Configuration" "/p:Platform=Any CPU" "/p:RockWebPath=$rockWeb" /m /nr:false /v:m /clp:Summary /nologo
     if ($LASTEXITCODE -ne 0) { throw "Plugin build failed with exit code $LASTEXITCODE" }
 }
 finally {
@@ -155,9 +180,12 @@ foreach ($configFile in $obsidianConfigs) {
     $label = $dir.Substring($pluginsRoot.Length + 1)
     $config = Get-Content $configFile.FullName -Raw | ConvertFrom-Json
     $destination = [string]$config.destination
-    $marker = $destination.IndexOf('RockWeb/', [StringComparison]::OrdinalIgnoreCase)
-    if ($marker -lt 0) { throw "$label\obsidian.config.json: destination '$destination' has no 'RockWeb/' segment." }
-    $target = Join-Path $rockWeb ($destination.Substring($marker + 'RockWeb/'.Length) -replace '/', '\')
+    $match = [regex]::Match($destination, '(?:^|[/\\])RockWeb[/\\](.+)$', 'IgnoreCase')
+    if (-not $match.Success) { throw "$label\obsidian.config.json: destination '$destination' has no 'RockWeb/<folder>' part." }
+    $target = [IO.Path]::GetFullPath((Join-Path $rockWebFull ($match.Groups[1].Value -replace '/', '\')))
+    if (-not $target.StartsWith($rockWebFull.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase)) {
+        throw "$label\obsidian.config.json: destination '$destination' resolves outside RockWeb ($target)."
+    }
 
     Write-Host "Building Obsidian front end $label -> $target"
     Push-Location $dir
@@ -175,8 +203,7 @@ foreach ($configFile in $obsidianConfigs) {
 
     $dist = Join-Path $dir 'dist'
     if (-not (Get-ChildItem $dist -Recurse -File -ErrorAction SilentlyContinue)) { throw "$label`: build produced nothing in $dist" }
-    xcopy /Y /R /E /I /Q "$dist" "$target" | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "$label`: copying dist to $target failed with exit code $LASTEXITCODE" }
+    Copy-Tree $dist $target
 }
 
 # --- 4. Blocks and themes of top-level plugin folders -------------------------------------
@@ -184,24 +211,32 @@ foreach ($configFile in $obsidianConfigs) {
 # A harmless repeat for plugins whose build already copied them.
 foreach ($plugin in Get-ChildItem $pluginsRoot -Directory) {
     $blocks = Join-Path $plugin.FullName 'org_secc'
-    if (Test-Path $blocks) { xcopy /Y /R /E /I /Q $blocks (Join-Path $rockWeb 'Plugins\org_secc') | Out-Null }
+    if (Test-Path $blocks) { Copy-Tree $blocks (Join-Path $rockWeb 'Plugins\org_secc') -AllowEmpty }
     $themes = Join-Path $plugin.FullName 'Themes'
-    if (Test-Path $themes) { xcopy /Y /R /E /I /Q $themes (Join-Path $rockWeb 'Themes') | Out-Null }
+    if (Test-Path $themes) { Copy-Tree $themes (Join-Path $rockWeb 'Themes') -AllowEmpty }
 }
 
 # --- 5. Check that SDK-style plugins deployed --------------------------------------------
 # An SDK-style plugin whose DLL never reaches RockWeb\Bin still "builds", and the release then
-# ships the old DLL without any error. Legacy projects copy with hand-written xcopy lines and
-# not all of them ship a DLL, so they are only listed.
-$missing = @()
-foreach ($p in $projects | Where-Object IsRockPlugin) {
-    $dll = Join-Path $rockWeb "Bin\$($p.AssemblyName).dll"
-    if (-not (Test-Path $dll) -or (Get-Item $dll).LastWriteTime -lt $started) { $missing += $p.Name }
+# ships the old DLL without any error. Compare the built DLL with the one in RockWeb\Bin, using
+# the properties MSBuild evaluates (so imports and conditions count) and file contents (so an
+# unchanged DLL that Copy skipped still passes). Legacy projects copy with hand-written xcopy
+# lines and not all of them ship a DLL, so they are only listed below.
+$notDeployed = @()
+foreach ($p in $projects | Where-Object IsSdk) {
+    $props = Get-EvaluatedProperties $p.Path 'IsRockPlugin', 'CopyToRockWeb', 'TargetPath', 'RockBin'
+    if ($props.IsRockPlugin -ne 'true' -or $props.CopyToRockWeb -eq 'false') { continue }
+    $built = $props.TargetPath
+    $deployed = Join-Path $props.RockBin (Split-Path $built -Leaf)
+    if (-not (Test-Path $built)) { $notDeployed += "$($p.Name) (no build output at $built)"; continue }
+    if (-not (Test-Path $deployed) -or (Get-FileHash $built).Hash -ne (Get-FileHash $deployed).Hash) {
+        $notDeployed += "$($p.Name) ($deployed differs from $built)"
+    }
 }
-if ($missing) { throw "These SDK-style plugins built but their DLL in RockWeb\Bin was not updated: $($missing -join ', ')" }
+if ($notDeployed) { throw "SDK-style plugins built but not deployed to RockWeb\Bin: $($notDeployed -join '; ')" }
 
 $stale = @(
-    $projects | Where-Object { -not $_.IsRockPlugin } | Where-Object {
+    $projects | Where-Object { -not $_.IsSdk } | Where-Object {
         $dll = Join-Path $rockWeb "Bin\$($_.AssemblyName).dll"
         -not (Test-Path $dll) -or (Get-Item $dll).LastWriteTime -lt $started
     } | ForEach-Object Name
