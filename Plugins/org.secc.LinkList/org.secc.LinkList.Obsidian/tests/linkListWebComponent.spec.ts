@@ -276,15 +276,50 @@ describe("WS7 fix9 — intro inside the header band", () => {
 });
 
 describe("WS7 — fonts", () => {
+    function fontLinks(): string[] {
+        return Array.from(document.head.querySelectorAll<HTMLLinkElement>("link[data-secc-link-list-font]"))
+            .map(l => l.href);
+    }
+
+    beforeEach(() => {
+        document.head.querySelectorAll("link[data-secc-link-list-font]").forEach(l => l.remove());
+    });
+
     it("loads the IvyJournal Adobe kit only when the org enables it", async () => {
+        await mount(baseBag({ useIvyJournalFont: true }));
+        expect(fontLinks().some(h => h.includes("use.typekit.net/cjf8ejp"))).toBe(true);
+
+        document.body.innerHTML = "";
+        document.head.querySelectorAll("link[data-secc-link-list-font]").forEach(l => l.remove());
+        await mount(baseBag({ useIvyJournalFont: false }));
+        expect(fontLinks().some(h => h.includes("use.typekit.net/cjf8ejp"))).toBe(false);
+        // fallback serif still loads
+        expect(fontLinks().some(h => h.includes("Cormorant+Garamond"))).toBe(true);
+    });
+
+    // ROCK-9475: Chromium ignores @font-face inside a shadow tree, so fonts must
+    // be declared at document level, not @import-ed into the shadow <style>.
+    it("injects font stylesheets into the document head, not the shadow root", async () => {
+        const out = html(await mount(baseBag({ useIvyJournalFont: true })));
+        expect(out).not.toContain("@import");
+        expect(out).not.toContain("use.typekit.net");
+        expect(fontLinks().length).toBe(3);
+    });
+
+    it("does not duplicate font links across multiple embeds", async () => {
+        await mount(baseBag({ useIvyJournalFont: true }));
+        await mount(baseBag({ useIvyJournalFont: true }));
+        expect(fontLinks().length).toBe(3);
+    });
+
+    it("falls back to the theme's self-hosted 'Ivy Journal' face when enabled", async () => {
         const on = html(await mount(baseBag({ useIvyJournalFont: true })));
-        expect(on).toContain("use.typekit.net/cjf8ejp");
+        expect(on).toContain("--ll-serif: 'ivyjournal', 'Ivy Journal', 'Cormorant Garamond'");
 
         document.body.innerHTML = "";
         const off = html(await mount(baseBag({ useIvyJournalFont: false })));
-        expect(off).not.toContain("use.typekit.net/cjf8ejp");
-        // fallback serif still loads
-        expect(off).toContain("Cormorant+Garamond");
+        expect(off).not.toContain("Ivy Journal");
+        expect(off).not.toContain("ivyjournal");
     });
 });
 

@@ -275,7 +275,11 @@ admin's storage-provider change survives).
   `RockWebPath`.)
 - **Frontend:** `@rockrms/obsidian-framework`, Vue 3, chart.js (analytics panel), rollup (web
   component bundle), jest (frontend tests). External fonts: Google Fonts always; the Adobe
-  IvyJournal kit only when the org-wide toggle is on (licensed domains).
+  IvyJournal kit only when the org-wide toggle is on (licensed domains). The web component
+  injects these as `<link data-secc-link-list-font>` tags into the host document's `<head>`
+  (once per page), never as `@import` inside its shadow root: Chromium ignores `@font-face`
+  declared in a shadow tree, which silently fell back to Georgia (ROCK-9475). With the toggle
+  on, the serif stack also lists `'Ivy Journal'`, the face the SECC2024 theme self-hosts.
 - **npm `overrides`** (security fixes for dev-only build deps; `vue` stays pinned at `3.2.35`
   to match Rock's Obsidian runtime):
   - `postcss-selector-parser` pinned to exactly `7.1.6`, the first patched release (Dependabot
