@@ -138,8 +138,9 @@ namespace Rock.Security.ExternalAuthentication
                 }
                 return true;
             }
-            catch
+            catch ( Exception ex )
             {
+                Log( ex );
                 return false;
             }
 
@@ -520,6 +521,15 @@ namespace Rock.Security.ExternalAuthentication
         protected virtual void Log( string message )
         {
             ExceptionLogService.LogException( new Exception( message ) );
+        }
+
+        /// <summary>
+        /// Writes an exception to the Exception Log.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        protected virtual void Log( Exception exception )
+        {
+            ExceptionLogService.LogException( exception );
         }
 
         /// <summary>

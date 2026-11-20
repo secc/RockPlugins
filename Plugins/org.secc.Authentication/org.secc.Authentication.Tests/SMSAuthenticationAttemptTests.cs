@@ -134,6 +134,18 @@ namespace org.secc.Authentication.Tests
             };
 
             Assert.False( authentication.Authenticate( _database.Load( id ), Code ) );
+            Assert.IsType<InvalidOperationException>( Assert.Single( authentication.LoggedExceptions ) );
+        }
+
+        [Fact]
+        public void WrongAndCorrectCodes_LogNoException()
+        {
+            var id = _database.AddLogin( Hash( Code ), 0 );
+            var authentication = TestSMSAuthentication.Create( _database );
+
+            Assert.False( authentication.Authenticate( _database.Load( id ), WrongCode ) );
+            Assert.True( authentication.Authenticate( _database.Load( id ), Code ) );
+            Assert.Empty( authentication.LoggedExceptions );
         }
 
         [Fact]
