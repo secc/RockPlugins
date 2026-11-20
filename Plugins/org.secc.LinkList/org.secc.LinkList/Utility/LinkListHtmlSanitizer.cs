@@ -230,7 +230,8 @@ namespace org.secc.LinkList.Utility
         // undecodable token can degrade to literal text without failing the rest.
         //
         // The terminating ';' is OPTIONAL (';?'). SafeDeEntitize feeds checks
-        // only, so it decodes at least as much as a browser does: browsers decode
+        // only, so it must decode at least as much as a browser does (decoding
+        // is best effort; when in doubt, decode more, never less): browsers decode
         // a numeric reference in an attribute value without the trailing ';' (an
         // HTML5 parse error, but the reference is still decoded). Over-decoding
         // only costs a false-positive rejection. Named references are also

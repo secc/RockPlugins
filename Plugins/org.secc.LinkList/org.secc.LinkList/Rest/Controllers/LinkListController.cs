@@ -126,7 +126,7 @@ namespace org.secc.LinkList.Rest.Controllers
             // On WebHost, System.Web.Http.WebHost wraps the body in
             // SeekableBufferedRequestStream, which reports CanSeek=true while
             // Length falls through to HttpRequest.ContentLength (0 for chunked),
-            // so Content-Length cannot be used to enforce the cap.
+            // so the stream's Length cannot be used to enforce the cap.
             //
             // Call this exactly once, and never mix in a separate
             // ReadAsStreamAsync consume: because CanSeek lies, a second

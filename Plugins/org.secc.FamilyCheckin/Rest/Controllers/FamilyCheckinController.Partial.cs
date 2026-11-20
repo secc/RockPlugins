@@ -53,7 +53,8 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         /// Sliding-window rate limit for phone searches, per ASP.NET session (ROCK-8765).
         /// A physical kiosk is one browser session shared by the whole line of families,
         /// so the cap is set well above a busy line's peak (a search every few seconds,
-        /// with typo retries).
+        /// with typo retries). The count is kept in the session, so each new session
+        /// starts its own count.
         /// </summary>
         private const int MaxSearchesPerWindow = 60;
         private static readonly TimeSpan SearchWindow = TimeSpan.FromSeconds( 60 );

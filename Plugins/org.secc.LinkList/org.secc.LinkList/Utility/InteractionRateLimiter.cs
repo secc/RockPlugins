@@ -380,7 +380,10 @@ namespace org.secc.LinkList.Utility
     ///
     /// <b>Client IP.</b> Callers pass the client IP: the REST controller
     /// resolves it with <see cref="ClientIpResolver"/>, and the viewer block
-    /// uses <c>RequestContext.ClientInformation</c>.
+    /// uses <c>RequestContext.ClientInformation</c>. That address can come from
+    /// a client-supplied header and is not checked against a trusted-proxy
+    /// list, so this limiter bounds analytics volume per reported address; it
+    /// is not an access control and must not be relied on as one.
     /// </summary>
     public static class LinkListRateLimitPolicy
     {

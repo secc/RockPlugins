@@ -264,9 +264,10 @@ namespace RockWeb.Plugins.org_secc.Cms
 
         /// <summary>
         /// Re-resolves the editors security group for a mutating postback from the content channel
-        /// item (not from the hfSecurityGroupId hidden field) and re-runs the same EDIT authorization
-        /// check LoadLinkList performs, so every state change is authorized. Returns null (and shows
-        /// a notification) when the current person is not authorized to edit this list.
+        /// item and re-runs the same EDIT authorization check LoadLinkList performs, so every state
+        /// change is authorized. The hfSecurityGroupId hidden field is posted by the browser, so it
+        /// is never used to choose the group; the group always comes from server data. Returns null
+        /// (and shows a notification) when the current person is not authorized to edit this list.
         /// </summary>
         private int? GetAuthorizedEditorsGroupId()
         {
