@@ -67,6 +67,7 @@ namespace org.secc.Authentication.Tests
 
             Assert.True( _authentication.Authenticate( _database.Load( id ), Code ) );
             Assert.Null( _database.GetPassword( id ) );
+            Assert.Equal( 5, _database.GetFailedPasswordAttemptCount( id ) );
         }
 
         [Fact]
@@ -146,6 +147,7 @@ namespace org.secc.Authentication.Tests
             Assert.False( authentication.Authenticate( _database.Load( id ), WrongCode ) );
             Assert.True( authentication.Authenticate( _database.Load( id ), Code ) );
             Assert.Empty( authentication.LoggedExceptions );
+            Assert.Empty( authentication.Logged );
         }
 
         [Fact]
