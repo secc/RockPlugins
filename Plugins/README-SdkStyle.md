@@ -67,8 +67,8 @@ Start from `org.secc.Search/org.secc.Search.csproj`. Then:
    project didn't list will start compiling: delete it, or add `<Compile Remove>`.
 2. **`Properties\AssemblyInfo.cs`?** Set `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>`
    (otherwise you get duplicate attribute errors).
-3. **Output folder.** If `BuildPlugin.ps1` or the pipeline picks up
-   `bin\Debug\` / `bin\Release\`, set
+3. **Output folder.** The pipeline doesn't read `bin\` (the DLL reaches RockWeb through
+   the copy target), but if a script of yours picks up `bin\Debug\` / `bin\Release\`, set
    `<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>`.
 4. **References.**
    - Anything Rock ships in `RockWeb\Bin` (Rock.*, DotLiquid, EF, Newtonsoft, Web API,
@@ -95,6 +95,24 @@ Start from `org.secc.Search/org.secc.Search.csproj`. Then:
    - Tests still pass.
    - Smoke-test the plugin's blocks in Rock.
 
+## In the pipeline
+
+The "Build Plugins" step of the Azure DevOps "Rock v16" build only runs
+`Tools/pipeline-build-plugins.ps1`, so the rules below change through pull requests:
+
+- **Every `*.csproj` under `Plugins/` is built, at any depth.** A converted plugin can keep
+  `Plugins/org.secc.Foo/org.secc.Foo.csproj` or nest it as
+  `Plugins/org.secc.Foo/org.secc.Foo/org.secc.Foo.csproj` next to `org.secc.Foo.Tests` and
+  an Obsidian project. Project names must be unique.
+- **`*.Tests` projects are skipped.** The pipeline only runs `org.secc.Test`.
+- **Obsidian front ends are built** wherever an `obsidian.config.json` sits: `npm ci`,
+  `npm run build`, then `dist/` is copied to the RockWeb folder after `RockWeb/` in the
+  config's `destination`. Node 22 is installed earlier in the pipeline.
+- **The build fails if an `IsRockPlugin` project's DLL didn't land in `RockWeb\Bin`**, so a
+  plugin can't silently ship its old DLL.
+- **`BuildPlugin.ps1` scripts are not run.** Anything a plugin needs in RockWeb belongs in
+  its project (`RockWebContent`) or its Obsidian config.
+
 ## Known gaps
 
 - **Mixed project references.** Not yet exercised: a legacy project referencing an
@@ -103,4 +121,4 @@ Start from `org.secc.Search/org.secc.Search.csproj`. Then:
   assemblies), as long as a built RockWeb\Bin is available. Running the tests there needs
   Mono, and running Rock still needs Windows.
 
-Last updated: 2026-11-03
+Last updated: 2026-11-20
