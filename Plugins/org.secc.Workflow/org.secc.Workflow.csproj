@@ -122,6 +122,7 @@
     <Compile Include="Registrations\UpdateRegistrationGroupWithPlacementGroup.cs" />
     <Compile Include="Schedule\ScheduleNextStartDate.cs" />
     <Compile Include="Twilio\Lookup.cs" />
+    <Compile Include="Utility\WorkflowBulkUpdateAccess.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixUpdateRow.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixDeleteRow.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixAddRow.cs" />

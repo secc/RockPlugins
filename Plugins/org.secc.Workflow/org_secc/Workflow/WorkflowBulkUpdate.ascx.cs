@@ -18,6 +18,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.Workflow.Utility;
 using Rock;
 using Rock.Data;
 using Rock.Lava;
@@ -65,28 +66,22 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
         private void DisplaySettings()
         {
             RockContext rockContext = new RockContext();
-            EntitySetService entitySetService = new EntitySetService( rockContext );
-            var entitySet = entitySetService.Get( PageParameter( "EntitySetId" ).AsInteger() );
             var workflowEntityId = EntityTypeCache.GetId( typeof( Rock.Model.Workflow ) );
 
-            if ( entitySet == null || entitySet.EntityTypeId != workflowEntityId )
-            {
-                return;
-            }
-
-            WorkflowService workflowService = new WorkflowService( rockContext );
-
-            var workflowQueryable = workflowService.Queryable();
-
-            var workflows = entitySet.Items
-                .Join( workflowQueryable,
-                    i => i.EntityId,
-                    w => w.Id,
-                    ( i, w ) => w );
+            int skippedCount;
+            var workflows = GetEditableWorkflows( rockContext, out skippedCount );
 
             var firstWorkflow = workflows.FirstOrDefault();
             if ( firstWorkflow == null )
             {
+                if ( skippedCount > 0 )
+                {
+                    nbNotification.NotificationBoxType = NotificationBoxType.Warning;
+                    nbNotification.Text = skippedCount == 1
+                        ? "You don't have edit access to the 1 workflow in this set."
+                        : string.Format( "You don't have edit access to any of the {0} workflows in this set.", skippedCount );
+                    btnContinue.Visible = false;
+                }
                 return;
             }
 
@@ -109,9 +104,17 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
             ddlActivities.DataBind();
             ddlActivities.Items.Insert( 0, new ListItem() );
 
-            hfCount.Value = workflows.Count().ToString();
+            hfCount.Value = workflows.Count.ToString();
             hfWorkflowTypeName.Value = firstWorkflow.WorkflowType.Name;
-            nbNotification.Text = string.Format( "Updating {0} {1} workflows.", workflows.Count(), firstWorkflow.WorkflowType.Name );
+            nbNotification.Text = string.Format( "Updating {0} {1} {2}.", workflows.Count, firstWorkflow.WorkflowType.Name, workflows.Count == 1 ? "workflow" : "workflows" );
+            if ( skippedCount == 1 )
+            {
+                nbNotification.Text += " 1 workflow in this set will be skipped because you don't have edit access to it.";
+            }
+            else if ( skippedCount > 1 )
+            {
+                nbNotification.Text += string.Format( " {0} workflows in this set will be skipped because you don't have edit access to them.", skippedCount );
+            }
         }
 
         protected void btnUpdate_Click( object sender, EventArgs e )
@@ -119,6 +122,15 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
             var errors = new List<string>();
             RockContext rockContext = new RockContext();
             var workflows = GetWorkflows( rockContext );
+            if ( !workflows.Any() )
+            {
+                nbNotification.NotificationBoxType = NotificationBoxType.Warning;
+                nbNotification.Text = "No workflows in this set can be updated.";
+                btnContinue.Visible = false;
+                pnlConfirmation.Visible = false;
+                pnlDisplay.Visible = true;
+                return;
+            }
 
             //Get the new attribute values from the repeater
             Dictionary<string, string> attributeUpdates = GetNewAttributeValues();
@@ -135,7 +147,7 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
                     Dictionary<string, string> toUpdate = new Dictionary<string, string>();
                     foreach ( var update in attributeUpdates )
                     {
-                        toUpdate[update.Key] = update.Value.ResolveMergeFields( mergeFields );
+                        toUpdate[update.Key] = update.Value.ResolveMergeFields( mergeFields, enabledLavaCommands: string.Empty );
                         //if (toUpdate[update.Key])
                         //{
 
@@ -176,7 +188,7 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
                 foreach ( var workflow in workflows )
                 {
                     mergeFields["Workflow"] = workflow;
-                    workflow.Status = tbStatus.Text.ResolveMergeFields( mergeFields );
+                    workflow.Status = tbStatus.Text.ResolveMergeFields( mergeFields, enabledLavaCommands: string.Empty );
                 }
             }
 
@@ -236,31 +248,52 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
             return attributeUpdates;
         }
 
-        private List<Rock.Model.Workflow> GetWorkflows( RockContext rockContext )
+        /// <summary>
+        /// Loads the entity set's workflows and keeps only the ones the current person can edit.
+        /// </summary>
+        private List<Rock.Model.Workflow> GetEditableWorkflows( RockContext rockContext, out int skippedCount )
         {
+            skippedCount = 0;
             EntitySetService entitySetService = new EntitySetService( rockContext );
             var entitySet = entitySetService.Get( PageParameter( "EntitySetId" ).AsInteger() );
             var workflowEntityId = EntityTypeCache.GetId( typeof( Rock.Model.Workflow ) );
 
             if ( entitySet == null || entitySet.EntityTypeId != workflowEntityId )
             {
-                return null;
+                return new List<Rock.Model.Workflow>();
             }
 
             WorkflowService workflowService = new WorkflowService( rockContext );
 
-            var workflowQueryable = workflowService.Queryable();
+            var entitySetItems = new EntitySetItemService( rockContext ).Queryable()
+                .Where( i => i.EntitySetId == entitySet.Id )
+                .OrderBy( i => i.Id )
+                .ToList();
+            var workflowIds = entitySetItems.Select( i => i.EntityId ).ToList();
 
-            var qry = entitySet.Items
+            var workflowQueryable = workflowService.Queryable().Where( w => workflowIds.Contains( w.Id ) );
+
+            var workflows = entitySetItems
                 .Join( workflowQueryable,
                     i => i.EntityId,
                     w => w.Id,
-                    ( i, w ) => w );
+                    ( i, w ) => w )
+                .ToList();
 
-            var firstWorkflow = qry.FirstOrDefault();
+            return WorkflowBulkUpdateAccess.GetEditableWorkflows( workflows, CurrentPerson, out skippedCount );
+        }
+
+        private List<Rock.Model.Workflow> GetWorkflows( RockContext rockContext )
+        {
+            var workflowEntityId = EntityTypeCache.GetId( typeof( Rock.Model.Workflow ) );
+
+            int skippedCount;
+            var workflows = GetEditableWorkflows( rockContext, out skippedCount );
+
+            var firstWorkflow = workflows.FirstOrDefault();
             if ( firstWorkflow == null )
             {
-                return null;
+                return workflows;
             }
 
             var workflowTypeId = firstWorkflow.WorkflowTypeId;
@@ -274,14 +307,12 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
                 && a.EntityTypeQualifierValue == workflowTypeId.ToString() )
               .Select( a => a.Id );
 
-            var attributeValueQueryable = attributeValueService.Queryable()
-                .Where( av => attributeQueryable.Contains( av.AttributeId ) );
-
-            var mixedItems = qry.GroupJoin( attributeValueQueryable,
-            w => w.Id,
-            av => av.EntityId,
-            ( w, av ) => new { Workflow = w, AttributeValues = av } )
-            .ToList();
+            var workflowIds = workflows.Select( w => w.Id ).ToList();
+            var attributeValues = attributeValueService.Queryable()
+                .Where( av => attributeQueryable.Contains( av.AttributeId )
+                    && av.EntityId.HasValue
+                    && workflowIds.Contains( av.EntityId.Value ) )
+                .ToList();
 
             Dictionary<string, AttributeCache> attributes = new Dictionary<string, AttributeCache>();
 
@@ -294,18 +325,18 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
                 }
             }
 
-            var workflows = new List<Rock.Model.Workflow>();
-            foreach ( var item in mixedItems )
+            var attributeValuesByWorkflowId = attributeValues.ToLookup( av => av.EntityId.Value );
+
+            foreach ( var workflow in workflows )
             {
-                var workflow = item.Workflow;
                 workflow.Attributes = attributes;
                 workflow.AttributeValues = new Dictionary<string, AttributeValueCache>();
+                var workflowAttributeValues = attributeValuesByWorkflowId[workflow.Id];
                 foreach ( var attribute in attributes )
                 {
-                    var attributeValue = item.AttributeValues.Where( av => av.AttributeKey == attribute.Key ).FirstOrDefault();
+                    var attributeValue = workflowAttributeValues.Where( av => av.AttributeKey == attribute.Key ).FirstOrDefault();
                     workflow.AttributeValues[attribute.Key] = attributeValue != null ? new AttributeValueCache( attributeValue ) : new AttributeValueCache();
                 }
-                workflows.Add( workflow );
             }
             return workflows;
         }
