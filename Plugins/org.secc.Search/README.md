@@ -8,7 +8,7 @@ Search supplies Southeast's custom person-search extensions. The compiled assemb
 three Rock `SearchComponent`s — search people by home/previous **address**, **date of birth**, or
 **giving envelope number** — that appear in Rock's universal search alongside the built-in ones. The
 plugin also ships several RockWeb admin blocks (a richer person-results grid, a bulk email/phone
-lookup, and an Apple-Pass generator/test pair) under `org_secc/Crm/`. Staff use these to find people
+lookup, and an Apple-Pass generator) under `org_secc/Crm/`. Staff use these to find people
 during data work and to issue event passes.
 
 ## Project Info
