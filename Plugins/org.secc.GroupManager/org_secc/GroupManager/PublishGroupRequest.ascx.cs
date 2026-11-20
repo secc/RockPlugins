@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web.UI;
 using org.secc.GroupManager.Model;
 using Rock;
@@ -70,6 +71,46 @@ namespace RockWeb.Plugins.GroupManager
         DefaultValue = "https://organization.org/groups/register/"
         )]
 
+    [GroupTypesField(
+        "Home Group Types",
+        Description = "Groups of these types get the Home Group treatment: location shown as postal code only, registration forced on, childcare disabled, the confirmation From Name and Subject locked to the Home Group values below, and the Body reset to the Home Group value each time the form loads. Leave blank to disable.",
+        IsRequired = false,
+        Key = AttributeKeys.HomeGroupTypes,
+        Category = "Home Groups",
+        Order = 10
+        )]
+
+    [TextField(
+        "Home Group Confirmation From Name",
+        Description = "From name used on the confirmation email for Home Groups.",
+        IsRequired = false,
+        Key = AttributeKeys.HomeGroupConfirmationFromName,
+        DefaultValue = "Southeast Christian Church",
+        Category = "Home Groups",
+        Order = 11
+        )]
+
+    [TextField(
+        "Home Group Confirmation Subject",
+        Description = "Subject of the confirmation email for Home Groups. {{ GroupName }} is replaced with the group name.",
+        IsRequired = false,
+        Key = AttributeKeys.HomeGroupConfirmationSubject,
+        DefaultValue = "Group Confirmation | {{ GroupName }}",
+        Category = "Home Groups",
+        Order = 13
+        )]
+
+    [CodeEditorField(
+        "Home Group Confirmation Body",
+        "Body of the confirmation email for Home Groups. {{ GroupName }} is replaced with the group name; other Lava is left for the confirmation email to resolve.",
+        mode: CodeEditorMode.Html,
+        required: false,
+        defaultValue: "{{ 'Global' | Attribute:'EmailHeader' }} Thank you for registering for the home group: {{ GroupName }}. The group leaders will reach out to you shortly with further details. We look forward to seeing you. {{ 'Global' | Attribute:'EmailFooter' }}",
+        category: "Home Groups",
+        order: 14,
+        key: AttributeKeys.HomeGroupConfirmationBody
+        )]
+
     public partial class PublishGroupRequest : RockBlock
     {
         #region Keys
@@ -81,6 +122,10 @@ namespace RockWeb.Plugins.GroupManager
             public const string ChildcareRegistrationDetails = "ChildcareRegistrationDetails";
             public const string DefaultEmail = "DefaultEmail";
             public const string GroupRegistrationUrl = "GroupRegistrationUrl";
+            public const string HomeGroupTypes = "HomeGroupTypes";
+            public const string HomeGroupConfirmationFromName = "HomeGroupConfirmationFromName";
+            public const string HomeGroupConfirmationSubject = "HomeGroupConfirmationSubject";
+            public const string HomeGroupConfirmationBody = "HomeGroupConfirmationBody";
         }
 
         /// <summary>Page Parameter Keys for the Block</summary>
@@ -109,9 +154,11 @@ namespace RockWeb.Plugins.GroupManager
                 publishGroup.LoadAttributes();
                 Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, false );
 
-                if ( publishGroup.Group != null && publishGroup.Group.GroupTypeId == 60 )
+                if ( publishGroup.Group != null )
                 {
-                    isHomeGroup = true;
+                    var groupTypeGuid = GroupTypeCache.Get( publishGroup.Group.GroupTypeId )?.Guid;
+                    isHomeGroup = groupTypeGuid.HasValue
+                        && GetAttributeValues( AttributeKeys.HomeGroupTypes ).AsGuidList().Contains( groupTypeGuid.Value );
                 }
             }
         }
@@ -205,7 +252,9 @@ namespace RockWeb.Plugins.GroupManager
                     tTimeOfDay.SelectedTime = null;
                     tbCustomSchedule.Text = PublishGroup.FormatScheduleDates( schedule );
                 }
-                dpStartDate.SelectedDate = schedule.EffectiveStartDate;
+                // Simple weekly schedules have no iCal, so no EffectiveStartDate; keep the stored
+                // start date rather than clearing it on the next save.
+                dpStartDate.SelectedDate = schedule.EffectiveStartDate ?? publishGroup.StartDate;
             }
             else
             {
@@ -258,21 +307,17 @@ namespace RockWeb.Plugins.GroupManager
                 Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, true );
             }
 
-            if ( isHomeGroup ) //Pre-populating the form for Home Groups & disabling the fields
+            if ( isHomeGroup ) //Home Groups: lock registration, location and confirmation fields.
             {
-                tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
-                ddlDayOfWeek.SelectedValue = publishGroup.Group.Schedule.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.Group.Schedule.WeeklyDayOfWeek ).ToString() : "";
-                ddlDayOfWeek.Enabled = false;
-                tTimeOfDay.SelectedTime = publishGroup.Group.Schedule.WeeklyTimeOfDay;
-                tTimeOfDay.Enabled = false;
-                dpStartDate.SelectedDate = publishGroup.Group.Schedule.EffectiveStartDate.HasValue ? publishGroup.Group.Schedule.EffectiveStartDate : publishGroup.StartDate;
-                tbCustomSchedule.Text = PublishGroup.FormatScheduleDates( publishGroup.Group.Schedule );
-                tbCustomSchedule.ReadOnly = true;
-                tbLocationName.Text = publishGroup.Group.GroupLocations.FirstOrDefault()?.Location.PostalCode;
+                // Schedule fields are already populated from the Group's Schedule above,
+                // the same way as every other group type.
+                tbLocationName.Text = publishGroup.Group.GroupLocations.FirstOrDefault()?.Location?.PostalCode;
                 tbLocationName.ReadOnly = true;
                 ddlRegistration.SelectedValue = "1";
                 ddlRegistration.Enabled = false;
-                tbConfirmationFromName.Text = "Southeast Christian Church";
+                var groupName = publishGroup.Group.Name;
+                // Rock substitutes the setting's default when it is cleared, so these are never blank.
+                tbConfirmationFromName.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationFromName );
                 tbConfirmationFromName.ReadOnly = true;
                 // ROCK-8991: this field is now the Reply-To, so let the leader supply an address. Pre-fill from the contact
                 // email only when nothing usable is stored (blank, or the legacy forced noreply@secc.org value).
@@ -282,13 +327,26 @@ namespace RockWeb.Plugins.GroupManager
                 {
                     tbConfirmationFromEmail.Text = publishGroup.ContactEmail;
                 }
-                tbConfirmationSubject.Text = "Group Confirmation | " + publishGroup.Group.Name;
+                tbConfirmationSubject.Text = ReplaceGroupNameToken( GetAttributeValue( AttributeKeys.HomeGroupConfirmationSubject ), groupName );
                 tbConfirmationSubject.ReadOnly = true;
-                ceConfirmationBody.Text = "{{ 'Global' | Attribute:'EmailHeader' }} Thank you for registering for the home group: " + publishGroup.Group.Name + ". The group leaders will reach out to you shortly with further details. We look forward to seeing you. {{ 'Global' | Attribute:'EmailFooter' }}";
+                // The body is reset to the Home Group value on every load, but the HTML editor
+                // stays editable, so a leader can still change it before saving.
+                ceConfirmationBody.Text = ReplaceGroupNameToken( GetAttributeValue( AttributeKeys.HomeGroupConfirmationBody ), groupName );
                 SwitchRegistrationRequirement( RegistrationRequirement.RegistrationAvailable );
                 ddlChildcareOptions.SelectedValue = "0";
                 ddlChildcareOptions.Enabled = false;
             }
+        }
+
+        /// <summary>
+        /// Replaces the {{ GroupName }} token (any inner spacing) with the group name. Plain token
+        /// replace, not Lava: the template keeps its other merge fields (Global attributes etc.)
+        /// for the confirmation email to resolve at send time.
+        /// </summary>
+        private static string ReplaceGroupNameToken( string template, string groupName )
+        {
+            // MatchEvaluator so a "$" in the group name is not read as a substitution pattern.
+            return Regex.Replace( template ?? string.Empty, @"\{\{\s*GroupName\s*\}\}", m => groupName ?? string.Empty );
         }
 
         private string GetSlug( PublishGroup publishGroup )
