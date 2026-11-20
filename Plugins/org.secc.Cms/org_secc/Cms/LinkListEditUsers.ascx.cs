@@ -263,13 +263,11 @@ namespace RockWeb.Plugins.org_secc.Cms
         }
 
         /// <summary>
-        /// Re-resolves and re-authorizes the editors security group for a mutating postback.
-        /// The security group must NEVER be trusted from the hfSecurityGroupId hidden field: an
-        /// attacker can tamper it to an arbitrary security role (e.g. RSR - Rock Administration) and
-        /// escalate privileges. Instead re-derive the group from the content channel item and re-run
-        /// the same EDIT authorization check LoadLinkList performs, so the gate runs on every state
-        /// change rather than only on the initial (non-postback) load. Returns null (and shows a
-        /// notification) when the current person is not authorized to edit this list.
+        /// Re-resolves the editors security group for a mutating postback from the content channel
+        /// item and re-runs the same EDIT authorization check LoadLinkList performs, so every state
+        /// change is authorized. The hfSecurityGroupId hidden field is posted by the browser, so it
+        /// is never used to choose the group; the group always comes from server data. Returns null
+        /// (and shows a notification) when the current person is not authorized to edit this list.
         /// </summary>
         private int? GetAuthorizedEditorsGroupId()
         {
@@ -325,8 +323,8 @@ namespace RockWeb.Plugins.org_secc.Cms
                 var groupMemberService = new GroupMemberService( rockContext );
                 var groupMember = groupMemberService.Get( groupMemberId );
 
-                // Guard against a missing/stale groupMemberId, and only allow removal from the
-                // authorized editors group (never a member of some other group via a tampered id).
+                // Guard against a missing/stale groupMemberId, and only remove members of the
+                // authorized editors group.
                 if (groupMember != null && groupMember.GroupId == groupId.Value)
                 {
                     groupMemberService.Delete( groupMember );

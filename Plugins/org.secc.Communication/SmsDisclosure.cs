@@ -18,9 +18,8 @@ namespace org.secc.Communication
         public const string ShortCode = "733733";
         public const string DefaultMargin = "-8px 0 12px 0";
 
-        // margin is interpolated into a style attribute; constrain it to a CSS margin
-        // shorthand (1-4 signed numeric terms with optional unit) so it can never be a
-        // style-injection sink.
+        // margin is interpolated into a style attribute, so it must be a CSS margin
+        // shorthand (1-4 signed numeric terms with an optional unit).
         private static readonly Regex MarginPattern = new Regex(
             @"^-?\d+(\.\d+)?(px|em|rem|%)?(\s+-?\d+(\.\d+)?(px|em|rem|%)?){0,3}$",
             RegexOptions.Compiled );

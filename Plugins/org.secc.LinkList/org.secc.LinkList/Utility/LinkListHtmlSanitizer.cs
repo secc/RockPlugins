@@ -24,15 +24,7 @@ namespace org.secc.LinkList.Utility
     /// Idempotent, entity-preserving HTML sanitizer for the freeform intro /
     /// footer blobs (ROCK-8880).
     ///
-    /// This used to be a tag BLACKLIST (drop script/iframe/... , pass everything
-    /// else). A blacklist can only ever remove the vectors we already thought of,
-    /// so it leaked stored XSS through anything novel - mutation-XSS (mXSS) via
-    /// malformed / half-entity-encoded attribute soup, foreign-content elements,
-    /// and any tag/attribute we simply hadn't enumerated. Real prod content
-    /// exercised exactly that (e.g. item 9644's broken
-    /// <c>style=" text-align:="" left;"=""</c> attribute mess).
-    ///
-    /// It is now an ALLOWLIST: only known-safe tags survive, and on each surviving
+    /// It is an ALLOWLIST: only known-safe tags survive, and on each surviving
     /// tag only known-safe attributes survive. Anything not explicitly allowed is
     /// removed. Non-allowlisted tags fall into two buckets:
     ///   * dangerous / foreign-content tags (script, iframe, object, svg, math,
@@ -78,17 +70,11 @@ namespace org.secc.LinkList.Utility
     /// HtmlSanitizer round-trips through XmlTextWriter, which re-encodes entities
     /// and compounds on every save - which is why we don't use it.)
     ///
-    /// CRITICAL: HAP 1.4.9.5's OuterHtml does NOT encode interior double-quotes in
-    /// an attribute value, so a smuggled unquoted-attribute payload
-    /// (<c>&lt;img src=x alt=a"onerror="alert(1)&gt;</c>) parses as a single
-    /// <c>alt</c> value <c>a"onerror="alert(1)</c> and re-serializes RAW, letting
-    /// the browser's "missing whitespace between attributes" error recovery
-    /// re-tokenize it into a live event handler (mXSS). We therefore do NOT trust
-    /// HAP re-serialization to be XSS-safe: every retained attribute (including
-    /// <c>style</c>) is written back through <see cref="SetSafeAttribute"/> /
+    /// HAP 1.4.9.5's OuterHtml does not encode interior double quotes in an
+    /// attribute value, so every retained attribute (including <c>style</c>) is
+    /// written back through <see cref="SetSafeAttribute"/> /
     /// <see cref="EncodeAttributeValue"/>, which forces a double-quote delimiter
-    /// and entity-encodes the characters that could break the value out of its
-    /// quotes or start a tag (<c>" &lt; &gt;</c>). <c>&amp;</c> is deliberately
+    /// and entity-encodes <c>" &lt; &gt;</c>. <c>&amp;</c> is deliberately
     /// left untouched on ALL paths so pre-existing entities survive verbatim and
     /// stored bytes stay byte-faithful (see <see cref="FilterStyle"/>).
     ///
@@ -140,10 +126,10 @@ namespace org.secc.LinkList.Utility
         };
 
         // Non-allowlisted tags removed wholesale (with their subtree) rather than
-        // unwrapped, because for these the child content IS the attack payload or
-        // is foreign-content that browsers parse under different rules (mXSS).
-        // Superset of the old blacklist: Rock's defaults + svg/style/base/noscript/
-        // applet + math/template/frame/frameset.
+        // unwrapped, because for these the child content is script or foreign
+        // content that browsers parse under different rules.
+        // Rock's defaults + svg/style/base/noscript/applet + math/template/frame/
+        // frameset.
         private static readonly HashSet<string> DangerousTags = new HashSet<string>( StringComparer.OrdinalIgnoreCase )
         {
             "script", "iframe", "form", "object", "embed", "link", "head", "meta",
@@ -231,39 +217,27 @@ namespace org.secc.LinkList.Utility
         // even when the property itself is on the allowlist. CultureInvariant for
         // the same Turkish-i reason as DangerousScheme above.
         //
-        // LIMITATION - THIS REGEX IS DECORATIVE, NOT A GUARANTEE. It is BYPASSABLE
-        // by CSS backslash escapes. SafeDeEntitize decodes HTML entities but does
-        // NOT canonicalize CSS escapes, so `\75 rl(` (the `u` of `url` written as
-        // the CSS escape `\75 `) never matches `url\(` here, yet the browser's CSS
-        // tokenizer folds `\75 rl(` back into a real `url(` function token. Proven:
-        // `background-color: \75 rl(//evil/x)` and `width: \75 rl(//evil/x)` both
-        // survive this filter unchanged (see the Style_CssEscaped_Url_* tests).
-        // This is NOT exploitable TODAY only because none of the 8 allowlisted
-        // properties accepts a url()/image value, so the browser drops the whole
-        // declaration - the PROPERTY ALLOWLIST is the sole real guarantee here, NOT
-        // this regex. WARNING: if AllowedCssProperties ever gains a URL- or
-        // image-bearing property (`background`, `background-image`,
-        // `list-style-image`, `cursor`, `content`), this becomes a LIVE
-        // external-fetch / exfiltration vector with no second line of defense.
-        // DangerousCssValue MUST be made escape-aware (canonicalize CSS escapes
-        // before matching) BEFORE any such property is added to the allowlist.
+        // No property in AllowedCssProperties accepts a url()/image value, so the
+        // browser ignores such a value on an allowed property. This regex does not
+        // canonicalize CSS escapes. Before adding a URL- or image-bearing property
+        // (`background`, `background-image`, `list-style-image`, `cursor`,
+        // `content`) to AllowedCssProperties, make DangerousCssValue canonicalize
+        // CSS escapes first.
         private static readonly Regex DangerousCssValue = new Regex( @"url\(|expression\(|behavior|javascript|@import", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled );
 
         // A single HTML entity reference: numeric (decimal or hex) or a named
         // token. Used by SafeDeEntitize to decode one token at a time so an
         // undecodable token can degrade to literal text without failing the rest.
         //
-        // The terminating ';' is OPTIONAL (';?'). SafeDeEntitize feeds SECURITY
-        // CHECKS ONLY, and a checking decoder must decode AT LEAST as aggressively
-        // as a browser: browsers consume and decode a numeric reference in an
-        // attribute value even without the trailing ';' (an HTML5 parse error, but
-        // the reference is still decoded), so `javascript&#58alert(1)`,
-        // `&#x3a`, and `java&#9script:` all execute if we require the ';'. Under-
-        // decoding is fail-OPEN (an exploit); over-decoding only costs a false-
-        // positive rejection (fail-CLOSED, acceptable). We therefore also decode
-        // named references without a ';' - we deliberately do NOT replicate the
-        // browser's legacy "&name not followed by '=' or alphanumeric" rule; the
-        // resulting false positive on a literal like `&copy` in a URL is harmless
+        // The terminating ';' is OPTIONAL (';?'). SafeDeEntitize feeds checks
+        // only, so it must decode at least as much as a browser does (decoding
+        // is best effort; when in doubt, decode more, never less): browsers decode
+        // a numeric reference in an attribute value without the trailing ';' (an
+        // HTML5 parse error, but the reference is still decoded). Over-decoding
+        // only costs a false-positive rejection. Named references are also
+        // decoded without a ';' (the browser's legacy "&name not followed by '='
+        // or alphanumeric" rule is not replicated); a false positive on a literal
+        // like `&copy` in a URL is harmless
         // because the scheme regex is anchored at '^' (a decoded query string can
         // never turn an https URL into a dangerous scheme).
         private static readonly Regex EntityReference = new Regex(
@@ -484,15 +458,13 @@ namespace org.secc.LinkList.Utility
                     continue;
                 }
 
-                // KNOWN, DELIBERATELY UNFIXED: HAP 1.4.9.5 mis-tokenizes
-                // slash-separated attributes - `<img/src="x"/alt="y">` yields
-                // attributes literally named `rc` and `lt` (it eats the `/s` and
-                // `/a`), where a browser would read `src` and `alt`. Neither name
-                // is allowlisted, so both are dropped here. That is fail-CLOSED and
-                // no worse than the old blacklist, which kept the same bogus `rc`/
-                // `lt` names and so produced an equally src-less broken image.
-                // Normalizing the separators would mean rewriting raw attribute soup
-                // ahead of the parser - new mXSS surface for no visual gain.
+                // HAP 1.4.9.5 tokenizes slash-separated attributes differently from
+                // a browser - `<img/src="x"/alt="y">` yields attributes literally
+                // named `rc` and `lt` (it eats the `/s` and `/a`), where a browser
+                // would read `src` and `alt`. Neither name is allowlisted, so both
+                // are dropped here and the image has no src. The separators are
+                // deliberately not normalized: that would mean rewriting raw
+                // attribute text ahead of the parser for no visual gain.
                 if ( !IsAttributeAllowed( tag, name ) )
                 {
                     attr.Remove();
@@ -505,10 +477,9 @@ namespace org.secc.LinkList.Utility
                     continue;
                 }
 
-                // Attribute survives. Write it back safely: HAP 1.4.9.5 will emit
-                // interior double-quotes RAW, so a smuggled `alt=a"onerror="...`
-                // would re-tokenize into a live handler (mXSS). Force a
-                // double-quote delimiter and entity-encode the break-out chars.
+                // Attribute survives. HAP 1.4.9.5 emits interior double quotes raw,
+                // so write it back with a forced double-quote delimiter and encoded
+                // " < >.
                 SetSafeAttribute( attr, EncodeAttributeValue( attr.Value ) );
             }
 
@@ -698,11 +669,9 @@ namespace org.secc.LinkList.Utility
                 {
                     continue;
                 }
-                // NOTE: DangerousCssValue is DECORATIVE, not a guarantee - a CSS
-                // backslash escape (`\75 rl(`) slips past it (SafeDeEntitize does
-                // not canonicalize CSS escapes). The property allowlist above is
-                // what actually keeps a url()/image value from ever mattering. See
-                // the LIMITATION note on the DangerousCssValue field.
+                // No allowlisted property accepts a url()/image value;
+                // DangerousCssValue does not canonicalize CSS escapes (see the note
+                // on the field).
                 if ( DangerousCssValue.IsMatch( decodedValue ) )
                 {
                     continue;
@@ -754,7 +723,7 @@ namespace org.secc.LinkList.Utility
                 && beforeColon.All( c => c == '-' || ( c >= 'a' && c <= 'z' ) || ( c >= 'A' && c <= 'Z' ) );
         }
 
-        // Post-decode gate for a single declaration's VALUE (BLOCKER B). This runs
+        // Post-decode gate for a single declaration's VALUE. This runs
         // on the SafeDeEntitize'd (entity-decoded) value. Its job is to reject a
         // value that could act as a property/value SEPARATOR once the browser's
         // CSS tokenizer sees it. The MECHANISM matters, because the tokenizer
@@ -798,8 +767,8 @@ namespace org.secc.LinkList.Utility
         // property:value) it cannot form a new live declaration, and single-level
         // decoding of legitimate DOUBLE-encoded font stacks (`&amp;quot;` -> the
         // literal `&quot;`, `&amp;#59;` -> `&#59;`) yields inert ';' that must stay
-        // byte-faithful. Keying on the ':' (and braces) catches every confirmed
-        // smuggling payload while leaving those intact.
+        // byte-faithful. Keying on the ':' (and braces) rejects a second
+        // declaration while leaving those intact.
         private static bool DecodedValueSmugglesDeclaration( string decodedValue )
         {
             if ( string.IsNullOrEmpty( decodedValue ) )

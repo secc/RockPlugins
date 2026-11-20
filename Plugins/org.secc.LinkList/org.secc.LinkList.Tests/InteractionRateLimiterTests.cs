@@ -379,9 +379,8 @@ namespace org.secc.LinkList.Tests
     }
 
     /// <summary>
-    /// ROCK-8881 blocker A: the policy must bound the cache keyspace by hashing
-    /// the client IP into a fixed bucket set, so an attacker rotating a spoofed
-    /// X-Forwarded-For cannot mint unbounded cache keys.
+    /// ROCK-8881: the policy bounds the cache keyspace by hashing the client IP
+    /// into a fixed bucket set.
     /// </summary>
     public class LinkListRateLimitPolicyTests
     {
@@ -412,8 +411,7 @@ namespace org.secc.LinkList.Tests
         [InlineData( "   " )]
         public void Blank_Or_Null_Ips_Collapse_To_One_Shared_Bucket( string ip )
         {
-            // All unresolvable IPs must land in the same bucket so a no-IP flood
-            // is still capped rather than bypassing the limiter.
+            // All unresolvable IPs share one bucket.
             Assert.Equal( LinkListRateLimitPolicy.BucketFor( "unknown" ), LinkListRateLimitPolicy.BucketFor( ip ) );
         }
 
@@ -425,11 +423,9 @@ namespace org.secc.LinkList.Tests
             var viewKey = LinkListRateLimitPolicy.ViewKeyFor( ip );
             var clickKey = LinkListRateLimitPolicy.ClickKeyFor( ip );
 
-            // This is the property that actually bounds the RockCache keyspace,
-            // and it is what the old <= BucketCount assertion failed to check:
-            // the key suffix is a bucket index, never the address. Reverting to
-            // prefix + ipAddress would reopen the unbounded-keyspace blocker
-            // while leaving every count-based test green.
+            // This is the property that bounds the RockCache keyspace: the key
+            // suffix is a bucket index, never the address. Count-based tests
+            // alone would not catch a key built from prefix + ipAddress.
             Assert.DoesNotContain( ip, viewKey );
             Assert.DoesNotContain( ip, clickKey );
 
@@ -461,12 +457,9 @@ namespace org.secc.LinkList.Tests
         [Fact]
         public void BucketFor_Is_Salted_So_A_Victims_Bucket_Cannot_Be_Computed_Offline()
         {
-            // String.GetHashCode is unrandomized on net472 unless
+            // String.GetHashCode is not randomized on net472 unless
             // UseRandomizedStringHashAlgorithm is enabled, which Rock's
-            // web.config does not do. Unsalted, an attacker computes a chosen
-            // victim's bucket with nothing but the IP, then saturates it with a
-            // trickle of requests and silently blanks that victim's analytics
-            // while every response stays 200.
+            // web.config does not enable, so BucketFor salts the hash.
             var ips = new[] { "1.2.3.4", "203.0.113.255", "198.51.100.7", "2001:db8::dead:beef", "10.20.30.40" };
 
             Assert.Contains( ips, ip =>

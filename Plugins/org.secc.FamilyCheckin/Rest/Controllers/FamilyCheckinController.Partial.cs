@@ -42,21 +42,19 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
     public partial class FamilyCheckinController : Rock.Rest.ApiControllerBase, IHasCustomHttpRoutes
     {
         /// <summary>
-        /// Block type guid of the only block (QuickSearch) allowed to establish a
-        /// session that may call the phone-number Family search (ROCK-8765). Mobile
-        /// check-in sessions carry the MobileCheckinStart block guid and must not be
-        /// able to run phone-number enumeration. Guid matches migration 024_FamilyCheckinPages.
+        /// Block type guid of the only block (QuickSearch) whose sessions may call the
+        /// phone-number Family search (ROCK-8765). Mobile check-in sessions carry the
+        /// MobileCheckinStart block guid and are rejected. Guid matches migration
+        /// 024_FamilyCheckinPages.
         /// </summary>
         private static readonly Guid QuickSearchBlockTypeGuid = Constants.BLOCK_TYPE_QUICKSEARCH.AsGuid();
 
         /// <summary>
         /// Sliding-window rate limit for phone searches, per ASP.NET session (ROCK-8765).
         /// A physical kiosk is one browser session shared by the whole line of families,
-        /// so the cap is set well above a human line's peak (~a search every few seconds,
-        /// with typo retries) while still far below an automated enumeration loop. This is
-        /// defense-in-depth over the accepted physical-kiosk residual risk documented in the
-        /// README; per-session keying means the limit can be reset by minting a new session,
-        /// which is acceptable for that already-gated threat.
+        /// so the cap is set well above a busy line's peak (a search every few seconds,
+        /// with typo retries). The count is kept in the session, so each new session
+        /// starts its own count.
         /// </summary>
         private const int MaxSearchesPerWindow = 60;
         private static readonly TimeSpan SearchWindow = TimeSpan.FromSeconds( 60 );
@@ -112,8 +110,8 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                     return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
                 }
 
-                // ROCK-8765: Enforce the block's phone-length rules server side. Short
-                // suffix searches are what make enumeration cheap.
+                // ROCK-8765: Enforce the block's minimum and maximum phone-length settings
+                // server side.
                 var digits = PhoneNumber.CleanNumber( param ) ?? string.Empty;
                 var minLength = block.GetAttributeValue( "MinimumPhoneNumberLength" ).AsIntegerOrNull() ?? 4;
                 var maxLength = block.GetAttributeValue( "MaximumPhoneNumberLength" ).AsIntegerOrNull() ?? 10;
@@ -139,7 +137,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                     return ControllerContext.Request.CreateResponse( HttpStatusCode.BadRequest, "Invalid search value." );
                 }
 
-                // ROCK-8765: Rate limit per session to deny enumeration the volume it needs.
+                // ROCK-8765: Rate limit phone searches per session.
                 if ( IsRateLimited( session ) )
                 {
                     return ControllerContext.Request.CreateResponse( ( HttpStatusCode ) 429, "Too many searches. Please wait a moment and try again." );

@@ -332,14 +332,13 @@ namespace org.secc.LinkList.Utility
     /// fail-open guard lives in <see cref="InteractionRateLimiter"/> and
     /// <see cref="LinkListRateLimitPolicy"/>.
     ///
-    /// <b>Keyspace must stay bounded (ROCK-8881 blocker).</b>
+    /// <b>Keyspace must stay bounded.</b>
     /// <see cref="RockCache.AddOrUpdate(string, string, object, TimeSpan)"/>
     /// registers every distinct key in a process-global reference set that TTL
     /// eviction never prunes (only explicit Remove/ClearAll do). Callers must
     /// therefore hand this store a key drawn from a small, fixed set - see
     /// <see cref="LinkListRateLimitPolicy"/>, which hashes the client IP into a
-    /// bounded bucket space so an attacker cannot mint unbounded keys by
-    /// rotating a spoofed address.
+    /// bounded bucket space.
     /// </summary>
     public class RockCacheRateLimitStore : IRateLimitStore
     {
@@ -374,25 +373,17 @@ namespace org.secc.LinkList.Utility
     /// harmless.
     ///
     /// <b>Salted bucket assignment.</b> The hash is salted with a value
-    /// generated once per process. <see cref="string.GetHashCode()"/> is
-    /// unrandomized on net472 unless <c>UseRandomizedStringHashAlgorithm</c> is
-    /// enabled, which Rock's web.config does not do - so without the salt an
-    /// attacker could compute a chosen victim's bucket offline and saturate it
-    /// with a trickle of requests, silently suppressing that victim's analytics
-    /// while every response stayed 200. The salt makes bucket assignment
-    /// unpredictable outside the process. It changes on app-pool recycle, which
-    /// is immaterial for a 60-second window.
+    /// generated once per process, because <see cref="string.GetHashCode()"/> is
+    /// not randomized on net472 unless <c>UseRandomizedStringHashAlgorithm</c> is
+    /// enabled (Rock's web.config does not enable it). The salt changes on
+    /// app-pool recycle, which does not matter for a 60-second window.
     ///
-    /// <b>Residual risk - XFF spoofing (ROCK-8881 Major C, accepted by human).</b>
-    /// The client IP is derived from <c>X-Forwarded-For</c> with no
-    /// trusted-proxy validation (see <see cref="ClientIpResolver"/>). An
-    /// attacker who rotates a fresh spoofed address per request spreads traffic
-    /// across buckets and BYPASSES this limiter. It therefore blunts naive
-    /// single-IP floods and crawlers, NOT a deliberate distributed spoofing
-    /// script. A trusted-proxy allowlist is intentionally out of scope for this
-    /// ticket; the bounded keyspace above ensures the bypass attempt still
-    /// cannot exhaust memory, and <see cref="ClientIpResolver"/> ensures the
-    /// spoofed value cannot reach the analytics tables unparsed.
+    /// <b>Client IP.</b> Callers pass the client IP: the REST controller
+    /// resolves it with <see cref="ClientIpResolver"/>, and the viewer block
+    /// uses <c>RequestContext.ClientInformation</c>. That address can come from
+    /// a client-supplied header and is not checked against a trusted-proxy
+    /// list, so this limiter bounds analytics volume per reported address; it
+    /// is not an access control and must not be relied on as one.
     /// </summary>
     public static class LinkListRateLimitPolicy
     {

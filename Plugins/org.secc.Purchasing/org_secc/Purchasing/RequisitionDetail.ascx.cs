@@ -942,7 +942,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void ucAttachments_RefreshParent( object sender, EventArgs e )
         {
-            // IDOR re-check: refresh handlers re-query the model outside the LoadRequisition gate.
+            // View check: refresh handlers re-query the model outside the LoadRequisition gate.
             if ( !UserCanViewRequisition() )
             {
                 return;
@@ -1385,8 +1385,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
         /// <summary>
-        /// Object-level view authorization (IDOR): RequisitionID comes from the querystring unchecked, so
-        /// without this any authenticated user could view any requisition. Mirrors
+        /// Whether the current person may view this requisition. Mirrors
         /// CapitalRequestDetail.UserCanView(). (Edit gating only disables inputs, not data display.)
         /// </summary>
         private bool UserCanViewRequisition()
@@ -1420,7 +1419,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadRequisition()
         {
-            // IDOR gate: bail before any Load* so an unauthorized requisition's data is never populated.
+            // View check: bail before any Load* so an unauthorized requisition's data is never populated.
             if ( !UserCanViewRequisition() )
             {
                 SetSummaryError( "You are not authorized to view this requisition. Click \"Return to List\" to continue." );
@@ -1447,7 +1446,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadSummary()
         {
-            // IDOR re-check: LoadSummary is also reached directly from postback handlers, not only the
+            // View check: LoadSummary is also reached directly from postback handlers, not only the
             // gated LoadRequisition. (Returns true for new requisitions / any view-or-edit involvement.)
             if ( !UserCanViewRequisition() )
             {
@@ -1502,7 +1501,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadItems()
         {
-            // IDOR re-check: LoadItems is also reached directly from postback handlers (see LoadSummary).
+            // View check: LoadItems is also reached directly from postback handlers (see LoadSummary).
             if ( !UserCanViewRequisition() )
             {
                 return;

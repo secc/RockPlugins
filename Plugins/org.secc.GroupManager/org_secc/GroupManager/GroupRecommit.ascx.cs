@@ -192,9 +192,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void BindGrid()
         {
-            // Grid rebind fires as a postback event even when OnLoad bailed out on a null
-            // person (e.g. an unauthorized id swap that no longer resolves), so guard the
-            // _person / _group dereferences below (ROCK-8780).
+            // Grid rebind fires as a postback event even when OnLoad found no person, so
+            // guard the _person / _group dereferences below (ROCK-8780).
             if ( _person == null || _group == null )
             {
                 pnlMembers.Visible = false;
@@ -402,13 +401,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             var personId = PageParameter( "PersonId" ).AsInteger();
             var urlEncodedKey = PageParameter( "UrlEncodedKey" );
 
-            // Only authorized (block EDIT) staff may load an arbitrary person by a raw
-            // PersonId / PersonAliasId parameter. Members reach the public instances via an
-            // rckipid impersonation link or their own login (which set CurrentPerson but never
-            // pass these ids), so gating on block EDIT authorization prevents an anonymous or
-            // ordinary logged-in member from loading an arbitrary person by swapping the id in
-            // the URL (ROCK-8780 IDOR). Unauthorized callers fall through to the CurrentPerson
-            // (self only) fallback below.
+            // Only people with block EDIT may load a person by the PersonId / PersonAliasId
+            // parameters (ROCK-8780). Members reach the public instances via an rckipid
+            // impersonation link or their own login, which never pass these ids. If no
+            // person is loaded from those, the UrlEncodedKey parameter is tried next, then
+            // CurrentPerson.
             bool canLoadArbitraryPerson = this.IsUserAuthorized( Rock.Security.Authorization.EDIT );
 
             if ( canLoadArbitraryPerson && personId != 0 )
@@ -448,8 +445,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            // With the tighter authorization gate the person may no longer resolve on this
-            // postback; bail before dereferencing _person for any mutation (ROCK-8780).
+            // The person may not resolve on this postback; bail before dereferencing
+            // _person for any mutation (ROCK-8780).
             if ( _person == null )
             {
                 ShowMessage( GetAttributeValue( "LoginText" ), "Information" );

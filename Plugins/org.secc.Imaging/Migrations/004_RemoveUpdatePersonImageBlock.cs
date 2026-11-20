@@ -17,8 +17,7 @@ namespace org.secc.Imaging.Migrations
     using Rock.Plugin;
 
     /// <summary>
-    /// ROCK-8759. The Update Person Image block ran whatever SQL was typed into it, and anyone
-    /// with Administrate on any page could add it, so its .ascx files were removed. This deletes
+    /// ROCK-8759. The Update Person Image block has been removed from the plugin. This deletes
     /// what Rock registered for it: the block type (matched by path, because block type Guids
     /// are generated per environment), its blocks with their security rules, and its Execution
     /// Delay attribute (values cascade).
