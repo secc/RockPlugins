@@ -3,8 +3,9 @@
 # plus an Obsidian (Vue/TypeScript) frontend project compiled by
 # @sparkdevnetwork/obsidian-build-tools.
 #
-# The pipeline invokes this via the existing BuildPlugin.ps1 hook, so no pipeline
-# changes are required — but the build agent must have Node.js/npm available.
+# The pipeline does not run this script: Tools/pipeline-build-plugins.ps1 builds the
+# C# project and the Obsidian front end like any other plugin. This is for local builds
+# and packaging.
 #
 # Locally, pass -RockWebPath to build into a specific RockWeb (for example a
 # private copy, so a running site's Bin isn't touched).
