@@ -276,15 +276,104 @@ describe("WS7 fix9 — intro inside the header band", () => {
 });
 
 describe("WS7 — fonts", () => {
+    function fontLinks(): string[] {
+        return Array.from(document.head.querySelectorAll<HTMLLinkElement>("link[data-secc-link-list-font]"))
+            .map(l => l.href);
+    }
+
+    beforeEach(() => {
+        document.head.querySelectorAll("link[data-secc-link-list-font]").forEach(l => l.remove());
+    });
+
     it("loads the IvyJournal Adobe kit only when the org enables it", async () => {
+        await mount(baseBag({ useIvyJournalFont: true }));
+        expect(fontLinks().some(h => h.includes("use.typekit.net/cjf8ejp"))).toBe(true);
+
+        document.body.innerHTML = "";
+        document.head.querySelectorAll("link[data-secc-link-list-font]").forEach(l => l.remove());
+        await mount(baseBag({ useIvyJournalFont: false }));
+        expect(fontLinks().some(h => h.includes("use.typekit.net/cjf8ejp"))).toBe(false);
+        // fallback serif still loads
+        expect(fontLinks().some(h => h.includes("Cormorant+Garamond"))).toBe(true);
+    });
+
+    // ROCK-9475: Chromium ignores @font-face inside a shadow tree, so fonts must
+    // be declared at document level, not @import-ed into the shadow <style>.
+    it("injects font stylesheets into the document head, not the shadow root", async () => {
+        const out = html(await mount(baseBag({ useIvyJournalFont: true })));
+        expect(out).not.toContain("@import");
+        expect(out).not.toContain("use.typekit.net");
+        expect(fontLinks().length).toBe(3);
+    });
+
+    it("does not duplicate font links across multiple embeds", async () => {
+        await mount(baseBag({ useIvyJournalFont: true }));
+        await mount(baseBag({ useIvyJournalFont: true }));
+        expect(fontLinks().length).toBe(3);
+    });
+
+    it("keeps the kit link but drops IvyJournal from the stack when the toggle flips off", async () => {
+        const el = document.createElement("secc-link-list") as HTMLElement & { listData: LinkListBag | null };
+        el.setAttribute("manual", "true");
+        document.body.appendChild(el);
+        el.listData = baseBag({ useIvyJournalFont: true });
+        expect(html(el)).toContain("'ivyjournal'");
+        el.listData = baseBag({ useIvyJournalFont: false });
+        expect(html(el)).not.toContain("ivyjournal");
+        // Installed for the document's lifetime; harmless once out of the stack.
+        expect(fontLinks().some(h => h.includes("use.typekit.net/cjf8ejp"))).toBe(true);
+
+        el.listData = baseBag({ useIvyJournalFont: true });
+        expect(html(el)).toContain("'ivyjournal'");
+        expect(fontLinks().filter(h => h.includes("use.typekit.net")).length).toBe(1);
+    });
+
+    it("does not re-link a stylesheet the host page already loads", async () => {
+        const host = document.createElement("link");
+        host.rel = "stylesheet";
+        host.href = "https://use.typekit.net/cjf8ejp.css";
+        document.head.appendChild(host);
+        try {
+            await mount(baseBag({ useIvyJournalFont: true }));
+            expect(document.head.querySelectorAll('link[href="https://use.typekit.net/cjf8ejp.css"]').length).toBe(1);
+        }
+        finally {
+            host.remove();
+        }
+    });
+
+    it("does not override a family the host page already declares", async () => {
+        Object.defineProperty(document, "fonts", { configurable: true, value: [{ family: "\"Inter\"" }] });
+        try {
+            await mount(baseBag({ useIvyJournalFont: true }));
+            expect(fontLinks().some(h => h.includes("family=Inter"))).toBe(false);
+            expect(fontLinks().some(h => h.includes("Cormorant+Garamond"))).toBe(true);
+        }
+        finally {
+            delete (document as unknown as { fonts?: unknown }).fonts;
+        }
+    });
+
+    it("installs fonts in the document the element renders in (iframe adoption)", async () => {
+        const frame = document.createElement("iframe");
+        document.body.appendChild(frame);
+        const frameDoc = frame.contentDocument as Document;
+        const el = document.createElement("secc-link-list") as HTMLElement & { listData: LinkListBag | null };
+        el.setAttribute("manual", "true");
+        frameDoc.body.appendChild(frameDoc.adoptNode(el));
+        el.listData = baseBag({ useIvyJournalFont: true });
+        expect(frameDoc.head.querySelectorAll("link[data-secc-link-list-font]").length).toBe(3);
+        expect(fontLinks().length).toBe(0);
+    });
+
+    it("falls back to the theme's self-hosted 'Ivy Journal' face when enabled", async () => {
         const on = html(await mount(baseBag({ useIvyJournalFont: true })));
-        expect(on).toContain("use.typekit.net/cjf8ejp");
+        expect(on).toContain("--ll-serif: 'ivyjournal', 'Ivy Journal', 'Cormorant Garamond'");
 
         document.body.innerHTML = "";
         const off = html(await mount(baseBag({ useIvyJournalFont: false })));
-        expect(off).not.toContain("use.typekit.net/cjf8ejp");
-        // fallback serif still loads
-        expect(off).toContain("Cormorant+Garamond");
+        expect(off).not.toContain("Ivy Journal");
+        expect(off).not.toContain("ivyjournal");
     });
 });
 

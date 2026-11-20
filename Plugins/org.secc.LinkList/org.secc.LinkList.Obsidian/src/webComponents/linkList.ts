@@ -29,11 +29,63 @@ import { groupIntoSections, hoistFeatured, isCardLink, isFeaturedLink, type Sect
 const IDENTIFIER_PATTERN = /^[a-z0-9-]+$/;
 const OBSERVED_ATTRIBUTES = [ "item-id", "slug-from-path", "slug-path-index", "base-url", "manual" ];
 
-// Adobe Fonts kit (IvyJournal) — loaded only when the org enables it (licensed
-// domains). Inter + Cormorant (the serif fallback) always load from Google.
-const INTER_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');";
-const CORMORANT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap');";
-const IVYJOURNAL_IMPORT = "@import url('https://use.typekit.net/cjf8ejp.css');";
+// Web fonts. These are injected as <link> tags into the HOST document's <head>,
+// not @import-ed inside the shadow root: Chromium ignores @font-face rules that
+// live in a shadow tree (the stylesheet downloads but no font files are ever
+// requested), so shadow-scoped imports silently fell back to Georgia (ROCK-9475).
+// Faces declared at document level are usable from inside the shadow DOM.
+// The Adobe Fonts kit (IvyJournal) loads only when the org enables it (licensed
+// domains); Inter + Cormorant (the serif fallback) always load from Google.
+const FONT_LINK_ATTRIBUTE = "data-secc-link-list-font";
+const INTER_HREF = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap";
+const CORMORANT_HREF = "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap";
+const IVYJOURNAL_HREF = "https://use.typekit.net/cjf8ejp.css";
+
+/** True when the document already declares an @font-face for `family`. */
+function documentDeclaresFamily( doc: Document, family: string ): boolean {
+    const target = family.toLowerCase();
+    try {
+        const fonts = ( doc as Document & { fonts?: Iterable<FontFace> } ).fonts;
+        if ( !fonts ) {
+            return false;
+        }
+        for ( const face of fonts ) {
+            if ( face.family.replace( /^["']|["']$/g, "" ).toLowerCase() === target ) {
+                return true;
+            }
+        }
+    }
+    catch {
+        // FontFaceSet unavailable/unsupported: fall through and load ours.
+    }
+    return false;
+}
+
+/**
+ * Adds a font stylesheet <link> to `doc`'s <head> once per document, keyed by
+ * `key` so multiple <secc-link-list> elements (or re-renders) don't stack
+ * duplicates. Skipped when the host already links the same stylesheet or
+ * already declares `family` itself, so an embed never overrides a host page's
+ * own (e.g. self-hosted) faces for that family. Once added, the link stays for
+ * the document's lifetime: a later render with the IvyJournal toggle off just
+ * drops it from the serif stack.
+ */
+function ensureDocumentFont( doc: Document, key: string, href: string, family: string ): void {
+    const head = doc.head;
+    if ( !head || head.querySelector( `link[${FONT_LINK_ATTRIBUTE}="${key}"]` ) ) {
+        return;
+    }
+    const alreadyLinked = Array.from( doc.querySelectorAll<HTMLLinkElement>( "link[rel~='stylesheet']" ) )
+        .some( l => l.href === href );
+    if ( alreadyLinked || documentDeclaresFamily( doc, family ) ) {
+        return;
+    }
+    const link = doc.createElement( "link" );
+    link.rel = "stylesheet";
+    link.href = href;
+    link.setAttribute( FONT_LINK_ATTRIBUTE, key );
+    head.appendChild( link );
+}
 
 const CHEVRON_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
 
@@ -239,14 +291,20 @@ class SeccLinkListElement extends HTMLElement {
             title ? `--ll-title:${title};` : ""
         ].join( "" );
 
+        // 'Ivy Journal' (with a space) is the family the SECC2024 Rock theme
+        // self-hosts, so on Rock pages the serif still resolves if the Adobe kit
+        // is slow or blocked. Both names are only used when the org toggle is on.
         const serifStack = list.useIvyJournalFont
-            ? "'ivyjournal', 'Cormorant Garamond', Georgia, serif"
+            ? "'ivyjournal', 'Ivy Journal', 'Cormorant Garamond', Georgia, serif"
             : "'Cormorant Garamond', Georgia, serif";
-        const fontImports = [
-            INTER_IMPORT,
-            CORMORANT_IMPORT,
-            list.useIvyJournalFont ? IVYJOURNAL_IMPORT : ""
-        ].join( "\n" );
+        // ownerDocument, not the global document: an embed adopted into an
+        // iframe must install its fonts where it renders.
+        const doc = this.ownerDocument;
+        ensureDocumentFont( doc, "inter", INTER_HREF, "Inter" );
+        ensureDocumentFont( doc, "cormorant", CORMORANT_HREF, "Cormorant Garamond" );
+        if ( list.useIvyJournalFont ) {
+            ensureDocumentFont( doc, "ivyjournal", IVYJOURNAL_HREF, "ivyjournal" );
+        }
 
         // --- Hero band ---
         const heroBgMarkup = headerBgImage
@@ -290,7 +348,6 @@ class SeccLinkListElement extends HTMLElement {
 
         this.root.innerHTML = `
 <style>
-${fontImports}
 :host { display: block; width: 100vw; max-width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); --ll-serif: ${serifStack}; ${hostVars} }
 ${this.styles()}
 </style>
