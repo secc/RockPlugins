@@ -423,6 +423,99 @@ source: YouTube ids can start with `-`.
   A space before the colon (`Property : 'Guid'`) is not the cause (LavaProbe D2). Needs a run on sedev.
 - One Point `/news/16597`: `contentchannelitem id:'{{itemId}}'` is given a slug. Low.
 
+## Pass 16 — the next three weeks (`021_apply_prodpass10.sql`)
+
+Production 2026-11-03 through 2026-11-23 (ExceptionLog Id 5163871 on): about 10,400 Lava rows, 3,534 render mismatches
+in 52 signatures. Most are the benign classes above. Nine rows are fixed here (`gen_021.py`):
+
+| Where | Problem on Fluid | Change |
+|---|---|---|
+| ReportField 67079, 67094 (report 1521 *Can Work with Minors By Campus*, page 1147) | Parentheses in `assign` and `if`: "A value was expected", the column is blank | Parentheses removed, and the conditions made to do what they say (**behaviour change**, below) |
+| AttributeValue 4517348 (Block 2350 `FormattedOutput`, *Camp Financial Aid Report* page 1207) | `isPublic == true` on a RawValue string, the pass-15 class: a non-public campus panel appears | `isPublic == 'True'` |
+| AttributeValue 77085686, 79074431 (*Replace Newline Characters*, actions 5302 and 5774, workflow types 379 *Generic Text Response* and 495 *Student Checkin*) | `Replace:'\n',newline`: DotLiquid looks for backslash + n, Fluid reads `'\n'` as a line break, so the SMS reply goes out with a visible `\n` | `{% capture bsn %}\n{% endcapture %}` then `Replace:bsn,newline` (LavaProbe N1/N2) |
+| AttributeValue 2453438 (Block 1186 `FormattedOutput`, *Serve at Christmas* page 672) | `{% if (campus.ShortCode == '920' %}`, unbalanced: "Invalid 'if' tag" | parenthesis removed (C1/C2) |
+| AttributeValue 55093101 (Block 4501 `LavaTemplate`, *Home Groups* page 1985) | an inline copy of `HomeGroups.lava` that still has `when null and meetingType == ''` | `when null`, as pass 6 did in the theme files (W cases) |
+| HtmlContent 4309 (*Never Going Back* share-ables, page 2464) | a comment inside a comment: "Unknown tag 'endcomment'" | inner pair dropped, everything stays commented out (K1/K2) |
+| HtmlContent 999 (*Take Away For Ferrari* breadcrumbs, page 1537) | `{% if item \| Attribute:'Slug' == storySlug %}`, a filter inside `if` | assign the slug first. **Behaviour change:** DotLiquid treated the condition as always true and printed every story title; now only the matching story prints (F1) |
+
+**Report 1521 behaviour change.** DotLiquid strips the parentheses in `assign`. In `if` it reads `(a or b)` as `a`
+alone, because the clause that ends in `)` never matches, and it ignores a filter inside `if` (LavaProbe truth tables
+A-E). So parts of both fields never ran. They run now, following report 1522 *Cleared with Minors by Campus*, which was
+rewritten by hand on 2026-09-30:
+
+| Condition | DotLiquid evaluated | Now |
+|---|---|---|
+| *Within Grace Period?* `Age == 18 and (daysuntil >=1 or daysuntil <=60)` | `Age == 18 and daysuntil >= 1` | `Age == 18 and daysuntil >= 1 and daysuntil <= 60`. Same rows in practice: an 18-year-old never has more than 60 days left |
+| Attendance `Attendance1stVerifiedDate \| Date… \| DateDiff:'Now','d' > 186` | "the date has a value", so any date read *more than 6 months ago* | the day count is assigned first and compared to 186. **A first attendance inside the last 186 days now reads *less than 6 months ago*** |
+| Minor rows `(AgeClassification == 'Child') or (daysuntil >= 1 or daysuntil <= 60)` | `Child or daysuntil >= 1` | `Child or daysuntil >= 1 and daysuntil <= 60` (Liquid evaluates right to left, so the `and` binds first on both engines). Differs only for someone under 18 whose AgeClassification is not Child: no minor row |
+| Adult rows `(daysuntil < 0 or daysuntil > 60)` | `daysuntil < 0` | **left as `daysuntil < 0`**. Read literally, `> 60` is everyone under 18, and each child would get four red adult rows above the minor rows |
+
+Both rewritten fields were rendered for 14 sample people: the same on both engines, and different from today only
+in the attendance row and the under-18-not-Child case.
+
+The nine rows are byte-identical on RockDev and production. A SELECT-only preflight on both databases confirmed that
+every guard matches one row and that each `REPLACE` result equals the value LavaProbe rendered.
+
+**Applied on rockprod 2026-11-23** (dry run, then live; 9 of 9 rows confirmed by a read-only check). Not yet run on
+RockDev. Clear the Rock cache after each.
+
+**Still open:**
+
+- **Sermon podcast RSS.** 7 of the 9 Fluid renders logged had zero `<item>`s (2026-11-13, 2026-11-22); the last two
+  had all 45. Same as pass 15, and still to be settled before the engine switches.
+- **`'Object' | Property | Property`**, action 8447 *Set Requestor*: blank on Fluid three more times. Still the only
+  one of the actions that use the chain to be logged.
+- `api/Lava/RenderTemplate` with `{% capture s.roundcorners %}` (ROCK-9253): 11 more calls, the last on 2026-11-21.
+- `Opportunities.lava` (page 1939): one render where Fluid listed accordion items and DotLiquid listed none. Not diagnosed.
+- `GroupHistoryTimeline.lava` (core Rock theme): `,&nbsp;and` lands on the wrong item, the `forloop.rindex` swap. Cosmetic.
+- The signature document templates print `{{ Registration }}` / `{{ Registrant }}` inside an HTML comment. DotLiquid
+  expands them into the registrant's merge fields there; Fluid prints nothing. Worth removing from the comment.
+
+## Pass 17 — the open items (`022_apply_prodpass11.sql` + 3 theme files)
+
+The items passes 15 and 16 left open, each reproduced offline. The probe for the first two ran Rock's own code against
+RockDev with both engines in one process.
+
+**Sermon podcast RSS: not a Fluid problem.** `SermonPodcast.lava` wraps the whole feed in
+`{% cache key:'secc-sermon-podcast' %}`, and that key is shared by every request that uses the template. A request for
+another channel, or for the sermon channel with a different `Count`, that arrives while the block is not cached fills
+the cache with its own output, and the real feed (`ChannelId=23&TemplateId=17326&Count=45`) then serves that for up to
+an hour. Rendering the template for channel 24 and then channel 23 gives **zero items for channel 23 on both
+engines**. Every zero-item row in the log is a fresh Fluid render next to DotLiquid output that came from its own
+cache, built up to 53 minutes earlier, which is why it looked like an engine difference. The zero-item output is the
+size of a feed with one skipped item, so the likely caller is a `Count=1` request made before the newest sermon has
+audio; the IIS logs would confirm it. This happens on DotLiquid in production today as well, whenever the stray
+request is the one that fills the cache.
+
+Fix, in the SECC2019 and SECC2024 copies: the key carries the channel and the item count,
+`secc-sermon-podcast-{{ Channel.Id }}-{{ feedItemCount }}`. Channel 24 then channel 23 gives 45 items on both engines.
+Defined value 31185 *Sermon 2* has an inline template with the same old key; it no longer collides.
+
+**Action 8447 *Set Requestor*** (`022`). `Model.CreatedByPersonAlias` has neither `[DataMember]` nor `[LavaVisible]`.
+Fluid's `Property` filter reads an entity through its Lava dictionary, which hides it; DotLiquid's uses reflection. So
+the requestor was blank on Fluid on every run, and the other `'Object' | Property` chains were never logged because
+their properties are visible. Now `Property:'CreatedByPersonAliasId' | PersonByAliasId | Property:'PrimaryAlias' |
+Property:'Guid'`. On five RockDev connection requests both engines return the creator's alias Guid, nothing when there
+is no creator, and the same person's primary alias when the request was created under a merged alias.
+
+**`Opportunities.lava`** (SECC2024, page 1939). With exactly one opening the job feed parses to a single object, not a
+list. `for` over an object walks its fields, and only DotLiquid lets a field answer to `item.DatePosted`. So Fluid
+showed *no job openings*, and DotLiquid showed the job with a blank title and no Apply link. The single job is now read
+directly: both engines show it, title and link included. Zero, two and three openings render as before (fixture feeds
+through the real `webrequest` block). The 2026-11-05 log row is not explained by this: there Fluid drew one blank panel
+and DotLiquid none, which fits an empty or failed feed response.
+
+**ROCK-9253 is done.** #355 and #362 merged 2026-11-16 and 11-17. `api/Lava/RenderTemplate` still gets the
+`s.roundcorners` template about once a day from the image service's address, for old app versions; there is nothing in
+Rock left to change.
+
+The three theme files were copied to both shares (`IIS_Rock16`, `IIS_IIS`) on 2026-11-23 and byte-compared after the
+copy; the dev and production copies were identical before it. The Rock cache is not cleared yet. `022` is not applied
+yet on either database; a read-only check shows its guard matches one row on each.
+
+Not fixed, and not Fluid: two openings posted on the same date each print twice in `Opportunities.lava` (the date list
+has one entry per job); `GroupHistoryTimeline.lava` and the signature-template comment from pass 16.
+
 ## Behaviour changes to test before applying
 
 Rock's vendored DotLiquid evaluates only the **first clause** of `{% if a && b %}` (`If.cs` splits

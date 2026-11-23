@@ -28,6 +28,10 @@
                 {%- assign dates = dates | ReplaceLast:'|','' -%}
                 {%- assign datesSorted = dates | Split:'|' | Sort -%}
                 {%- assign jobsAvail = datesSorted | Size -%}
+                {%- comment -%} One opening: the feed parses to a single object, not a list. Fluid and DotLiquid loop over an object differently, so read it directly. {%- endcomment -%}
+                {%- assign singleJob = results.Openings.Job -%}
+                {%- assign singleJobDate = singleJob.DatePosted -%}
+                {%- if singleJobDate != null and singleJobDate != '' -%}{%- assign jobsAvail = 1 -%}{%- assign datesSorted = singleJobDate | Split:'|' -%}{%- endif -%}
             {%- endwebrequest -%}
 
 
@@ -45,12 +49,16 @@
                     {%- assign dates = dates | ReplaceLast:'|','' -%}
                     {%- assign datesSorted = dates | Split:'|' | Sort -%}
                     {%- assign jobsAvail = datesSorted | Size -%}
+                    {%- comment -%} One opening: the feed parses to a single object, not a list. Fluid and DotLiquid loop over an object differently, so read it directly. {%- endcomment -%}
+                    {%- assign singleJob = results.Openings.Job -%}
+                    {%- assign singleJobDate = singleJob.DatePosted -%}
+                    {%- if singleJobDate != null and singleJobDate != '' -%}{%- assign jobsAvail = 1 -%}{%- assign datesSorted = singleJobDate | Split:'|' -%}{%- endif -%}
 
                     {%- if jobsAvail != 0 -%}
                         {%- for dateStr in datesSorted reversed -%}
                             {%- assign dateSearch = dateStr | Split:'--' | Last -%}
                             {%- if jobsAvail == 1 -%}
-                                {%- assign job = results.Openings.Job | Index:OnlyOneIndex -%}
+                                {%- if singleJobDate != null and singleJobDate != '' -%}{%- assign job = singleJob -%}{%- else -%}{%- assign job = results.Openings.Job | Index:OnlyOneIndex -%}{%- endif -%}
 
                                 {%- capture customHtmlTitle -%}
                                     <header>

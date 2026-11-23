@@ -1,4 +1,6 @@
-{% cache key:'secc-sermon-podcast' duration:'3600' -%}
+{%- comment -%} The key carries the channel and the item count: every feed request that uses this template shares this block, and a request for another channel (or another Count) used to fill the cache with its own output. {%- endcomment -%}
+{%- assign feedItemCount = Items | Size -%}
+{% cache key:'secc-sermon-podcast-{{ Channel.Id }}-{{ feedItemCount }}' duration:'3600' -%}
 <?xml version="1.0"?>
 {%- assign timezone = 'Now' | Date:'zzz' | Replace:':','' -%}
 {%- assign imageURL = 'Global' | Attribute:'PublicApplicationRoot' | Append:'content/podcasts/SELogoPodcast.jpg' -%}
