@@ -342,10 +342,13 @@ All thirteen were run in order on a clean copy of a local Rock 1.16.12 database 
 - **What the gateway's answer means:** an error message with no payment is a decline (nothing
   charged, the cart reopens); a payment with no error is a charge; neither, or a payment that
   came with a message, is unknown (the cart stays Processing for staff to check).
-  Rock's NMI gateway reports a timeout or unreadable response as neither. My Well's plugin
-  source isn't in this repo, so how it reports a timeout hasn't been checked; if it sends an
-  error message and no payment for one, that checkout is treated as a decline, as in Rock's own
-  registration.
+  Rock's NMI gateway reports a timeout or unreadable response as neither. My Well's gateway
+  (its assembly, read 2026-11-23; the source isn't in this repo) returns a payment only for
+  response code 100 with no error, and then no message; any other code, or an error, returns a
+  message and no payment (a decline); an empty or unreadable response throws, which is unknown.
+  So it never sends a payment with a message. What isn't known is whether any of its other
+  response codes can mean money moved (a partial approval, say): those are treated as a
+  decline, as in Rock's own registration.
 - **Total check is the cart and its total:** checkout compares the cart's id and the amount with
   what the page showed, not the contents. A tab left open after its cart was paid for can't pay
   for the family's next cart; a cart that changed in another tab to different items with the
