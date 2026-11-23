@@ -118,7 +118,7 @@
     import GatewayControl from "@Obsidian/Controls/gatewayControl.obs";
     import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
     import RockValidation from "@Obsidian/Controls/rockValidation.obs";
-    import { provideSubmitPayment } from "@Obsidian/Core/Controls/financialGateway";
+    import { provideSubmitPayment, usePaymentEvents } from "@Obsidian/Core/Controls/financialGateway";
     import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
     import { FormError } from "@Obsidian/Utility/form";
     import { GatewayControlBag } from "@Obsidian/ViewModels/Controls/gatewayControlBag";
@@ -134,6 +134,9 @@
     const config = useConfigurationValues<CheckoutInitializationBox>();
     const invokeBlockAction = useInvokeBlockAction();
     const submitPayment = provideSubmitPayment();
+    // Gateway controls may listen for these (My Well rebuilds its form, with a fresh token,
+    // when a payment fails) and throw on load when no block provides them.
+    const dispatchPaymentEvent = usePaymentEvents();
 
     const navigation = ref<NavigationBag>(config.navigation ?? { isSignedIn: false, cartItemCount: 0 });
     const cart = ref<PricedCartBag>(config.cart ?? { subtotal: 0, discountTotal: 0, total: 0, itemCount: 0 });
@@ -188,12 +191,14 @@
     function onGatewayValidation(invalidFields: FormError[]): void { isPlacing.value = false; gatewayValidationFields.value = invalidFields; }
 
     async function processCheckout(gatewayToken: string): Promise<void> {
+        let succeeded = false;
         try {
+            dispatchPaymentEvent({ type: "submitting" });
             const request: CheckoutRequestBag = { gatewayToken, expectedTotal: cart.value.total };
             const result = await invokeBlockAction<CheckoutResultBag>("ProcessCheckout", { request });
             if (!result.isSuccess || !result.data) { paymentError.value = result.errorMessage || "Something went wrong. Please contact the office before trying again."; return; }
             const data = result.data;
-            if (data.success) { completed.value = data; navigation.value = { ...navigation.value, cartItemCount: 0 }; window.scrollTo({ top: 0 }); }
+            if (data.success) { succeeded = true; completed.value = data; navigation.value = { ...navigation.value, cartItemCount: 0 }; window.scrollTo({ top: 0 }); }
             else if (data.cartChanged || data.cart) {
                 // Nothing was charged: show the cart as it is now (and what to fix) so the shopper
                 // can fix it or pay the new total.
@@ -206,6 +211,9 @@
         }
         finally {
             isPlacing.value = false;
+            // A token is single use: anything but success needs the gateway's form reset.
+            if (succeeded) dispatchPaymentEvent({ type: "success" });
+            else dispatchPaymentEvent({ type: "failure", errorMessage: paymentError.value });
         }
     }
 </script>
