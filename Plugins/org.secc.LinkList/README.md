@@ -152,6 +152,9 @@ flight: a save sent mid-upload would store the row without its file.
   `BuildPlugin.ps1 -RockWebPath <path to RockWeb>` to target a specific RockWeb (for example
   a private copy, so a running site isn't recycled); with no argument it finds the pipeline's
   RockWeb as before.
+- **Deploy:** the Rock v16 pipeline builds the DLL and the Obsidian JS with every other plugin
+  (`Tools/pipeline-build-plugins.ps1`). Before that script, the pipeline skipped LinkList from
+  2026-09-15, so prod kept running an older DLL and JS.
 
 ## Project Layout
 
