@@ -22,8 +22,8 @@ This is Southeast's catch-all **security and identity** plugin. Most of it is Ro
 /                       org.secc.Security.csproj (compiles SAML2/ and Utility/)
 /SAML2/                 SAML 2.0 assertion library: SAML20Assertion (build+sign Response),
                         CertificateUtility (X509 XML signing), SAMLSchema (xsd-generated OASIS types)
-/Utility/               PinManagerRules: the PIN Manager's PIN display and its login and PIN checks
-                        (DisplayPin, IsPersonPin, CheckPin)
+/Utility/               PinManagerRules: the PIN Manager's PIN and purpose display and its login and PIN checks
+                        (DisplayPin, IsPersonPin, CheckPin, PurposeText, PurposeItemText)
 /org.secc.Security.Tests/ xUnit tests for PinManagerRules (Tools/add-plugins-to-solution.ps1 adds it to
                         Rock.sln with the plugin projects)
 /org_secc/Security/     RockWeb blocks (.ascx + .ascx.cs) — the bulk of the plugin (see Components)
@@ -204,11 +204,11 @@ There is no MEF/registration step — these are Rock blocks, placed on a page vi
 ## Making Changes
 
 - Block behavior lives in `org_secc/Security/<Block>.ascx.cs` (markup in the matching `.ascx`); these are RockWeb-compiled, not in the csproj.
-- The PIN Manager's choice between a PIN's value and the mask in its list, and its checks of which login it may edit, save or remove and of a typed PIN, live in `Utility/PinManagerRules.cs` (compiled into `org.secc.Security.dll`) and are tested in `org.secc.Security.Tests`.
+- The PIN Manager's choice between a PIN's value and the mask in its list, its HTML-encoded purpose names (in the list and in the purpose check box list), and its checks of which login it may edit, save or remove and of a typed PIN, live in `Utility/PinManagerRules.cs` (compiled into `org.secc.Security.dll`) and are tested in `org.secc.Security.Tests`.
 - SAML payload/signing changes go in `SAML2/SAML20Assertion.cs` / `CertificateUtility.cs` (compiled into `org.secc.Security.dll`).
 - Captive-portal person matching delegates to the `GetByMatch` extension method in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (invoked on `PersonService`) — change matching there, not here.
 - The bundled `Themes/my-secc` theme (Layouts/Styles/Lava partials) is deployed by the same PostBuildEvent; theme edits live under `Themes/my-secc/`.
 - `SignNowTest` is test scaffolding — don't extend it for production; build a proper block instead. It writes its temp PDF into a per-request directory and deletes it in a `finally`.
 - Building `org.secc.Security.Tests` with MSBuild from the command line builds the plugin with `CopyToRockWeb=false` and without its `PostBuildEvent`, so nothing is copied into RockWeb. In Visual Studio, a solution that also contains the plugin builds the plugin as its own project, with its copy into RockWeb, whenever Visual Studio finds the plugin out of date. The tests don't use a database.
 
-Last updated: 2026-10-28
+Last updated: 2026-11-16
