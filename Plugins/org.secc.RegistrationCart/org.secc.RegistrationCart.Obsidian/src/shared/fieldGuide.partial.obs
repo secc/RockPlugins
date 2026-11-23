@@ -67,8 +67,17 @@
     -moz-osx-font-smoothing: grayscale;
 }
 .regcart *, .regcart *::before, .regcart *::after { box-sizing: border-box; }
-.regcart a { color: var(--charcoal); text-decoration: underline; text-underline-offset: 2px; }
-.regcart a:hover { color: var(--dark-gray); }
+/* Not Bootstrap buttons (a gateway's payment-method tabs are <a class="btn">): the link colour
+   would put dark text on the theme's dark selected button. :where() keeps the specificity. */
+.regcart a:where(:not(.btn)) { color: var(--charcoal); text-decoration: underline; text-underline-offset: 2px; }
+.regcart a:where(:not(.btn)):hover { color: var(--dark-gray); }
+/* Text inside a Bootstrap button follows the button, not the theme's paragraph colour (My Well's
+   payment-method tabs put their label in a <p>, which the theme paints dark on the dark selected tab). */
+.regcart .btn p { color: inherit; }
+/* My Well's payment-method tabs: the theme inverts a primary button on hover and focus (a white
+   gradient over it), which made the tab just clicked look unselected. The selected tab stays dark. */
+.regcart .gateway-type-selector .btn-primary.active, .regcart .gateway-type-selector .btn-primary.active:hover, .regcart .gateway-type-selector .btn-primary.active:focus { background-color: var(--charcoal) !important; background-image: none !important; color: var(--white) !important; }
+.regcart .gateway-type-selector .btn-primary.active * { color: var(--white) !important; }
 .regcart h1, .regcart h2, .regcart h3, .regcart .rc-serif { font-family: var(--rc-serif); font-weight: 600; font-synthesis: none; color: var(--charcoal); margin: 0; letter-spacing: -.012em; text-transform: none; }
 .regcart h1 { font-size: 2.3rem; line-height: 1.1; letter-spacing: -.022em; }
 .regcart h2 { font-size: 1.5rem; line-height: 1.15; }
