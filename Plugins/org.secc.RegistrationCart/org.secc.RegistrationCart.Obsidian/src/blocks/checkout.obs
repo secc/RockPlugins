@@ -194,7 +194,7 @@
         let succeeded = false;
         try {
             dispatchPaymentEvent({ type: "submitting" });
-            const request: CheckoutRequestBag = { gatewayToken, expectedTotal: cart.value.total };
+            const request: CheckoutRequestBag = { gatewayToken, expectedTotal: cart.value.total, cartId: cart.value.cartId };
             const result = await invokeBlockAction<CheckoutResultBag>("ProcessCheckout", { request });
             if (!result.isSuccess || !result.data) { paymentError.value = result.errorMessage || "Something went wrong. Please contact the office before trying again."; return; }
             const data = result.data;

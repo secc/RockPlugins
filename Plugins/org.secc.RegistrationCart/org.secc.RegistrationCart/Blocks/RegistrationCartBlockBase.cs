@@ -105,6 +105,7 @@ namespace org.secc.RegistrationCart.Blocks
 
             var bag = new PricedCartBag
             {
+                CartId = cart?.Id,
                 Subtotal = priced.Subtotal,
                 DiscountTotal = priced.DiscountTotal,
                 Total = priced.Total,

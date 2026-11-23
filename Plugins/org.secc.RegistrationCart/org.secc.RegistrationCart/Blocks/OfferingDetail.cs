@@ -104,7 +104,15 @@ namespace org.secc.RegistrationCart.Blocks
 
                 // The saved answers over the person's current values and the forms' defaults, so
                 // questions the line skipped while wait-listed start filled in like a new line's.
-                var person = new PersonAliasService( RockContext ).GetPerson( line.CartRegistrant.PersonAliasId );
+                // Only for someone the payer may still register: a camper who has left the family
+                // since the line was added doesn't have their current details shown.
+                var person = manager.ResolveRegisterablePerson( line.CartRegistrant.PersonAliasId );
+                if ( person == null )
+                {
+                    box.ErrorMessage = "That person is no longer in your family, so their registration can't be changed. Please remove it from your cart.";
+                    return box;
+                }
+
                 var groupId = new CatalogService( RockContext ).GetLinkedGroupId( line.RegistrationInstanceId );
                 var forms = new RegistrationForms( RockContext );
                 var fieldValues = forms.GetStartingValues( template.Template, person, groupId );
@@ -116,7 +124,8 @@ namespace org.secc.RegistrationCart.Blocks
                 box.EditLine = new EditLineBag
                 {
                     LineItemId = line.Id,
-                    PersonAliasId = line.CartRegistrant.PersonAliasId,
+                    // The alias the people list uses (the line's own may be a merged record's).
+                    PersonAliasId = person.PrimaryAliasId ?? line.CartRegistrant.PersonAliasId,
                     RegistrationInstanceId = line.RegistrationInstanceId,
                     IsWaitList = line.IsWaitList,
                     FeeItemIds = line.AddOns.Select( a => a.RegistrationTemplateFeeItemId ).ToList(),
@@ -232,7 +241,7 @@ namespace org.secc.RegistrationCart.Blocks
             }
 
             var person = manager.ResolveRegisterablePerson( personAliasId );
-            var instance = new RegistrationInstanceService( RockContext ).Get( registrationInstanceId );
+            var instance = GetOfferedInstance( registrationInstanceId );
             if ( person == null || instance == null )
             {
                 return ActionBadRequest( "That person or option was not found." );
@@ -288,7 +297,7 @@ namespace org.secc.RegistrationCart.Blocks
             }
 
             var person = request != null ? manager.ResolveRegisterablePerson( request.PersonAliasId ) : null;
-            var instance = request != null ? new RegistrationInstanceService( RockContext ).Get( request.RegistrationInstanceId ) : null;
+            var instance = request != null ? GetOfferedInstance( request.RegistrationInstanceId ) : null;
             if ( person == null || instance == null )
             {
                 return (null, null, ActionBadRequest( "That person or option was not found." ));
@@ -296,6 +305,17 @@ namespace org.secc.RegistrationCart.Blocks
 
             return (person, instance, null);
         }
+
+        /// <summary>
+        /// The instance, only while the cart offers it (shown, active and open for registration,
+        /// as adding a line requires): the form and document actions take an instance id from the
+        /// browser, and must not hand out a family's details, or a document, for a registration
+        /// that isn't offered here.
+        /// </summary>
+        private RegistrationInstance GetOfferedInstance( int registrationInstanceId ) =>
+            new CatalogService( RockContext ).GetOpenInstance( registrationInstanceId, out _ ) != null
+                ? new RegistrationInstanceService( RockContext ).Get( registrationInstanceId )
+                : null;
 
         /// <summary>The template's answers with locked fields set back to the value on file, as the cart line will keep them.</summary>
         private Dictionary<System.Guid, object> Normalized( Rock.Model.Person person, RegistrationInstance instance, Dictionary<System.Guid, object> fieldValues ) =>
@@ -392,7 +412,11 @@ namespace org.secc.RegistrationCart.Blocks
         {
             var self = GetCurrentPerson();
             // From the lines: a registrant whose lines went with a deleted instance is not in the cart.
-            var inCart = cart?.LineItems.Where( l => l.CartRegistrant != null ).Select( l => l.CartRegistrant.PersonAliasId ).ToList() ?? new List<int>();
+            // By person: a line keeps the alias it was added with, which a merge can retire.
+            var inCartAliasIds = cart?.LineItems.Where( l => l.CartRegistrant != null ).Select( l => l.CartRegistrant.PersonAliasId ).Distinct().ToList() ?? new List<int>();
+            var inCart = inCartAliasIds.Any()
+                ? new PersonAliasService( RockContext ).Queryable().Where( a => inCartAliasIds.Contains( a.Id ) ).Select( a => a.PersonId ).ToList()
+                : new List<int>();
 
             return manager.GetRegisterablePeople()
                 .Where( p => p.PrimaryAliasId.HasValue )
@@ -408,7 +432,7 @@ namespace org.secc.RegistrationCart.Blocks
                             ? GradeBands.Friendly( band )
                             : ( p.GradeFormatted.IsNotNullOrWhiteSpace() ? p.GradeFormatted : GradeBands.Friendly( band ) ),
                         IsSelf = p.Id == self?.Id,
-                        IsInCart = inCart.Contains( p.PrimaryAliasId.Value )
+                        IsInCart = inCart.Contains( p.Id )
                     };
                 } )
                 .ToList();

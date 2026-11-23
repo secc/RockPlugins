@@ -180,7 +180,7 @@ plugin.json / BuildPlugin.ps1           Rock plugin packaging
 | Registration Cart Offering (`OfferingDetail`) | `/registrations/offering/{OfferingKey}` | Pick a family member (or add a child, with their birthday and grade), an instance and fees, fill in the template's registration forms, and enter the camper's discount code; add to cart. With `?LineId=` it edits that cart line instead (see *Editing a line*). | Allow Adding Family Members, Maximum Family Members Added Per Day, Discount Code Workflow, Cart Page, Catalog Page |
 | Registration Cart (`Cart`) | `/registrations/cart` | Cart with pricing (each line's discount code); edit or remove lines; shows what would stop a line checking out. | Checkout Page, Catalog Page, Offering Detail Page |
 | Registration Cart Checkout (`Checkout`) | `/registrations/checkout` | Payment + checkout. Uses the gateway's Obsidian hosted control when it has one, else a My Well tokenizer iframe. Lines that need fixing show with an Edit link. | Financial Gateway, Batch Name Prefix, Tokenizer Script URL / Gateway URL / Public Key, Cart Page, Catalog Page, Offering Detail Page |
-| Registration Cart Settings (`AdminCatalogSettings`) | Admin Tools › Installed Plugins › Registration Cart (`/admin/registration-cart`) | Per template/instance/fee item visibility, eligibility, image, order. When there are any, lists the **checkouts needing a payment check** with *reopen* and *close* (see *Unconfirmed checkouts*). Saves and those actions require block EDIT. | Catalog Page |
+| Registration Cart Settings (`AdminCatalogSettings`) | Admin Tools › Installed Plugins › Registration Cart (`/admin/registration-cart`) | Per template/instance/fee item visibility, eligibility, image, order. When there are any, lists the **checkouts needing a payment check** with *reopen* and *close* (see *Unconfirmed checkouts*). Saves, that list and its actions require block EDIT. | Catalog Page |
 
 Every public page shows a warning while the signed-in person has an unconfirmed checkout (see
 *Unconfirmed checkouts*).
@@ -243,7 +243,7 @@ edit a line whose extra was deleted or turned off).
 | 010 | Adds `CartLineItemAddOn.DiscountApplies`, filled from each add-on's fee. |
 | 011 | Adds the *Show New Templates* and *Default Grade Bands* global attributes and hides the catalog page from navigation. |
 | 012 | One template code per registration (ROCK-9394): adds `CartLineItem.IsTemplateDiscountLocked` and `WorkflowDiscountCode` (set on existing lines with a code, which all came from the workflow); removes the Discount Codes admin page, block type and entity types and drops the `DiscountCode` / `CartDiscount` tables. Down only drops the new columns. |
-| 013 | Adds the cart's checkout columns `PaymentSentDateTime`, `ResolvedDateTime`, `ResolvedByPersonAliasId`, `ResolutionNote`, `PendingReportedDateTime`. Where the SECC public site exists (site Guid `74DF3DB5-…`, "Southeast Christian Church"), moves the four public pages under its home page on its full-width layout and makes their routes non-global, like that site's other routes; the stock External site at SECC is the retired 2014 one. A database without that site (a local Rock) keeps the pages where 001 put them. |
+| 013 | Adds the cart's checkout columns `PaymentSentDateTime`, `ResolvedDateTime`, `ResolvedByPersonAliasId`, `ResolutionNote`, `PendingReportedDateTime`; a cart already Processing gets `PaymentSentDateTime` set, so the job never reopens it by itself. Where the SECC public site exists (site Guid `74DF3DB5-…`, "Southeast Christian Church"), moves the four public pages under its home page on its full-width layout and makes their routes non-global, like that site's other routes; the stock External site at SECC is the retired 2014 one. A database without that site (a local Rock) keeps the pages where 001 put them. |
 
 All thirteen were run in order on a clean copy of a local Rock 1.16.12 database on 2026-11-15
 (see *Tests*).
@@ -311,6 +311,9 @@ All thirteen were run in order on a clean copy of a local Rock 1.16.12 database 
   a code's last use held by another cart mid-checkout, a wait-listed line (no fees), an uploaded
   file (kept; a missing one stops checkout) and FA code cleanup. Not covered: a real My Well
   charge, and a gateway that answers with neither a payment nor an error (unit-tested rule only).
+- **Third review fixes (2026-11-23):** built and unit-tested (143 tests) and type-checked only;
+  the new SQL paths (`SaveIfOpen`, `TryMarkPaymentSent`) and block changes have not been run
+  against a database yet.
 
 ## Observations
 
@@ -336,14 +339,26 @@ All thirteen were run in order on a clean copy of a local Rock 1.16.12 database 
     while its request may still be running. No SQL is needed.
   - A reopened cart that the family has since replaced with a new one (with campers in it) is
     abandoned instead, so their cart doesn't change under them.
-- **What the gateway's answer means:** an error message is a decline (nothing charged, the cart
-  reopens); a payment with no error is a charge; neither is unknown (the cart stays Processing).
-  Rock's NMI gateway reports a timeout or unreadable response that last way. My Well's plugin
+- **What the gateway's answer means:** an error message with no payment is a decline (nothing
+  charged, the cart reopens); a payment with no error is a charge; neither, or a payment that
+  came with a message, is unknown (the cart stays Processing for staff to check).
+  Rock's NMI gateway reports a timeout or unreadable response as neither. My Well's plugin
   source isn't in this repo, so how it reports a timeout hasn't been checked; if it sends an
-  error message for one, that checkout is treated as a decline, as in Rock's own registration.
-- **Total check is total-only:** checkout compares the amount, not the contents. A cart that
-  changed in another tab to different items with the same total is charged and registered as
-  it is now.
+  error message and no payment for one, that checkout is treated as a decline, as in Rock's own
+  registration.
+- **Total check is the cart and its total:** checkout compares the cart's id and the amount with
+  what the page showed, not the contents. A tab left open after its cart was paid for can't pay
+  for the family's next cart; a cart that changed in another tab to different items with the
+  same total is charged and registered as it is now.
+- **A cart can't change under its checkout:** adding, changing or removing a line saves only
+  while the cart is still Open, in one transaction that writes the cart row first
+  (`CartManager.SaveIfOpen`); a checkout claims the cart by writing the same row. So a change
+  saved first is in the cart the checkout reads, and one that comes after the claim is refused.
+  A checkout that stalls before its payment is sent for long enough that the job reopens the
+  cart has lost its claim and stops without charging (`TryMarkPaymentSent`).
+- **Cart lines follow the person, not the alias:** a line keeps the alias it was added with; a
+  camper whose record staff merge afterwards can still be edited and isn't offered twice. A
+  camper who has left the payer's family since can't be edited or paid for (remove the line).
 - **Seats go to whoever pays first:** open carts hold no seats; the catalog's "spots
   remaining" is what's left for the viewer's next camper. Claim, validate and seat placement run
   under a per-instance SQL app lock (`SeatLock`, held for milliseconds, not through the gateway
@@ -407,8 +422,10 @@ All thirteen were run in order on a clean copy of a local Rock 1.16.12 database 
   (today's date, changed person details) over their signature. The signed HTML is safe to keep:
   it was only accepted when it matched the token issued for the server's own render, and it
   stays encrypted on the cart line. A signature is for one version of the document: if staff
-  edit the document's Lava after it was signed, the line must be signed again before it can be
-  paid for. At checkout the document is checked before the charge, saved with the registration
+  edit the document's Lava after it was shown or signed, it must be signed again before the line
+  can be saved or paid for. A drawn signature must be the PNG data URL Rock's control sends
+  (`SignatureRules`), because Rock puts it in an image's src when it makes the PDF. The form
+  and document actions only answer for an option the cart offers (shown and open). At checkout the document is checked before the charge, saved with the registration
   (so every paid registration has its document), and its PDF made right after commit; the
   maintenance job retries a PDF that failed (for 3 days) and sends the completion email then.
 - **Deleting in Rock:** templates, instances, fees, registrations and transactions can be deleted
@@ -452,4 +469,4 @@ All thirteen were run in order on a clean copy of a local Rock 1.16.12 database 
   `npm run viewmodels`.
 - **Packaging:** `BuildPlugin.ps1` + `plugin.json` (Release DLL + `dist/**`).
 
-Last updated: 2026-11-15
+Last updated: 2026-11-23

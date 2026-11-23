@@ -37,15 +37,19 @@ public static class CheckoutRules
     };
 
     /// <summary>
-    /// What a gateway's answer to a charge means. An error message is the gateway saying no:
-    /// nothing was charged. A payment with no error is a charge. Neither is no answer at all
-    /// (some gateways report a timeout or an unreadable response this way), so the card may or
-    /// may not have been charged and the cart must not reopen until someone has checked.
+    /// What a gateway's answer to a charge means. An error message with no payment is the
+    /// gateway saying no: nothing was charged. A payment with no error is a charge. Anything
+    /// else is not an answer the cart can act on: neither (some gateways report a timeout or an
+    /// unreadable response this way), or both (a payment came back with a message, so the card
+    /// may have been charged). Then the cart must not reopen until someone has checked.
     /// </summary>
-    public static ChargeOutcome OutcomeOfCharge(bool hasPayment, string? errorMessage) =>
-        !string.IsNullOrWhiteSpace(errorMessage) ? ChargeOutcome.Declined
-        : hasPayment ? ChargeOutcome.Charged
-        : ChargeOutcome.Unknown;
+    public static ChargeOutcome OutcomeOfCharge(bool hasPayment, string? errorMessage)
+    {
+        var hasError = !string.IsNullOrWhiteSpace(errorMessage);
+        return hasPayment == hasError ? ChargeOutcome.Unknown
+            : hasPayment ? ChargeOutcome.Charged
+            : ChargeOutcome.Declined;
+    }
 
     /// <summary>
     /// A checkout that took, or may have taken, a payment without finishing: still claimed

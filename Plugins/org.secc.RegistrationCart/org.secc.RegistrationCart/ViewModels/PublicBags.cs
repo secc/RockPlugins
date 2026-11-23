@@ -41,6 +41,8 @@ namespace org.secc.RegistrationCart.ViewModels
 
     public class PricedCartBag
     {
+        /// <summary>The cart's id (null when the person has no cart).</summary>
+        public int? CartId { get; set; }
         public List<PricedLineBag> Lines { get; set; } = new List<PricedLineBag>();
         public List<AppliedDiscountBag> Discounts { get; set; } = new List<AppliedDiscountBag>();
         public decimal Subtotal { get; set; }
@@ -450,6 +452,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public string GatewayToken { get; set; }
         /// <summary>The total the shopper was shown. Checkout is refused if the cart no longer prices to it.</summary>
         public decimal ExpectedTotal { get; set; }
+        /// <summary>The cart the shopper was shown (<see cref="PricedCartBag.CartId"/>). Checkout is refused if their open cart is another one.</summary>
+        public int? CartId { get; set; }
     }
 
     public class CheckoutResultBag

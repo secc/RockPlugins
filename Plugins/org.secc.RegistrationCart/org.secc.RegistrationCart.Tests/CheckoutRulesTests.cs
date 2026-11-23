@@ -76,10 +76,10 @@ public class CheckoutRulesTests
     [InlineData(true, null, ChargeOutcome.Charged)]
     [InlineData(true, "", ChargeOutcome.Charged)]
     [InlineData(false, "Card declined", ChargeOutcome.Declined)]
-    [InlineData(true, "Card declined", ChargeOutcome.Declined)]   // an error wins, as Rock treats it
+    [InlineData(true, "Card declined", ChargeOutcome.Unknown)]    // a payment with a message may have charged the card
     [InlineData(false, null, ChargeOutcome.Unknown)]              // a timeout some gateways report as "nothing"
     [InlineData(false, "   ", ChargeOutcome.Unknown)]
-    public void A_gateway_answer_with_neither_a_payment_nor_an_error_is_not_a_decline(bool hasPayment, string? error, ChargeOutcome outcome)
+    public void A_gateway_answer_that_is_neither_a_clear_payment_nor_a_clear_error_is_not_a_decline(bool hasPayment, string? error, ChargeOutcome outcome)
     {
         Assert.Equal(outcome, CheckoutRules.OutcomeOfCharge(hasPayment, error));
         if (outcome == ChargeOutcome.Unknown)

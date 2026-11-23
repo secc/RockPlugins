@@ -14,7 +14,9 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 using org.secc.RegistrationCart.Model;
 using Rock;
@@ -385,7 +387,14 @@ namespace org.secc.RegistrationCart.Services
                 return Refuse( result, "That person is not in your family." );
             }
 
-            if ( existing != null && registrantPerson.PrimaryAliasId != existing.CartRegistrant.PersonAliasId )
+            // By person, not alias: the line keeps the alias it was added with, which stops being
+            // the primary one when staff merge the camper's record (a child a parent added is a
+            // Pending record, often merged).
+            var registrantAliasIds = new PersonAliasService( _rockContext ).Queryable()
+                .Where( a => a.PersonId == registrantPerson.Id )
+                .Select( a => a.Id )
+                .ToList();
+            if ( existing != null && !registrantAliasIds.Contains( existing.CartRegistrant.PersonAliasId ) )
             {
                 return Refuse( result, "The person on a registration can't be changed. Remove it and add the other person instead." );
             }
@@ -409,7 +418,7 @@ namespace org.secc.RegistrationCart.Services
             }
 
             // The camper's cart registrant, if they have one already; a new one is saved with the line.
-            var registrant = existing?.CartRegistrant ?? cart?.Registrants.FirstOrDefault( r => r.PersonAliasId == registrantPerson.PrimaryAliasId );
+            var registrant = existing?.CartRegistrant ?? cart?.Registrants.FirstOrDefault( r => registrantAliasIds.Contains( r.PersonAliasId ) );
             var camperName = registrant?.DisplayName ?? registrantPerson.FullName;
             var otherLineId = lineItemId ?? 0;
             if ( registrant != null && cart.LineItems.Any( l => l.CartRegistrantId == registrant.Id && l.RegistrationInstanceId == option.Instance.Id && l.Id != otherLineId ) )
@@ -664,9 +673,43 @@ namespace org.secc.RegistrationCart.Services
                 new CartLineItemService( _rockContext ).Add( line );
             }
 
-            _rockContext.SaveChanges();
+            if ( !SaveIfOpen( _rockContext, cart.Id ) )
+            {
+                return Refuse( result, CheckingOutMessage );
+            }
+
             result.Line = line;
             return result;
+        }
+
+        private const string CheckingOutMessage = "Your cart is being checked out, so it can't be changed right now.";
+
+        /// <summary>
+        /// Saves the context's changes to a cart's lines only while the cart is still open, in
+        /// one transaction that first writes the cart row (its last-changed time) on that
+        /// condition. A checkout claims the cart by writing the same row, so the two can't
+        /// overlap: a change saved first is in the cart the checkout then reads, and a change
+        /// that comes after the claim is refused (false, nothing saved) instead of landing on a
+        /// cart that is being charged or has been registered.
+        /// </summary>
+        public static bool SaveIfOpen( RockContext rockContext, int cartId )
+        {
+            var saved = false;
+            rockContext.WrapTransaction( () =>
+            {
+                var rowsAffected = rockContext.Database.ExecuteSqlCommand(
+                    "UPDATE [_org_secc_RegistrationCart_Cart] SET [ModifiedDateTime] = @Now WHERE [Id] = @CartId AND [Status] = @Open",
+                    new SqlParameter( "@Now", SqlDbType.DateTime ) { Value = RockDateTime.Now },
+                    new SqlParameter( "@CartId", SqlDbType.Int ) { Value = cartId },
+                    new SqlParameter( "@Open", SqlDbType.Int ) { Value = ( int ) CartStatus.Open } );
+                if ( rowsAffected == 1 )
+                {
+                    rockContext.SaveChanges();
+                    saved = true;
+                }
+            } );
+
+            return saved;
         }
 
         private static SaveLineResult Refuse( SaveLineResult result, string message )
@@ -690,7 +733,11 @@ namespace org.secc.RegistrationCart.Services
             var workflowCode = line.WorkflowDiscountCode;
             new CartLineItemService( _rockContext ).Delete( line );
             Replace( cart, instanceId, lineItemId );
-            _rockContext.SaveChanges();
+            if ( !SaveIfOpen( _rockContext, cart.Id ) )
+            {
+                // Being checked out: the line stays.
+                return false;
+            }
 
             // The financial assistance code made for the line goes with it, so it can't be typed
             // on a later registration.

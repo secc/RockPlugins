@@ -213,6 +213,13 @@ namespace org.secc.RegistrationCart.Services
             var catalog = new CatalogService( _rockContext );
             var personAliasService = new PersonAliasService( _rockContext );
             var camperOptions = new HashSet<string>();
+
+            // Who the payer may register now (themselves and their family), as when a line is
+            // added: a camper who has left the family since can't be registered by them.
+            var payerPersonId = personAliasService.GetPersonId( cart.OwnerPersonAliasId );
+            var familyPersonIds = payerPersonId.HasValue
+                ? new HashSet<int>( new PersonService( _rockContext ).GetFamilyMembers( payerPersonId.Value, true ).Select( m => m.PersonId ) )
+                : new HashSet<int>();
             foreach ( var line in cart.LineItems.OrderBy( l => l.Id ) )
             {
                 if ( !instances.TryGetValue( line.RegistrationInstanceId, out var instance ) || line.CartRegistrant == null )
@@ -221,6 +228,12 @@ namespace org.secc.RegistrationCart.Services
                 }
 
                 var person = personAliasService.GetPerson( line.CartRegistrant.PersonAliasId );
+                if ( person != null && person.Id != payerPersonId && !familyPersonIds.Contains( person.Id ) )
+                {
+                    problems.Add( new CheckoutProblem( $"{line.CartRegistrant.DisplayName} is no longer in your family, so you can't register them. Please remove the registration.", new[] { line.Id } ) );
+                    continue;
+                }
+
                 var duplicate = person != null ? CartManager.DuplicateRegistration( _rockContext, person.Id, instance.Id, instance.Name, line.CartRegistrant.DisplayName, cart.Id ) : null;
 
                 // The same camper twice for one option in this cart (two adds at the same moment
@@ -268,6 +281,7 @@ namespace org.secc.RegistrationCart.Services
 
             var result = new Result();
             var claimed = false;
+            DateTime? claimedAt = null;
             Cart cart;
             PricedCart priced;
             IGatewayComponent gateway = null;
@@ -312,6 +326,9 @@ namespace org.secc.RegistrationCart.Services
                         result.ErrorMessage = CartUnavailableMessage;
                         return result;
                     }
+
+                    // The claim's stamp: the cart row isn't written again until the payment is sent.
+                    claimedAt = cart.ModifiedDateTime;
 
                     if ( !cart.LineItems.Any() )
                     {
@@ -441,8 +458,16 @@ namespace org.secc.RegistrationCart.Services
 
                     // From here the card may be charged. Say so on the cart first: a cart left
                     // Processing without this never reached the gateway and can simply reopen.
-                    cart.PaymentSentDateTime = RockDateTime.Now;
-                    _rockContext.SaveChanges();
+                    // Only while this request still holds the claim: one that stalled long enough
+                    // for the maintenance job to reopen the cart must not charge it, because
+                    // another request may have claimed it since. The cart is no longer this
+                    // request's, so it is left as it is.
+                    if ( !TryMarkPaymentSent( cart, claimedAt ) )
+                    {
+                        ExceptionLogService.LogException( new Exception( $"Registration Cart: checkout of cart {cartId} lost its claim before the payment was sent (it stalled and the cart was reopened); nothing was charged." ) );
+                        result.ErrorMessage = "Your checkout took too long and was reset. You have not been charged. Please reload the page and try again.";
+                        return result;
+                    }
                 }
                 catch ( Exception ex )
                 {
@@ -468,10 +493,14 @@ namespace org.secc.RegistrationCart.Services
                 var outcome = CheckoutRules.OutcomeOfCharge( transaction != null, errorMessage );
                 if ( outcome == ChargeOutcome.Unknown )
                 {
-                    // Neither a payment nor a reason: some gateways answer a timeout or an
-                    // unreadable response this way, after the card may have been charged.
-                    ExceptionLogService.LogException( new Exception( $"Registration Cart: the gateway gave neither a payment nor an error for cart {cart.Id}; the payment outcome is unknown." ) );
-                    return Stop( cart, ChargeOutcome.Unknown, result, PaymentUnconfirmedMessage, "Payment outcome unknown: the gateway returned neither a payment nor an error." );
+                    // Neither a payment nor a reason (some gateways answer a timeout or an
+                    // unreadable response this way), or a payment that came with a message:
+                    // either way the card may have been charged.
+                    var answer = transaction == null
+                        ? "the gateway returned neither a payment nor an error"
+                        : $"the gateway returned payment {transaction.TransactionCode} with the message \"{errorMessage}\"";
+                    ExceptionLogService.LogException( new Exception( $"Registration Cart: {answer} for cart {cart.Id}; the payment outcome is unknown." ) );
+                    return Stop( cart, ChargeOutcome.Unknown, result, PaymentUnconfirmedMessage, $"Payment outcome unknown: {answer}." );
                 }
 
                 if ( outcome == ChargeOutcome.Declined )
@@ -744,6 +773,36 @@ namespace org.secc.RegistrationCart.Services
             return rowsAffected == 1;
         }
 
+        /// <summary>
+        /// Stamps the cart as sent to the gateway in one conditional UPDATE: only while it is
+        /// still the claim this request made (Processing, not yet sent, and not written since
+        /// <paramref name="claimedAt"/>, which a reopen and a second claim both change). False
+        /// means the claim was lost and this request must not charge.
+        /// </summary>
+        private bool TryMarkPaymentSent( Cart cart, DateTime? claimedAt )
+        {
+            if ( claimedAt == null )
+            {
+                return false;
+            }
+
+            var rowsAffected = _rockContext.Database.ExecuteSqlCommand(
+                "UPDATE [_org_secc_RegistrationCart_Cart] SET [PaymentSentDateTime] = @Now, [ModifiedDateTime] = @Now "
+                    + "WHERE [Id] = @CartId AND [Status] = @Processing AND [PaymentSentDateTime] IS NULL AND [ModifiedDateTime] = @ClaimedAt",
+                new SqlParameter( "@Now", SqlDbType.DateTime ) { Value = RockDateTime.Now },
+                new SqlParameter( "@CartId", SqlDbType.Int ) { Value = cart.Id },
+                new SqlParameter( "@Processing", SqlDbType.Int ) { Value = ( int ) CartStatus.Processing },
+                new SqlParameter( "@ClaimedAt", SqlDbType.DateTime ) { Value = claimedAt.Value } );
+            if ( rowsAffected != 1 )
+            {
+                return false;
+            }
+
+            // The tracked cart takes the row's new values (it has no changes of its own yet).
+            _rockContext.Entry( cart ).Reload();
+            return true;
+        }
+
         /// <summary>Another request claimed the cart first: report what became of it.</summary>
         private Result ClaimLost( int cartId )
         {
@@ -802,7 +861,25 @@ namespace org.secc.RegistrationCart.Services
                 cart.PaymentSentDateTime = null;
             }
 
-            _rockContext.SaveChanges();
+            try
+            {
+                _rockContext.SaveChanges();
+            }
+            catch ( Exception ex )
+            {
+                // The shopper still gets the answer (a decline, say) instead of a raw error. If
+                // the cart can't be saved on a fresh context either it stays claimed, which is
+                // safe: staff or the maintenance job deal with it.
+                ExceptionLogService.LogException( new Exception( $"Registration Cart: cart {cart.Id} could not be saved when its checkout stopped ({outcome}).", ex ) );
+                try
+                {
+                    StopOnFreshContext( cart.Id, outcome, detail ?? message );
+                }
+                catch ( Exception freshEx )
+                {
+                    ExceptionLogService.LogException( new Exception( $"Registration Cart: cart {cart.Id} is left claimed; its stopped checkout ({outcome}) could not be saved.", freshEx ) );
+                }
+            }
 
             result.ErrorMessage = message;
             return result;

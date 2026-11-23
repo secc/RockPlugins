@@ -81,7 +81,8 @@ namespace org.secc.RegistrationCart.Blocks
                 var seats = new SeatPlanner( RockContext ).Place( cart );
                 if ( seats.Changes.Any() )
                 {
-                    RockContext.SaveChanges();
+                    // Not if a checkout claimed the cart since it was read (another tab paying).
+                    CartManager.SaveIfOpen( RockContext, cart.Id );
                     notices.AddRange( seats.Changes );
                 }
 
@@ -163,6 +164,19 @@ namespace org.secc.RegistrationCart.Blocks
             if ( request == null )
             {
                 return ActionBadRequest( "Please reload the page and try again." );
+            }
+
+            // The page names the cart it showed. A tab left open while that cart was paid for
+            // elsewhere must not pay for the family's next cart just because the totals match.
+            if ( request.CartId.HasValue && request.CartId.Value != cartId.Value )
+            {
+                var current = manager.GetOpenCart();
+                return ActionOk( new CheckoutResultBag
+                {
+                    CartChanged = true,
+                    ErrorMessage = "Your cart changed since this page loaded. Please review it and try again.",
+                    Cart = ToBag( manager.Price( current ), current )
+                } );
             }
 
             var processor = new CheckoutProcessor( RockContext )

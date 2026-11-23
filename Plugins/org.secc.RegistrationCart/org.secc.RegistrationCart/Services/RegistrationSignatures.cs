@@ -18,6 +18,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using org.secc.RegistrationCart.Domain;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -86,7 +87,8 @@ namespace org.secc.RegistrationCart.Services
             }
 
             var html = RenderDocument( instance, template, person, answers );
-            var token = new[] { RockDateTime.Now.ToString( "o" ), Hash( SignedFor( person, instance, answers ) + html ) }.ToJson();
+            // The token binds the HTML shown, and the version of the document it was rendered from.
+            var token = new[] { RockDateTime.Now.ToString( "o" ), Hash( SignedFor( person, instance, answers ) + html ), DocumentVersion( template ) }.ToJson();
 
             return new RegistrationEntrySignatureDocumentBag
             {
@@ -98,12 +100,26 @@ namespace org.secc.RegistrationCart.Services
         /// <summary>
         /// Checks the signed HTML is the one rendered for this camper, option and answers and
         /// returns the signed data, encrypted, to keep on the cart line. Null when the token
-        /// doesn't match.
+        /// doesn't match, when staff changed the document after it was shown (the signature is
+        /// recorded for the version that was signed, so that one must still be current), or
+        /// when a drawn signature isn't the image the signature control makes.
         /// </summary>
         public string Sign( Person person, RegistrationInstance instance, Dictionary<Guid, object> answers, string documentHtml, string securityToken, ElectronicSignatureValueViewModel signature, string ipAddress, string userAgent )
         {
             var token = Encryption.DecryptString( securityToken ).FromJsonOrNull<List<string>>();
-            if ( person == null || instance == null || token == null || token.Count != 2 || token[1] != Hash( SignedFor( person, instance, answers ) + documentHtml ) || signature == null )
+            if ( person == null || instance == null || token == null || token.Count != 3 || token[1] != Hash( SignedFor( person, instance, answers ) + documentHtml ) || signature == null )
+            {
+                return null;
+            }
+
+            var template = RequiredDocument( instance.RegistrationTemplate );
+            if ( template == null || token[2] != DocumentVersion( template ) )
+            {
+                return null;
+            }
+
+            var isDrawn = template.SignatureType == SignatureType.Drawn;
+            if ( isDrawn && !SignatureRules.IsDrawnSignatureImage( signature.SignatureData ) )
             {
                 return null;
             }
@@ -111,9 +127,9 @@ namespace org.secc.RegistrationCart.Services
             return Encryption.EncryptString( new SignedData
             {
                 SignedFor = Hash( SignedFor( person, instance, answers ) ),
-                DocumentVersion = DocumentVersion( RequiredDocument( instance.RegistrationTemplate ) ),
+                DocumentVersion = token[2],
                 DocumentHtml = documentHtml,
-                SignatureData = signature.SignatureData,
+                SignatureData = isDrawn ? signature.SignatureData : null,
                 SignedByName = signature.SignedByName,
                 SignedByEmail = signature.SignedByEmail,
                 IpAddress = ipAddress,

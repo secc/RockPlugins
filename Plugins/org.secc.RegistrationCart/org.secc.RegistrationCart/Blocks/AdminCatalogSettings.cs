@@ -54,7 +54,8 @@ namespace org.secc.RegistrationCart.Blocks
                 DefaultsText = $"A template shows in the catalog only once it is turned on here{( CartSettings.DefaultVisibility ? " (new templates currently show by default)" : "" )}. "
                     + $"Instances and extras not saved here are open to {GradeBands.Describe( CartSettings.DefaultGradeBands )}. "
                     + "The defaults are the \"Registration Cart:\" global attributes.",
-                PendingCheckouts = GetPendingCheckouts()
+                // Payer names, payments and gateway errors: only for those who can act on them.
+                PendingCheckouts = CanEdit ? GetPendingCheckouts() : new List<PendingCheckoutBag>()
             };
         }
 

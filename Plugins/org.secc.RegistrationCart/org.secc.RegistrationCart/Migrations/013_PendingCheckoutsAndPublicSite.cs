@@ -60,7 +60,15 @@ namespace org.secc.RegistrationCart.Migrations
                 SET [ResolvedDateTime] = GETDATE(), [ResolutionNote] = 'Had a payment record before migration 13.'
                 WHERE [Status] = 1 AND [FinancialTransactionId] IS NOT NULL AND ISNULL([LastCheckoutError], '') <> '' AND [ResolvedDateTime] IS NULL;" );
 
-            var publicPages = $"'{SystemGuid.Page.CAMP_CART}','{SystemGuid.Page.OFFERING}','{SystemGuid.Page.CART}','{SystemGuid.Page.CHECKOUT}'";
+            // A checkout left claimed (Processing) before PaymentSentDateTime existed may have
+            // reached the gateway: mark it sent, so only staff who have checked the gateway
+            // reopen it, never the maintenance job.
+            Sql( $@"
+                UPDATE [dbo].[{CartTable}]
+                SET [PaymentSentDateTime] = COALESCE([ModifiedDateTime], [CreatedDateTime], GETDATE())
+                WHERE [Status] = 3 AND [PaymentSentDateTime] IS NULL;" );
+
+            var publicPages =$"'{SystemGuid.Page.CAMP_CART}','{SystemGuid.Page.OFFERING}','{SystemGuid.Page.CART}','{SystemGuid.Page.CHECKOUT}'";
             Sql( $@"
                 DECLARE @SiteId int = (SELECT TOP 1 [Id] FROM [Site] WHERE [Guid] = '{SeccPublicSiteGuid}');
                 DECLARE @HomePageId int = (SELECT [DefaultPageId] FROM [Site] WHERE [Id] = @SiteId);

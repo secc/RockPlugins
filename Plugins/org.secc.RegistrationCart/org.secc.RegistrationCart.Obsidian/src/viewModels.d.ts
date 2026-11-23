@@ -148,6 +148,8 @@ export type NavigationBag = {
 };
 
 export type PricedCartBag = {
+    cartId?: number | null;
+
     discounts?: AppliedDiscountBag[] | null;
 
     discountTotal: number;
@@ -588,6 +590,8 @@ export type TokenizerSettingsBag = {
 };
 
 export type CheckoutRequestBag = {
+    cartId?: number | null;
+
     expectedTotal: number;
 
     gatewayToken?: string | null;
