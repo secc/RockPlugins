@@ -65,10 +65,13 @@ function documentDeclaresFamily( doc: Document, family: string ): boolean {
  * Adds a font stylesheet <link> to `doc`'s <head> once per document, keyed by
  * `key` so multiple <secc-link-list> elements (or re-renders) don't stack
  * duplicates. Skipped when the host already links the same stylesheet or
- * already declares `family` itself, so an embed never overrides a host page's
- * own (e.g. self-hosted) faces for that family. Once added, the link stays for
- * the document's lifetime: a later render with the IvyJournal toggle off just
- * drops it from the serif stack.
+ * already declares `family` itself, so an embed normally leaves a host page's
+ * own (e.g. self-hosted) faces for that family alone. The check is a one-time
+ * snapshot: host font CSS that loads after this runs is not seen, so our link
+ * is still added and wins for that family (fine on Rock pages, which load
+ * their fonts first). Once added, the link stays for the document's lifetime:
+ * a later render with the IvyJournal toggle off just drops it from the serif
+ * stack.
  */
 function ensureDocumentFont( doc: Document, key: string, href: string, family: string ): void {
     const head = doc.head;
