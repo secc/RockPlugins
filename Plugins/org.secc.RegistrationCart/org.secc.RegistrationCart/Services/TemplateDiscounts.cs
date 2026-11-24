@@ -103,7 +103,9 @@ namespace org.secc.RegistrationCart.Services
         /// instance with it (Rock counts the instance's registrations; the cart's lines become
         /// registrations together), plus the lines of other carts mid-checkout, which are about to
         /// become registrations (seats and limited fee items count them the same way), so two
-        /// checkouts can't both take a code's last use.
+        /// checkouts can't both take a code's last use. A cart that was charged but couldn't
+        /// register counts too until staff close it: the family paid the discounted price, and
+        /// its registrations (which Rock would count) are still to be made by hand.
         /// </summary>
         /// <param name="cartId">The cart asking (0 when it has none yet); its own lines come in <paramref name="otherLines"/>.</param>
         public int TimesUsed( int registrationInstanceId, string code, IEnumerable<CartLineItem> otherLines, int cartId )
@@ -112,7 +114,10 @@ namespace org.secc.RegistrationCart.Services
             // counted twice rather than not at all. As Rock: an equality test in SQL, which ignores case.
             var processing = new CartLineItemService( _rockContext ).Queryable().AsNoTracking()
                 .Count( l => l.RegistrationInstanceId == registrationInstanceId && l.TemplateDiscountCode == code
-                    && l.CartId != cartId && l.Cart.Status == CartStatus.Processing );
+                    && l.CartId != cartId
+                    && ( l.Cart.Status == CartStatus.Processing
+                        || ( l.Cart.Status == CartStatus.CheckedOut && l.Cart.ResolvedDateTime == null
+                            && l.Cart.LastCheckoutError != null && l.Cart.LastCheckoutError != "" ) ) );
             var registered = new RegistrationService( _rockContext ).Queryable().AsNoTracking()
                 .Count( r => r.RegistrationInstanceId == registrationInstanceId && r.DiscountCode == code );
             var inCart = ( otherLines ?? Enumerable.Empty<CartLineItem>() )

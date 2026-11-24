@@ -90,7 +90,10 @@ A code is checked as Rock checks it, with Rock's messages: it must exist on the 
 doesn't matter), be within its start/end dates, need no more than one registrant (*Minimum
 Registrants*), and be under its *Maximum Usage*, counted per instance over Rock's registrations
 plus the cart's other lines with the code plus the lines of other carts that are mid-checkout
-(as seats and limited extras are counted, so two checkouts can't both take a code's last use).
+(as seats and limited extras are counted, so two checkouts can't both take a code's last use)
+plus the lines of carts that were charged but couldn't register, until staff close them (the
+family paid the discounted price; unlike the code, seats and limited extras don't count those
+carts).
 *Maximum Registrants* 0 leaves the code on the
 registration but takes nothing off. Amount and percentage are snapshotted when the code is
 applied. Checkout checks each line's code again (registrations since, and the cart's earlier
@@ -199,6 +202,9 @@ minutes; Admin Tools › System Settings › Jobs Administration):
 | Repeat The Unconfirmed Checkout Warning Every (hours) | 24 | Until staff reopen or close it, the job warns about a checkout again this often. Every run lists the open ones in its result either way. |
 | Reopen Checkouts That Never Reached Payment After (minutes) | 15 | A checkout that stopped before its payment was sent to the gateway (the site restarted mid-checkout) charged nothing; the job reopens the cart. 0 = off. |
 
+Every run also lets go of uploaded files no cart line needs any more (see *Uploaded files*
+under *Observations*); it has no setting.
+
 Each part of the job runs by itself, so one failing doesn't stop the others (the run then ends
 as an exception, with what the other parts did in its message).
 
@@ -243,7 +249,7 @@ edit a line whose extra was deleted or turned off).
 | 010 | Adds `CartLineItemAddOn.DiscountApplies`, filled from each add-on's fee. |
 | 011 | Adds the *Show New Templates* and *Default Grade Bands* global attributes and hides the catalog page from navigation. |
 | 012 | One template code per registration (ROCK-9394): adds `CartLineItem.IsTemplateDiscountLocked` and `WorkflowDiscountCode` (set on existing lines with a code, which all came from the workflow); removes the Discount Codes admin page, block type and entity types and drops the `DiscountCode` / `CartDiscount` tables. Down only drops the new columns. |
-| 013 | Adds the cart's checkout columns `PaymentSentDateTime`, `ResolvedDateTime`, `ResolvedByPersonAliasId`, `ResolutionNote`, `PendingReportedDateTime`; a cart already Processing gets `PaymentSentDateTime` set, so the job never reopens it by itself. Where the SECC public site exists (site Guid `74DF3DB5-…`, "Southeast Christian Church"), moves the four public pages under its home page on its full-width layout and makes their routes non-global, like that site's other routes; the stock External site at SECC is the retired 2014 one. A database without that site (a local Rock) keeps the pages where 001 put them. |
+| 013 | Adds the cart's checkout columns `PaymentSentDateTime`, `ResolvedDateTime`, `ResolvedByPersonAliasId`, `ResolutionNote`, `PendingReportedDateTime`; a cart already Processing gets `PaymentSentDateTime` set, so the job never reopens it by itself. Where the SECC public site exists (site Guid `74DF3DB5-…`, "Southeast Christian Church"), moves the four public pages under its home page on its full-width layout and makes their routes non-global, like that site's other routes; the stock External site at SECC is the retired 2014 one. A database without that site (a local Rock) keeps the pages where 001 put them. `Down()` puts the pages back under the stock External site's home page and layout, only those still where `Up()` left them. |
 
 All thirteen were run in order on a clean copy of a local Rock 1.16.12 database on 2026-11-15
 (see *Tests*).
@@ -314,6 +320,10 @@ All thirteen were run in order on a clean copy of a local Rock 1.16.12 database 
 - **Third review fixes (2026-11-23):** built and unit-tested (143 tests) and type-checked only;
   the new SQL paths (`SaveIfOpen`, `TryMarkPaymentSent`) and block changes have not been run
   against a database yet.
+- **Second review's smaller items (2026-11-24):** built, unit-tested (154 tests, the camp name
+  cases among them) and type-checked only. Not run against a database: the job's upload
+  clean-up, the code count for charged-but-unregistered carts, migration 013's `Down()`, and
+  the catalog with a several-campus name.
 
 ## Observations
 
@@ -362,6 +372,11 @@ All thirteen were run in order on a clean copy of a local Rock 1.16.12 database 
 - **Cart lines follow the person, not the alias:** a line keeps the alias it was added with; a
   camper whose record staff merge afterwards can still be edited and isn't offered twice. A
   camper who has left the payer's family since can't be edited or paid for (remove the line).
+- **Camp names:** the catalog reads the camp, role and campus from names in SECC's form,
+  `YEAR | CAMP | ROLE | CAMPUS`. The campus part may list several short codes (`SL/BT`,
+  `CW, LA, PR`): the option then shows under each of those campuses. A list counts only when
+  every entry is a campus; otherwise (and for `ALL`) the option is for every campus. A role's
+  age limit is read from `UNDER 18`, `18 AND OVER`, `18 & OVER` and `18+`.
 - **Seats go to whoever pays first:** open carts hold no seats; the catalog's "spots
   remaining" is what's left for the viewer's next camper. Claim, validate and seat placement run
   under a per-instance SQL app lock (`SeatLock`, held for milliseconds, not through the gateway
@@ -401,8 +416,12 @@ All thirteen were run in order on a clean copy of a local Rock 1.16.12 database 
   PersonMatch (registrants are always existing family members). **Uploaded files** (File and
   Image questions) are made permanent when the line is saved, because Rock only does that when
   the answer is written at checkout and Rock Cleanup deletes temporary files after a day;
-  checkout stops a line whose file no longer exists. A file on a line that is later removed or
-  abandoned stays in Rock (it isn't deleted, since it may be the person's own existing file).
+  checkout stops a line whose file no longer exists. A file the cart made permanent is marked
+  (`ForeignKey` = `org.secc.RegistrationCart:CartUpload`); the maintenance job makes a marked
+  file temporary again, for Rock Cleanup to delete, once no line of an open or checking-out
+  cart has it (the line was removed, the file replaced, or the cart abandoned), and only takes
+  the mark off one a checked-out cart has. A file that was already permanent is never marked,
+  so never let go: it may be the person's own existing file.
   Stored answers use the browser's shape (camelCase), including a locked field's value taken
   from the person, so the edit page can show a locked birthday or address.
 - **Editing a line:** until checkout completes, each cart line has an Edit link that reopens the
@@ -472,4 +491,4 @@ All thirteen were run in order on a clean copy of a local Rock 1.16.12 database 
   `npm run viewmodels`.
 - **Packaging:** `BuildPlugin.ps1` + `plugin.json` (Release DLL + `dist/**`).
 
-Last updated: 2026-11-23
+Last updated: 2026-11-24

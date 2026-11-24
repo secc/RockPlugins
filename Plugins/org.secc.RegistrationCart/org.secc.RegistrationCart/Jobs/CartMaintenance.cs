@@ -33,8 +33,9 @@ namespace org.secc.RegistrationCart.Jobs
     /// Housekeeping for Registration Cart: closes carts nobody has touched in a while (open carts
     /// hold no seats, so this is only so a family coming back months later starts fresh), reopens
     /// checkouts that stopped before their payment was sent, finishes signed documents whose PDF
-    /// failed when their registration was paid for, and warns about checkouts that need a
-    /// payment check until staff deal with them.
+    /// failed when their registration was paid for, lets Rock Cleanup have the uploaded files no
+    /// cart line needs any more, and warns about checkouts that need a payment check until staff
+    /// deal with them.
     /// </summary>
     [DisplayName( "Registration Cart Maintenance" )]
     [Description( "Marks open Registration Cart carts nobody has changed in a while as abandoned, reopens checkouts that stopped before payment, makes the PDFs of signed documents that failed at checkout, and warns about checkouts whose payment needs checking." )]
@@ -68,7 +69,7 @@ namespace org.secc.RegistrationCart.Jobs
             // Each step by itself: one failing must not stop the others, least of all the warning.
             var results = new List<string>();
             var failures = new List<Exception>();
-            foreach ( var step in new Func<string>[] { AbandonIdleCarts, ReopenUnsentCheckouts, FinishSignedDocuments } )
+            foreach ( var step in new Func<string>[] { AbandonIdleCarts, ReopenUnsentCheckouts, FinishSignedDocuments, ReleaseUnusedUploads } )
             {
                 try
                 {
@@ -220,6 +221,20 @@ namespace org.secc.RegistrationCart.Jobs
             }
 
             return results.JoinStrings( " " );
+        }
+
+        /// <summary>
+        /// Files a family uploaded for a cart line that no line needs any more (removed, replaced,
+        /// or its cart abandoned) go back to temporary, for Rock Cleanup to delete. After
+        /// <see cref="AbandonIdleCarts"/>, so the carts it just closed are included.
+        /// </summary>
+        private string ReleaseUnusedUploads()
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                var released = new RegistrationForms( rockContext ).ReleaseUnusedUploads();
+                return released > 0 ? $"{released} uploaded file{( released == 1 ? "" : "s" )} no cart needs any more left for Rock Cleanup." : "";
+            }
         }
 
         /// <summary>

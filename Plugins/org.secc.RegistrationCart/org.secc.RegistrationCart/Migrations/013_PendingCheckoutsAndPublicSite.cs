@@ -36,6 +36,10 @@ namespace org.secc.RegistrationCart.Migrations
         /// <summary>The SECC public site ("Southeast Christian Church").</summary>
         private const string SeccPublicSiteGuid = "74DF3DB5-E01C-4B0E-A4D0-51D72B5C607E";
 
+        /// <summary>Rock's stock External site and its home page, where migration 001 put the public pages.</summary>
+        private const string ExternalSiteGuid = "F3F82256-2D66-432B-9D67-3552CD2F4C2B";
+        private const string ExternalHomePageGuid = "85F25819-E948-4960-9DDF-00F54D32444E";
+
         private const string CartTable = "_org_secc_RegistrationCart_Cart";
 
         public override void Up()
@@ -86,6 +90,26 @@ namespace org.secc.RegistrationCart.Migrations
 
         public override void Down()
         {
+            // The public pages go back where migration 001 put them (under the stock External
+            // site's home page, on its full-width layout): only pages still where Up() left them,
+            // so pages staff have moved since, or that Up() never moved, stay put.
+            var publicPages = $"'{SystemGuid.Page.CAMP_CART}','{SystemGuid.Page.OFFERING}','{SystemGuid.Page.CART}','{SystemGuid.Page.CHECKOUT}'";
+            Sql( $@"
+                DECLARE @SeccSiteId int = (SELECT TOP 1 [Id] FROM [Site] WHERE [Guid] = '{SeccPublicSiteGuid}');
+                DECLARE @SeccHomePageId int = (SELECT [DefaultPageId] FROM [Site] WHERE [Id] = @SeccSiteId);
+                DECLARE @HomePageId int = (SELECT TOP 1 [Id] FROM [Page] WHERE [Guid] = '{ExternalHomePageGuid}');
+                DECLARE @LayoutId int = (SELECT TOP 1 [Id] FROM [Layout]
+                    WHERE [SiteId] = (SELECT TOP 1 [Id] FROM [Site] WHERE [Guid] = '{ExternalSiteGuid}')
+                    ORDER BY CASE WHEN [FileName] = 'FullWidth' THEN 0 ELSE 1 END, [Id]);
+
+                IF @SeccSiteId IS NOT NULL AND @HomePageId IS NOT NULL AND @LayoutId IS NOT NULL
+                BEGIN
+                    UPDATE [Page] SET [ParentPageId] = @HomePageId
+                    WHERE [Guid] = '{SystemGuid.Page.CAMP_CART}' AND [ParentPageId] = @SeccHomePageId;
+                    UPDATE [Page] SET [LayoutId] = @LayoutId
+                    WHERE [Guid] IN ({publicPages}) AND [LayoutId] IN (SELECT [Id] FROM [Layout] WHERE [SiteId] = @SeccSiteId);
+                END" );
+
             Sql( $@"
                 UPDATE [PageRoute] SET [IsGlobal] = 1
                 WHERE [Guid] IN ('{SystemGuid.PageRoute.CAMP_CART}','{SystemGuid.PageRoute.OFFERING}','{SystemGuid.PageRoute.CART}','{SystemGuid.PageRoute.CHECKOUT}');" );

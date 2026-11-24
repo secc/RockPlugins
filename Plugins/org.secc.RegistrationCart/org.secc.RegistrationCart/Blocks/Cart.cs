@@ -65,8 +65,12 @@ namespace org.secc.RegistrationCart.Blocks
                 return ActionUnauthorized( "Please sign in." );
             }
 
-            manager.RemoveLineItem( lineItemId );
-            return CartResult( manager, null );
+            // Refused (the cart is being checked out): say so and send no cart, so the page keeps
+            // showing the lines that are being paid for instead of an empty cart.
+            var refused = manager.RemoveLineItem( lineItemId );
+            return refused != null
+                ? ActionOk( new CartResultBag { ErrorMessage = refused } )
+                : CartResult( manager, null );
         }
 
         private BlockActionResult CartResult( Services.CartManager manager, string error )
