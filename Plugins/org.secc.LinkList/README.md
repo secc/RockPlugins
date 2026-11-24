@@ -278,7 +278,23 @@ admin's storage-provider change survives).
   `RockWebPath`.)
 - **Frontend:** `@rockrms/obsidian-framework`, Vue 3, chart.js (analytics panel), rollup (web
   component bundle), jest (frontend tests). External fonts: Google Fonts always; the Adobe
-  IvyJournal kit only when the org-wide toggle is on (licensed domains).
+  IvyJournal kit only when the org-wide toggle is on (licensed domains). The web component
+  injects these as `<link data-secc-link-list-font>` tags into the host document's `<head>`
+  (once per page), never as `@import` inside its shadow root: Chromium ignores `@font-face`
+  declared in a shadow tree, which silently fell back to Georgia (ROCK-9475). With the toggle
+  on, the serif stack also lists `'Ivy Journal'`, the face the SECC2024 theme self-hosts.
+  Links go into the element's own `ownerDocument`, and are skipped when the host already links
+  the same stylesheet or already declares that family, so an embed normally leaves a host's
+  self-hosted Inter/Cormorant alone. That check runs once, at render time: if the host's font
+  CSS loads after the embed renders, the Google link is still added and wins for that family.
+  Rock pages load their fonts first, so this only matters on third-party hosts. Once added a
+  link stays for the page's lifetime; flipping the toggle off later only removes IvyJournal
+  from the serif stack.
+  **For embed owners:** because the links are document-level, the host page itself now requests
+  fonts from Google (`fonts.googleapis.com` / `fonts.gstatic.com`) and, with the toggle on,
+  Adobe (`use.typekit.net`); allow those in any CSP. Host text that names `Inter` or
+  `Cormorant Garamond` without shipping its own font file (it was falling back to a system
+  font) will switch to the Google face once the embed renders.
 - **npm `overrides`** (security fixes for dev-only build deps; `vue` stays pinned at `3.2.35`
   to match Rock's Obsidian runtime):
   - `postcss-selector-parser` pinned to exactly `7.1.6`, the first patched release (Dependabot
@@ -345,4 +361,4 @@ admin's storage-provider change survives).
 - Related: [org.secc.Cms](../org.secc.Cms/README.md) (legacy `LinkListEditUsers` block over the
   same security groups).
 
-Last updated: 2026-11-19
+Last updated: 2026-11-24
