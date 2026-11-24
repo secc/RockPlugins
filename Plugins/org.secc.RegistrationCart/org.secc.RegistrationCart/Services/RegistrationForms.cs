@@ -14,9 +14,12 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
+using org.secc.RegistrationCart.Domain;
+using org.secc.RegistrationCart.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -401,7 +404,9 @@ namespace org.secc.RegistrationCart.Services
         /// <summary>
         /// Makes the files uploaded for the answers permanent. Rock only does that when an attribute
         /// value pointing at the file is saved, which is at checkout; until then Rock Cleanup would
-        /// delete them after a day. Saved with the context.
+        /// delete them after a day. Each is marked as kept for a cart (<see cref="KeptForCartKey"/>),
+        /// so the ones whose line is later removed can be found and let go
+        /// (<see cref="ReleaseUnusedUploads"/>). Saved with the context.
         /// </summary>
         public void KeepUploadedFiles( RegistrationTemplate template, Dictionary<Guid, object> answers )
         {
@@ -414,7 +419,51 @@ namespace org.secc.RegistrationCart.Services
             foreach ( var file in new BinaryFileService( _rockContext ).Queryable().Where( f => fileGuids.Contains( f.Guid ) && f.IsTemporary ).ToList() )
             {
                 file.IsTemporary = false;
+                if ( file.ForeignKey.IsNullOrWhiteSpace() )
+                {
+                    file.ForeignKey = KeptForCartKey;
+                }
             }
+        }
+
+        /// <summary>
+        /// On a file's ForeignKey: an upload this plugin made permanent for a cart line, before
+        /// any registration pointed at it. Only files with this mark are ever let go.
+        /// </summary>
+        public const string KeptForCartKey = "org.secc.RegistrationCart:CartUpload";
+
+        /// <summary>
+        /// Lets go of the uploads kept for cart lines (<see cref="KeepUploadedFiles"/>) that no
+        /// line needs any more: the line was removed, its file was replaced, or its cart was
+        /// abandoned. They become temporary again, so Rock Cleanup deletes them. A file on a
+        /// checked-out cart's line belongs to its registration now and only loses the mark; one
+        /// on an open cart, or a cart being checked out, is left alone. Only marked files are
+        /// touched, so a file's id typed into an answer can never get some other file deleted.
+        /// Saves; returns how many were let go.
+        /// </summary>
+        public int ReleaseUnusedUploads()
+        {
+            var lines = new CartLineItemService( _rockContext ).Queryable().AsNoTracking();
+            var released = 0;
+            foreach ( var file in new BinaryFileService( _rockContext ).Queryable().Where( f => f.ForeignKey == KeptForCartKey && !f.IsTemporary ).ToList() )
+            {
+                var fileGuid = file.Guid.ToString();
+                var cartStatuses = lines.Where( l => l.FieldValuesJson.Contains( fileGuid ) ).Select( l => l.Cart.Status ).Distinct().ToList();
+                if ( cartStatuses.Contains( CartStatus.Open ) || cartStatuses.Contains( CartStatus.Processing ) )
+                {
+                    continue;
+                }
+
+                file.ForeignKey = null;
+                if ( !cartStatuses.Contains( CartStatus.CheckedOut ) )
+                {
+                    file.IsTemporary = true;
+                    released++;
+                }
+            }
+
+            _rockContext.SaveChanges();
+            return released;
         }
 
         /// <summary>

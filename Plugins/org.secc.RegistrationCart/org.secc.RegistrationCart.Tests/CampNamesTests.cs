@@ -26,7 +26,9 @@ public class CampNamesTests
         new CampusName( 1, "Blankenbaker", "BB" ),
         new CampusName( 11, "Bullitt County", "BC" ),
         new CampusName( 6, "La Grange", "LA" ),
-        new CampusName( 3, "Indiana", "IN" )
+        new CampusName( 3, "Indiana", "IN" ),
+        new CampusName( 15, "South Louisville", "SL" ),
+        new CampusName( 14, "Beechmont Center", "BT" )
     };
 
     [Fact]
@@ -68,6 +70,47 @@ public class CampNamesTests
         Assert.Equal( bb.CampKey, la.CampKey );
         Assert.Equal( 1, bb.CampusId );
         Assert.Equal( 6, la.CampusId );
+    }
+
+    [Theory]
+    [InlineData( "2025 | HSM Fall Retreat | MINOR STUDENT | LA, IN, SL/BT", null, new[] { 6, 3, 15, 14 } )]
+    [InlineData( "2026 | RUCKUS | ADULT LEADER", "2026 | RUCKUS Adult Leader | SL/BT", new[] { 15, 14 } )]
+    [InlineData( "2026 | RUCKUS | ADULT LEADER | BB/BB", null, new[] { 1 } )]
+    public void CampusList_IsEachOfItsCampuses( string template, string? instance, int[] campusIds )
+    {
+        var c = CampNames.Parse( template, instance, Campuses )!;
+        Assert.Equal( campusIds, c.CampusIds );
+        Assert.Equal( campusIds.Length == 1 ? campusIds[0] : ( int? ) null, c.CampusId );
+    }
+
+    [Theory]
+    [InlineData( "2026 | RUCKUS | STUDENT | w/Legal Release" )]   // a slash, but not campuses
+    [InlineData( "2026 | RUCKUS | STUDENT | BB/XX" )]             // one entry isn't a campus
+    [InlineData( "2026 | CAMP EMPOWER | CAMPER | ALL" )]
+    public void PartThatIsNotAllCampuses_IsEveryCampus( string template )
+    {
+        var c = CampNames.Parse( template, null, Campuses )!;
+        Assert.Empty( c.CampusIds );
+        Assert.Null( c.CampusId );
+    }
+
+    [Fact]
+    public void OneCampus_IsAlsoInTheList()
+    {
+        var c = CampNames.Parse( "2026 | 3RD-5TH | CAMPER | LA", null, Campuses )!;
+        Assert.Equal( new[] { 6 }, c.CampusIds );
+    }
+
+    [Theory]
+    [InlineData( "2025 | HSM Fall Retreat | STUDENTS 18+ | SL", 18 )]
+    [InlineData( "2025 | BB HSM Retreat | 18+ | ALL", 18 )]
+    [InlineData( "2018 | HSM Getaway | Students (18+)", 18 )]
+    [InlineData( "2026 | HIGH SCHOOL CAMP | STUDENT 18 & OVER | ALL", 18 )]
+    public void RolesNamingAMinimumAge_HaveIt( string template, int minAge )
+    {
+        var c = CampNames.Parse( template, null, Campuses )!;
+        Assert.Equal( minAge, c.MinAge );
+        Assert.Null( c.MaxAge );
     }
 
     [Theory]

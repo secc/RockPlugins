@@ -30,16 +30,21 @@ public record CampusName( int Id, string Name, string ShortCode );
 /// <param name="Year">The season, e.g. "2026" (empty when the name has none).</param>
 /// <param name="RoleText">Who the template is for, e.g. "Student Under 18", "Adult Leader".</param>
 /// <param name="IsServing">A leader or ops-team registration, not a camper's.</param>
-/// <param name="CampusId">The campus the instance (or its template) is for; null = every campus.</param>
+/// <param name="CampusId">The one campus the instance (or its template) is for; null = every campus, or several (<see cref="CampusIds"/>).</param>
 /// <param name="MinAge">Youngest age the role names ("18 AND OVER"), if any.</param>
 /// <param name="MaxAge">Oldest age the role names ("UNDER 18"), if any.</param>
-public record CampName( string CampKey, string Title, string Year, string RoleText, bool IsServing, int? CampusId, int? MinAge, int? MaxAge );
+public record CampName( string CampKey, string Title, string Year, string RoleText, bool IsServing, int? CampusId, int? MinAge, int? MaxAge )
+{
+    /// <summary>Every campus the name gives ("SL/BT", "CW, LA, PR"), in the name's order; empty = every campus.</summary>
+    public IReadOnlyList<int> CampusIds { get; init; } = Array.Empty<int>();
+}
 
 /// <summary>
 /// Reads the camp, role and campus out of SECC's registration names so the catalog can show
 /// one card per camp instead of one per template. Templates are named
-/// "YEAR | CAMP | ROLE | CAMPUS" (the campus part is a short code such as BB, or ALL) and
-/// their instances "YEAR | CAMP | ROLE | CAMPUS NAME". A template whose name doesn't start
+/// "YEAR | CAMP | ROLE | CAMPUS" (the campus part is a short code such as BB, several such as
+/// "SL/BT" or "CW, LA, PR", or ALL) and their instances "YEAR | CAMP | ROLE | CAMPUS NAME" (or
+/// the same short codes). A template whose name doesn't start
 /// with a year part is not a camp: it stays its own card under its own name.
 /// </summary>
 public static class CampNames
@@ -48,6 +53,7 @@ public static class CampNames
     private static readonly Regex GradeRange = new Regex( @"^(\d{1,2}(ST|ND|RD|TH)|K)\s*-\s*\d{1,2}(ST|ND|RD|TH)$", RegexOptions.Compiled | RegexOptions.IgnoreCase );
     private static readonly Regex Serving = new Regex( @"\b(LEADERS?|OPS)\b", RegexOptions.Compiled | RegexOptions.IgnoreCase );
     private static readonly Regex AndOver = new Regex( @"\b(\d{1,2})\s*(AND|&)\s*(OVER|UP|OLDER)\b", RegexOptions.Compiled | RegexOptions.IgnoreCase );
+    private static readonly Regex Plus = new Regex( @"\b(\d{1,2})\s*\+", RegexOptions.Compiled );
     private static readonly Regex Under = new Regex( @"\bUNDER\s*(\d{1,2})\b", RegexOptions.Compiled | RegexOptions.IgnoreCase );
 
     /// <summary>
@@ -68,10 +74,19 @@ public static class CampNames
         var isServing = Serving.IsMatch( role );
 
         // The instance names its campus in full; a per-campus template names it by short code.
-        var campusId = FindCampus( Split( instanceName ).LastOrDefault(), campuses )
-            ?? ( parts.Count > 3 ? FindCampus( parts[parts.Count - 1], campuses ) : null );
+        var campusIds = FindCampuses( Split( instanceName ).LastOrDefault(), campuses );
+        if ( campusIds.Count == 0 && parts.Count > 3 )
+        {
+            campusIds = FindCampuses( parts[parts.Count - 1], campuses );
+        }
 
+        // "18 AND OVER", or "18+".
         var over = AndOver.Match( role );
+        if ( !over.Success )
+        {
+            over = Plus.Match( role );
+        }
+
         var under = Under.Match( role );
 
         return new CampName(
@@ -80,13 +95,34 @@ public static class CampNames
             Year: year,
             RoleText: Friendly( role ),
             IsServing: isServing,
-            CampusId: campusId,
+            CampusId: campusIds.Count == 1 ? campusIds[0] : ( int? ) null,
             MinAge: over.Success ? int.Parse( over.Groups[1].Value ) : ( int? ) null,
-            MaxAge: under.Success ? int.Parse( under.Groups[1].Value ) - 1 : ( int? ) null );
+            MaxAge: under.Success ? int.Parse( under.Groups[1].Value ) - 1 : ( int? ) null )
+        {
+            CampusIds = campusIds
+        };
     }
 
     private static List<string> Split( string? name ) =>
         ( name ?? "" ).Split( '|' ).Select( p => p.Trim() ).Where( p => p.Length > 0 ).ToList();
+
+    /// <summary>
+    /// The campuses a name part gives: one (by name or short code), or a list of them split by
+    /// "/" or ",". A list counts only when every entry is a campus, so a part that merely has a
+    /// slash in it ("w/Legal Release") names none.
+    /// </summary>
+    private static List<int> FindCampuses( string? text, IReadOnlyCollection<CampusName> campuses )
+    {
+        if ( FindCampus( text, campuses ) is int one )
+        {
+            return new List<int> { one };
+        }
+
+        var entries = ( text ?? "" ).Split( '/', ',' ).Select( e => FindCampus( e.Trim(), campuses ) ).ToList();
+        return entries.Count > 1 && entries.All( e => e.HasValue )
+            ? entries.Select( e => e!.Value ).Distinct().ToList()
+            : new List<int>();
+    }
 
     private static int? FindCampus( string? text, IReadOnlyCollection<CampusName> campuses )
     {

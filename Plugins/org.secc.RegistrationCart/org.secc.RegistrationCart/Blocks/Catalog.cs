@@ -167,24 +167,31 @@ namespace org.secc.RegistrationCart.Blocks
                     }
 
                     camp.ImageUrl = camp.ImageUrl ?? t.ImageUrl;
-                    // A campus the linked calendar event names wins over the one in the name.
-                    var campusId = i.CampusId ?? name?.CampusId;
-                    camp.Options.Add( new CampOptionBag
+                    // A campus the linked calendar event names wins over the ones in the name.
+                    // A name with several campuses ("SL/BT") gives the option once per campus,
+                    // so it is found under each; no campus at all means every campus.
+                    var campusIds = i.CampusId.HasValue ? new List<int?> { i.CampusId }
+                        : name?.CampusIds.Any() == true ? name.CampusIds.Cast<int?>().ToList()
+                        : new List<int?> { null };
+                    foreach ( var campusId in campusIds )
                     {
-                        InstanceId = i.Instance.Id,
-                        DetailUrl = detailUrl,
-                        Name = i.Instance.Name,
-                        RoleText = name?.RoleText ?? "",
-                        CampusId = campusId,
-                        CampusName = campusId.HasValue ? CampusCache.Get( campusId.Value )?.Name : null,
-                        Price = i.Price,
-                        SessionText = DateRangeText( i.EventStart, i.EventEnd ),
-                        EligibleGradeBands = ( int ) i.Bands,
-                        MinAge = name?.MinAge,
-                        MaxAge = name?.MaxAge,
-                        SpotsRemaining = i.SpotsRemaining,
-                        WaitListEnabled = i.WaitListEnabled
-                    } );
+                        camp.Options.Add( new CampOptionBag
+                        {
+                            InstanceId = i.Instance.Id,
+                            DetailUrl = detailUrl,
+                            Name = i.Instance.Name,
+                            RoleText = name?.RoleText ?? "",
+                            CampusId = campusId,
+                            CampusName = campusId.HasValue ? CampusCache.Get( campusId.Value )?.Name : null,
+                            Price = i.Price,
+                            SessionText = DateRangeText( i.EventStart, i.EventEnd ),
+                            EligibleGradeBands = ( int ) i.Bands,
+                            MinAge = name?.MinAge,
+                            MaxAge = name?.MaxAge,
+                            SpotsRemaining = i.SpotsRemaining,
+                            WaitListEnabled = i.WaitListEnabled
+                        } );
+                    }
                 }
             }
 
@@ -274,7 +281,9 @@ namespace org.secc.RegistrationCart.Blocks
                         {
                             CampKey = name?.CampKey ?? "template|" + idKeys[row.TemplateId],
                             InstanceId = row.InstanceId,
-                            CampusName = name?.CampusId != null ? CampusCache.Get( name.CampusId.Value )?.Name : null,
+                            CampusName = name?.CampusIds.Any() == true
+                                ? name.CampusIds.Select( id => CampusCache.Get( id )?.Name ).Where( n => n != null ).JoinStrings( " / " )
+                                : null,
                             IsWaitList = i.All( r => r.OnWaitList )
                         };
                     } )

@@ -718,13 +718,23 @@ namespace org.secc.RegistrationCart.Services
             return result;
         }
 
-        public bool RemoveLineItem( int lineItemId )
+        /// <summary>
+        /// Removes a line from the person's open cart. Returns why it couldn't be (the cart is
+        /// being checked out, so the line stays and may be charged), or null: it was removed, or
+        /// it isn't a line of theirs at all.
+        /// </summary>
+        public string RemoveLineItem( int lineItemId )
         {
             var cart = GetOpenCart();
             var line = cart?.LineItems.FirstOrDefault( l => l.Id == lineItemId );
             if ( line == null )
             {
-                return false;
+                // Claimed by a checkout before this request read it: no longer in an open cart.
+                var aliasIds = AliasIds();
+                return new CartLineItemService( _rockContext ).Queryable().AsNoTracking()
+                    .Any( l => l.Id == lineItemId && l.Cart.Status == CartStatus.Processing && aliasIds.Contains( l.Cart.OwnerPersonAliasId ) )
+                    ? CheckingOutMessage
+                    : null;
             }
 
             var registrantId = line.CartRegistrantId;
@@ -736,7 +746,7 @@ namespace org.secc.RegistrationCart.Services
             if ( !SaveIfOpen( _rockContext, cart.Id ) )
             {
                 // Being checked out: the line stays.
-                return false;
+                return CheckingOutMessage;
             }
 
             // The financial assistance code made for the line goes with it, so it can't be typed
@@ -758,7 +768,7 @@ namespace org.secc.RegistrationCart.Services
                 }
             }
 
-            return true;
+            return null;
         }
 
         /// <summary>
