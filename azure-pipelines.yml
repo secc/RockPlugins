@@ -1,0 +1,437 @@
+# Rock v16 build: Rock core (secc/Rock) + every org.secc plugin (this repo) -> RockWeb.zip.
+#
+# Converted step for step from the classic Azure DevOps build definition "Rock v16"
+# (SECCDev/Rock, definition 39, revision 49). Inline scripts are copied verbatim from
+# that definition. Deploying is still the classic release "Rock16", which consumes the
+# "Artifacts" artifact this pipeline publishes.
+#
+# Layout on the agent matches the classic build: secc/Rock is checked out to
+# $(Build.SourcesDirectory) and this repo is cloned into $(Build.SourcesDirectory)\RockPlugins
+# by the "Clone RockPlugins" step.
+
+# The classic definition had no build number format, so the build number was the build id.
+# RockWeb\build.info is written from it.
+name: $(Build.BuildId)
+
+parameters:
+- name: pluginsBranch
+  displayName: RockPlugins branch to build
+  type: string
+  default: master
+
+# No CI trigger while this pipeline is validated next to the classic one. At cutover replace
+# with:
+#   trigger:
+#     batch: false
+#     branches:
+#       include:
+#       - master
+trigger: none
+pr: none
+
+resources:
+  repositories:
+  - repository: rock
+    type: github
+    endpoint: secc
+    name: secc/Rock
+    ref: refs/heads/hotfix-1.16.12
+
+variables:
+  PluginsBranch: ${{ parameters.pluginsBranch }}
+
+jobs:
+- job: BuildRock
+  displayName: Build Rock
+  timeoutInMinutes: 60
+  cancelTimeoutInMinutes: 5
+  pool:
+    vmImage: windows-2022
+  steps:
+  - checkout: rock
+    path: s
+    clean: true
+    fetchDepth: 1
+    fetchTags: false
+
+  - task: PowerShell@2
+    displayName: Cherry-Pick Core Changes
+    inputs:
+      targetType: inline
+      script: |
+        function Invoke-Utility {
+        <#
+        .SYNOPSIS
+        Invokes an external utility, ensuring successful execution.
+
+        .DESCRIPTION
+        Invokes an external utility (program) and, if the utility indicates failure by
+        way of a nonzero exit code, throws a script-terminating error.
+
+        * Pass the command the way you would execute the command directly.
+        * Do NOT use & as the first argument if the executable name is not a literal.
+
+        .EXAMPLE
+        Invoke-Utility git push
+
+        Executes `git push` and throws a script-terminating error if the exit code
+        is nonzero.
+        #>
+          $exe, $argsForExe = $Args
+          # Workaround: Prevents 2> redirections applied to calls to this function
+          #             from accidentally triggering a terminating error.
+          #             See bug report at https://github.com/PowerShell/PowerShell/issues/4002
+          $ErrorActionPreference = 'Continue'
+          try { & $exe $argsForExe } catch { Throw } # catch is triggered ONLY if $exe can't be found, never for errors reported by $exe itself
+          if ($LASTEXITCODE) { Throw "$exe indicated failure (exit code $LASTEXITCODE; full command: $Args)." }
+        }
+
+        Set-Alias iu Invoke-Utility
+
+        cd Rock
+        git config --global user.email "applications@secc.org"
+        git config --global user.name "Southeast Applications"
+
+        #iu git fetch origin hotfix-1.10.2
+        #Added the ability to test check-in at any datetime.
+        #iu git cherry-pick 07d3300759d29bc9035aa488690a8d1832d93b1a
+
+
+        #Added HTML Snippets for 16. Updated to include nullable BlockId in Modal
+        iu git fetch --depth=2 origin cb251364dded594cd8bfde570ecb9442b9b2c712
+        iu git cherry-pick cb251364dded594cd8bfde570ecb9442b9b2c712
+
+        #iu git fetch origin sl-grouptypepurposefilter
+        #ROCK-5624 Re-Adding In Group Group Type Purpose Filter
+        #iu git cherry-pick 039cccb0d8789a9f72f54b5d6230dbaaa3eb546c
+        #iu git cherry-pick 41efa0a42ad8c6c23cad98f44bc33fb2bf6a1deb
+
+        #https://github.com/SparkDevNetwork/Rock/pull/4823
+        #iu git fetch origin bugfix-cf-MultiplePhoneSameType
+        #iu git cherry-pick 7b2497bf90b0730af277d62d641f65349a33acf0
+
+        #Attribute Value Matrix Linq update
+        #iu git fetch origin bugfix_1.13.7-csf-matrixattributefix
+        #iu git cherry-pick 3f9424d847b168bf159c2aa1b29ebf83ca36cfe3
+
+        #Connection Request Safety and Security Update
+        #Commented out 7/18/2025 - ROCK-7848
+        #iu git fetch origin  feature-csf-ConnectionStateUpdates-1.13.7
+        #iu git cherry-pick c654e00278ed174ef90e3e31ef0b89f11e29ad70
+
+        #Giving Analytics Update
+        #iu git fetch origin feature-cf-v13-financeGivingAnalyticsAddFamily
+        #iu git cherry-pick 180a494fb2eea0f0cb8e0a4717f1b8acb466be86
+
+        #This was pulled into v16; uncomment this for v17+
+        #ROCK-8640 Connection Request S&S Connect Gate (secc/Rock PR #5)
+        #iu git fetch origin tag secc/ROCK-8640-connect-gate
+        #iu git cherry-pick secc/ROCK-8640-connect-gate
+
+        # Fix flaky ToElapsedString month-end unit test (fails when run on day 30/31)
+        # Upstream fix, already in Rock develop - remove after upgrading past v17
+        iu git fetch --depth=2 https://github.com/SparkDevNetwork/Rock.git edbd354dd956d2311a5900144ddbdc90ef8a6cc8
+        iu git cherry-pick edbd354dd956d2311a5900144ddbdc90ef8a6cc8
+
+        # Fix FormatException in VideoFileFieldType.GetHtmlValue (SparkDevNetwork/Rock#6169)
+        # Upstream fix, already in Rock develop - remove after upgrading past v17
+        iu git fetch --depth=2 https://github.com/SparkDevNetwork/Rock.git 9b0e6c532ade4d10aa33c1ffd9722cdef585f7ee
+        iu git cherry-pick 9b0e6c532ade4d10aa33c1ffd9722cdef585f7ee
+
+        # ROCK-9172 Group requirements can become unmet once met (board showed expired
+        # Criminal Check / MinistrySafe as green). Backport of upstream 725d573690.
+        # Upstream fix, already in Rock v17.0 - remove after upgrading to v17+
+        iu git fetch --depth=2 https://github.com/SparkDevNetwork/Rock.git 725d573690e8236ac8d5a70a0c654da4e829ba0f
+        iu git cherry-pick 725d573690e8236ac8d5a70a0c654da4e829ba0f
+
+        # ROCK-9041 AzureBlobStorage.SaveContent leaks BinaryFile.ContentStream (Process
+        # Signature Documents job fails with file lock on Azure provider). Fork patch,
+        # secc/Rock PR #18 (closed, applied here). Remove once fixed upstream.
+        iu git fetch --depth=2 origin tag secc/ROCK-9041-azureblob-dispose
+        iu git cherry-pick secc/ROCK-9041-azureblob-dispose
+
+        #Update Persisted Attribute Values: stop 1,001 wasted AttributeValue table scans per run (|| -> &&). Fixed upstream in v20.1 only; still needed on v19.
+        iu git fetch --depth=2 origin e1f00499198b5624f98a84a6f00b1565ceb99e25
+        iu git cherry-pick e1f00499198b5624f98a84a6f00b1565ceb99e25
+
+  - task: PowerShell@2
+    displayName: Hash Obsidian sources
+    inputs:
+      targetType: inline
+      script: |
+        # Hash the Obsidian sources once, so the Cache tasks key on a string that still resolves
+        # at post-job save time even if later steps delete the source folders.
+        $roots = @(
+          'Rock.JavaScript.Obsidian\Framework', 'Rock.JavaScript.Obsidian\System', 'Rock.JavaScript.Obsidian\Build',
+          'Rock.JavaScript.Obsidian.Blocks\src', 'Rock.JavaScript.Obsidian.Blocks\build'
+        )
+        $files = @(
+          Get-ChildItem 'Rock.JavaScript.Obsidian\*.json', 'Rock.JavaScript.Obsidian\*.js',
+                        'Rock.JavaScript.Obsidian.Blocks\*.json', 'Rock.JavaScript.Obsidian.Blocks\*.js' -File
+          $roots | ForEach-Object { Get-ChildItem $_ -Recurse -File }
+        ) | Sort-Object FullName -Unique
+
+        $sha = [System.Security.Cryptography.SHA256]::Create()
+        $acc = New-Object System.IO.MemoryStream
+        foreach ($f in $files) {
+          $rel = [Text.Encoding]::UTF8.GetBytes($f.FullName.Substring((Get-Location).Path.Length))
+          $acc.Write($rel, 0, $rel.Length)
+          $h = $sha.ComputeHash([IO.File]::ReadAllBytes($f.FullName))
+          $acc.Write($h, 0, $h.Length)
+        }
+        $hash = ([BitConverter]::ToString($sha.ComputeHash($acc.ToArray())) -replace '-', '').ToLower()
+        Write-Host "Obsidian source hash: $hash ($($files.Count) files)"
+        Write-Host "##vso[task.setvariable variable=obsidianHash]$hash"
+
+  - task: NuGetToolInstaller@1
+    displayName: Use NuGet 6.14.0
+    inputs:
+      versionSpec: 6.14.0
+      checkLatest: false
+
+  - task: NuGetCommand@2
+    displayName: NuGet restore
+    inputs:
+      command: restore
+      restoreSolution: '**\Rock.sln'
+      feedsToUse: config
+      nugetConfigPath: NuGet.config
+
+  - task: NuGetCommand@2
+    displayName: NuGet custom
+    inputs:
+      command: custom
+      arguments: install Microsoft.AspNet.WebPages -OutputDirectory packages
+
+  - task: CopyFiles@2
+    displayName: 'Copy System.Web.WebPages*.dll to: RockWeb/bin'
+    inputs:
+      SourceFolder: packages/
+      Contents: '**/System.Web.WebPages*.dll'
+      TargetFolder: RockWeb/bin
+
+  - task: CopyFiles@2
+    displayName: Copy Facade Files
+    inputs:
+      SourceFolder: C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\Facades
+      Contents: '**'
+      TargetFolder: C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2
+
+  - task: NodeTool@0
+    displayName: Use Node 22.x
+    inputs:
+      versionSpec: 22.x
+
+  - task: PowerShell@2
+    displayName: Add Package Dependencies to RockWeb/Bin
+    inputs:
+      targetType: filePath
+      filePath: PrebuildRockWeb.ps1
+      arguments: Rock.sln
+
+  - task: Cache@2
+    displayName: Cache Obsidian dist
+    inputs:
+      key: 'obsidian-dist-node22 | "$(Agent.OS)" | "$(obsidianHash)"'
+      path: $(Build.SourcesDirectory)/Rock.JavaScript.Obsidian/dist
+      cacheHitVar: OBSIDIAN_DIST_HIT
+
+  - task: Cache@2
+    displayName: Cache Obsidian Blocks dist
+    inputs:
+      key: 'blocks-dist-node22 | "$(Agent.OS)" | "$(obsidianHash)"'
+      path: $(Build.SourcesDirectory)/Rock.JavaScript.Obsidian.Blocks/dist
+      cacheHitVar: BLOCKS_DIST_HIT
+
+  - task: Cache@2
+    displayName: Cache RockWeb Obsidian
+    inputs:
+      key: 'rockweb-obsidian-node22 | "$(Agent.OS)" | "$(obsidianHash)"'
+      path: $(Build.SourcesDirectory)/RockWeb/Obsidian
+      cacheHitVar: ROCKWEB_OBSIDIAN_HIT
+
+  - task: PowerShell@2
+    displayName: Build Rock
+    inputs:
+      targetType: inline
+      script: |
+        echo "Copying DLLs . . ."
+        copy packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll RockWeb\Bin\
+        copy packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll RockWeb\Bin\
+        copy packages\AspNet.Security.OpenIdConnect.Primitives.2.0.0\lib\netstandard2.0\AspNet.Security.OpenIdConnect.Primitives.dll RockWeb\Bin\
+        copy packages\AspNet.Security.OpenIdConnect.Primitives.2.0.0\lib\netstandard2.0\AspNet.Security.OpenIdConnect.Primitives.dll RockWeb\Bin\
+        copy packages\Owin.Security.OpenIdConnect.Server.2.0.0\lib\net47\Owin.Security.OpenIdConnect.Server.dll  RockWeb\Bin\
+        copy packages\RestSharp.105.2.3\lib\net46\RestSharp.dll  RockWeb\Bin\
+        copy packages\HtmlAgilityPack.1.4.9.5\lib\Net45\HtmlAgilityPack.dll RockWeb\Bin\
+        copy libs\Quartz\Quartz.dll RockWeb\Bin\
+        copy packages\ImageResizer.4.0.5\lib\Net45\ImageResizer.dll RockWeb\Bin\
+        copy packages\Twilio.5.1.0\lib\Net451\Twilio.dll RockWeb\Bin\
+        copy packages\UAParser.3.1.44\lib\Net45\UAParser.dll RockWeb\Bin\
+        copy packages\CsvHelper.2.16.3.0\lib\Net45\CsvHelper.dll RockWeb\Bin\
+        copy packages\System.Linq.Dynamic.Core.1.2.9\lib\Net45\System.Linq.Dynamic.Core.dll RockWeb\Bin\
+        copy packages\NuGet.Core.2.11.1\lib\net40-Client\NuGet.Core.dll RockWeb\Bin\
+        copy packages\Owin.Security.OpenIdConnect.Extensions.2.0.0\lib\net461\Owin.Security.OpenIdConnect.Extensions.dll RockWeb\Bin\
+        copy packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll RockWeb\Bin\
+        copy packages\Microsoft.IdentityModel.Clients.ActiveDirectory.2.21.301221612\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll RockWeb\Bin\
+        copy packages\CS-Script.bin.3.13.2.0\lib\net45\CSScriptLibrary.dll RockWeb\Bin\
+        copy packages\Fluid.Core.2.3.1\lib\netstandard2.0\Fluid.dll RockWeb\Bin\
+        copy libs\Slingshot\Slingshot.Core.dll RockWeb\Bin\
+        copy libs\Humanizer.2.1.0\Humanizer.dll RockWeb\Bin\
+        copy libs\EPPlus\EPPlus.dll RockWeb\Bin\
+        copy libs\Rock.Common.Tv\Rock.Common.Tv.dll RockWeb\Bin\
+
+        echo "Installing TypeScript . . ."
+        npm install --save-dev typescript
+
+        #echo "Building Rock . . ."
+        #& 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.com' Rock.sln /Build
+        ### msbuild
+        echo "Building Rock . . ."
+
+        ### Obsidian cache
+        # Obsidian build output restored from cache. build-fast skips when dist/.buildstamp is newer
+        # than every source file; a fresh checkout stamps sources with checkout time, so bump the stamps.
+        if ($env:OBSIDIAN_DIST_HIT -eq 'true' -and $env:BLOCKS_DIST_HIT -eq 'true' -and $env:ROCKWEB_OBSIDIAN_HIT -eq 'true') {
+            Write-Host "Obsidian output restored from cache; marking dist up to date"
+            (Get-Item 'Rock.JavaScript.Obsidian\dist\.buildstamp').LastWriteTime = Get-Date
+            (Get-Item 'Rock.JavaScript.Obsidian.Blocks\dist\.buildstamp').LastWriteTime = Get-Date
+        } else {
+            Write-Host "Obsidian cache miss; full Obsidian build will run"
+        }
+        ### End Obsidian cache
+
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        $msbuild = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+        if (-not $msbuild) { throw "MSBuild.exe not found" }
+        $configuration = if ($env:BUILDCONFIGURATION) { $env:BUILDCONFIGURATION } else { 'Debug' }
+        Write-Host "Building $configuration with $msbuild"
+
+        # RockWeb is a Web Site project. When msbuild builds Rock.sln directly, the project it generates
+        # in memory for RockWeb fails to resolve Rock.dll and the other project references (MSB3268 on
+        # netstandard facades) and App_Code then fails with CS0234. The same generated project written to
+        # disk via MSBuildEmitSolution=1 and built from Rock.sln.metaproj resolves everything. devenv never
+        # hit this because it uses the VS web project system.
+        $env:MSBuildEmitSolution = '1'
+        & $msbuild Rock.sln /t:ValidateSolutionConfiguration "/p:Configuration=$configuration" /v:q /nologo
+        $env:MSBuildEmitSolution = $null
+        if ($LASTEXITCODE -ne 0) { throw "Emitting Rock.sln.metaproj failed with exit code $LASTEXITCODE" }
+        if (-not (Test-Path 'Rock.sln.metaproj')) { throw "Rock.sln.metaproj was not emitted" }
+
+        & $msbuild Rock.sln.metaproj /t:Build "/p:Configuration=$configuration" "/p:Platform=Any CPU" /m /nr:false /v:m /clp:Summary /nologo
+        if ($LASTEXITCODE -ne 0) { throw "MSBuild failed with exit code $LASTEXITCODE" }
+        Remove-Item *.metaproj, *.metaproj.tmp -ErrorAction SilentlyContinue
+        ###  end msbuild
+
+        # Add this to see where test DLLs ended up:
+        Write-Host "Searching for test DLLs..."
+        Get-ChildItem -Path $env:BUILD_SOURCESDIRECTORY -Recurse -Filter "*Tests*.dll" |
+            Where-Object { $_.FullName -notlike "*\obj\*" } |
+            Select-Object FullName
+
+  - task: VSTest@3
+    displayName: VsTest - testAssemblies
+    inputs:
+      testAssemblyVer2: $(Build.SourcesDirectory)\Rock.Tests.UnitTests\bin\Debug\Rock.Tests.UnitTests.dll
+      testSelector: testAssemblies
+      searchFolder: $(System.DefaultWorkingDirectory)
+      resultsFolder: $(Agent.TempDirectory)\TestResults
+      codeCoverageEnabled: true
+      runInParallel: false
+      runTestsInIsolation: false
+      rerunFailedTests: false
+
+  - task: PowerShell@2
+    displayName: Clean up temp files
+    inputs:
+      targetType: inline
+      script: |
+        Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "$env:LOCALAPPDATA\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+        # Define the folders to keep
+        $foldersToKeep = @("RockWeb", "packages", "libs", "Rock.JavaScript.Obsidian", "Rock.JavaScript.Obsidian.Blocks")
+
+        # 1. Get all items
+        # 2. Filter checks if the name is NOT in the $foldersToKeep list
+        # 3. Delete the rest
+        Get-ChildItem -Path "$(Build.SourcesDirectory)" -Force |
+            Where-Object { $_.Name -notin $foldersToKeep } |
+            Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+
+        Write-Host "Cleanup complete. Preserved 'RockWeb' and 'packages' and 'libs'."
+
+  - task: CmdLine@2
+    displayName: Clone RockPlugins
+    inputs:
+      script: |
+        echo Cloning RockPlugins
+        git clone -b $(PluginsBranch) --depth 1 https://github.com/secc/RockPlugins.git
+
+  - task: PowerShell@2
+    displayName: Build Plugins
+    inputs:
+      targetType: inline
+      script: |
+        # Plugin build rules live in the RockPlugins repo: Tools/pipeline-build-plugins.ps1
+        # (any-depth plugin projects, Obsidian front ends, deploy check). Change them by PR there.
+        & (Join-Path $env:BUILD_SOURCESDIRECTORY 'RockPlugins\Tools\pipeline-build-plugins.ps1')
+
+  - task: VSTest@3
+    displayName: Test Plugins
+    inputs:
+      testAssemblyVer2: |
+        **\org.secc.Test\bin\Debug\org.secc.Test.dll
+        !**\obj\**
+      testSelector: testAssemblies
+      searchFolder: $(System.DefaultWorkingDirectory)
+      resultsFolder: $(Agent.TempDirectory)\TestResults
+      codeCoverageEnabled: true
+      runInParallel: false
+      runTestsInIsolation: false
+      rerunFailedTests: false
+
+  - task: CopyFiles@2
+    displayName: Copy Plugin Files to Artifact Staging
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)
+      Contents: '**/*.plugin'
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+
+  - task: DeleteFiles@1
+    displayName: Delete RockPlugins
+    inputs:
+      Contents: |
+        RockPlugins
+        packages
+
+  - task: PowerShell@2
+    displayName: Create build.info file
+    inputs:
+      targetType: inline
+      script: |
+        "Build # $(Build.BuildNumber)" > '$(Build.SourcesDirectory)\RockWeb\build.info'
+
+  - task: ArchiveFiles@2
+    displayName: Archive RockWeb
+    inputs:
+      rootFolderOrFile: $(Build.SourcesDirectory)/RockWeb
+      includeRootFolder: false
+      archiveType: zip
+      archiveFile: $(Build.ArtifactStagingDirectory)/RockWeb.zip
+      replaceExistingArchive: true
+
+  - task: PublishSymbols@2
+    displayName: Publish symbols path
+    inputs:
+      SymbolsFolder: $(Build.SourcesDirectory)
+      SearchPattern: '**/bin/**/*.pdb'
+      IndexSources: true
+      PublishSymbols: false
+      DetailedLog: true
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Artifact
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: Artifacts
+      publishLocation: Container
