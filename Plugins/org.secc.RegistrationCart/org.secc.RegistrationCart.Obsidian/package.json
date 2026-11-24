@@ -10,7 +10,7 @@
         "viewmodels": "rock-dev-tool generate viewmodels ../org.secc.RegistrationCart/bin/Debug/net472/org.secc.RegistrationCart.dll -o src"
     },
     "dependencies": {
-        "@rockrms/obsidian-framework": "1.16.9-rc.1"
+        "@rockrms/obsidian-framework": "19.4.4"
     },
     "devDependencies": {
         "@sparkdevnetwork/obsidian-build-tools": "^1.0.13",
@@ -18,7 +18,7 @@
         "rimraf": "^5.0.1",
         "tslib": "^2.6.2",
         "typescript": "^5.5.4",
-        "vue": "^3.2.0",
+        "vue": "^3.5.46",
         "vue-tsc": "^2.1.6"
     }
 }
