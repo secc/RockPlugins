@@ -393,6 +393,24 @@ jobs:
         # (any-depth plugin projects, Obsidian front ends, deploy check). Change them by PR there.
         & (Join-Path $env:BUILD_SOURCESDIRECTORY 'RockPlugins\Tools\pipeline-build-plugins.ps1')
 
+  # The SEKids2020 themes import Font Awesome Pro SCSS. It is licensed, so it is not in either
+  # repo: it is the secure file "fontawesome-pro-scss.zip" in Pipelines > Library > Secure files
+  # (the Font Awesome Pro 5.15.4 web download; only its scss folder is used).
+  - task: DownloadSecureFile@1
+    name: fontAwesomeScss
+    displayName: Download Font Awesome Pro SCSS
+    inputs:
+      secureFile: fontawesome-pro-scss.zip
+
+  - task: PowerShell@2
+    displayName: Compile theme SCSS
+    inputs:
+      targetType: inline
+      script: |
+        # Compiles every theme's SCSS in RockWeb\Themes, so the CSS ships in RockWeb.zip.
+        # The rules live in the RockPlugins repo: Tools/pipeline-compile-themes.ps1.
+        & (Join-Path $env:BUILD_SOURCESDIRECTORY 'RockPlugins\Tools\pipeline-compile-themes.ps1') -FontAwesomeScssZip '$(fontAwesomeScss.secureFilePath)'
+
   - task: VSTest@3
     displayName: Test Plugins
     inputs:
