@@ -89,7 +89,7 @@ Categories in Rock: **SECC > Groups**, **SECC > Camp**, and **Groups**.
 | Publish Groups Lava | RockBlock | Output PublishGroups via Lava. Settings: `Lava Template`, `Campus Parameter Name` (default `CampusId`), `Category Parameter Name` (default `CategoryId`), `Filter Categories` (defined-value guid list limiting the category filter), `Category Filter Display Mode` (1 = hidden, 2+ = shown). Hides groups whose **Active** member count has reached `GroupCapacity`; group/publish-group attributes load via Rock's bulk `LoadAttributes` (qualifier filtering, inherited attributes, default values). |
 | Publish Group List | RockBlock | List of PublishGroups. |
 | Publish Group Registration | RockBlock | Register a person for a published group. The confirmation email is sent **From `noreply@secc.org`** with the publish group's `ConfirmationFromName`; the publish group's stored `ConfirmationEmail` is used as the **Reply-To**, falling back to `ContactEmail` when blank. Home groups pre-fill it from `ContactEmail` (legacy rows may still store `noreply@secc.org`). |
-| Publish Group Request | RockBlock | Display a publish-group request. Saving keeps the listing's Guid in every case but one (see *Publishing lifecycle* below). |
+| Publish Group Request | RockBlock | Display a publish-group request. Saving keeps the listing's Guid in every case but one (see *Publishing lifecycle* below). Schedule fields are populated from the Group's Schedule for every group type, including Home Groups; a Group with no Schedule loads with blank, disabled schedule fields. Block settings: **Home Group Types** (groups of these types get postal-code-only location, forced registration, no childcare, locked confirmation From Name and Subject, and the confirmation Body reset to the Home Group value on every load (the HTML editor itself stays editable); the confirmation email field stays editable because it is the Reply-To; clearing the From Name, Subject, or Body setting brings back its default, because Rock uses the default for a blank block setting; leaving Home Group Types blank disables Home Group handling, so set it on the block after deploy), **Home Group Confirmation From Name**, **Home Group Confirmation Subject**, **Home Group Confirmation Body** (`{{ GroupName }}` (any inner spacing) is replaced with the group name; other Lava is left for the confirmation email). |
 
 ### Models
 
@@ -175,4 +175,4 @@ Ships Rock plugin migrations under `/Migrations/` that build up the `PublishGrou
 - The Camp Allergies stored procedure is defined inline in `011_AddCampAllergyReportProc`; change
   it with a new migration rather than editing the proc in the database directly.
 
-**Last updated:** 2026-10-27
+**Last updated:** 2026-11-19
