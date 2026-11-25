@@ -19,17 +19,26 @@ parameters:
   type: string
   default: master
 
-# No CI trigger while this pipeline is validated next to the classic one. At cutover replace
-# with:
-#   trigger:
-#     batch: false
-#     branches:
-#       include:
-#       - master
-trigger: none
+# Builds on every push to master of this repo.
+trigger:
+  batch: false
+  branches:
+    include:
+    - master
 pr: none
 
 resources:
+  # Builds on every push to hotfix-1.16.12 of secc/Rock. A GitHub repository resource cannot
+  # trigger a pipeline, so the empty classic pipeline "Rock v16 Core Trigger" watches that
+  # branch and this pipeline runs when it completes. The run uses master of this repo.
+  # The name below must match that pipeline exactly, or this file fails to load.
+  pipelines:
+  - pipeline: rockCoreTrigger
+    source: Rock v16 Core Trigger
+    trigger:
+      branches:
+        include:
+        - hotfix-1.16.12
   repositories:
   - repository: rock
     type: github
