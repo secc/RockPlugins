@@ -2,7 +2,7 @@
 
 > Southeast's Rock site themes — the master pages, page layouts, and styling that skin Rock's external and check-in sites.
 
-Last updated: 2026-09-25
+Last updated: 2026-11-25
 
 ## Overview
 
@@ -48,6 +48,22 @@ and the share (production) is the source of truth. On 2026-09-24 the repo was re
 for the themes the database still uses (ROCK-9086, PR #317) with the Fluid-compatibility fixes re-applied on top;
 `KyleIdlman17`, `SE Kids` and `StarkLess` were not synced (retired / unused). After merging a theme change, copy the
 theme folder to the prod and dev shares (LF line endings, byte-compare, no deletes) and clear the Rock cache.
+
+## SCSS compile
+
+The build pipeline compiles theme SCSS (`Tools/pipeline-compile-themes.ps1`, "Compile theme SCSS" step in
+`azure-pipelines.yml`), so `RockWeb.zip` carries the compiled CSS (ROCK-9188). It uses the same compiler as the
+`org.secc.Sass` plugin (SharpScss 1.3.8 / LibSass) and the same rule: every `.scss` under a theme's `Styles/` folder
+whose name doesn't start with `_` becomes a `.css` next to it, unless the theme has `Styles/.nocompile`. A file that
+fails to compile fails the build.
+
+- It compiles the merged `RockWeb\Themes` tree, because themes import from each other and from `RockWeb\Styles`
+  (the `SEKids2020` themes import `SECC2019/Styles/mixins` and `Styles/FontAwesome/Scss`).
+- The Font Awesome Pro SCSS is licensed and is not in the repo. The pipeline gets it from the Azure DevOps secure
+  file `fontawesome-pro-scss.zip`.
+- To compile locally, copy the themes into a scratch `RockWeb\Themes` and run the script with `-RockWeb` and
+  `-SharpScssPackage ..\Rock\packages\SharpScss.1.3.8`.
+- Until the web servers stop serving `/Themes` from the share, the CSS they serve is still the CSS on the share.
 
 ## Components
 
