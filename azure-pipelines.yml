@@ -8,6 +8,14 @@
 # Layout on the agent matches the classic build: secc/Rock is checked out to
 # $(Build.SourcesDirectory) and this repo is cloned into $(Build.SourcesDirectory)\RockPlugins
 # by the "Clone RockPlugins" step.
+#
+# Rock version upgrade: the Rock branch name is set in three places. Change all three.
+#   1. resources.pipelines -> trigger branch filter, in this file.
+#   2. resources.repositories -> ref, in this file.
+#   3. The "Rock v16 Core Trigger" pipeline in Azure DevOps: its default branch and its CI
+#      branch filter. This one is not in the repo.
+# Also review the "Cherry-Pick Core Changes" step: drop picks the new version already
+# includes. The full upgrade workflow is in secc-patches/README.md.
 
 # The classic definition had no build number format, so the build number was the build id.
 # RockWeb\build.info is written from it.

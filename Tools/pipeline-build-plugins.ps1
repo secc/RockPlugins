@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
-    Builds every deployable org.secc plugin into RockWeb for the Azure DevOps "Rock v16"
-    pipeline (build definition 39, "Build Plugins" step).
+    Builds every deployable org.secc plugin into RockWeb for the Azure DevOps "Rock v16 YAML"
+    pipeline (azure-pipelines.yml at the repo root, "Build Plugins" step).
 
 .DESCRIPTION
     The pipeline step only calls this script, so how plugins are found and built lives in the
