@@ -56,6 +56,28 @@ git format-patch -1 <new-sha> -o <rockplugins>/secc-patches/patches/
 If a tag is ever lost (repo re-fork, etc.), fall back to the patch file:
 `git am --3way secc-patches/patches/<file>.patch`
 
+### 3. Point the build pipeline at the new branch
+
+The build is `azure-pipelines.yml` at the root of this repo (Azure DevOps
+pipeline "Rock v16 YAML"). The Rock branch name is set in three places, and
+all three must change together:
+
+1. `azure-pipelines.yml`, `resources.pipelines` → the trigger branch filter.
+2. `azure-pipelines.yml`, `resources.repositories` → `ref`.
+3. The "Rock v16 Core Trigger" pipeline in Azure DevOps: its default branch
+   and its CI branch filter. This pipeline is empty; it only watches the
+   secc/Rock branch and starts the build when that branch changes. It is not
+   in the repo, so change it in the Azure DevOps UI.
+
+If that pipeline is renamed, change `source:` in `azure-pipelines.yml` to
+match. A name that doesn't match stops every build from starting.
+
+Then review the "Cherry-Pick Core Changes" step in `azure-pipelines.yml`. It
+applies its own list of core fixes at build time, separate from the manifest
+above, and several are marked for removal once the upgrade passes a given
+version. Remove the picks the new version already includes; a pick that is
+already upstream can fail the build.
+
 ## Adding a new customization
 
 1. Land it on the current version branch as **one squashed commit**
